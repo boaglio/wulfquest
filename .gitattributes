@@ -1,0 +1,6 @@
+# AGENTS.md §20.9 — content DB files are hand-edited and reviewed in diffs.
+*.json text eol=lf
+*.java text eol=lf
+*.md   text eol=lf
+*.sh   text eol=lf working-tree-encoding=UTF-8
+*.xml  text eol=lf
