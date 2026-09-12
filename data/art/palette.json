@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "transparent": -1,
+  "entries": [
+    { "i": 0,  "name": "black",         "rgb": "#000000" },
+    { "i": 1,  "name": "blue",          "rgb": "#1926A8" },
+    { "i": 2,  "name": "red",           "rgb": "#A82219" },
+    { "i": 3,  "name": "magenta",       "rgb": "#A826A8" },
+    { "i": 4,  "name": "green",         "rgb": "#19A226" },
+    { "i": 5,  "name": "cyan",          "rgb": "#19A2A8" },
+    { "i": 6,  "name": "yellow",        "rgb": "#A8A226" },
+    { "i": 7,  "name": "white",         "rgb": "#B4B4B4" },
+    { "i": 8,  "name": "brightBlack",   "rgb": "#000000" },
+    { "i": 9,  "name": "brightBlue",    "rgb": "#2740FF" },
+    { "i": 10, "name": "brightRed",     "rgb": "#FF3A2C" },
+    { "i": 11, "name": "brightMagenta", "rgb": "#FF40FF" },
+    { "i": 12, "name": "brightGreen",   "rgb": "#2CE840" },
+    { "i": 13, "name": "brightCyan",    "rgb": "#2CE8FF" },
+    { "i": 14, "name": "brightYellow",  "rgb": "#FFE840" },
+    { "i": 15, "name": "brightWhite",   "rgb": "#FFFFFF" }
+  ]
+}

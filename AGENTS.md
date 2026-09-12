@@ -165,8 +165,8 @@ In `README.md` and on the title screen credits page:
 | Build | **Maven** (`pom.xml` at root) — replaces the current `run.sh` + `javac` flow |
 | Rendering | **Java2D** on an AWT `Canvas` with `BufferStrategy`, hosted in a `JFrame` |
 | Audio | `javax.sound.sampled.SourceDataLine`, samples generated in-process |
-| JSON | **Jackson Databind** (`com.fasterxml.jackson.core:jackson-databind`) |
-| Schema validation | `com.networknt:json-schema-validator` |
+| JSON | **Jackson 3** (`tools.jackson.core:jackson-databind`) — the `tools.jackson` package, not `com.fasterxml` |
+| Schema validation | `com.networknt:json-schema-validator` **3.x**, which is built on Jackson 3 — so the whole data layer shares one `JsonNode` type. Do not mix in a `com.fasterxml` Jackson; the two are incompatible. |
 | Tests | **JUnit 5** + AssertJ |
 | Static analysis | ErrorProne (or SpotBugs) — warnings are errors in CI |
 
@@ -636,8 +636,10 @@ Row 0 is north. This is the map. Do not "improve" it.
 - **Boundary ring** — types **17–20, 23–34, 40–45** appear only on row 0,
   row 15, col 0, col 15. These are the river/mountain edge: impassable
   outward, walkable inward.
-- **Interior** — types **1–16, 19, 21, 22, 29** fill rows 1–14, cols 1–14:
-  the 196 playable jungle rooms.
+- **Interior** — types **1–16, 19, 21, 22, 29** plus the central-landmark
+  types **35–39** fill rows 1–14, cols 1–14: the 196 playable jungle rooms.
+  The interior and boundary type sets are disjoint — the ring has its own
+  vocabulary of templates — and `MapDataTest` locks both sets exactly.
 - **Central landmark** — a mirrored structure around col 8, rows 6–9, built
   from otherwise-unique types:
   ```
@@ -878,8 +880,13 @@ exporter (it would tempt binaries back into the repo).
 `data/art/font/font.json` holds two original glyph sets: a **4×6** set for
 the panel's dense numerics and an **8×8** set for titles. Same row/legend
 format, one frame per codepoint, `"glyphs": { "A": [...], "0": [...] }`.
-Cover: `A–Z 0–9 . , : ! ? ' " - + ( ) / % © space`. Lowercase is optional
-(the period look is all-caps).
+Cover: `A–Z`, `0–9`, and `. , : ; ! ? ' " - + * = / \ ( ) [ ] { } < > # $ ^
+_ & @ | ~` plus space — 68 glyphs. The punctuation set is not decorative: JSON
+Schema messages on the `DATA_ERROR` screen quote pointers and regexes, and a
+missing glyph renders as `?`, which turns `^#[0-9A-Fa-f]{6}$` into noise. `©`
+is omitted deliberately — it is unreadable at 3×5 and belongs to the 8×8 set.
+Lowercase is optional; the painter upper-cases on draw (the period look is
+all-caps).
 
 ---
 
@@ -1565,7 +1572,11 @@ data-driven game; build it in M1.
 
 - `LIVES` shows up to 5 small head icons then `x7` numerically beyond that.
 - The amulet quarters assemble into a single shape in the centre — the
-  visual goal of the game. Empty slots are index 8 (dark) silhouettes.
+  visual goal of the game. Empty slots are silhouettes in `white` (index 7)
+  against the panel's black ground, with held quarters in `brightWhite`.
+  **Not index 8**: `brightBlack` is `#000000` in this palette — bright black
+  is still black — so anything drawn in it on the panel is invisible. The
+  same trap applies anywhere you reach for a "dark grey".
 - The effect bar is blank when no effect is active (do not draw an empty
   frame — blank means blank).
 - Panel messages (`AMULET STIRS TO THE NORTH-WEST`, `EXTRA LIFE`) overwrite
@@ -2106,18 +2117,58 @@ deleted **before** the first commit of this codebase, so it has never
 entered git history and never can be recovered from it — which is exactly
 where you want that line to fall.
 
-### M1 — Data spine and a window (2 days)
+### M1 — Data spine and a window — **COMPLETE (2026-09-12)**
 
-- `JsonDb`, schemas, all §20.6 validators, the `DATA_ERROR` screen.
-- Palette, framebuffer, integer scaler, a window that renders a solid
-  border and an empty panel at scale 4.
-- `original_map.json` loads; `MapDataTest` locks every §8 fact.
-- 4×6 and 8×8 fonts drawn from `font.json`; panel layout drawn with
-  placeholder values.
+**Accepted:** the window renders the border, the playfield outline and the
+panel; corrupting `tickHz` to a string yields
+`file: …/data/config/game.json, pointer: /tickHz, problem: fails its schema:
+string found, integer expected`, and the process exits 2. 52 tests green,
+`mvn -q verify` green.
 
-**Accept when:** the window shows the panel with `SCORE 0000000 HI 0000000`,
-and deliberately corrupting a data file produces the `DATA_ERROR` screen
-naming the file and pointer.
+What landed:
+
+- `JsonDb` (§20.3): filesystem-first then classpath, parse → schema-validate
+  → version-check → bind → cache, with a SHA-256 `contentHash()` over every
+  file loaded, in load order, for the determinism contract (§6.4).
+- Five content files and their schemas: `config/game`, `config/display`,
+  `art/palette`, `art/font/font`, `world/original_map`.
+- `DataException` carries file + JSON pointer + reason; `DataErrorScreen`
+  renders it; the console prints the same three lines.
+- `OriginalMapRepository` (§8.3) with every index built once at load.
+- `Framebuffer` (indexed bytes, FNV-1a hash for §22.5), `Scaler` (integer
+  nearest-neighbour into a reused `BufferedImage`), `Window` (one
+  `drawImage` per frame), `GameLoop` (§6.1 exactly), `PanelPainter` (§17.3).
+- `MapDataTest`: 18 assertions locking the §8 table — grid, start room,
+  template counts, the 41 scenery ids, 919/5105 placements, template size
+  range, placement bounds, the disjoint interior/boundary type sets, the
+  central landmark's mirror symmetry, the 21 hut rooms and 8 arch rooms by
+  address, and the §9 per-room usage weights.
+
+Three bugs the milestone found, all now fixed:
+
+1. **`$id` must be an absolute IRI.** `"wulfquest/game.schema.json"` made the
+   validator throw `InvalidSchemaException`. Schemas now use
+   `https://wulfquest.invalid/schema/…` — a reserved TLD, never fetched.
+2. **Validator messages are localised.** On a pt-BR machine the schema error
+   came back in Portuguese, which the accent-free font cannot render.
+   `JsonDb` now pins `Locale.ENGLISH` and `PathType.JSON_POINTER`, which also
+   made the hand-rolled pointer conversion unnecessary — the library emits
+   real JSON pointers.
+3. **`brightBlack` is `#000000`.** Unheld amulet slots and the effect-bar
+   track were drawn in it, i.e. invisible on the black panel. See §17.3.
+
+Deferred, deliberately:
+
+- **The 8×8 title font.** Nothing before M8 draws with it, and the M1
+  acceptance criteria do not need it. The 4×6 panel set is complete at 68
+  glyphs, including the JSON/regex punctuation the `DATA_ERROR` screen needs.
+- **Most of the §20.6 named validators.** Schema validation plus the
+  loader's own structural checks cover everything that exists today
+  (`FontSet` performs the font half of `SpriteSizeValidator` at load).
+  `SceneryFootprintValidator`, `MapReferenceValidator`, `CreatureRefValidator`,
+  `AnimationValidator`, `AudioValidator` and `I18nValidator` land with the
+  data families they police, in M2 and M4.
+- Hot reload (§20.5) and the `--dev` flag beyond argument parsing.
 
 ### M2 — Scenery art and the world (4 days)
 

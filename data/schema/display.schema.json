@@ -1,0 +1,79 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wulfquest.invalid/schema/display.schema.json",
+  "title": "display.json — AGENTS.md §5.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "canvas", "playfield", "panel", "scale", "border", "crt", "spriteFlicker"],
+  "properties": {
+    "schemaVersion": { "type": "integer", "minimum": 1 },
+    "canvas": { "$ref": "#/$defs/size" },
+    "playfield": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["x", "y", "w", "h", "cell", "cols", "rows"],
+      "properties": {
+        "x": { "type": "integer", "minimum": 0 },
+        "y": { "type": "integer", "minimum": 0 },
+        "w": { "type": "integer", "minimum": 1 },
+        "h": { "type": "integer", "minimum": 1 },
+        "cell": { "type": "integer", "const": 8 },
+        "cols": { "type": "integer", "const": 32 },
+        "rows": { "type": "integer", "const": 24 }
+      }
+    },
+    "panel": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["x", "y", "w", "h"],
+      "properties": {
+        "x": { "type": "integer", "minimum": 0 },
+        "y": { "type": "integer", "minimum": 0 },
+        "w": { "type": "integer", "minimum": 1 },
+        "h": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "scale": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["defaultScale", "min", "max", "integerOnly"],
+      "properties": {
+        "defaultScale": { "type": "integer", "minimum": 1, "maximum": 12 },
+        "min": { "type": "integer", "minimum": 1 },
+        "max": { "type": "integer", "minimum": 1, "maximum": 12 },
+        "integerOnly": { "type": "boolean" }
+      }
+    },
+    "border": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["idleColour", "flashOnEvent"],
+      "properties": {
+        "idleColour": { "type": "string", "minLength": 1 },
+        "flashOnEvent": { "type": "boolean" }
+      }
+    },
+    "crt": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["scanlines", "glow", "attributeClash"],
+      "properties": {
+        "scanlines": { "type": "boolean" },
+        "glow": { "type": "boolean" },
+        "attributeClash": { "type": "boolean" }
+      }
+    },
+    "spriteFlicker": { "type": "boolean" }
+  },
+  "$defs": {
+    "size": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["w", "h"],
+      "properties": {
+        "w": { "type": "integer", "minimum": 1 },
+        "h": { "type": "integer", "minimum": 1 }
+      }
+    }
+  }
+}

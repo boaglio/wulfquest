@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "canvas": { "w": 320, "h": 256 },
+  "playfield": { "x": 32, "y": 16, "w": 256, "h": 192, "cell": 8, "cols": 32, "rows": 24 },
+  "panel": { "x": 32, "y": 208, "w": 256, "h": 40 },
+  "scale": { "defaultScale": 4, "min": 1, "max": 6, "integerOnly": true },
+  "border": { "idleColour": "black", "flashOnEvent": true },
+  "crt": { "scanlines": false, "glow": false, "attributeClash": false },
+  "spriteFlicker": false
+}

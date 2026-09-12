@@ -21,7 +21,9 @@
     <maven.compiler.release>21</maven.compiler.release>
 
     <!-- AGENTS.md §3: pinned, and all present in the local repository cache. -->
-    <jackson.version>2.21.5</jackson.version>
+    <!-- Jackson 3 (tools.jackson); json-schema-validator 3.x is built on it,
+         so both halves of the data layer share one JsonNode type. -->
+    <jackson.version>3.1.5</jackson.version>
     <jsonschema.version>3.0.1</jsonschema.version>
     <junit.version>5.12.2</junit.version>
     <assertj.version>3.27.7</assertj.version>
@@ -31,7 +33,7 @@
 
   <dependencies>
     <dependency>
-      <groupId>com.fasterxml.jackson.core</groupId>
+      <groupId>tools.jackson.core</groupId>
       <artifactId>jackson-databind</artifactId>
       <version>${jackson.version}</version>
     </dependency>

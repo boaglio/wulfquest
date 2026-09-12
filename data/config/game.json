@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "tickHz": 50,
+  "maxCatchupTicks": 5,
+  "transition": { "freezeTicks": 6, "wulfArrivalDelayTicks": 12 },
+  "difficulty": { "budgetBonusByPieces": [0, 0, 1, 1, 2], "maxRoomBudget": 6 },
+  "exit": { "keeperNudgeZonePx": 16, "keeperStepAsideTicks": 60 },
+  "features": {
+    "caveHints": true,
+    "animatedWater": false,
+    "distanceDrivenGait": false,
+    "treasures": false,
+    "extraLifeIdol": false,
+    "bonusRooms": false,
+    "pauseMap": false,
+    "saveInProgress": false,
+    "stats": true
+  }
+}

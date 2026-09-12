@@ -12,9 +12,18 @@ engine.
 
 ## Status
 
-**Milestone M0 complete** — project skeleton, build, and the no-binary-assets
-gate. There is no playable game yet. Next up is M1 (data layer and a window).
-The full plan lives in [AGENTS.md](AGENTS.md) §24.
+**Milestone M1 complete** — the JSON content database with schema validation,
+the indexed framebuffer and window, the status panel, and the canon lock on
+the extracted 256-room map. There is no playable game yet: rooms arrive in M2
+and the player in M3. The full plan lives in [AGENTS.md](AGENTS.md) §24.
+
+```
+$ mvn -q exec:java -Dexec.args="--headless"
+Wulf Quest — M1
+  content hash : 08cd040a5d66d8...
+  files loaded : [config/game, config/display, art/palette, art/font/font, world/original_map]
+  map          : 16x16 rooms, start 8,10, 48 templates (45 used), 41 scenery objects, 5105 placements
+```
 
 ## Build and run
 

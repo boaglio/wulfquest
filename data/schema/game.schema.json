@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wulfquest.invalid/schema/game.schema.json",
+  "title": "game.json — AGENTS.md §6.1, §7.5, §12.6, §14.4, §16.2",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "tickHz", "maxCatchupTicks", "transition", "difficulty", "exit", "features"],
+  "properties": {
+    "schemaVersion": { "type": "integer", "minimum": 1 },
+    "tickHz": { "type": "integer", "minimum": 1, "maximum": 240 },
+    "maxCatchupTicks": { "type": "integer", "minimum": 1, "maximum": 60 },
+    "transition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["freezeTicks", "wulfArrivalDelayTicks"],
+      "properties": {
+        "freezeTicks": { "type": "integer", "minimum": 0 },
+        "wulfArrivalDelayTicks": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "difficulty": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["budgetBonusByPieces", "maxRoomBudget"],
+      "properties": {
+        "budgetBonusByPieces": {
+          "type": "array",
+          "minItems": 5,
+          "maxItems": 5,
+          "items": { "type": "integer", "minimum": 0 }
+        },
+        "maxRoomBudget": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "exit": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["keeperNudgeZonePx", "keeperStepAsideTicks"],
+      "properties": {
+        "keeperNudgeZonePx": { "type": "integer", "minimum": 0 },
+        "keeperStepAsideTicks": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "features": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["caveHints", "animatedWater", "distanceDrivenGait", "treasures",
+                   "extraLifeIdol", "bonusRooms", "pauseMap", "saveInProgress", "stats"],
+      "patternProperties": { "^[a-zA-Z]+$": { "type": "boolean" } }
+    }
+  }
+}
