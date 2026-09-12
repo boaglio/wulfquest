@@ -162,7 +162,7 @@ In `README.md` and on the title screen credits page:
 | Item | Choice |
 |------|--------|
 | Language | **Java 21** (`--release 21`); the dev box has JDK 25, do not use preview features |
-| Build | **Maven** (`pom.xml` at root) — replaces the current `run.sh` + `javac` flow |
+| Build | **Maven** (`pom.xml` at root); `./run.sh` is a thin wrapper over it (§3.2) |
 | Rendering | **Java2D** on an AWT `Canvas` with `BufferStrategy`, hosted in a `JFrame` |
 | Audio | `javax.sound.sampled.SourceDataLine`, samples generated in-process |
 | JSON | **Jackson 3** (`tools.jackson.core:jackson-databind`) — the `tools.jackson` package, not `com.fasterxml` |
@@ -191,6 +191,36 @@ mvn -q exec:java -Dexec.mainClass=wulf.tools.ReplayRunner -Dexec.args="replays/f
 On a display-less machine, `HeadlessSim` is the only way to exercise the
 game; it must never touch AWT (§22.4).
 
+### 3.2 `./run.sh` — the convenience wrapper
+
+`run.sh` wraps the commands above for day-to-day play. It is a wrapper, not a
+second build system: `pom.xml` stays the source of truth, and CI calls Maven
+directly. Never add build logic to the script that Maven does not also do.
+
+```bash
+./run.sh                 # build if stale, then play
+./run.sh --scale 3       # unrecognised options pass straight to the game
+./run.sh --headless      # load and validate the data, then exit
+./run.sh --clean         # mvn clean first
+./run.sh --rebuild       # compile even if nothing looks stale
+./run.sh --no-build      # skip the build (fails if nothing is compiled)
+./run.sh --test          # full mvn verify (tests + CI gates) first
+./run.sh --help
+```
+
+Three behaviours worth knowing:
+
+- **Editing `data/` does not trigger a rebuild.** Staleness is judged from
+  `pom.xml` and `src/main` only, because the game reads `./data` from the
+  working tree first (§20.1). Content edits are picked up on the next run with
+  no compile at all — a cold run is ~4.5 s, a warm one ~0.4 s.
+- It **appends** to `MAVEN_OPTS` rather than replacing it, so a developer's
+  own heap or locale settings survive. It adds only
+  `--sun-misc-unsafe-memory-access=allow`, which silences a deprecation banner
+  Maven 3.9's bundled Guava emits on modern JDKs.
+- It `exec`s the JVM, so the game's exit code is the script's: **0** clean,
+  **2** data error (§17.1).
+
 ---
 
 ## 4. Repository layout
@@ -199,7 +229,8 @@ game; it must never touch AWT (§22.4).
 wulfquest/
   AGENTS.md                     this file — the contract
   README.md                     player-facing; carries the §2.5 attribution
-  pom.xml                       Maven build; there is no run.sh
+  pom.xml                       Maven build — the source of truth
+  run.sh                        convenience wrapper around it, §3.2
   .gitattributes                LF endings for all text, §20.9
   .gitignore                    target/, attic/, *.log, save/
   tools/

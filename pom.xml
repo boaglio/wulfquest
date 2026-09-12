@@ -43,6 +43,15 @@
       <version>${jsonschema.version}</version>
     </dependency>
 
+    <!-- json-schema-validator pulls slf4j-api; without a provider it prints a
+         three-line banner on every run. The game has no logging framework. -->
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-nop</artifactId>
+      <version>2.0.17</version>
+      <scope>runtime</scope>
+    </dependency>
+
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter</artifactId>

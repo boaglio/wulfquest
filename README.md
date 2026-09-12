@@ -30,10 +30,23 @@ Wulf Quest — M1
 Needs a JDK 21+ and Maven.
 
 ```bash
+./run.sh               # build if needed, then play
+./run.sh --scale 3     # options are passed through to the game
+./run.sh --headless    # load and validate the data, then exit
+./run.sh --test        # full verify (tests + CI gates) first
+./run.sh --help
+```
+
+`run.sh` is a convenience wrapper; Maven is the build:
+
+```bash
 mvn -q verify          # compile, test, validate all data, run the CI gates
 mvn -q exec:java       # run
 mvn -q package && java -jar target/wulfquest-0.1.0-SNAPSHOT.jar
 ```
+
+Editing anything under `data/` takes effect on the next `./run.sh` with no
+rebuild — the game reads the working tree's `data/` directly.
 
 ## Controls
 
