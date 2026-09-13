@@ -1,6 +1,7 @@
 {
   "schemaVersion": 1,
   "sprites": [
+    "player",
     "scenery_70bc",
     "scenery_71b3",
     "scenery_7298",

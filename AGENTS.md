@@ -238,6 +238,7 @@ wulfquest/
   .gitignore                    target/, attic/, *.log, save/
   tools/
     art/scenery_forge.py        generates the 41 scenery sprites, §10.5 (dev-time only)
+    art/character_forge.py      generates Ranger Vale's frames, §10.5 (dev-time only)
     check-no-binaries.sh        CI gate, §2.4 — bound to the verify phase
     check-schemas.sh            validates every data file against its schema
   data/                         THE DATABASE. Read-only at runtime. Ships in the jar.
@@ -595,13 +596,20 @@ overrides to close a gap: fix the art (§9).
 - Scenery collision test: convert the box's four corners to cells, test the
   mask. A box overlapping any solid cell is blocked.
 - **Axis-separated resolution**, in this order, every tick:
-  1. Apply the full X component of velocity. If blocked, step X back to the
-     nearest non-colliding pixel (binary search is forbidden — step by 1 px,
-     max `|vx|` iterations).
+  1. Apply the full X component of velocity. If blocked, settle on the
+     nearest non-colliding **whole pixel**, stepping back 1 px at a time
+     (binary search is forbidden). The fraction is dropped deliberately:
+     collision is tested per whole pixel, so a kept sub-pixel remainder lets a
+     pinned player creep about inside the last free pixel — M3's
+     `WallSlideTest` caught exactly that.
   2. Apply the full Y component. Same clamping.
   This ordering is what produces the original's **wall-sliding**: pushing
   diagonally into a wall slides you along it instead of stopping dead. It is
   a required feel property, tested in §22.2.
+- **Sliding keeps full speed.** The diagonal scale (§11.2) applies only when
+  neither axis is already touching a wall (a 1 px probe on each axis). Pressed
+  against a wall on one axis, the player slides along the other at that axis's
+  full cardinal rate.
 - Entity-vs-entity collision is box overlap, tested after all movement.
 
 ### 7.5 Flip-screen transition **[CANON]** behaviour, **[RECON]** timings
@@ -609,11 +617,15 @@ overrides to close a gap: fix the art (§9).
 Triggered when the player's **feet box centre** crosses a playfield edge.
 
 ```
-Leaving east  (centre.x >= 256): newRoom = (col+1, row), entry x = 0   + 2
-Leaving west  (centre.x <  0)  : newRoom = (col-1, row), entry x = 256 - 2 - boxW
-Leaving north (centre.y <  0)  : newRoom = (col, row-1), entry y = 192 - 2 - boxH
-Leaving south (centre.y >= 192): newRoom = (col, row+1), entry y = 0   + 2
+positions live in WORLD pixels (0..4096 x 0..3072), never room-local
+centre   = the feet-box centre
+room     = (floor(centre.x / 256), floor(centre.y / 192))
+a change of room is the transition; the position itself does not change
 ```
+
+Implemented this way in M3. Keeping the player in world coordinates makes the
+preserved cross-edge coordinate exact by construction — there is no entry
+offset to compute, and none to get wrong. Rendering subtracts the room origin.
 
 - The cross-edge coordinate is **preserved exactly** (you come out of the
   new room's edge at the same offset you left at). No re-centring.
@@ -937,7 +949,7 @@ Animations live with the entity, not the sprite:
   "walk_down":  { "frames": ["dn0","dn1","dn2","dn3"],         "ticksPerFrame": 5, "loop": true },
   "idle":       { "frames": ["walk0"],                          "ticksPerFrame": 0, "loop": false },
   "swing":      { "frames": ["sw0","sw1","sw2"],               "ticksPerFrame": 4, "loop": false },
-  "die":        { "frames": ["die0","die1","die2","die3"],     "ticksPerFrame": 8, "loop": false }
+  "die":        { "frames": ["die0","die1","die2","die3"],     "ticksPerFrame": 10, "loop": false }
 }
 ```
 
@@ -991,6 +1003,14 @@ traced from any image.
   ```
   It rewrites all 41 `scenery_*.sprite.json`, `art/sprites/index.json` and
   `world/scenery.json`.
+- **`character_forge.py`** draws Ranger Vale the same way, from hand-authored
+  stamps (hat, head, torso) and limbs stroked between joints: 25 frames plus
+  their left-facing mirrors. It has no randomness at all. The blade is not in
+  the sprite — the renderer draws it from the live hitbox, so what you see is
+  exactly what hits.
+- **Forges share `art/sprites/index.json`** and each merges only its own
+  entries into it. Regenerating the scenery must never drop the player sprite,
+  and vice versa.
 - **Hand edits to generated files are overwritten** on the next run. To hand
   tune one object, change its drawing function — or take it out of the
   forge's work order and own its JSON by hand, and say so in the commit.
@@ -1020,11 +1040,12 @@ horizontally than vertically, and sliding along walls.
   "collisionBox": { "x": -5, "y": -9, "w": 10, "h": 9 },
   "speed": { "xFp": 384, "yFp": 256, "diagonalScaleFp": 218 },
   "lives": { "start": 5, "max": 9, "extraAt": [15000, 40000, 75000, 120000] },
-  "spawn": { "invulnTicks": 100, "blinkPeriodTicks": 4 },
+  "spawn": { "invulnTicks": 100, "blinkPeriodTicks": 4,
+             "insideRoomPx": { "left": 8, "right": 8, "top": 24, "bottom": 0 } },
   "death": { "animTicks": 40, "freezeTicks": 20, "keepAmulet": true },
   "sabre": {
     "windupTicks": 3, "activeTicks": 6, "recoverTicks": 3, "cooldownTicks": 6,
-    "reachPx": 14, "thicknessPx": 12,
+    "reachPx": 14, "thicknessPx": 12, "diagonalOffsetPx": 4,
     "moveSpeedScaleFp": 256,
     "repelWulfPx": 24, "repelWulfStunTicks": 30
   },
@@ -1114,12 +1135,15 @@ then         COOLDOWN 6 ticks before another swing is allowed
 ```
 contact with any hostile while not invulnerable and not immune
   ──► lives--
-  ──► DYING state, 40 ticks (4-frame animation, 8 ticks each)
+  ──► DYING state, 40 ticks (4-frame animation, 10 ticks each)
         sim frozen for creatures? NO — creatures keep moving, it is a diorama
         border flashes red on ticks 0,4,8,12 (Ultimate style)
   ──► 20 ticks of black/frozen
   ──► if lives > 0: respawn in the SAME room, at the room's safe-spawn point
-        (nearest non-solid cell to the entry point used last, breadth-first),
+        (nearest non-solid cell to the entry point used last, breadth-first,
+        with the whole sprite inside the room — spawn.insideRoomPx — because an
+        entry point straddles the edge, where the flip-screen clip cuts the
+        sprite in half),
         with 100 ticks of invulnerability (blink 2 on / 2 off)
         the room's creatures are re-rolled from scratch
   ──► if lives == 0: GAME_OVER
@@ -1793,20 +1817,29 @@ else. With two channels, a higher-priority event steals channel 0.
     "modern": {
       "up":    ["UP", "W"],  "down":  ["DOWN", "S"],
       "left":  ["LEFT", "A"], "right": ["RIGHT", "D"],
-      "fire":  ["SPACE", "Z"], "pause": ["P"], "quit": ["ESCAPE"]
+      "fire":  ["SPACE", "Z"], "pause": ["P"], "quit": ["ESCAPE"],
+      "devKill": ["K"], "devMask": ["M"]
     },
     "period": {
       "up": ["Q"], "down": ["A"], "left": ["O"], "right": ["P"],
-      "fire": ["M"], "pause": ["H"], "quit": ["ESCAPE"]
+      "fire": ["M"], "pause": ["H"], "quit": ["ESCAPE"],
+      "devKill": ["K"], "devMask": ["N"]
     }
   },
   "active": "modern",
-  "gamepad": { "enabled": true, "deadzone": 0.4, "dpadAsDirections": true }
+  "gamepad": { "enabled": false, "deadzonePercent": 40, "dpadAsDirections": true }
 }
 ```
 
 The `period` profile is `Q/A/O/P/M` — the era's default key layout. Offer it
 on the title screen as a nod; do not make it default.
+
+- `devKill` and `devMask` act only with `--dev`.
+- A key bound to two actions within a profile is a load-time `DataException`.
+- The deadzone is an integer percent: nothing that reaches the game is a float.
+- **X11 auto-repeat** delivers a release and a press with the same timestamp
+  while a key is merely held. `KeyboardInput` treats that pair as still held,
+  or holding fire would swing on its own (§11.6).
 
 ### 19.2 Sampling discipline
 
@@ -2345,16 +2378,64 @@ determinism meant exactly those 11 files changed. Interior median walkable went
 from 56 % to 45 %, and the gap to the canon maze from 17 points to 6, now locked
 by `MapAuditTest`.
 
-### M3 — Ranger Vale (2 days)
+### M3 — Ranger Vale — **COMPLETE (2026-09-12)**
 
-- Player sprites (walk ×3 view sets, swing, die), movement per §11,
-  collision, wall sliding, flip-screen transitions, lives, death, respawn.
-- All §22.2 movement tests passing.
+**Accepted:** Ranger Vale walks from `8,10` to all four corners of the map —
+proven by `CornerWalkTest`, which plans a route over the real map at the feet
+box's exact clearance and drives the real simulation there with ordinary
+per-tick input, flips and all. Every §22.2 movement-feel test is green. The live
+window was launched and only its own frame captured; no input was injected into
+the desktop.
 
-**Accept when:** you can walk from `8,10` to all four map corners, the
-transitions are seamless in both directions, and the movement tests are
-green. Play it for five minutes; if the walk does not feel weightless and
-immediate, fix it before moving on.
+What landed:
+
+- **Simulation core** (`wulf.sim`): 8-direction movement with no acceleration
+  or inertia; axis-separated collision on the feet box; wall sliding at the
+  free axis's full rate; flip-screen transitions with the 6-tick hitch; the
+  sabre state machine and hitbox; death, the border strobe, respawn and
+  blinking invulnerability; game over. Integer 8.8 fixed point throughout, and
+  a `stateHash()` over all state. Positions are **world** coordinates, so a
+  flip preserves the cross-edge coordinate by construction (§7.5).
+- `CollisionWorld`, which the simulation depends on instead of the map, so
+  tests build open fields and walls from lambdas.
+- **Input** (`wulf.input`): a per-tick immutable `InputState`, `InputMap` from
+  `input.json` with conflicting bindings rejected at load, and `KeyboardInput`,
+  which handles X11 auto-repeat (§19.1).
+- **Art:** `character_forge.py` draws 25 frames plus 7 mirrors. The blade is
+  drawn from the live hitbox, not the sprite.
+- **Rendering:** `PlayerPainter` with pure, tested frame selection; a
+  `Framebuffer` clip so sprites and the blade never paint the border.
+- **Play mode** in `Boot`, with the headless, tested `GameSession` for pause,
+  quit, game over and restart. The M2 room browser moved to `--browse`.
+- The §20.6 `AnimationValidator`: every frame an animation names exists, and
+  every side-view frame has a mirror.
+- Determinism: two 5 000-tick runs over the real map agree on every tick.
+  `SimPurityTest` bans AWT, Swing, sound, `java.util.Random`, the clock, and
+  float or double from the simulation.
+
+Found along the way:
+
+- **Sub-pixel creep against walls.** Collision is per whole pixel, but the
+  blocked-axis step-back kept the target's fraction, so a pinned player drifted
+  half a pixel. `WallSlideTest` caught it; blocked axes now settle on whole
+  pixels (§7.4).
+- **Respawns half-hidden at room edges** — spotted by eye in a rendered
+  playthrough, not by any test. The respawn anchor is the entry point, which
+  straddles the edge by definition. Respawns now keep the whole sprite inside
+  the room (`spawn.insideRoomPx`, §11.7), with a test.
+- Two bugs in M3's own tests, both worth remembering. The corner-walk bot
+  reached three corners one room short because the first route block past an
+  edge sits *on* the edge, where a 1 px steering tolerance leaves the feet on
+  the old side — the bot now aims a full cell inside. And a validator test
+  failed on the wrong animation because validation walks animations in name
+  order.
+- Spec corrections: the die animation's frame timing contradicted its 40-tick
+  duration; the gamepad deadzone was a float; the flip entry formulas were
+  superseded by world coordinates; dev keys joined the input profiles.
+
+Deferred, deliberately: gamepad input (`gamepad.enabled` is false); score, hi
+score and the amulet on the panel stay placeholders until M4–M6; `--dev` hot
+reload (§20.5) is still pending.
 
 ### M4 — Creatures (4 days)
 

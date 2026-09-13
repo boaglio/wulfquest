@@ -7,7 +7,7 @@ package wulf.world;
  * exactly (AGENTS.md §7.5), walking between rooms is continuous movement on
  * this grid. Outside the map is solid: the world edge is a wall.
  */
-public final class WorldGrid {
+public final class WorldGrid implements CollisionWorld {
 
     public static final int COLS = RoomAddress.GRID_W * CollisionMask.COLS;
     public static final int ROWS = RoomAddress.GRID_H * CollisionMask.ROWS;
@@ -29,6 +29,7 @@ public final class WorldGrid {
         }
     }
 
+    @Override
     public boolean isSolid(int gx, int gy) {
         return gx < 0 || gy < 0 || gx >= COLS || gy >= ROWS || solid[gy * COLS + gx];
     }

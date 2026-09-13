@@ -56,6 +56,26 @@ class FramebufferTest {
     }
 
     @Test
+    void theClipLimitsSetAndFillRectButNotClear() {
+        Framebuffer fb = new Framebuffer(8, 8);
+        fb.clear(0);
+        fb.setClip(2, 2, 4, 4);
+        fb.fillRect(0, 0, 8, 8, 5);
+        fb.set(0, 0, 7);
+        fb.set(7, 7, 7);
+        assertThat(fb.get(1, 1)).isZero();
+        assertThat(fb.get(2, 2)).isEqualTo(5);
+        assertThat(fb.get(5, 5)).isEqualTo(5);
+        assertThat(fb.get(6, 6)).isZero();
+        assertThat(fb.get(0, 0)).isZero();
+        fb.clear(9);
+        assertThat(fb.get(0, 0)).as("clear ignores the clip").isEqualTo(9);
+        fb.clearClip();
+        fb.set(0, 0, 4);
+        assertThat(fb.get(0, 0)).isEqualTo(4);
+    }
+
+    @Test
     void hashIsStableAndSensitive() {
         Framebuffer a = new Framebuffer(16, 16);
         Framebuffer b = new Framebuffer(16, 16);

@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "active": "modern",
+  "profiles": {
+    "modern": {
+      "up": ["UP", "W"],
+      "down": ["DOWN", "S"],
+      "left": ["LEFT", "A"],
+      "right": ["RIGHT", "D"],
+      "fire": ["SPACE", "Z"],
+      "pause": ["P"],
+      "quit": ["ESCAPE"],
+      "devKill": ["K"],
+      "devMask": ["M"]
+    },
+    "period": {
+      "up": ["Q"],
+      "down": ["A"],
+      "left": ["O"],
+      "right": ["P"],
+      "fire": ["M"],
+      "pause": ["H"],
+      "quit": ["ESCAPE"],
+      "devKill": ["K"],
+      "devMask": ["N"]
+    }
+  },
+  "gamepad": { "enabled": false, "deadzonePercent": 40, "dpadAsDirections": true }
+}

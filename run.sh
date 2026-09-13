@@ -48,7 +48,9 @@ Script options:
   -h, --help                  this message
 
 Game options (see AGENTS.md §3.1):
-  --room C,R                  open the room browser at a room (default: 8,10)
+  --room C,R                  start in this room (default: 8,10)
+  --browse                    the room browser instead of the game
+  --dev                       K kills, M shows collision, position on the panel
   --scale N                   window scale, 1..6
   --data-dir PATH             content database root (default: ./data)
   --headless                  load and validate the data, then exit

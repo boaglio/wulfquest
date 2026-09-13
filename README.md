@@ -12,24 +12,17 @@ engine.
 
 ## Status
 
-**Milestone M2 complete** — the whole 256-room jungle renders, from 41
-original scenery sprites laid out on the extracted map, with collision baked
-for every room. A navigability audit confirms all 196 interior rooms are
-reachable from the start. There is no player yet: that is M3. The full plan
-lives in [AGENTS.md](AGENTS.md) §24.
-
-Explore the map in the room browser:
+**Milestone M3 complete** — Ranger Vale walks the jungle. Eight-direction
+movement that slides along walls, flip-screen rooms across all 256 screens,
+the sabre, death and respawn. There are no creatures yet (M4), no Wulf (M5)
+and no quest (M6). The full plan lives in [AGENTS.md](AGENTS.md) §24.
 
 ```bash
-./run.sh --room 7,3        # open at the stone arch (default: the start room, 8,10)
+./run.sh                   # play, starting in 8,10
+./run.sh --room 3,4        # start somewhere else
+./run.sh --dev             # K kills Vale, M shows collision, the panel shows position
+./run.sh --browse          # the room browser: arrows, [ ] or PgUp/PgDn, M
 ```
-
-| Key | Room browser |
-|-----|--------------|
-| Arrows | Move to the neighbouring room |
-| `[` `]` or PgUp / PgDn | Step through all 256 rooms in order |
-| M | Show the collision mask |
-| Esc | Quit |
 
 ## Build and run
 
@@ -63,8 +56,9 @@ rebuild — the game reads the working tree's `data/` directly.
 | P | Pause |
 | Escape | Quit |
 
-A period key layout (`Q`/`A`/`O`/`P` to move, `M` to swing) can be selected
-from the title screen.
+A period key layout (`Q`/`A`/`O`/`P` to move, `M` to swing, `H` to pause) is
+defined in `data/config/input.json` — set `"active": "period"`. A title-screen
+switch arrives with the title screen in M8.
 
 ## How it is built
 

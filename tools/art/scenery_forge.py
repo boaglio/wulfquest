@@ -557,6 +557,20 @@ BIOME = {
 }
 
 
+def update_index(own_names, owns):
+    """
+    Rewrite data/art/sprites/index.json, replacing only this forge's entries.
+    Several forges share the index; each owns a set of names and must keep the
+    rest, or regenerating the scenery would silently drop the player sprite.
+    """
+    path = ROOT / "data/art/sprites/index.json"
+    existing = json.loads(path.read_text(encoding="utf-8"))["sprites"] if path.exists() else []
+    names = sorted({n for n in existing if not owns(n)} | set(own_names))
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump({"schemaVersion": 1, "sprites": names}, f, indent=2)
+        f.write("\n")
+
+
 def work_order():
     """Footprints and subjects straight from the AGENTS.md §9 table."""
     doc = (ROOT / "AGENTS.md").read_text(encoding="utf-8")
@@ -585,9 +599,7 @@ def main():
         objects[obj_id] = {"cells": {"w": cw, "h": ch}, "sprite": name, "subject": subject,
                            "biomeHint": next((b for b, ids in BIOME.items() if obj_id in ids), "jungle"),
                            "fidelity": "recon-art-canon-footprint"}
-    with open(sprites_dir / "index.json", "w", encoding="utf-8") as f:
-        json.dump({"schemaVersion": 1, "sprites": sorted(names)}, f, indent=2)
-        f.write("\n")
+    update_index(names, lambda n: n.startswith("scenery_"))
     with open(ROOT / "data/world/scenery.json", "w", encoding="utf-8") as f:
         json.dump({"schemaVersion": 1, "solidCoveragePercent": 25, "objects": dict(sorted(objects.items()))},
                   f, indent=2, ensure_ascii=False)

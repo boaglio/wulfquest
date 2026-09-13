@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wulfquest.invalid/schema/input.schema.json",
+  "title": "config/input.json — AGENTS.md §19",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "active", "profiles", "gamepad"],
+  "properties": {
+    "schemaVersion": { "type": "integer", "minimum": 1 },
+    "active": { "type": "string", "minLength": 1 },
+    "profiles": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["up", "down", "left", "right", "fire", "pause", "quit", "devKill", "devMask"],
+        "patternProperties": {
+          "^(up|down|left|right|fire|pause|quit|devKill|devMask)$": {
+            "type": "array", "minItems": 1, "uniqueItems": true,
+            "items": { "type": "string", "pattern": "^([A-Z]|[0-9]|UP|DOWN|LEFT|RIGHT|SPACE|ESCAPE|ENTER|TAB|BACKSPACE)$" }
+          }
+        }
+      }
+    },
+    "gamepad": {
+      "type": "object", "additionalProperties": false, "required": ["enabled", "deadzonePercent", "dpadAsDirections"],
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "deadzonePercent": { "type": "integer", "minimum": 0, "maximum": 100 },
+        "dpadAsDirections": { "type": "boolean" }
+      }
+    }
+  }
+}

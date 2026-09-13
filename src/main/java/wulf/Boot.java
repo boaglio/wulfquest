@@ -7,29 +7,38 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Supplier;
 import wulf.data.DataException;
 import wulf.data.DisplayConfig;
 import wulf.data.FontData;
 import wulf.data.JsonDb;
 import wulf.data.Palette;
+import wulf.engine.Fixed;
 import wulf.engine.GameLoop;
+import wulf.input.InputMap;
+import wulf.input.InputState;
+import wulf.input.KeyboardInput;
 import wulf.render.Fonts;
 import wulf.render.Framebuffer;
 import wulf.render.PanelPainter;
+import wulf.render.PlayerPainter;
 import wulf.render.RoomPainter;
 import wulf.render.Scaler;
 import wulf.render.SpriteBank;
 import wulf.render.Window;
+import wulf.sim.Player;
+import wulf.sim.Simulation;
 import wulf.ui.DataErrorScreen;
 import wulf.world.Room;
 import wulf.world.RoomAddress;
+import wulf.world.WorldGrid;
 
 /**
  * Entry point. See AGENTS.md §3 for the argument list and §24 for what each
  * milestone adds here.
  *
- * <p>M2 boots the whole content database — map, scenery, sprites, collision —
- * and opens a room browser over all 256 rooms. The player arrives in M3. A data
+ * <p>M3: Ranger Vale walks the jungle. Movement, collision, flip-screen rooms,
+ * the sabre, death and respawn. {@code --browse} keeps M2's room browser. A data
  * error anywhere shows {@link DataErrorScreen} instead of throwing.
  *
  * <p>No game value belongs in this file (AGENTS.md §27 rule 2).
@@ -61,7 +70,7 @@ public final class Boot {
     }
 
     private void run(Content c, Args parsed) {
-        System.out.println("Wulf Quest — M2");
+        System.out.println("Wulf Quest — M3");
         System.out.println("  content hash : " + c.db().contentHash());
         System.out.println("  files loaded : " + c.db().loaded().size());
         System.out.println("  map          : " + c.map().gridW() + "x" + c.map().gridH()
@@ -72,19 +81,175 @@ public final class Boot {
                 + c.map().totalRoomPlacements() + " placements");
         System.out.println("  scenery      : " + c.scenery().ids().size() + " objects, "
                 + c.sprites().all().size() + " sprites");
-
+        System.out.println("  player       : " + c.player().displayName() + ", "
+                + c.player().lives().start() + " lives, sprite '" + c.player().sprite() + "'");
         if (parsed.headless()) {
             System.out.println("  --headless: skipping the window");
             return;
         }
+        if (parsed.browse()) {
+            runBrowser(c, parsed);
+        } else {
+            runGame(c, parsed);
+        }
+    }
 
+    /** What a window-backed mode needs. */
+    private record Screen(Framebuffer fb, Scaler scaler, Window window) {
+    }
+
+    private static Screen openScreen(Content c, Args parsed, String title) {
+        DisplayConfig d = c.display();
+        int scale = d.scale().clamp(parsed.scale() > 0 ? parsed.scale() : d.scale().defaultScale());
+        Framebuffer fb = new Framebuffer(d.canvas().w(), d.canvas().h());
+        Scaler scaler = new Scaler(c.palette().toArgb(), fb.width(), fb.height(), scale);
+        int border = c.palette().indexOf(d.border().idleColour());
+        Window window = new Window(title, fb.width() * scale, fb.height() * scale,
+                new Color(c.palette().toArgb()[border]));
+        return new Screen(fb, scaler, window);
+    }
+
+    // ------------------------------------------------------------------ play
+
+    private void runGame(Content c, Args parsed) {
         DisplayConfig display = c.display();
         Palette palette = c.palette();
-        int scale = display.scale().clamp(parsed.scale() > 0 ? parsed.scale() : display.scale().defaultScale());
-        Framebuffer fb = new Framebuffer(display.canvas().w(), display.canvas().h());
-        Scaler scaler = new Scaler(palette.toArgb(), fb.width(), fb.height(), scale);
-        Fonts fonts = new Fonts("art/font/font.json", c.font());
-        PanelPainter panel = new PanelPainter(display, fonts, palette);
+        Screen screen = openScreen(c, parsed, "Wulf Quest");
+        PanelPainter panel = new PanelPainter(display, new Fonts("art/font/font.json", c.font()), palette);
+        SpriteBank sprites = new SpriteBank(c.sprites());
+        RoomPainter rooms = new RoomPainter(display, sprites, c.scenery(), palette.indexOf("black"));
+        PlayerPainter vale = new PlayerPainter(display, sprites, c.player(), palette);
+        int border = palette.indexOf(display.border().idleColour());
+        int alarm = palette.indexOf("brightRed");
+        int maskColour = palette.indexOf("brightRed");
+
+        WorldGrid world = new WorldGrid(c.rooms());
+        RoomAddress start = parsed.room() != null ? parsed.room() : c.map().startRoom();
+        KeyboardInput keys = new KeyboardInput(new InputMap(c.input()));
+        screen.window().canvas().addKeyListener(keys);
+        screen.window().canvas().addFocusListener(keys);
+        GameSession session = new GameSession(
+                () -> Simulation.startingIn(c.player(), world, c.game().transition().freezeTicks(), start));
+
+        System.out.println("  controls     : arrows or WASD walk, Space or Z swing, P pause, Esc quit"
+                + (parsed.dev() ? "   [dev: K kill, M collision mask]" : ""));
+
+        GameLoop loop = new GameLoop(c.game().tickHz(), c.game().maxCatchupTicks());
+        loop.run(new GameLoop.Stepper() {
+            @Override
+            public void tick() {
+                session.tick(keys.sample(), parsed.dev());
+            }
+
+            @Override
+            public void render() {
+                Simulation sim = session.sim();
+                Room room = c.rooms().room(sim.room());
+                Framebuffer fb = screen.fb();
+                fb.clear(display.border().flashOnEvent() && sim.borderAlarm() ? alarm : border);
+                rooms.paint(fb, room);
+                if (session.showMask()) {
+                    rooms.paintMask(fb, room, maskColour);
+                }
+                vale.paint(fb, sim);
+                panel.paint(fb, 0L, 0L, sim.player().lives(), 0, -1, 0, session.message(parsed.dev()));
+                screen.window().present(screen.scaler().render(fb));
+            }
+
+            @Override
+            public boolean running() {
+                return !session.quit() && screen.window().open();
+            }
+        });
+        screen.window().close();
+    }
+
+    /**
+     * The loop-thread state around one {@link Simulation}: pause, game over,
+     * restart and the dev toggles. Headless and testable; the AWT thread never
+     * touches it.
+     */
+    static final class GameSession {
+
+        private final Supplier<Simulation> newGame;
+        private Simulation sim;
+        private boolean paused;
+        private boolean showMask;
+        private boolean quit;
+
+        GameSession(Supplier<Simulation> newGame) {
+            this.newGame = newGame;
+            this.sim = newGame.get();
+        }
+
+        void tick(InputState in, boolean dev) {
+            if (in.quitPressed()) {
+                quit = true;
+                return;
+            }
+            if (dev && in.devMaskPressed()) {
+                showMask = !showMask;
+            }
+            if (sim.player().mode() == Player.Mode.GAME_OVER) {
+                if (in.firePressed()) {
+                    sim = newGame.get();
+                    paused = false;
+                }
+                return;
+            }
+            if (in.pausePressed()) {
+                paused = !paused;
+            }
+            if (paused) {
+                return;
+            }
+            if (dev && in.devKillPressed()) {
+                sim.kill();
+            }
+            sim.tick(in);
+        }
+
+        /** The panel line: game over, pause, or in dev mode where you are. Null for none. */
+        String message(boolean dev) {
+            if (sim.player().mode() == Player.Mode.GAME_OVER) {
+                return "GAME OVER - PRESS FIRE";
+            }
+            if (paused) {
+                return "PAUSED";
+            }
+            if (dev) {
+                Player p = sim.player();
+                int x = Fixed.px(p.xFp()) - sim.room().col() * Simulation.ROOM_W_PX;
+                int y = Fixed.px(p.yFp()) - sim.room().row() * Simulation.ROOM_H_PX;
+                return "ROOM " + sim.room() + "  X" + x + " Y" + y + (showMask ? "  MASK" : "");
+            }
+            return null;
+        }
+
+        Simulation sim() {
+            return sim;
+        }
+
+        boolean paused() {
+            return paused;
+        }
+
+        boolean showMask() {
+            return showMask;
+        }
+
+        boolean quit() {
+            return quit;
+        }
+    }
+
+    // ------------------------------------------------------------------ room browser (M2)
+
+    private void runBrowser(Content c, Args parsed) {
+        DisplayConfig display = c.display();
+        Palette palette = c.palette();
+        Screen screen = openScreen(c, parsed, "Wulf Quest — room browser");
+        PanelPainter panel = new PanelPainter(display, new Fonts("art/font/font.json", c.font()), palette);
         RoomPainter rooms = new RoomPainter(display, new SpriteBank(c.sprites()), c.scenery(), palette.indexOf("black"));
         int border = palette.indexOf(display.border().idleColour());
         int frameColour = palette.indexOf("blue");
@@ -98,9 +263,7 @@ public final class Boot {
         System.out.println("  room browser : arrows move between rooms, [ ] or PgUp/PgDn step through all 256,");
         System.out.println("                 M shows the collision mask, Esc quits");
 
-        Window window = new Window("Wulf Quest", fb.width() * scale, fb.height() * scale,
-                new Color(palette.toArgb()[border]));
-        window.canvas().addKeyListener(new KeyAdapter() {
+        screen.window().canvas().addKeyListener(new KeyAdapter() {
             @Override
             public void keyPressed(KeyEvent e) {
                 RoomAddress r = current.get();
@@ -130,12 +293,13 @@ public final class Boot {
         loop.run(new GameLoop.Stepper() {
             @Override
             public void tick() {
-                // M3 onwards: input sample and simulation step.
+                // the browser has no simulation
             }
 
             @Override
             public void render() {
                 Room room = c.rooms().room(current.get());
+                Framebuffer fb = screen.fb();
                 fb.clear(border);
                 DisplayConfig.Playfield f = display.playfield();
                 fb.drawRect(f.x() - 1, f.y() - 1, f.w() + 2, f.h() + 2, frameColour);
@@ -146,15 +310,15 @@ public final class Boot {
                 String message = "ROOM " + room.address() + "  TYPE " + room.type()
                         + "  WALK " + room.mask().walkablePercent() + "%" + (showMask.get() ? "  MASK" : "");
                 panel.paint(fb, 0L, 0L, 5, 0, -1, 0, message);
-                window.present(scaler.render(fb));
+                screen.window().present(screen.scaler().render(fb));
             }
 
             @Override
             public boolean running() {
-                return !quit.get() && window.open();
+                return !quit.get() && screen.window().open();
             }
         });
-        window.close();
+        screen.window().close();
     }
 
     static RoomAddress step(RoomAddress r, int dx, int dy) {
@@ -168,6 +332,8 @@ public final class Boot {
         int i = Math.floorMod(r.index() + delta, total);
         return new RoomAddress(i % RoomAddress.GRID_W, i / RoomAddress.GRID_W);
     }
+
+    // ------------------------------------------------------------------ data errors
 
     private static void reportDataError(JsonDb db, Args parsed, DataException e) {
         System.err.println();
@@ -218,18 +384,21 @@ public final class Boot {
         window.close();
     }
 
+    // ------------------------------------------------------------------ arguments
+
     /**
      * Command-line arguments (AGENTS.md §3.1). A malformed argument never throws:
      * it comes back as {@link #error()}, which {@link #main} reports and exits 64.
      */
-    record Args(Path dataDir, int scale, RoomAddress room, boolean headless, boolean dev, boolean help,
-                String error) {
+    record Args(Path dataDir, int scale, RoomAddress room, boolean headless, boolean browse, boolean dev,
+                boolean help, String error) {
 
         static Args parse(String[] argv) {
             Path dataDir = defaultDataDir();
             int scale = 0;
             RoomAddress room = null;
             boolean headless = false;
+            boolean browse = false;
             boolean dev = false;
             boolean help = false;
             try {
@@ -237,6 +406,7 @@ public final class Boot {
                     switch (argv[i]) {
                         case "--dev" -> dev = true;
                         case "--headless", "--no-window" -> headless = true;
+                        case "--browse" -> browse = true;
                         case "--help", "-h" -> help = true;
                         case "--scale" -> scale = number(argv, ++i, "--scale");
                         case "--room" -> room = roomArg(argv, ++i);
@@ -245,9 +415,9 @@ public final class Boot {
                     }
                 }
             } catch (IllegalArgumentException e) {
-                return new Args(dataDir, scale, room, headless, dev, help, e.getMessage());
+                return new Args(dataDir, scale, room, headless, browse, dev, help, e.getMessage());
             }
-            return new Args(dataDir, scale, room, headless, dev, help, null);
+            return new Args(dataDir, scale, room, headless, browse, dev, help, null);
         }
 
         private static String value(String[] argv, int i, String option) {
@@ -288,12 +458,16 @@ public final class Boot {
             System.out.println("""
                     Wulf Quest
 
+                      --room C,R       start in this room (default: the start room, 8,10)
+                      --browse         the room browser instead of the game
                       --scale N        window scale (1..6)
-                      --room C,R       open the room browser at this room (default: the start room)
                       --data-dir PATH  content database root (default: ./data, else the jar)
                       --headless       load and validate the data, then exit
-                      --dev            developer mode
+                      --dev            developer mode: K kills, M shows collision, room and
+                                       position on the panel
                       --help           this message
+
+                    Controls: arrows or WASD walk, Space or Z swing, P pause, Esc quit.
                     """);
         }
     }

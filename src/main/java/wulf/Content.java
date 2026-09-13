@@ -1,13 +1,16 @@
 package wulf;
 
 import java.nio.file.Path;
+import wulf.data.AnimationValidator;
 import wulf.data.DisplayConfig;
 import wulf.data.FontData;
 import wulf.data.GameConfig;
+import wulf.data.InputConfig;
 import wulf.data.JsonDb;
 import wulf.data.OriginalMap;
 import wulf.data.OriginalMapRepository;
 import wulf.data.Palette;
+import wulf.data.PlayerData;
 import wulf.data.SceneryData;
 import wulf.data.SpriteRepository;
 import wulf.world.RoomBaker;
@@ -24,10 +27,12 @@ public record Content(
         DisplayConfig display,
         Palette palette,
         FontData font,
+        InputConfig input,
         OriginalMapRepository map,
         SpriteRepository sprites,
         SceneryCatalog scenery,
-        RoomBaker rooms) {
+        RoomBaker rooms,
+        PlayerData player) {
 
     public static Content load(Path dataDir) {
         return load(new JsonDb(dataDir));
@@ -39,10 +44,13 @@ public record Content(
         DisplayConfig display = db.load("config/display", DisplayConfig.class);
         Palette palette = db.load("art/palette", Palette.class);
         FontData font = db.load("art/font/font", FontData.class);
+        InputConfig input = db.load("config/input", InputConfig.class);
         OriginalMapRepository map = new OriginalMapRepository(db.load("world/original_map", OriginalMap.class));
         SpriteRepository sprites = new SpriteRepository(db);
         SceneryCatalog scenery = new SceneryCatalog(db.load("world/scenery", SceneryData.class), sprites.all());
         RoomBaker rooms = new RoomBaker(map, scenery);
-        return new Content(db, game, display, palette, font, map, sprites, scenery, rooms);
+        PlayerData player = db.load("entities/player", PlayerData.class);
+        AnimationValidator.check(player, sprites);
+        return new Content(db, game, display, palette, font, input, map, sprites, scenery, rooms, player);
     }
 }

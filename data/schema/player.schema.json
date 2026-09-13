@@ -1,0 +1,92 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wulfquest.invalid/schema/player.schema.json",
+  "title": "entities/player.json — AGENTS.md §11",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "id", "displayName", "sprite", "collisionBox", "speed", "lives", "spawn", "death", "sabre", "animations"],
+  "properties": {
+    "schemaVersion": { "type": "integer", "minimum": 1 },
+    "id": { "const": "player" },
+    "displayName": { "type": "string", "minLength": 1 },
+    "sprite": { "type": "string", "pattern": "^[a-z][a-z0-9_]*$" },
+    "collisionBox": {
+      "type": "object", "additionalProperties": false, "required": ["x", "y", "w", "h"],
+      "properties": {
+        "x": { "type": "integer" }, "y": { "type": "integer" },
+        "w": { "type": "integer", "minimum": 1, "maximum": 16 },
+        "h": { "type": "integer", "minimum": 1, "maximum": 16 }
+      }
+    },
+    "speed": {
+      "type": "object", "additionalProperties": false, "required": ["xFp", "yFp", "diagonalScaleFp"],
+      "properties": {
+        "xFp": { "type": "integer", "minimum": 1, "maximum": 2048 },
+        "yFp": { "type": "integer", "minimum": 1, "maximum": 2048 },
+        "diagonalScaleFp": { "type": "integer", "minimum": 1, "maximum": 256 }
+      }
+    },
+    "lives": {
+      "type": "object", "additionalProperties": false, "required": ["start", "max", "extraAt"],
+      "properties": {
+        "start": { "type": "integer", "minimum": 1, "maximum": 9 },
+        "max": { "type": "integer", "minimum": 1, "maximum": 99 },
+        "extraAt": { "type": "array", "items": { "type": "integer", "minimum": 1 } }
+      }
+    },
+    "spawn": {
+      "type": "object", "additionalProperties": false, "required": ["invulnTicks", "blinkPeriodTicks", "insideRoomPx"],
+      "properties": {
+        "invulnTicks": { "type": "integer", "minimum": 0 },
+        "blinkPeriodTicks": { "type": "integer", "minimum": 1 },
+        "insideRoomPx": {
+          "description": "Minimum distance of the feet origin from each room edge at respawn, so the whole sprite is on screen",
+          "type": "object", "additionalProperties": false, "required": ["left", "right", "top", "bottom"],
+          "properties": {
+            "left": { "type": "integer", "minimum": 0, "maximum": 64 },
+            "right": { "type": "integer", "minimum": 0, "maximum": 64 },
+            "top": { "type": "integer", "minimum": 0, "maximum": 64 },
+            "bottom": { "type": "integer", "minimum": 0, "maximum": 64 }
+          }
+        }
+      }
+    },
+    "death": {
+      "type": "object", "additionalProperties": false, "required": ["animTicks", "freezeTicks", "keepAmulet"],
+      "properties": {
+        "animTicks": { "type": "integer", "minimum": 1 },
+        "freezeTicks": { "type": "integer", "minimum": 0 },
+        "keepAmulet": { "type": "boolean" }
+      }
+    },
+    "sabre": {
+      "type": "object", "additionalProperties": false,
+      "required": ["windupTicks", "activeTicks", "recoverTicks", "cooldownTicks", "reachPx", "thicknessPx",
+                   "diagonalOffsetPx", "moveSpeedScaleFp", "repelWulfPx", "repelWulfStunTicks"],
+      "properties": {
+        "windupTicks": { "type": "integer", "minimum": 0 },
+        "activeTicks": { "type": "integer", "minimum": 1 },
+        "recoverTicks": { "type": "integer", "minimum": 0 },
+        "cooldownTicks": { "type": "integer", "minimum": 0 },
+        "reachPx": { "type": "integer", "minimum": 1 },
+        "thicknessPx": { "type": "integer", "minimum": 1 },
+        "diagonalOffsetPx": { "type": "integer", "minimum": 0 },
+        "moveSpeedScaleFp": { "type": "integer", "minimum": 0, "maximum": 512 },
+        "repelWulfPx": { "type": "integer", "minimum": 0 },
+        "repelWulfStunTicks": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "animations": {
+      "type": "object",
+      "required": ["walk_side", "walk_up", "walk_down", "swing_side", "swing_up", "swing_down", "die"],
+      "additionalProperties": {
+        "type": "object", "additionalProperties": false, "required": ["frames", "ticksPerFrame", "loop"],
+        "properties": {
+          "frames": { "type": "array", "minItems": 1, "items": { "type": "string", "pattern": "^[a-z0-9_]+$" } },
+          "ticksPerFrame": { "type": "integer", "minimum": 0 },
+          "loop": { "type": "boolean" }
+        }
+      }
+    }
+  }
+}

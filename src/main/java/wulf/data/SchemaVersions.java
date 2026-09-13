@@ -18,7 +18,9 @@ public final class SchemaVersions {
             "font", 1,
             "sprite", 1,
             "sprite_index", 1,
-            "scenery", 1);
+            "scenery", 1,
+            "player", 1,
+            "input", 1);
 
     /**
      * Files that carry no {@code schemaVersion}. The sole member is the
