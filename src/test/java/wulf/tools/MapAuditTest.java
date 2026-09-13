@@ -50,4 +50,17 @@ class MapAuditTest {
         assertThat(report.footprintMaxWalk()).isEqualTo(52);
         assertThat(report.footprintMedianWalk()).isEqualTo(39);
     }
+
+    /**
+     * §7.3 / §25 Q13: collision is derived from the art, and the art must fill its
+     * footprint. Sparse sprites reopen routes the original maze walled off; this
+     * stops a future sprite edit from quietly loosening the maze again.
+     */
+    @Test
+    void artKeepsTheMazeWithinSixPointsOfTheFootprintMaze() {
+        assertThat(report.medianWalk() - report.footprintMedianWalk())
+                .as("interior median walkable %d%% against the footprint maze's %d%%",
+                        report.medianWalk(), report.footprintMedianWalk())
+                .isLessThanOrEqualTo(6);
+    }
 }

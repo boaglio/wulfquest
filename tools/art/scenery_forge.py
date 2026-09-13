@@ -165,6 +165,42 @@ def fern(cv, rng, bx, by, top, col="G", dark="g", spread=1.0, sway=1.0):
             cv.stroke(x, y, x - side * span * 0.7, y - span * 0.5, dark, 0.6, 0.5)
 
 
+def leafy_spine(cv, x0, y0, x1, y1, col="G", dark="g", span=6.0):
+    """A fern frond along any direction: a stem with alternating leaflets angled toward the tip."""
+    n = int(max(abs(x1 - x0), abs(y1 - y0)))
+    ang = math.atan2(y1 - y0, x1 - x0)
+    for i in range(n + 1):
+        t = i / max(1, n)
+        x, y = x0 + (x1 - x0) * t, y0 + (y1 - y0) * t
+        cv.set(x, y, dark)
+        cv.set(x + 1, y, col)
+        if i % 3 == 0 and t < 0.95:
+            length = (1 - t) * span + 1.5
+            side = 1 if (i // 3) % 2 else -1
+            a = ang + side * 1.1
+            cv.stroke(x, y, x + math.cos(a) * length, y + math.sin(a) * length, col, 0.9, 0.5)
+            a = ang - side * 1.1
+            cv.stroke(x, y, x + math.cos(a) * length * 0.7, y + math.sin(a) * length * 0.7, dark, 0.6, 0.5)
+
+
+def broad_leaf(cv, x0, y0, ang, length, width, col="G", dark="g", droop=0.0):
+    """A banana-style leaf: a lens-shaped blade with a dark midrib."""
+    left, right, spine = [], [], []
+    steps = max(4, int(length))
+    nx, ny = -math.sin(ang), math.cos(ang)
+    for i in range(steps + 1):
+        t = i / steps
+        x = x0 + math.cos(ang) * length * t
+        y = y0 + math.sin(ang) * length * t + droop * t * t * length
+        half = width * math.sin(math.pi * min(t, 0.999))
+        left.append((x + nx * half, y + ny * half))
+        right.append((x - nx * half, y - ny * half))
+        spine.append((x, y))
+    cv.poly(left + right[::-1], col)
+    for (xa, ya), (xb, yb) in zip(spine, spine[1:]):
+        cv.stroke(xa, ya, xb, yb, dark)
+
+
 def agave(cv, rng, bx, by, blades, reach, col="G", dark="g"):
     for i in range(blades):
         a = math.pi + (i + 0.5) / blades * math.pi + rng.uniform(-0.1, 0.1)
@@ -208,13 +244,13 @@ def reeds(cv, rng, x0, x1, by, top, count, cols=("G", "g", "R")):
             cv.stroke(x + bend * 0.5, mid, x + bend * 0.5 + rng.choice((-4, 4)), mid - 6, c, 0.8, 0.5)
 
 
-def cypress(cv, rng, cx, by, top, halfw):
+def cypress(cv, rng, cx, by, top, halfw, taper=0.65):
     height = by - top
     tiers = 6
     for k in range(tiers):
         t = k / tiers
         cy = by - 6 - t * (height - 12)
-        cv.ellipse(cx + rng.uniform(-1, 1), cy, halfw * (1 - 0.65 * t), height / tiers * 0.85, "G" if k % 2 else "g")
+        cv.ellipse(cx + rng.uniform(-1, 1), cy, halfw * (1 - taper * t), height / tiers * 0.85, "G" if k % 2 else "g")
     cv.stipple(rng, 0.12, "g", only=("G",))
     cv.rect(cx - 1, by - 5, cx + 2, by, "r")
     for i in range(5):
@@ -380,47 +416,62 @@ def draw(k, w, h, rng):
     cv = Canvas(w, h)
     if k == "7298":      # single narrow tall fern
         fern(cv, rng, w / 2 - 1, h - 1, 1, spread=0.45, sway=0.8)
-    elif k == "78F2":    # small palm, banded trunk
-        palm(cv, rng, w / 2, h - 1, 9, 2, reach=11, fronds=5, nuts=False)
-    elif k == "7947":    # squat leafy plant with one fruit
-        agave(cv, rng, w / 2, h - 3, 6, 14)
+    elif k == "78F2":    # small palm, banded trunk, standing in a tuft of undergrowth
+        hedge(cv, rng, 0, h - 9, w, h, lumps=4)
+        palm(cv, rng, w / 2, h - 1, 9, 2, reach=12, fronds=6, nuts=False)
+    elif k == "7947":    # squat leafy plant with one fruit, on a leafy base
+        hedge(cv, rng, 0, h - 10, w, h, lumps=4)
+        agave(cv, rng, w / 2, h - 3, 7, 21)
         gourd(cv, w / 2 + 2, h - 5, 3.5, 3)
-    elif k == "7462":    # tall spike plant topped with a bloom
-        fern(cv, rng, w / 2, h - 1, 16, spread=0.55, sway=0.6)
+    elif k == "7462":    # tall spike plant topped with a bloom, sword leaves out to both edges
+        hedge(cv, rng, 0, h - 16, w, h)
+        for tx, ty in ((1, 12), (w - 1, 14), (0, 28), (w, 30), (1, 44), (w - 1, 44)):
+            cv.stroke(w / 2, h - 4, tx, ty, "G" if tx < w / 2 else "g", 2.4, 0.6)
+        cv.stroke(w / 2, h - 2, w / 2, 14, "g", 1.0)
         for i in range(4):
-            cv.ellipse(w / 2, 6 + i * 3, 4 - i * 0.6, 3, "M" if i % 2 == 0 else "m")
+            cv.ellipse(w / 2, 6 + i * 3, 4.5 - i * 0.6, 3, "M" if i % 2 == 0 else "m")
         cv.stroke(w / 2, 0, w / 2, 4, "Y")
-    elif k == "71B3":    # palm cluster, two crossing trunks
-        palm(cv, rng, 12, h - 1, 11, 8, reach=13)
-        palm(cv, rng, w - 12, h - 1, 6, -8, trunk=("y", "Y"), leaf=("G", "c"), reach=13, nuts=False)
-    elif k == "72F6":    # wide broad-leaf bank with hanging fruit
+    elif k == "71B3":    # palm cluster, two crossing trunks, crowns and undergrowth to the edges
+        hedge(cv, rng, 0, h - 16, w, h)
+        palm(cv, rng, 8, h - 1, 10, 18, reach=16)
+        palm(cv, rng, w - 8, h - 1, 6, -20, trunk=("y", "Y"), leaf=("G", "c"), reach=16, nuts=False)
+    elif k == "72F6":    # wide broad-leaf bank with hanging fruit, leaves rising to the top corners
         hedge(cv, rng, 0, 14, w, h)
-        palm(cv, rng, w / 2, h - 2, 7, -3, reach=16)
+        for x0, ang, length in ((8, -2.25, 22), (18, -1.85, 20), (w - 18, -1.3, 20), (w - 8, -0.9, 22)):
+            broad_leaf(cv, x0, 22, ang, length, 5.0)
+        palm(cv, rng, w / 2, h - 2, 5, -3, reach=16)
         for fx in (10, w - 12, w / 2 + 10):
             gourd(cv, fx, h - 10, 3, 3.5)
         agave(cv, rng, 8, h - 2, 5, 14, col="C", dark="c")
-    elif k == "7523":    # palm grove, dense, small ground detail
-        hedge(cv, rng, 0, h - 22, w, h)
-        palm(cv, rng, 14, h - 6, 10, 4, reach=15)
-        palm(cv, rng, w - 16, h - 6, 6, -4, reach=16)
-        palm(cv, rng, w / 2, h - 10, 18, 1, trunk=("y", "Y"), reach=13, nuts=False)
+    elif k == "7523":    # palm grove, dense: edge palms and taller undergrowth fill the footprint
+        hedge(cv, rng, 0, h - 30, w, h)
+        palm(cv, rng, 5, h - 22, 12, -1, reach=11, nuts=False)
+        palm(cv, rng, w - 5, h - 22, 10, 1, reach=11, nuts=False)
+        palm(cv, rng, 14, h - 6, 8, 4, reach=16)
+        palm(cv, rng, w - 16, h - 6, 5, -4, reach=17)
+        palm(cv, rng, w / 2, h - 10, 16, 1, trunk=("y", "Y"), reach=14, nuts=False)
         bones(cv, rng, w / 2 - 6, h - 12, w / 2 + 6, h - 2, False)
-    elif k == "7981":    # very tall narrow cypress, crowned
-        cypress(cv, rng, w / 2, h - 1, 2, w / 2 - 2)
-    elif k == "771F":    # fern with a gourd at its base
-        fern(cv, rng, w / 2, h - 4, 2, spread=1.1)
-        gourd(cv, w / 2 + 6, h - 7, 6, 5.5)
+    elif k == "7981":    # very tall narrow cypress, crowned: a fuller column
+        cypress(cv, rng, w / 2, h - 1, 2, w / 2 - 1, taper=0.3)
+    elif k == "771F":    # fern with a gourd at its base: a fanned clump, not a single stem
+        hedge(cv, rng, 0, h - 22, w, h)
+        for tx, ty in ((1, 9), (8, 2), (w / 2, 0), (w - 8, 2), (w - 1, 9)):
+            leafy_spine(cv, w / 2, h - 12, tx, ty, span=7)
+        gourd(cv, w / 2 + 7, h - 8, 6, 5.5)
     elif k == "70BC":    # long low leafy bank with flowers
         hedge(cv, rng, 0, 4, w, h)
         for i, fx in enumerate(range(6, w - 4, 11)):
             flower(cv, fx, rng.uniform(6, 12), "R" if i % 2 else "M")
-    elif k == "8F2A":    # reed cluster
-        reeds(cv, rng, 2, w - 2, h - 1, 2, 10)
-        hedge(cv, rng, 0, h - 12, w, h)
+    elif k == "8F2A":    # reed cluster: a dense stand edge to edge
+        # A negative top lets reeds() jitter their tips down from ABOVE the sprite
+        # (clipped), so the stand reaches the top row without changing reeds()
+        # itself, which the water object also uses.
+        reeds(cv, rng, 0, w, h - 1, -10, 16)
+        hedge(cv, rng, 0, h - 18, w, h)
     elif k == "872A":    # tall rock slab, vertical strata
         rock(cv, rng, 1, 1, w - 1, h - 1, grain="v", cracks=2)
-    elif k == "785E":    # spiky agave fan
-        agave(cv, rng, w / 2, h - 2, 11, 18)
+    elif k == "785E":    # spiky agave fan, blades reaching the top of the footprint
+        agave(cv, rng, w / 2, h - 2, 13, 30)
     elif k == "95CD":    # low shrub row, one red plant, a fruit
         hedge(cv, rng, 0, 6, w, h)
         agave(cv, rng, w / 3, h - 3, 5, 12, col="R", dark="r")
@@ -431,14 +482,14 @@ def draw(k, w, h, rng):
         rock(cv, rng, 0, 1, w, h, grain="h", cracks=0)
     elif k == "847C":    # wide horizontal strata shelf
         rock(cv, rng, 0, 1, w, h - 1, grain="h", cracks=3)
-    elif k == "90A8":    # the big one: mixed palm/banana grove, gourd at base
-        hedge(cv, rng, 0, h - 26, w, h)
-        palm(cv, rng, 16, h - 12, 16, 6, reach=18)
-        palm(cv, rng, w - 18, h - 10, 8, -5, reach=19)
-        for i in range(4):
-            a = -math.pi / 2 + (i - 1.5) * 0.55
-            cv.stroke(w / 2, h - 30, w / 2 + math.cos(a) * 20, h - 30 + math.sin(a) * 24, "C", 2.6, 0.8)
-        cypress(cv, rng, w / 2, h - 30, 20, 6)
+    elif k == "90A8":    # the big one: mixed palm/banana grove, gourd at base, filled edge to edge
+        hedge(cv, rng, 0, h - 42, w, h)
+        leafy_spine(cv, 5, h - 40, 2, 14, span=9)
+        leafy_spine(cv, w - 5, h - 40, w - 2, 12, span=9)
+        for ang, length in ((-2.6, 26), (-2.05, 30), (-1.57, 30), (-1.1, 30), (-0.55, 26)):
+            broad_leaf(cv, w / 2, h - 40, ang, length, 6.5, col="C", dark="c", droop=0.15)
+        palm(cv, rng, 16, h - 12, 12, 6, reach=18)
+        palm(cv, rng, w - 18, h - 10, 6, -5, reach=19)
         gourd(cv, w / 2 - 12, h - 7, 7, 6)
     elif k == "7C0C":    # distant mountain range
         mountain_range(cv, rng, [(12, h, 12, 18), (30, h, 14, 23), (46, h, 11, 16)])

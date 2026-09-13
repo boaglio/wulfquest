@@ -560,18 +560,29 @@ object rectangles. Two consequences:
   | footprint (the canon maze) | 25 / **39** / 52 |
   | art, cell solid at ≥ 1 % painted | 38 / 48 / 57 |
   | art, ≥ 10 % | 41 / 53 / 60 |
-  | **art, ≥ 25 % (current default)** | 41 / **56** / 61 |
+  | art, ≥ 25 %, M2's first art | 41 / 56 / 61 |
+  | **art, ≥ 25 %, after the redraw (current)** | 35 / **45** / 55 |
   | art, ≥ 50 % | 42 / 65 / 70 |
 
   No threshold recovers the canon maze: thin sprites leave whole columns of
   their footprint unpainted. The gap is concentrated — `771F`, `7462` and
   `71B3` cause 37 % of the extra walkable area, and ten objects cause 82 %.
 
-Whether to keep art-derived collision, switch to footprint collision
-(canon routes, but invisible walls beside thin plants), or thicken the
-sparse sprites until the art fills its footprint is **an open decision —
-§25 Q13.** Until it is made, the default stays as written above; do not
-change `solidCoveragePercent` or add blanket overrides on your own.
+**Decided 2026-09-12 (§25 Q13): keep art-derived collision, and make the art
+fill its footprint.** Footprint collision was rejected because it puts
+invisible walls beside thin plants; leaving sparse art was rejected because it
+loosens the routes the player is meant to recognise. Eleven sprites were
+redrawn to fill 81–96 % of their footprint cells, bringing the interior median
+from 56 % to **45 %** — **6 points** more open than the canon maze, down from
+17 — with no invisible walls anywhere. `MapAuditTest` fails if that gap grows
+past 6 points, so a sprite edit cannot quietly reopen the maze.
+
+What remains is mostly mountain silhouettes (`7E4B`, `81C5`), whose triangles
+are kept as drawn on purpose, and whose placements sit largely on the boundary
+ring, which does not count toward the interior figure.
+
+Do not change `solidCoveragePercent`, and do not add blanket `collisionCells`
+overrides to close a gap: fix the art (§9).
 
 ### 7.4 Player/creature collision
 
@@ -805,6 +816,12 @@ must read as a mountain or the map stops being legible. Draw *our* mountain.
 
 Art direction for scenery:
 
+- **Fill the footprint.** Collision comes from the art (§7.3), and the map is
+  a maze at footprint resolution, so every column a sprite leaves unpainted is
+  a path the original walled off. Foliage should cover roughly 80 % or more of
+  its footprint cells: clumps rather than single stems, palms standing in
+  undergrowth, crowns reaching the edges. `MapAuditTest` fails if the interior
+  drifts more than 6 points more open than the footprint maze.
 - **Silhouette first.** These are maze walls. The player must read
   "impassable" instantly. Solid dark outline (index 0) on every object,
   1 px, then fill.
@@ -2320,6 +2337,14 @@ Found along the way:
 - `8047`'s first art cut its cloud gaps as transparent holes, which showed the
   black ground through the peaks as notches. They are drawn as clouds now.
 
+**Follow-up, same day — the collision decision (§25 Q13).** Kept art-derived
+collision and made the art fill its footprint. Redrew 11 sprites — `771F`,
+`7462`, `71B3`, `78F2`, `785E`, `72F6`, `7523`, `7981`, `90A8`, `7947`, `8F2A`
+— using two new forge primitives, `leafy_spine` and `broad_leaf`; the forge's
+determinism meant exactly those 11 files changed. Interior median walkable went
+from 56 % to 45 %, and the gap to the canon maze from 17 points to 6, now locked
+by `MapAuditTest`.
+
 ### M3 — Ranger Vale (2 days)
 
 - Player sprites (walk ×3 view sets, swing, die), movement per §11,
@@ -2409,7 +2434,7 @@ the source wins.
 | Q10 | Whether anything besides orchids and the amulet was collectable | nothing | `loot.json` |
 | Q11 | Sabre swing duration, reach, and whether movement was locked | 12 ticks, 14 px, movement free | `player.json → sabre` |
 | Q12 | Whether creature spawns were fixed per room or random | authored-with-fallback | `room_entities.json` |
-| Q13 | How the original resolved scenery collision — per pixel, per cell, or per object rectangle — and so which rule reproduces its routes | art-derived, cell solid at ≥ 25 % painted: interior median 56 % walkable, against 39 % for the footprint maze the map defines (§7.3) | `world/scenery.json → solidCoveragePercent`, per-object `collisionCells` |
+| Q13 | How the original resolved scenery collision — per pixel, per cell, or per object rectangle — and so which rule reproduces its routes | **Design decided 2026-09-12:** art-derived collision (cell solid at ≥ 25 % painted), with art redrawn to fill its footprint — interior median 45 % walkable against the footprint maze's 39 %, gap locked at ≤ 6 points (§7.3). How the original actually resolved collision is still unverified; if a source shows per-rectangle collision, revisit. | `world/scenery.json → solidCoveragePercent`, per-object `collisionCells` |
 
 Two facts are **already closed** and must not be re-litigated: the 16×16 /
 256-room grid and the start room at `(8, 10)` are `[CANON]`, extracted
