@@ -2,17 +2,26 @@ package wulf;
 
 import java.nio.file.Path;
 import wulf.data.AnimationValidator;
+import wulf.data.CreatureData;
+import wulf.data.CreatureRefValidator;
+import wulf.data.CreatureSpriteValidator;
 import wulf.data.DisplayConfig;
 import wulf.data.FontData;
 import wulf.data.GameConfig;
 import wulf.data.InputConfig;
 import wulf.data.JsonDb;
+import wulf.data.LootData;
 import wulf.data.OriginalMap;
 import wulf.data.OriginalMapRepository;
 import wulf.data.Palette;
 import wulf.data.PlayerData;
+import wulf.data.RoomEntitiesData;
 import wulf.data.SceneryData;
 import wulf.data.SpriteRepository;
+import wulf.sim.BiomePopulator;
+import wulf.sim.Ecosystem;
+import wulf.sim.ai.BehaviourCatalog;
+import wulf.world.BiomeResolver;
 import wulf.world.RoomBaker;
 import wulf.world.SceneryCatalog;
 
@@ -32,7 +41,11 @@ public record Content(
         SpriteRepository sprites,
         SceneryCatalog scenery,
         RoomBaker rooms,
-        PlayerData player) {
+        PlayerData player,
+        CreatureData creatures,
+        RoomEntitiesData roomEntities,
+        LootData loot,
+        BiomeResolver biomes) {
 
     public static Content load(Path dataDir) {
         return load(new JsonDb(dataDir));
@@ -51,6 +64,23 @@ public record Content(
         RoomBaker rooms = new RoomBaker(map, scenery);
         PlayerData player = db.load("entities/player", PlayerData.class);
         AnimationValidator.check(player, sprites);
-        return new Content(db, game, display, palette, font, input, map, sprites, scenery, rooms, player);
+
+        CreatureData creatures = db.load("entities/creatures", CreatureData.class);
+        BehaviourCatalog.validate(creatures);
+        CreatureSpriteValidator.check(creatures, sprites);
+        RoomEntitiesData roomEntities = db.load("world/room_entities", RoomEntitiesData.class);
+        LootData loot = db.load("entities/loot", LootData.class);
+        BiomeResolver biomes = new BiomeResolver(map, scenery, roomEntities.biomeMarkers());
+        CreatureRefValidator.check(creatures, roomEntities, biomes.inUse(), scenery.ids());
+
+        return new Content(db, game, display, palette, font, input, map, sprites, scenery, rooms, player,
+                creatures, roomEntities, loot, biomes);
+    }
+
+    /** The living jungle: creatures, how rooms are populated, and what exploring scores. */
+    public Ecosystem ecosystem() {
+        return new Ecosystem(creatures,
+                new BiomePopulator(creatures, roomEntities, biomes, game.difficulty()),
+                loot.event("roomFirstVisit"));
     }
 }

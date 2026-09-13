@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "events": {
+    "roomFirstVisit": 10,
+    "amuletPiece": 5000,
+    "escapeBonus": 10000,
+    "timeBonusMax": 30000,
+    "timeBonusTicksDivisor": 2,
+    "lifeRemainingBonus": 2500,
+    "wulfEvaded": 250
+  }
+}

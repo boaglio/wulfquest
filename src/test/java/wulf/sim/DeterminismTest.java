@@ -6,6 +6,7 @@ import java.nio.file.Path;
 import org.junit.jupiter.api.Test;
 import wulf.Content;
 import wulf.input.InputState;
+import wulf.world.RoomAddress;
 import wulf.world.WorldGrid;
 
 /** AGENTS.md §6.4 — same data, same input, same state, every tick. */
@@ -35,6 +36,38 @@ class DeterminismTest {
             }
         }
         assertThat(a.tick()).isEqualTo(5000);
+    }
+
+    @Test
+    void runsWithCreaturesAgreeOnEveryTick() {
+        Content c = Content.load(Path.of("data"));
+        WorldGrid grid = new WorldGrid(c.rooms());
+        Ecosystem eco = c.ecosystem();
+        int freeze = c.game().transition().freezeTicks();
+        // Start in a populated room: the start room is always empty, and this script barely leaves it.
+        RoomAddress populated = new RoomAddress(7, 3);
+        Simulation a = Simulation.startingIn(c.player(), grid, freeze, populated, eco, 77L);
+        Simulation b = Simulation.startingIn(c.player(), grid, freeze, populated, eco, 77L);
+        int mostCreatures = 0;
+        for (int t = 0; t < 5000; t++) {
+            InputState in = script(t);
+            a.tick(in);
+            b.tick(in);
+            if (a.stateHash() != b.stateHash()) {
+                throw new AssertionError("diverged at tick " + t);
+            }
+            mostCreatures = Math.max(mostCreatures, a.creatures().size());
+        }
+        assertThat(mostCreatures).as("the run really had creatures moving in it").isPositive();
+    }
+
+    @Test
+    void theRunSeedChangesTheJungle() {
+        Content c = Content.load(Path.of("data"));
+        WorldGrid grid = new WorldGrid(c.rooms());
+        Simulation a = Simulation.startingIn(c.player(), grid, 6, c.map().startRoom(), c.ecosystem(), 77L);
+        Simulation b = Simulation.startingIn(c.player(), grid, 6, c.map().startRoom(), c.ecosystem(), 78L);
+        assertThat(a.stateHash()).isNotEqualTo(b.stateHash());
     }
 
     @Test

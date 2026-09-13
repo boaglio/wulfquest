@@ -1,0 +1,65 @@
+{
+  "schemaVersion": 1,
+  "name": "creature_spider",
+  "size": {
+    "w": 12,
+    "h": 12
+  },
+  "origin": {
+    "x": 6,
+    "y": 12
+  },
+  "legend": {
+    ".": -1,
+    "K": 0,
+    "m": 3,
+    "M": 11,
+    "W": 15
+  },
+  "frames": [
+    {
+      "id": "walk0",
+      "rows": [
+        "............",
+        "............",
+        ".K...KK...K.",
+        "KmK.KMMK.KmK",
+        "KmmKMWMWKmmK",
+        "mmKmMMMMmKmm",
+        "mmmMMMMMMmmm",
+        "mKKMMMMMMKKm",
+        "mKmmMMMMmmKm",
+        "KKmKKMMKKmKK",
+        ".KmK.KK.KmK.",
+        "..K......K.."
+      ]
+    },
+    {
+      "id": "walk1",
+      "rows": [
+        "............",
+        "............",
+        ".K...KK...K.",
+        "KmKKKMMKKKmK",
+        "mmmmMWMWmmmm",
+        "mKKmMMMMmKKm",
+        "KmmMMMMMMmmK",
+        "KmmMMMMMMmmK",
+        "mmKKMMMMKKmm",
+        "mK.KmMMmK.Km",
+        "K..KmKKmK..K",
+        "..KmmKKmmK.."
+      ]
+    }
+  ],
+  "mirror": {
+    "walk0_l": {
+      "from": "walk0",
+      "flipX": true
+    },
+    "walk1_l": {
+      "from": "walk1",
+      "flipX": true
+    }
+  }
+}

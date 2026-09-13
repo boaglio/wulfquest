@@ -12,13 +12,18 @@ engine.
 
 ## Status
 
-**Milestone M3 complete** — Ranger Vale walks the jungle. Eight-direction
-movement that slides along walls, flip-screen rooms across all 256 screens,
-the sabre, death and respawn. There are no creatures yet (M4), no Wulf (M5)
-and no quest (M6). The full plan lives in [AGENTS.md](AGENTS.md) §24.
+**Milestone M4 complete** — the jungle bites back. Thirteen creatures, each
+with its own way of moving: tribesmen that patrol, spearmen that throw, a chief
+that hunts you down, scorpions that skitter, snakes that hug the undergrowth,
+spiders that drop, bats on the wing, hopping toads, circling vultures, a
+warthog that charges, a rhino slow to turn, hippos that fill corridors and
+wildebeest in herds. They fill each room by its landscape, one touch kills you,
+the sabre kills them, and the panel keeps score. There is no Wulf yet (M5) and
+no quest (M6). The full plan lives in [AGENTS.md](AGENTS.md) §24.
 
 ```bash
 ./run.sh                   # play, starting in 8,10
+./run.sh --seed 42         # replay the same creatures in every room
 ./run.sh --room 3,4        # start somewhere else
 ./run.sh --dev             # K kills Vale, M shows collision, the panel shows position
 ./run.sh --browse          # the room browser: arrows, [ ] or PgUp/PgDn, M

@@ -1,0 +1,85 @@
+{
+  "schemaVersion": 1,
+  "name": "creature_hippo",
+  "size": {
+    "w": 30,
+    "h": 22
+  },
+  "origin": {
+    "x": 15,
+    "y": 22
+  },
+  "legend": {
+    ".": -1,
+    "K": 0,
+    "m": 3,
+    "M": 11,
+    "W": 15
+  },
+  "frames": [
+    {
+      "id": "walk0",
+      "rows": [
+        "..............................",
+        "..............................",
+        "..............................",
+        "..............................",
+        "..............................",
+        "..............................",
+        "...................KK.........",
+        ".........KKKKKKKKKKmmKKKKKK...",
+        "......KKKMMMMMMMMMMmmMMMMMMK..",
+        "....KKMMMMMMMMMMMMMMMMKMMMMMK.",
+        "...KMMMMMMMMMMMMMMMMMMMMMMMMMK",
+        "..KMMMMMMMMMMMMMMMMMMMMMMMMMMM",
+        ".KMMMMMMMMMMMMMMMMMMMMMMMMMMMM",
+        ".KMMMMMMMMMMMMMMMMMMMMMMMMMMMM",
+        ".KMMMMMMMMMMMMMMMMMMMMMMMMMMMM",
+        ".KMMMMMMMMMMMMMMMMMMMMMMMMMMMK",
+        "..KMMMMMMMMMMMMMMMMMMMMMKKWKWK",
+        "...KMMMMMMMMMMMMMMMMMMMMMMMKK.",
+        "...KmmMMMMMMMMMMMMMMMMmmKKK...",
+        "...KmmmKKMMMMMMMMMMKKmmmK.....",
+        "....KmK..KKKKKKKKKK..KmK......",
+        "....KmK..............KmK......"
+      ]
+    },
+    {
+      "id": "walk1",
+      "rows": [
+        "..............................",
+        "..............................",
+        "..............................",
+        "..............................",
+        "..............................",
+        "..............................",
+        "...................KK.........",
+        ".........KKKKKKKKKKmmKKKKKK...",
+        "......KKKMMMMMMMMMMmmMMMMMMK..",
+        "....KKMMMMMMMMMMMMMMMMKMMMMMK.",
+        "...KMMMMMMMMMMMMMMMMMMMMMMMMMK",
+        "..KMMMMMMMMMMMMMMMMMMMMMMMMMMM",
+        ".KMMMMMMMMMMMMMMMMMMMMMMMMMMMM",
+        ".KMMMMMMMMMMMMMMMMMMMMMMMMMMMM",
+        ".KMMMMMMMMMMMMMMMMMMMMMMMMMMMM",
+        ".KMMMMMMMMMMMMMMMMMMMMMMMMMMMK",
+        "..KMMMMMMMMMMMMMMMMMMMMMKKWKWK",
+        "..KmMMMMMMMMMMMMMMMMMMMMMMMKK.",
+        ".KmmKKMMMMMMMMMMMMMMMMKKmmK...",
+        ".KmmK.KmmMMMMMMMMMMmmK.KmmK...",
+        ".KmK...KmKKKKKKKKKKmK...KmK...",
+        ".KmK...KmK........KmK...KmK..."
+      ]
+    }
+  ],
+  "mirror": {
+    "walk0_l": {
+      "from": "walk0",
+      "flipX": true
+    },
+    "walk1_l": {
+      "from": "walk1",
+      "flipX": true
+    }
+  }
+}

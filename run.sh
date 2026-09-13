@@ -49,6 +49,7 @@ Script options:
 
 Game options (see AGENTS.md §3.1):
   --room C,R                  start in this room (default: 8,10)
+  --seed N                    run seed: replay a run's creatures exactly
   --browse                    the room browser instead of the game
   --dev                       K kills, M shows collision, position on the panel
   --scale N                   window scale, 1..6

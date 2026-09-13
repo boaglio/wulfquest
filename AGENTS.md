@@ -239,6 +239,7 @@ wulfquest/
   tools/
     art/scenery_forge.py        generates the 41 scenery sprites, §10.5 (dev-time only)
     art/character_forge.py      generates Ranger Vale's frames, §10.5 (dev-time only)
+    art/creature_forge.py       generates the 13 creature sprites and the puff, §10.5 (dev-time only)
     check-no-binaries.sh        CI gate, §2.4 — bound to the verify phase
     check-schemas.sh            validates every data file against its schema
   data/                         THE DATABASE. Read-only at runtime. Ships in the jar.
@@ -251,7 +252,7 @@ wulfquest/
       original_map.json         [CANON] extracted grid + templates (§8)
       scenery.json              object id -> footprint, art ref, collision mask (§9)
       rooms.json                per-room overrides: biome, entity budget, props
-      room_entities.json        per-room authored spawn lists (§12.6)
+      room_entities.json        spawn rules, biome markers, budgets, authored rooms (§12.6)
       landmarks.json            start room, exit, lair rooms, cave mouths (§14)
     entities/
       player.json               Sabreman/Ranger Vale stats + animation (§11)
@@ -490,7 +491,12 @@ Given `(runSeed, dataDirHash, inputStream)`, the simulation must produce a
 byte-identical state hash at every tick, on any JVM 21+, on any OS. Anything
 that breaks this: `HashMap` iteration order in simulation paths (use
 `LinkedHashMap` / sorted iteration), `System.currentTimeMillis()` in sim,
-floats, unordered parallel streams, identity hash codes.
+floats, unordered parallel streams, identity hash codes — and **`Map.copyOf` /
+`Map.of`**, whose iteration order is randomised per JVM run. A record holding a
+map it will iterate (behaviour params, biome weights) copies it with
+`Collections.unmodifiableMap(new LinkedHashMap<>(m))`, keeping file order; a
+weighted pick walks the weights in that order. `Map.ofEntries` is fine only for
+lookups that are never iterated.
 
 Entity update order is fixed: **by stable integer `entityId`, ascending**.
 Ids are assigned from a monotonic counter that is part of sim state.
@@ -601,7 +607,11 @@ overrides to close a gap: fix the art (§9).
      (binary search is forbidden). The fraction is dropped deliberately:
      collision is tested per whole pixel, so a kept sub-pixel remainder lets a
      pinned player creep about inside the last free pixel — M3's
-     `WallSlideTest` caught exactly that.
+     `WallSlideTest` caught exactly that. The settle only ever lands **between
+     the current position and the target**, never behind the current position:
+     settling a sub-pixel mover back to its own pixel boundary made slow
+     creatures twitch forever against walls and broke stall detection (found in
+     M4, pinned by `MovementFeelTest.aSubPixelMoverPinnedAgainstAWallIsStill`).
   2. Apply the full Y component. Same clamping.
   This ordering is what produces the original's **wall-sliding**: pushing
   diagonally into a wall slides you along it instead of stopping dead. It is
@@ -611,6 +621,8 @@ overrides to close a gap: fix the art (§9).
   against a wall on one axis, the player slides along the other at that axis's
   full cardinal rate.
 - Entity-vs-entity collision is box overlap, tested after all movement.
+  Creatures use the same resolver on their own boxes, against the scenery with
+  the room's edges as walls (fliers: the edges only).
 
 ### 7.5 Flip-screen transition **[CANON]** behaviour, **[RECON]** timings
 
@@ -1026,6 +1038,13 @@ traced from any image.
   swing poses standing and on every walking gait — plus 19 left-facing mirrors.
   It has no randomness at all. The blade is not in the sprite: every swing frame
   carries a `hand` anchor, and the renderer draws the blade out of it (§11.6).
+- **`creature_forge.py`** draws the 13 creatures the same way — silhouettes
+  built from ellipses, strokes and stamps, two walk frames each plus their
+  left-facing mirrors — and the 2-frame death `puff`. Deliberately different
+  animals from the original's: a tribesman with a shield, a hat-less chief with a
+  headdress, a warthog rather than a boar. `CreatureSpriteValidator` fails the
+  load if a creature's sprite or any of `walk0`, `walk1`, `walk0_l`, `walk1_l`
+  is missing.
 - **Forges share `art/sprites/index.json`** and each merges only its own
   entries into it. Regenerating the scenery must never drop the player sprite,
   and vice versa.
@@ -1222,8 +1241,14 @@ search without recording the source in §25.**
   2-frame puff, 12 ticks, no corpse.
 - Killing a creature **does not** stop its species respawning on re-entry.
 - Creature spawn positions must be at least **48 px** from the player's entry
-  point, and must be on a non-solid cell. If no valid position exists after
-  24 tries, skip that spawn.
+  point, and the creature's box must fit clear of the scenery and inside the
+  room. A **ground** creature must also start within one cell (8 px) of a place
+  the player's feet can get to **without leaving the room** — otherwise it waits
+  in a strip behind the scenery that only a neighbouring room opens onto, and
+  the room is quietly empty (seen in M4 in room `7,3`). If no valid position
+  exists after 24 tries, skip that spawn.
+- A hit that does not kill flashes the creature white on alternate ticks for
+  `hurtFlashTicks` (6). A swing damages a creature at most once.
 
 ### 12.3 The roster
 
@@ -1232,22 +1257,26 @@ kill; `∞` means unkillable, sabre only repels.
 
 | id | name | size px | speed x (fp) | speed y (fp) | hp | behaviour (§12.5) | score | biomes | notes |
 |----|------|---------|--------------|--------------|----|-------------------|-------|--------|-------|
-| `tribesman` | Tribesman | 16×24 | 1.25 (320) | 0.85 (218) | 1 | `LINEAR_BOUNCE` | 150 | all | the bread-and-butter enemy; 2–4 per room |
-| `spearman` | Spear Tribesman | 16×24 | 1.00 (256) | 0.70 (179) | 1 | `PATROL_THROW` | 250 | jungle, hut | throws a spear projectile every 90 ticks along its facing |
+| `tribesman` | Tribesman | 16×24 | 1.25 (320) | 0.85 (218) | 1 | `LINEAR_BOUNCE` | 150 | all but water | the bread-and-butter enemy; 2–4 per room |
+| `spearman` | Spear Tribesman | 16×24 | 1.00 (256) | 0.70 (179) | 1 | `PATROL_THROW` | 250 | jungle, swamp, hut | throws a spear projectile every 90 ticks along its facing |
 | `chief` | Village Chief | 16×28 | 1.40 (358) | 0.95 (243) | 2 | `CHASE_AXIS` | 400 | hut rooms only | 1 per hut room, 35% chance |
 | `scorpion` | Scorpion | 12×10 | 2.00 (512) | 1.40 (358) | 1 | `WANDER_ERRATIC` | 200 | bonefields | fast, twitchy, low to the ground |
-| `snake` | Snake | 20×8 | 0.90 (230) | 0.60 (154) | 1 | `WALL_FOLLOW` | 150 | jungle, swamp | hugs the foliage line, hard to see |
-| `spider` | Spider | 12×12 | 0.60 (154) | 1.50 (384) | 1 | `DROP_THREAD` | 200 | jungle, bonefields | hangs at top of room, drops when player passes under |
-| `bat` | Bat | 14×10 | 1.60 (410) | 1.10 (282) | 1 | `SINE_FLIGHT` | 300 | bonefields, arch | `ignoresScenery: true` |
-| `frog` | Jungle Toad | 12×12 | burst 2.50 (640) | burst 1.70 (435) | 1 | `HOP` | 100 | swamp, water-adjacent | 8 ticks hop, 20 ticks rest |
+| `snake` | Snake | 20×8 | 0.90 (230) | 0.60 (154) | 1 | `WALL_FOLLOW` | 150 | jungle, swamp, water | hugs the foliage line, hard to see |
+| `spider` | Spider | 12×12 | 0.60 (154) | 1.50 (384) | 1 | `DROP_THREAD` | 200 | jungle, bonefields | hangs at top of room, drops when player passes under; `ignoresScenery: true` — its thread passes through the canopy |
+| `bat` | Bat | 14×10 | 1.60 (410) | 1.10 (282) | 1 | `SINE_FLIGHT` | 300 | bonefields | `ignoresScenery: true` |
+| `frog` | Jungle Toad | 12×12 | burst 2.50 (640) | burst 1.70 (435) | 1 | `HOP` | 100 | swamp, water | 8 ticks hop, 20 ticks rest |
 | `vulture` | Vulture | 20×14 | 1.80 (461) | 1.20 (307) | 1 | `CHASE_AXIS` | 350 | mountain, bonefields | `ignoresScenery: true` |
 | `boar` | Warthog | 22×16 | 1.40 (358) | 1.00 (256) | 2 | `AMBUSH_BURST` | 400 | jungle | idles, then charges at 3.0 (768) for 40 ticks |
 | `rhino` | Rhino | 28×20 | 1.20 (307) | 0.85 (218) | 3 | `CHASE_DIRECT` slow turn | 500 | jungle, mountain | turn rate limited to 1 direction step / 12 ticks |
-| `hippo` | Hippo | 30×22 | 0.80 (205) | 0.55 (141) | 3 | `LINEAR_BOUNCE` | 450 | swamp, water-adjacent | huge hitbox, corridors become lethal |
+| `hippo` | Hippo | 30×22 | 0.80 (205) | 0.55 (141) | 3 | `LINEAR_BOUNCE` | 450 | swamp, water | huge hitbox, corridors become lethal |
 | `wildebeest` | Wildebeest | 24×18 | 1.70 (435) | 1.20 (307) | 1 | `HERD_BOUNCE` | 250 | mountain, jungle | spawns as a herd of 3, shared direction |
 | `wulf` | The Wulf | 32×22 | 1.90 (486) | 1.35 (346) | ∞ | `CHASE_DIRECT` | — | anywhere | §13 |
-| `guardian_*` | the four guardians | 32×28 | 1.10 (282) | 0.80 (205) | ∞ | `GUARD_ORBIT` | — | lair rooms | §14 |
-| `cave_guardian` | Keeper of the Arch | 24×32 | 0 | 0 | ∞ | `BLOCK_STATIC` | — | exit room | §14.4 |
+| `guardian_*` | the four guardians | 32×28 | 1.10 (282) | 0.80 (205) | ∞ | `GUARD_ORBIT` | — | lair rooms | §14; arrives in M6 |
+| `cave_guardian` | Keeper of the Arch | 24×32 | 0 | 0 | ∞ | `BLOCK_STATIC` | — | exit room | §14.4; arrives in M6 |
+
+The table's biome column is descriptive; `room_entities.json` (§12.6) is what
+places creatures. The first 13 rows ship in `creatures.json` (M4); the Wulf is
+`wulf.json` (M5) and the guardians `guardians.json` (M6).
 
 ### 12.4 `data/entities/creatures.json` shape
 
@@ -1255,6 +1284,10 @@ kill; `∞` means unkillable, sabre only repels.
 {
   "schemaVersion": 1,
   "fidelity": "recon",
+  "diagonalScaleFp": 218,
+  "puffTicks": 12,
+  "hurtFlashTicks": 6,
+  "walkTicksPerFrame": 6,
   "creatures": [
     {
       "id": "tribesman",
@@ -1264,48 +1297,66 @@ kill; `∞` means unkillable, sabre only repels.
       "collisionBox": { "x": -6, "y": -10, "w": 12, "h": 10 },
       "speed": { "xFp": 320, "yFp": 218 },
       "hp": 1,
-      "killable": true,
-      "ignoresScenery": false,
-      "behaviour": { "kind": "LINEAR_BOUNCE", "params": { "reverseChancePerTick": 0.004 } },
       "score": 150,
-      "animations": { "walk": { "frames": ["w0","w1","w2","w3"], "ticksPerFrame": 6, "loop": true } },
-      "sfx": { "spawn": null, "death": "creature_die" }
+      "ignoresScenery": false,
+      "behaviour": { "kind": "LINEAR_BOUNCE", "params": { "reverseChancePer10k": 40 } }
     }
+  ],
+  "projectiles": [
+    { "id": "spear", "displayName": "Spear", "speedFp": 640, "lengthPx": 12,
+      "collisionBox": { "x": -3, "y": -3, "w": 6, "h": 6 }, "score": 50, "maxTicks": 150 }
   ]
 }
 ```
 
-`behaviour.params` values may be decimals in JSON; they are converted to
-fixed-point **once at load** and never used as floats in the sim.
+**Every param is an integer**, named for its unit: `…Fp` is 8.8 fixed point,
+`…Px` pixels, `…Ticks` ticks, `…Per10k` a chance or ratio out of 10 000, and
+`…Cos10k` a cosine × 10 000. No decimal ever reaches the loader, so there is
+nothing to convert. `BehaviourCatalog.validate` rejects an unknown `kind`, a
+missing param and an unexpected one, each with its JSON pointer
+(`/creatures/3/behaviour/params/rerollMinTicks`).
+
+The sprite's frames are `walk0`/`walk1` and their `_l` mirrors; every creature
+steps through them at `walkTicksPerFrame` while it moves, and fliers flap on the
+global clock even when still. Per-creature animations and sfx are not in the
+file — they arrive with audio (M8) if a species earns them.
 
 ### 12.5 Behaviour catalogue — one class each in `sim/ai/`
 
 | kind | implementation |
 |------|----------------|
-| `LINEAR_BOUNCE` | Pick a random 8-direction at spawn. Move. On scenery or room-edge block, reflect the blocked axis. Random reverse with `reverseChancePerTick`. The original's signature "patrolling, mindless" motion. |
-| `PATROL_THROW` | `LINEAR_BOUNCE` plus: every `throwPeriodTicks`, if the player is within 45° of facing and within 160 px, spawn a `spear` projectile (speed 2.5 px/tick, dies on scenery, kills player, killable by sabre for 50 pts). |
+| `LINEAR_BOUNCE` | Pick a random 8-direction at spawn. Move. On scenery or room-edge block, reflect the blocked axis. Random reverse with `reverseChancePer10k` per tick. The original's signature "patrolling, mindless" motion. |
+| `PATROL_THROW` | `LINEAR_BOUNCE` plus: every `throwPeriodTicks`, if the player is within `throwRangePx` (160) and inside the facing cone — `dot(facing, toPlayer) ≥ throwConeCos10k × |toPlayer| / 10 000`, compared squared in integers; 7071 is 45° — spawn a `spear` projectile (speed 2.5 px/tick, dies on scenery or after `maxTicks`, kills player, killable by sabre for 50 pts). |
 | `CHASE_AXIS` | Each tick, move at full speed on the axis with the **larger** player delta, and at half speed on the other. Produces determined-but-dumb pursuit that corners badly. |
 | `CHASE_DIRECT` | Move toward the player's position along the exact 8-direction that best matches the delta vector. `turnCooldownTicks` limits direction changes. Blocked by scenery → try the two neighbouring directions, then stall for 8 ticks. Never pathfind. No A*. The stupidity is the design. |
 | `WANDER_ERRATIC` | Re-roll direction every `4 + rng(8)` ticks. Never targets the player. Lethal by accident. |
-| `WALL_FOLLOW` | Keep a "wall side" (left/right). Each tick, try to turn toward the wall side; if blocked, go straight; if still blocked, turn away. Classic maze-hugging. |
+| `WALL_FOLLOW` | Keep a "wall side" (left/right). **Following**: go straight while the wall is beside you; blocked ahead, turn away from the wall side. When the wall ends, turn **once** toward it and go **loose**: straight ahead until a wall is touched again, then follow it. No params. (Turning toward the wall every tick while loose spun the snake in place at every outside corner — found in M4.) |
 | `DROP_THREAD` | Anchored at a top-of-room cell. Idle until the player's X is within 24 px, then descend at `speed.y` up to `dropMaxPx` (120), pause 30 ticks, ascend at half speed. Draw a 1 px thread to the anchor. |
 | `SINE_FLIGHT` | Straight-line base course at `speed.x`; Y offset is a fixed-point sine lookup table (`engine/SinTable.java`, 256 entries, 8.8) with `amplitudePx` 28 and `periodTicks` 70. Ignores scenery; bounces only off room edges. |
 | `HOP` | Alternate `BURST` (move at burst speed, `hopTicks`) and `REST` (still, `restTicks`). Direction re-rolled at the start of each burst, biased 60% toward the player. |
 | `AMBUSH_BURST` | Idle (still, facing the player) until the player enters `triggerPx` (96) **and** has line-of-cells (no solid cell on the straight cell path). Then charge along that direction at `chargeSpeedFp` for `chargeTicks`, ignoring further input. On hitting scenery, stun 24 ticks. Then idle again. |
 | `HERD_BOUNCE` | A group entity: one shared direction, N members in a loose triangle offset by ±20 px. Reflects as one. If one member dies the others continue. |
-| `GUARD_ORBIT` | Circle a fixed anchor (the amulet pedestal) at `orbitRadiusPx` (56) and `orbitTicksPerRev` (240). If the player comes within `lungePx` (40), break orbit and `CHASE_DIRECT` for 90 ticks, then return to the nearest orbit point. Unkillable; sabre repels 20 px and stuns 20 ticks. |
-| `BLOCK_STATIC` | Never moves. Occupies its collision box as an impassable, lethal volume. |
+| `GUARD_ORBIT` | **M6.** Circle a fixed anchor (the amulet pedestal) at `orbitRadiusPx` (56) and `orbitTicksPerRev` (240). If the player comes within `lungePx` (40), break orbit and `CHASE_DIRECT` for 90 ticks, then return to the nearest orbit point. Unkillable; sabre repels 20 px and stuns 20 ticks. |
+| `BLOCK_STATIC` | **M6.** Never moves. Occupies its collision box as an impassable, lethal volume. |
 
 Every behaviour class implements:
 
 ```java
 public interface Behaviour {
-    void tick(CreatureState self, SimContext ctx);   // mutates self, reads ctx
+    List<String> params();                                    // exactly the params it needs
+    default int preferredLocalYPx(Species s, int proposedY)   // spiders hang from the top
+    default void spawn(Creature self, SimContext ctx, Rng rng) // starting direction, timers
+    void tick(Creature self, SimContext ctx);                 // mutates self, reads ctx
 }
 ```
 
-`SimContext` exposes the room mask, the player's box, the sim RNG, and the
-tick counter. It must not expose the renderer, audio, or wall time.
+Behaviours are stateless singletons, one per species slot, built by
+`BehaviourCatalog`. Per-creature state lives on `Creature`: `timer`, `phase`,
+`aux` and an `anchor`. `SimContext` exposes the sim RNG, the tick, whether the
+player is alive and where, the room origin, and movement through the §7.4
+resolver — `move`, `step` (returns `BLOCKED_X | BLOCKED_Y`), `probe`,
+`lineClear` over cells — plus `throwSpear`. It must not expose the renderer,
+audio, wall time, or other creatures. `SimPurityTest` scans `sim/ai/` too.
 
 ### 12.6 Room population — `data/world/room_entities.json`
 
@@ -1314,23 +1365,42 @@ Two-layer system:
 ```json
 {
   "schemaVersion": 1,
+  "fidelity": "recon",
+  "spawn": { "minDistanceFromEntryPx": 48, "attempts": 24, "visitSeedCap": 8 },
+  "biomeMarkers": { "hut": "8E18", "water": "93C4", "swamp": "8F2A" },
   "authored": {
-    "8,10":  { "creatures": [], "note": "start room is always safe" },
-    "2,2":   { "creatures": [ { "id": "guardian_hippo", "x": 128, "y": 96 } ] }
+    "8,10": { "note": "the start room is always safe", "creatures": [] }
   },
   "biomes": {
-    "jungle":     { "budget": [2, 4], "weights": { "tribesman": 40, "spearman": 15, "snake": 12, "spider": 10, "boar": 10, "rhino": 7, "wildebeest": 6 } },
-    "swamp":      { "budget": [2, 4], "weights": { "hippo": 25, "frog": 25, "snake": 20, "tribesman": 20, "spearman": 10 } },
-    "mountain":   { "budget": [2, 3], "weights": { "vulture": 30, "wildebeest": 25, "rhino": 20, "tribesman": 25 } },
-    "bonefields": { "budget": [3, 5], "weights": { "scorpion": 30, "bat": 25, "spider": 20, "tribesman": 15, "vulture": 10 } },
-    "hut":        { "budget": [3, 5], "weights": { "tribesman": 45, "spearman": 30, "chief": 25 } },
-    "water":      { "budget": [1, 2], "weights": { "frog": 50, "hippo": 30, "snake": 20 } }
+    "jungle":     { "budget": { "min": 2, "max": 4 }, "weights": { "tribesman": 40, "spearman": 15, "snake": 12, "spider": 10, "boar": 10, "rhino": 7, "wildebeest": 6 }, "extras": [] },
+    "swamp":      { "budget": { "min": 2, "max": 4 }, "weights": { "hippo": 25, "frog": 25, "snake": 20, "tribesman": 20, "spearman": 10 }, "extras": [] },
+    "mountain":   { "budget": { "min": 2, "max": 3 }, "weights": { "vulture": 30, "wildebeest": 25, "rhino": 20, "tribesman": 25 }, "extras": [] },
+    "bonefields": { "budget": { "min": 3, "max": 5 }, "weights": { "scorpion": 30, "bat": 25, "spider": 20, "tribesman": 15, "vulture": 10 }, "extras": [] },
+    "hut":        { "budget": { "min": 3, "max": 5 }, "weights": { "tribesman": 45, "spearman": 30 }, "extras": [ { "id": "chief", "chancePer10k": 3500 } ] },
+    "water":      { "budget": { "min": 1, "max": 2 }, "weights": { "frog": 50, "hippo": 30, "snake": 20 } , "extras": [] }
   }
 }
 ```
 
-Biome per room is resolved in `rooms.json`; the default rule derives it from
-the room's scenery **[CANON]** composition (§8.2):
+How a room fills (`BiomePopulator`, M4):
+
+1. The room's RNG is `Rng.hash(runSeed, col, row, min(visit, visitSeedCap))`,
+   so the same run replays exactly and the first eight visits to a room differ.
+2. An `authored` room places exactly its list (guardian lairs join it in M6).
+3. Otherwise roll `count = min(maxRoomBudget, budget.min + rng(span) + bonus)`
+   picks from `weights`, walked in file order; a herd species fills one slot
+   with its whole herd. Then each `extras` entry is rolled once — this is how
+   "1 chief per hut room, 35%" is expressed.
+4. Each pick tries up to `attempts` positions against the §12.2 rules.
+5. Rooms repopulate on every entry and after every respawn (§7.6, §11.7).
+
+`CreatureRefValidator` fails the load on a marker that is not a scenery id, a
+biome the resolver can produce but the file lacks, `min > max`, an unknown
+species in weights, extras or authored lists, or an authored room or position
+out of range.
+
+Biome per room is derived from the room's scenery **[CANON]** composition
+(§8.2) by `BiomeResolver`; `rooms.json` overrides are not needed yet:
 
 ```
 contains 8E18 (hut)                        -> "hut"
@@ -1340,6 +1410,10 @@ majority of cells from mountain objects    -> "mountain"
 contains 8F2A reeds and no mountains       -> "swamp"
 otherwise                                  -> "jungle"
 ```
+
+Measured over the real map in M4 (`BiomeResolverTest`): of the 196 interior
+rooms, jungle 72, swamp 65, hut 21, bonefields 20, mountain 16, water 2; of the
+60 boundary rooms, swamp 30, jungle 25, water 5. Every biome is in use.
 
 Difficulty ramp **[RECON]**: the room's creature budget gains `+1` when the
 player holds 2 amulet pieces and `+1` again at 4 pieces (cap 6). Store as
@@ -2484,13 +2558,67 @@ after playing. A tick-by-tick probe measured three defects:
 Tests pin all three: the strike pose shows exactly while the blade is live, a
 moving swing steps through gaits, and the blade's pixels sit at the hand's row.
 
-### M4 — Creatures (4 days)
+### M4 — Creatures — **COMPLETE (2026-09-13)**
 
-- All 13 roster species with sprites, the 12 behaviour classes, spear
-  projectiles, biome resolution, room population, kill/score/respawn.
+**Accepted:** every species appears in its biomes (`PopulationTest`, over the
+real map and many seeds); every behaviour is visually distinct — pinned
+tick-by-tick in `BehaviourTest` and checked by eye on rendered contact sheets of
+real rooms; `HeadlessSimTest` runs 100 000 ticks of a bot through the real map
+with creatures in well under a second (65 ms: 17 games, 81 deaths, 31 kills,
+11 species, a thrown spear).
 
-**Accept when:** every species appears in its biomes, every behaviour is
-visually distinct at a glance, and `HeadlessSimTest` survives 100 000 ticks.
+What landed:
+
+- **Data:** `creatures.json` (13 species, the spear), `room_entities.json`,
+  `loot.json` (score events; the first visit to a room is worth 10), each with a
+  schema. All params are integers (§12.4).
+- **Engine:** `Rng` (xorshift128+, seeded through splitmix64; `hash(...)` for
+  room seeds) and `SinTable` (256 × 8.8 literals).
+- **World:** `BiomeResolver` (§12.6).
+- **Simulation:** `Creature`, `Spear`, `Herd`; 11 behaviours in `sim/ai/`
+  behind `Behaviour` / `SimContext`, validated by `BehaviourCatalog`;
+  `BiomePopulator` behind `RoomPopulator` / `Spawner`, so tests hand-place
+  creatures with lambdas. Combat resolves sabre hits on creatures and spears
+  before contact, so a swing that lands saves you; a swing hurts a creature at
+  most once. Score, kills and extra lives at `extraAt`. Creatures keep moving
+  while the player dies. `stateHash` covers creatures, spears, score and visits.
+- **Rendering:** `CreaturePainter` — back to front by feet, walk frames while
+  moving, fliers always flapping, mirrors, the hurt flash, the puff, the
+  spider's thread, spears as a shaft with a bright point, clipped to the
+  playfield.
+- **Play:** creatures in the live game; `--seed N` replays a run's creatures
+  (without it the seed is printed); the panel shows the score and the session's
+  best until M8 keeps a table.
+- **Art:** `creature_forge.py` (§10.5); `CreatureSpriteValidator` at load.
+- **Tests:** 244 runs, from 170 — `BehaviourTest`, `CombatTest`, `PopulationTest`,
+  `HeadlessSimTest`, `CreaturePainterTest`, `RngTest`, `SinTableTest`,
+  `BiomeResolverTest`, the validators, and a determinism run that starts among
+  creatures and proves the run seed changes the jungle.
+
+Found along the way:
+
+- **Unreachable spawns** — spotted by eye on a contact sheet of room `7,3`, not
+  by any test: scorpions scuttling in the open strip above the room's top wall,
+  which only the room to the north opens onto. Ground creatures now start near
+  a place the player can reach inside the room (`Reach`, §12.2), and
+  `PopulationTest` checks it against an independent pixel-by-pixel flood.
+- **Sub-pixel settle behind the mover** (§7.4): slow creatures never stood still
+  against a wall, so `CHASE_DIRECT` never noticed it had stalled.
+- **`WALL_FOLLOW` spun at outside corners** (§12.5).
+- **`Map.copyOf` iteration order** changes between JVM runs, which broke
+  weighted picks' replay (§6.4).
+- Test bugs worth remembering: the first determinism run never left the empty
+  start room, so it compared runs with no creatures in them — it now asserts
+  creatures were present; a stall test's pocket let the rhino slide out; a
+  flight test counted distinct x positions instead of ticks aloft.
+- Spec corrections: decimal params became integers (`reverseChancePer10k`,
+  `throwConeCos10k`); the chief is a hut `extra` rather than a weight; spiders
+  ignore scenery; biome columns now match the data; `GUARD_ORBIT` and
+  `BLOCK_STATIC` belong to the guardians and move to M6.
+
+Deferred, deliberately: guardian behaviours (M6); creature sound (M8); the
+hurt flash and spears are covered by tests but were not caught on a sampled
+contact-sheet frame.
 
 ### M5 — The Wulf (1.5 days)
 

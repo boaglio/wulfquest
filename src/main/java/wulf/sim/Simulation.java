@@ -1,61 +1,113 @@
 package wulf.sim;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import wulf.data.CreatureData;
 import wulf.data.PlayerData;
 import wulf.engine.Fixed;
+import wulf.engine.Rng;
 import wulf.input.InputState;
+import wulf.sim.ai.Behaviour;
+import wulf.sim.ai.BehaviourCatalog;
+import wulf.sim.ai.SimContext;
+import wulf.world.CollisionMask;
 import wulf.world.CollisionWorld;
 import wulf.world.RoomAddress;
 
 /**
  * The game's single source of truth, advanced one fixed tick at a time
  * (AGENTS.md §6). Pure and deterministic: integer arithmetic only, no wall
- * clock, no AWT, no randomness yet. Given the same data and the same input
- * stream it produces the same {@link #stateHash()} on every tick, everywhere.
+ * clock, no AWT, and one seeded random stream. Given the same data, run seed and
+ * input it produces the same {@link #stateHash()} on every tick, everywhere.
  *
- * <p>M3 covers Ranger Vale alone: movement, collision, flip-screen transitions,
- * the sabre, death and respawn.
+ * <p>M3: Ranger Vale — movement, collision, flip-screen rooms, the sabre, death
+ * and respawn. M4: the creatures — room population, behaviours, spears, sabre
+ * kills, contact deaths, score and extra lives.
  */
 public final class Simulation {
 
     public static final int CELL_PX = 8;
     public static final int ROOM_W_PX = 256;
     public static final int ROOM_H_PX = 192;
+    /** How close to reachable feet a ground creature must start (§12.6): one cell. */
+    static final int REACH_SLACK_PX = 8;
 
     private final PlayerData rules;
     private final CollisionWorld world;
     private final int transitionFreezeTicks;
+    private final Ecosystem eco;
+    private final long runSeed;
+    private final Rng rng;
+    private final Behaviour[] behaviours;
     private final Player player = new Player();
+    private final ArrayList<Creature> creatures = new ArrayList<>();
+    private final ArrayList<Spear> spears = new ArrayList<>();
+    private final List<Creature> creaturesView = Collections.unmodifiableList(creatures);
+    private final List<Spear> spearsView = Collections.unmodifiableList(spears);
+    private final int[] visits = new int[RoomAddress.GRID_W * RoomAddress.GRID_H];
+    private final Context context = new Context();
+    private final Spawns spawns = new Spawns();
 
     private RoomAddress room;
+    private CollisionWorld roomSolid;
+    private CollisionWorld roomEdges;
+    private Reach reach;
     private int freeze;
     private long tick;
     private int roomsEntered;
     private PixelRect sabre = PixelRect.NONE;
+    private int swingSerial;
+    private int nextEntityId;
+    private long score;
+    private int kills;
+    private int extraLivesAwarded;
 
-    private Simulation(PlayerData rules, CollisionWorld world, int transitionFreezeTicks, int xFp, int yFp) {
+    private Simulation(PlayerData rules, CollisionWorld world, int transitionFreezeTicks, Ecosystem eco, long runSeed,
+                       int xFp, int yFp) {
         this.rules = rules;
         this.world = world;
         this.transitionFreezeTicks = transitionFreezeTicks;
+        this.eco = eco;
+        this.runSeed = runSeed;
+        this.rng = new Rng(runSeed);
+        List<CreatureData.Species> roster = eco.creatures().creatures();
+        this.behaviours = new Behaviour[roster.size()];
+        for (int i = 0; i < roster.size(); i++) {
+            behaviours[i] = BehaviourCatalog.of(roster.get(i).behaviour().kind());
+        }
         player.xFp = xFp;
         player.yFp = yFp;
         player.entryXFp = xFp;
         player.entryYFp = yFp;
         player.lives = rules.lives().start();
         this.room = new RoomAddress(roomColOf(rules.collisionBox(), xFp), roomRowOf(rules.collisionBox(), yFp));
+        enterRoom(false);
     }
 
-    /** A new game: the player on the free spot nearest the centre of {@code start}. */
+    /** A new game without creatures: the player on the free spot nearest the centre of {@code start}. */
     public static Simulation startingIn(PlayerData rules, CollisionWorld world, int transitionFreezeTicks,
                                         RoomAddress start) {
+        return startingIn(rules, world, transitionFreezeTicks, start, Ecosystem.NONE, 0L);
+    }
+
+    /** A new game in a living jungle. */
+    public static Simulation startingIn(PlayerData rules, CollisionWorld world, int transitionFreezeTicks,
+                                        RoomAddress start, Ecosystem eco, long runSeed) {
         int cx = Fixed.fp(start.col() * ROOM_W_PX + ROOM_W_PX / 2);
         int cy = Fixed.fp(start.row() * ROOM_H_PX + ROOM_H_PX / 2);
         int[] p = SpawnFinder.nearestFree(world, rules.collisionBox(), rules.spawn().insideRoomPx(), start, cx, cy);
-        return new Simulation(rules, world, transitionFreezeTicks, p[0], p[1]);
+        return new Simulation(rules, world, transitionFreezeTicks, eco, runSeed, p[0], p[1]);
     }
 
-    /** A simulation with the player at an exact world position — for tests and tools. */
+    /** A simulation with the player at an exact world position and no creatures — for tests and tools. */
     public static Simulation at(PlayerData rules, CollisionWorld world, int transitionFreezeTicks, int xFp, int yFp) {
-        return new Simulation(rules, world, transitionFreezeTicks, xFp, yFp);
+        return at(rules, world, transitionFreezeTicks, xFp, yFp, Ecosystem.NONE, 0L);
+    }
+
+    public static Simulation at(PlayerData rules, CollisionWorld world, int transitionFreezeTicks, int xFp, int yFp,
+                                Ecosystem eco, long runSeed) {
+        return new Simulation(rules, world, transitionFreezeTicks, eco, runSeed, xFp, yFp);
     }
 
     public void tick(InputState in) {
@@ -65,6 +117,7 @@ public final class Simulation {
                 return;
             }
             case DYING -> {
+                tickCreatures();   // §11.7: the jungle carries on around the fallen player
                 if (++player.modeTick >= rules.death().animTicks()) {
                     player.mode = Player.Mode.DOWN;
                     player.modeTick = 0;
@@ -72,6 +125,7 @@ public final class Simulation {
                 return;
             }
             case DOWN -> {
+                tickCreatures();
                 if (++player.modeTick >= rules.death().freezeTicks()) {
                     respawn();
                 }
@@ -91,8 +145,13 @@ public final class Simulation {
         }
         updateSwing(in);
         move(in);
-        updateRoom();
+        if (updateRoom()) {
+            sabre = PixelRect.NONE;
+            return;   // the new room's creatures start moving after the hitch
+        }
         sabre = computeSabre();
+        tickCreatures();
+        resolveCombat();
     }
 
     /**
@@ -130,6 +189,7 @@ public final class Simulation {
         // A fresh key-down edge only: holding fire never auto-repeats (§11.6).
         if (player.swingTick < 0 && player.cooldown == 0 && in.firePressed()) {
             player.swingTick = 0;
+            swingSerial++;   // each swing may hit each creature once
         }
     }
 
@@ -153,7 +213,7 @@ public final class Simulation {
         return new PixelRect(cx - s.thicknessPx() / 2, y, s.thicknessPx(), s.reachPx());
     }
 
-    // ---------------------------------------------------------------- movement
+    // ---------------------------------------------------------------- the player's movement
 
     private void move(InputState in) {
         int dx = in.dx();
@@ -168,8 +228,8 @@ public final class Simulation {
             speedX = Fixed.mul(speedX, rules.sabre().moveSpeedScaleFp());
             speedY = Fixed.mul(speedY, rules.sabre().moveSpeedScaleFp());
         }
+        PlayerData.Box box = rules.collisionBox();
         if (dx != 0 && dy != 0) {
-            PlayerData.Box box = rules.collisionBox();
             boolean xTouching = Collision.boxBlocked(world, box, player.xFp + dx * Fixed.ONE, player.yFp);
             boolean yTouching = Collision.boxBlocked(world, box, player.xFp, player.yFp + dy * Fixed.ONE);
             if (!xTouching && !yTouching) {
@@ -179,81 +239,26 @@ public final class Simulation {
             }
             // Pressed against a wall on one axis: slide along the other at its full rate (§7.4, §22.2).
         }
-
         int oldX = player.xFp;
         int oldY = player.yFp;
         // No acceleration and no inertia: velocity is a pure function of this tick's input (§11.3).
         // X then Y, each resolved on its own: that ordering is what produces wall-sliding (§7.4).
-        player.xFp = resolveX(player.xFp, player.yFp, dx * speedX);
-        player.yFp = resolveY(player.xFp, player.yFp, dy * speedY);
+        player.xFp = Collision.resolve(world, box.x(), box.y(), box.w(), box.h(), player.xFp, player.yFp,
+                dx * speedX, true);
+        player.yFp = Collision.resolve(world, box.x(), box.y(), box.w(), box.h(), player.xFp, player.yFp,
+                dy * speedY, false);
         boolean moved = player.xFp != oldX || player.yFp != oldY;
         player.walkTicks = moved ? player.walkTicks + 1 : 0;
     }
 
-    private int resolveX(int x, int y, int delta) {
-        if (delta == 0) {
-            return x;
-        }
-        int target = x + delta;
-        PlayerData.Box box = rules.collisionBox();
-        if (!Collision.boxBlocked(world, box, target, y)) {
-            return target;
-        }
-        // Blocked: settle on the nearest free WHOLE pixel short of the wall (§7.4).
-        // Collision is tested per whole pixel, so keeping the target's fraction would
-        // let a pinned player creep about inside the last free pixel.
-        int from = Fixed.fp(Fixed.px(target));
-        int to = Fixed.fp(Fixed.px(x));
-        if (delta > 0) {
-            for (int cand = from; cand >= to; cand -= Fixed.ONE) {
-                if (!Collision.boxBlocked(world, box, cand, y)) {
-                    return cand;
-                }
-            }
-        } else {
-            for (int cand = from + Fixed.ONE; cand <= to; cand += Fixed.ONE) {
-                if (!Collision.boxBlocked(world, box, cand, y)) {
-                    return cand;
-                }
-            }
-        }
-        return x;
-    }
-
-    private int resolveY(int x, int y, int delta) {
-        if (delta == 0) {
-            return y;
-        }
-        int target = y + delta;
-        PlayerData.Box box = rules.collisionBox();
-        if (!Collision.boxBlocked(world, box, x, target)) {
-            return target;
-        }
-        int from = Fixed.fp(Fixed.px(target));
-        int to = Fixed.fp(Fixed.px(y));
-        if (delta > 0) {
-            for (int cand = from; cand >= to; cand -= Fixed.ONE) {
-                if (!Collision.boxBlocked(world, box, x, cand)) {
-                    return cand;
-                }
-            }
-        } else {
-            for (int cand = from + Fixed.ONE; cand <= to; cand += Fixed.ONE) {
-                if (!Collision.boxBlocked(world, box, x, cand)) {
-                    return cand;
-                }
-            }
-        }
-        return y;
-    }
-
     // ---------------------------------------------------------------- rooms
 
-    private void updateRoom() {
+    /** @return whether the player just entered a different room */
+    private boolean updateRoom() {
         int col = roomColOf(rules.collisionBox(), player.xFp);
         int row = roomRowOf(rules.collisionBox(), player.yFp);
         if (col == room.col() && row == room.row()) {
-            return;
+            return false;
         }
         // §7.5: the feet-box centre crossed an edge. Position is untouched — world
         // coordinates carry the cross-edge offset across exactly.
@@ -262,6 +267,32 @@ public final class Simulation {
         roomsEntered++;
         player.entryXFp = player.xFp;
         player.entryYFp = player.yFp;
+        enterRoom(true);
+        return true;
+    }
+
+    private void enterRoom(boolean byTransition) {
+        if (byTransition && visits[room.index()] == 0) {
+            addScore(eco.roomFirstVisitScore());
+        }
+        int x0 = room.col() * CollisionMask.COLS;
+        int y0 = room.row() * CollisionMask.ROWS;
+        int x1 = x0 + CollisionMask.COLS;
+        int y1 = y0 + CollisionMask.ROWS;
+        CollisionWorld scenery = world;
+        // Creatures never leave their room (§12.2): its edges are walls to them.
+        roomEdges = (gx, gy) -> gx < x0 || gy < y0 || gx >= x1 || gy >= y1;
+        roomSolid = (gx, gy) -> gx < x0 || gy < y0 || gx >= x1 || gy >= y1 || scenery.isSolid(gx, gy);
+        repopulate();
+    }
+
+    /** The room's creatures, rolled afresh: on every entry and after every respawn (§7.6, §11.7). */
+    private void repopulate() {
+        creatures.clear();
+        spears.clear();
+        reach = null;
+        int visit = visits[room.index()]++;
+        eco.populator().populate(spawns, room, runSeed, visit);
     }
 
     static int roomColOf(PlayerData.Box box, int xFp) {
@@ -288,6 +319,317 @@ public final class Simulation {
         player.mode = Player.Mode.ALIVE;
         player.modeTick = 0;
         player.invulnTicks = rules.spawn().invulnTicks();
+        repopulate();
+    }
+
+    // ---------------------------------------------------------------- creatures and spears
+
+    private void tickCreatures() {
+        for (int i = 0; i < creatures.size(); i++) {
+            Creature c = creatures.get(i);
+            if (c.mode == Creature.Mode.DYING) {
+                c.modeTick++;
+                continue;
+            }
+            if (c.hurtTicks > 0) {
+                c.hurtTicks--;
+            }
+            int ox = c.xFp;
+            int oy = c.yFp;
+            behaviours[c.speciesIndex()].tick(c, context);
+            c.moveTicks = c.xFp != ox || c.yFp != oy ? c.moveTicks + 1 : 0;
+        }
+        if (!spears.isEmpty()) {
+            CreatureData.Projectile def = eco.creatures().projectile("spear");
+            CreatureData.Box b = def.collisionBox();
+            int speed = def.speedFp();
+            int diagonalSpeed = Fixed.mul(speed, eco.creatures().diagonalScaleFp());
+            for (int i = 0; i < spears.size(); i++) {
+                Spear s = spears.get(i);
+                int v = s.dirX() != 0 && s.dirY() != 0 ? diagonalSpeed : speed;
+                int nx = Collision.resolve(roomSolid, b.x(), b.y(), b.w(), b.h(), s.xFp, s.yFp, s.dirX() * v, true);
+                boolean hit = nx != s.xFp + s.dirX() * v;
+                s.xFp = nx;
+                int ny = Collision.resolve(roomSolid, b.x(), b.y(), b.w(), b.h(), s.xFp, s.yFp, s.dirY() * v, false);
+                hit |= ny != s.yFp + s.dirY() * v;
+                s.yFp = ny;
+                if (hit || ++s.ticks >= def.maxTicks()) {
+                    s.alive = false;   // spears die on scenery and on the room's edge
+                }
+            }
+        }
+        removeFinished();
+    }
+
+    private void removeFinished() {
+        int puff = eco.creatures().puffTicks();
+        int keep = 0;
+        for (int i = 0; i < creatures.size(); i++) {
+            Creature c = creatures.get(i);
+            if (!(c.mode == Creature.Mode.DYING && c.modeTick >= puff)) {
+                creatures.set(keep++, c);
+            }
+        }
+        while (creatures.size() > keep) {
+            creatures.remove(creatures.size() - 1);
+        }
+        keep = 0;
+        for (int i = 0; i < spears.size(); i++) {
+            Spear s = spears.get(i);
+            if (s.alive) {
+                spears.set(keep++, s);
+            }
+        }
+        while (spears.size() > keep) {
+            spears.remove(spears.size() - 1);
+        }
+    }
+
+    private void resolveCombat() {
+        CreatureData roster = eco.creatures();
+        if (!sabre.isEmpty()) {
+            for (int i = 0; i < creatures.size(); i++) {
+                Creature c = creatures.get(i);
+                if (c.mode != Creature.Mode.ALIVE || c.lastHitSwing == swingSerial) {
+                    continue;
+                }
+                CreatureData.Box b = c.species().collisionBox();
+                if (overlaps(sabre, Fixed.px(c.xFp) + b.x(), Fixed.px(c.yFp) + b.y(), b.w(), b.h())) {
+                    c.lastHitSwing = swingSerial;
+                    if (--c.hp <= 0) {
+                        c.mode = Creature.Mode.DYING;   // a harmless puff (§12.2)
+                        c.modeTick = 0;
+                        kills++;
+                        addScore(c.species().score());
+                    } else {
+                        c.hurtTicks = roster.hurtFlashTicks();
+                    }
+                }
+            }
+            if (!spears.isEmpty()) {
+                CreatureData.Projectile def = roster.projectile("spear");
+                CreatureData.Box b = def.collisionBox();
+                for (int i = 0; i < spears.size(); i++) {
+                    Spear s = spears.get(i);
+                    if (s.alive && overlaps(sabre, Fixed.px(s.xFp) + b.x(), Fixed.px(s.yFp) + b.y(), b.w(), b.h())) {
+                        s.alive = false;
+                        addScore(def.score());
+                    }
+                }
+            }
+        }
+        if (player.mode != Player.Mode.ALIVE || player.invulnTicks > 0) {
+            return;
+        }
+        // One touch, one life (§12.2).
+        PlayerData.Box pb = rules.collisionBox();
+        int px = Fixed.px(player.xFp) + pb.x();
+        int py = Fixed.px(player.yFp) + pb.y();
+        for (int i = 0; i < creatures.size(); i++) {
+            Creature c = creatures.get(i);
+            CreatureData.Box b = c.species().collisionBox();
+            if (c.mode == Creature.Mode.ALIVE
+                    && overlaps(px, py, pb.w(), pb.h(), Fixed.px(c.xFp) + b.x(), Fixed.px(c.yFp) + b.y(), b.w(), b.h())) {
+                kill();
+                return;
+            }
+        }
+        if (!spears.isEmpty()) {
+            CreatureData.Box b = roster.projectile("spear").collisionBox();
+            for (int i = 0; i < spears.size(); i++) {
+                Spear s = spears.get(i);
+                if (s.alive && overlaps(px, py, pb.w(), pb.h(), Fixed.px(s.xFp) + b.x(), Fixed.px(s.yFp) + b.y(), b.w(), b.h())) {
+                    s.alive = false;
+                    kill();
+                    return;
+                }
+            }
+        }
+    }
+
+    private static boolean overlaps(PixelRect r, int x, int y, int w, int h) {
+        return overlaps(r.x(), r.y(), r.w(), r.h(), x, y, w, h);
+    }
+
+    private static boolean overlaps(int ax, int ay, int aw, int ah, int bx, int by, int bw, int bh) {
+        return ax < bx + bw && bx < ax + aw && ay < by + bh && by < ay + ah;
+    }
+
+    /** Score, and the extra lives its thresholds award, capped at the maximum (§16.3). */
+    private void addScore(int points) {
+        score += points;
+        List<Integer> thresholds = rules.lives().extraAt();
+        while (extraLivesAwarded < thresholds.size() && score >= thresholds.get(extraLivesAwarded)) {
+            extraLivesAwarded++;
+            if (player.lives < rules.lives().max()) {
+                player.lives++;
+            }
+        }
+    }
+
+    /** What a behaviour may see and do (§12.5). */
+    private final class Context implements SimContext {
+
+        @Override
+        public Rng rng() {
+            return rng;
+        }
+
+        @Override
+        public long tick() {
+            return tick;
+        }
+
+        @Override
+        public boolean playerAlive() {
+            return player.mode == Player.Mode.ALIVE;
+        }
+
+        @Override
+        public int playerCentreXPx() {
+            PlayerData.Box b = rules.collisionBox();
+            return Fixed.px(player.xFp) + b.x() + b.w() / 2;
+        }
+
+        @Override
+        public int playerCentreYPx() {
+            PlayerData.Box b = rules.collisionBox();
+            return Fixed.px(player.yFp) + b.y() + b.h() / 2;
+        }
+
+        @Override
+        public int roomLeftPx() {
+            return room.col() * ROOM_W_PX;
+        }
+
+        @Override
+        public int roomTopPx() {
+            return room.row() * ROOM_H_PX;
+        }
+
+        @Override
+        public int move(Creature c, int dxFp, int dyFp) {
+            CreatureData.Box b = c.species().collisionBox();
+            CollisionWorld w = c.species().ignoresScenery() ? roomEdges : roomSolid;
+            int bits = 0;
+            if (dxFp != 0) {
+                int nx = Collision.resolve(w, b.x(), b.y(), b.w(), b.h(), c.xFp, c.yFp, dxFp, true);
+                if (nx != c.xFp + dxFp) {
+                    bits |= BLOCKED_X;
+                }
+                c.xFp = nx;
+            }
+            if (dyFp != 0) {
+                int ny = Collision.resolve(w, b.x(), b.y(), b.w(), b.h(), c.xFp, c.yFp, dyFp, false);
+                if (ny != c.yFp + dyFp) {
+                    bits |= BLOCKED_Y;
+                }
+                c.yFp = ny;
+            }
+            return bits;
+        }
+
+        @Override
+        public int step(Creature c, int dx, int dy, int speedXFp, int speedYFp) {
+            int vx = speedXFp;
+            int vy = speedYFp;
+            if (dx != 0 && dy != 0) {
+                vx = Fixed.mul(vx, eco.creatures().diagonalScaleFp());
+                vy = Fixed.mul(vy, eco.creatures().diagonalScaleFp());
+            }
+            return move(c, dx * vx, dy * vy);
+        }
+
+        @Override
+        public boolean probe(Creature c, int dxPx, int dyPx) {
+            CreatureData.Box b = c.species().collisionBox();
+            CollisionWorld w = c.species().ignoresScenery() ? roomEdges : roomSolid;
+            return Collision.blocked(w, b.x(), b.y(), b.w(), b.h(), c.xFp + Fixed.fp(dxPx), c.yFp + Fixed.fp(dyPx));
+        }
+
+        @Override
+        public boolean lineClear(int x0Px, int y0Px, int x1Px, int y1Px) {
+            int dx = x1Px - x0Px;
+            int dy = y1Px - y0Px;
+            int n = Math.max(Math.abs(dx), Math.abs(dy)) / 4 + 1;
+            for (int i = 0; i <= n; i++) {
+                int x = x0Px + dx * i / n;
+                int y = y0Px + dy * i / n;
+                if (roomSolid.isSolid(Math.floorDiv(x, CELL_PX), Math.floorDiv(y, CELL_PX))) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        @Override
+        public void throwSpear(Creature from, int dx, int dy) {
+            if (eco.creatures().projectiles().isEmpty() || (dx == 0 && dy == 0)) {
+                return;
+            }
+            spears.add(new Spear(nextEntityId++, Fixed.fp(from.centreXPx()), Fixed.fp(from.centreYPx()), dx, dy));
+        }
+    }
+
+    /** How the populator puts creatures into the current room. */
+    private final class Spawns implements Spawner {
+
+        @Override
+        public boolean spawn(String speciesId, int localXPx, int localYPx, Herd herd, Rng spawnRng) {
+            CreatureData roster = eco.creatures();
+            int index = roster.indexOf(speciesId);
+            CreatureData.Species s = roster.creatures().get(index);
+            int xFp = Fixed.fp(room.col() * ROOM_W_PX + localXPx);
+            int yFp = Fixed.fp(room.row() * ROOM_H_PX + localYPx);
+            CreatureData.Box b = s.collisionBox();
+            if (Collision.blocked(s.ignoresScenery() ? roomEdges : roomSolid, b.x(), b.y(), b.w(), b.h(), xFp, yFp)) {
+                return false;
+            }
+            Creature c = new Creature(nextEntityId++, s, index, xFp, yFp, herd);
+            creatures.add(c);
+            behaviours[index].spawn(c, context, spawnRng);
+            return true;
+        }
+
+        @Override
+        public Herd newHerd() {
+            return new Herd();
+        }
+
+        @Override
+        public int entryLocalXPx() {
+            return Fixed.px(player.entryXFp) - room.col() * ROOM_W_PX;
+        }
+
+        @Override
+        public int entryLocalYPx() {
+            return Fixed.px(player.entryYFp) - room.row() * ROOM_H_PX;
+        }
+
+        @Override
+        public boolean reachable(String speciesId, int localXPx, int localYPx) {
+            if (eco.creatures().species(speciesId).ignoresScenery()) {
+                return true;
+            }
+            if (reach == null) {
+                // From where the player stands on arrival — pulled clear of the edge they crossed.
+                int[] start = SpawnFinder.nearestFree(world, rules.collisionBox(), rules.spawn().insideRoomPx(), room,
+                        player.entryXFp, player.entryYFp);
+                reach = Reach.from(roomSolid, rules.collisionBox(), room, start[0], start[1]);
+            }
+            return reach.near(localXPx, localYPx, REACH_SLACK_PX);
+        }
+
+        @Override
+        public int amuletPieces() {
+            return 0;   // the quest arrives in M6
+        }
+
+        @Override
+        public int preferredLocalYPx(String speciesId, int proposedLocalYPx) {
+            int index = eco.creatures().indexOf(speciesId);
+            return behaviours[index].preferredLocalYPx(eco.creatures().creatures().get(index), proposedLocalYPx);
+        }
     }
 
     // ---------------------------------------------------------------- reads
@@ -316,6 +658,35 @@ public final class Simulation {
     /** The live sabre hitbox in world pixels, or {@link PixelRect#NONE}. */
     public PixelRect sabre() {
         return sabre;
+    }
+
+    /** The current room's creatures, in update order. Read-only. */
+    public List<Creature> creatures() {
+        return creaturesView;
+    }
+
+    public List<Spear> spears() {
+        return spearsView;
+    }
+
+    public long score() {
+        return score;
+    }
+
+    public int kills() {
+        return kills;
+    }
+
+    public int visits(RoomAddress address) {
+        return visits[address.index()];
+    }
+
+    public Ecosystem ecosystem() {
+        return eco;
+    }
+
+    public long runSeed() {
+        return runSeed;
     }
 
     /** The Ultimate-style border strobe while dying: two ticks on, two off, four times (§11.7). */
@@ -347,6 +718,44 @@ public final class Simulation {
         h = mix(h, player.modeTick);
         h = mix(h, player.entryXFp);
         h = mix(h, player.entryYFp);
+        h = mix(h, rng.stateHash());
+        h = mix(h, score);
+        h = mix(h, kills);
+        h = mix(h, swingSerial);
+        h = mix(h, nextEntityId);
+        h = mix(h, extraLivesAwarded);
+        for (int i = 0; i < visits.length; i++) {
+            if (visits[i] != 0) {
+                h = mix(h, ((long) i << 32) | visits[i]);
+            }
+        }
+        for (int i = 0; i < creatures.size(); i++) {
+            Creature c = creatures.get(i);
+            h = mix(h, c.id());
+            h = mix(h, c.speciesIndex());
+            h = mix(h, c.xFp);
+            h = mix(h, c.yFp);
+            h = mix(h, ((long) c.dirX << 32) ^ (c.dirY & 0xFFFFFFFFL));
+            h = mix(h, c.faceX);
+            h = mix(h, c.hp);
+            h = mix(h, c.mode.ordinal());
+            h = mix(h, c.modeTick);
+            h = mix(h, c.hurtTicks);
+            h = mix(h, c.lastHitSwing);
+            h = mix(h, c.timer());
+            h = mix(h, c.phase());
+            h = mix(h, c.aux());
+            h = mix(h, c.anchorXFp());
+            h = mix(h, c.anchorYFp());
+            h = mix(h, ((long) c.herd().dirX() << 32) ^ (c.herd().dirY() & 0xFFFFFFFFL));
+        }
+        for (int i = 0; i < spears.size(); i++) {
+            Spear s = spears.get(i);
+            h = mix(h, s.id());
+            h = mix(h, s.xFp);
+            h = mix(h, s.yFp);
+            h = mix(h, s.ticks);
+        }
         return h;
     }
 

@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wulfquest.invalid/schema/loot.schema.json",
+  "title": "entities/loot.json — AGENTS.md §16",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "events"],
+  "properties": {
+    "schemaVersion": { "type": "integer", "minimum": 1 },
+    "events": { "type": "object", "minProperties": 1, "additionalProperties": { "type": "integer", "minimum": 0 } }
+  }
+}

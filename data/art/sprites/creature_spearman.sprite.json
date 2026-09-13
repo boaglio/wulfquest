@@ -1,0 +1,91 @@
+{
+  "schemaVersion": 1,
+  "name": "creature_spearman",
+  "size": {
+    "w": 16,
+    "h": 24
+  },
+  "origin": {
+    "x": 8,
+    "y": 24
+  },
+  "legend": {
+    ".": -1,
+    "K": 0,
+    "y": 6,
+    "R": 10,
+    "G": 12,
+    "C": 13,
+    "W": 15
+  },
+  "frames": [
+    {
+      "id": "walk0",
+      "rows": [
+        ".....KGKKKKKCCK.",
+        "....KWWWWWWWCCK.",
+        ".....KyyyyyKCCK.",
+        ".....KyyyyK.KWK.",
+        ".....KyyyyyKKWK.",
+        ".....KyyyyyKKWK.",
+        ".....KyyyyK.KWK.",
+        "....KyyyyyyKKWK.",
+        "....KyyyyyyKKWK.",
+        "....KyyyyyyyKWK.",
+        "....KyyyyyyyyWK.",
+        "....KyyyyyyKKWK.",
+        "....KyyyyyyKKWK.",
+        "...KRRyyyyRRKWK.",
+        "...KRRRRRRRRKWK.",
+        "...KRRRRRRRRKWK.",
+        "...KRRRRRRRRKWK.",
+        "....KKyKyKKKKWK.",
+        ".....KyKyK..KWK.",
+        ".....KyyyK..KWK.",
+        ".....KyyyK..KWK.",
+        ".....KyyyK..KWK.",
+        "......KyK...KWK.",
+        "......KyK....K.."
+      ]
+    },
+    {
+      "id": "walk1",
+      "rows": [
+        ".....KGKKKKKCCK.",
+        "....KWWWWWWWCCK.",
+        ".....KyyyyyKCCK.",
+        ".....KyyyyK.KWK.",
+        ".....KyyyyyKKWK.",
+        ".....KyyyyyKKWK.",
+        ".....KyyyyK.KWK.",
+        "....KyyyyyyKKWK.",
+        "....KyyyyyyKKWK.",
+        "....KyyyyyyyyWK.",
+        "....KyyyyyyKKWK.",
+        "....KyyyyyyKKWK.",
+        "....KyyyyyyKKWK.",
+        "...KRRyyyyRRKWK.",
+        "...KRRRRRRRRKWK.",
+        "...KRRRRRRRRKWK.",
+        "...KRRRRRRRRKWK.",
+        "....KyKKKyKKKWK.",
+        "....KyK.KyK.KWK.",
+        "...KyyK.KyyKKWK.",
+        "...KyyK.KyyKKWK.",
+        "...KyyK.KyyKKWK.",
+        "...KyK...KyKKWK.",
+        "...KyK...KyK.K.."
+      ]
+    }
+  ],
+  "mirror": {
+    "walk0_l": {
+      "from": "walk0",
+      "flipX": true
+    },
+    "walk1_l": {
+      "from": "walk1",
+      "flipX": true
+    }
+  }
+}

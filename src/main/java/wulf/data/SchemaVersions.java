@@ -11,16 +11,19 @@ import java.util.Set;
 public final class SchemaVersions {
 
     /** schema name -> expected {@code schemaVersion}. Keyed by family, not file. */
-    private static final Map<String, Integer> EXPECTED = Map.of(
-            "game", 1,
-            "display", 1,
-            "palette", 1,
-            "font", 1,
-            "sprite", 1,
-            "sprite_index", 1,
-            "scenery", 1,
-            "player", 1,
-            "input", 1);
+    private static final Map<String, Integer> EXPECTED = Map.ofEntries(
+            Map.entry("game", 1),
+            Map.entry("display", 1),
+            Map.entry("palette", 1),
+            Map.entry("font", 1),
+            Map.entry("sprite", 1),
+            Map.entry("sprite_index", 1),
+            Map.entry("scenery", 1),
+            Map.entry("player", 1),
+            Map.entry("input", 1),
+            Map.entry("creatures", 1),
+            Map.entry("room_entities", 1),
+            Map.entry("loot", 1));
 
     /**
      * Files that carry no {@code schemaVersion}. The sole member is the

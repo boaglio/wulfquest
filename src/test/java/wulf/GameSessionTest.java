@@ -86,6 +86,19 @@ class GameSessionTest {
     }
 
     @Test
+    void theSessionRemembersItsBestScore() {
+        wulf.sim.Ecosystem scoring = new wulf.sim.Ecosystem(wulf.data.CreatureData.EMPTY, wulf.sim.RoomPopulator.NONE, 10);
+        Boot.GameSession s = new Boot.GameSession(
+                () -> Simulation.at(RULES, OPEN, 0, Fixed.fp(1000), Fixed.fp(1000), scoring, 1L));
+        assertThat(s.best()).isZero();
+        for (int i = 0; i < 40 && s.sim().room().col() == 3; i++) {
+            s.tick(RIGHT, false);
+        }
+        assertThat(s.sim().score()).isEqualTo(10);
+        assertThat(s.best()).isEqualTo(10);
+    }
+
+    @Test
     void thePanelLineReflectsTheSession() {
         Boot.GameSession s = session();
         assertThat(s.message(false)).isNull();

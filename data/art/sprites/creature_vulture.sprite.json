@@ -1,0 +1,70 @@
+{
+  "schemaVersion": 1,
+  "name": "creature_vulture",
+  "size": {
+    "w": 20,
+    "h": 14
+  },
+  "origin": {
+    "x": 10,
+    "y": 14
+  },
+  "legend": {
+    ".": -1,
+    "K": 0,
+    "w": 7,
+    "R": 10,
+    "Y": 14,
+    "W": 15
+  },
+  "frames": [
+    {
+      "id": "walk0",
+      "rows": [
+        "....................",
+        "....................",
+        "K..............K....",
+        "wKK...........KwK...",
+        "KwwKK.......KKwKK...",
+        ".KwwwK....KKwwwRRKK.",
+        "..KwwwKKKKwwWWWRRYYK",
+        "...KwwwwwwwwWWWWKKKY",
+        "....KKwwwwwwwwKK...K",
+        ".....KwwwwwwwwK.....",
+        "......KwwwwwwK......",
+        ".......KKKKKK.......",
+        "....................",
+        "...................."
+      ]
+    },
+    {
+      "id": "walk1",
+      "rows": [
+        "....................",
+        "....................",
+        "....................",
+        "....................",
+        "...............KK...",
+        "............KKKRRKK.",
+        ".......KKKKKWWWRRYYK",
+        "...KKKKwwwwwWWWWKKKY",
+        "..KwwwwwwwwwwwKK...K",
+        ".KwwwwwwwwwwwwK.....",
+        "KwwKKKKwwwwwwKwK....",
+        ".KK....KKKKKK.K.....",
+        "....................",
+        "...................."
+      ]
+    }
+  ],
+  "mirror": {
+    "walk0_l": {
+      "from": "walk0",
+      "flipX": true
+    },
+    "walk1_l": {
+      "from": "walk1",
+      "flipX": true
+    }
+  }
+}

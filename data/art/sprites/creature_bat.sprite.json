@@ -1,0 +1,61 @@
+{
+  "schemaVersion": 1,
+  "name": "creature_bat",
+  "size": {
+    "w": 14,
+    "h": 10
+  },
+  "origin": {
+    "x": 7,
+    "y": 10
+  },
+  "legend": {
+    ".": -1,
+    "K": 0,
+    "m": 3,
+    "R": 10,
+    "M": 11
+  },
+  "frames": [
+    {
+      "id": "walk0",
+      "rows": [
+        "..............",
+        ".K..........K.",
+        "KMKK..KK..KKMK",
+        "KMMMKKmmKKMMMK",
+        ".KMMMmmmmMMMK.",
+        ".KMMMmRmRMMMK.",
+        "..KMKmmmmKMK..",
+        "...K.KmmK.K...",
+        "......KK......",
+        ".............."
+      ]
+    },
+    {
+      "id": "walk1",
+      "rows": [
+        "..............",
+        "..............",
+        "......KK......",
+        ".....KmmK.....",
+        "....KmmmmK....",
+        "..KKKmRmRKKK..",
+        ".KMMKmmmmKMMK.",
+        "..KK.KmmK.KK..",
+        "......KK......",
+        ".............."
+      ]
+    }
+  ],
+  "mirror": {
+    "walk0_l": {
+      "from": "walk0",
+      "flipX": true
+    },
+    "walk1_l": {
+      "from": "walk1",
+      "flipX": true
+    }
+  }
+}

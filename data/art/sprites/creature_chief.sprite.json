@@ -1,0 +1,100 @@
+{
+  "schemaVersion": 1,
+  "name": "creature_chief",
+  "size": {
+    "w": 16,
+    "h": 28
+  },
+  "origin": {
+    "x": 8,
+    "y": 28
+  },
+  "legend": {
+    ".": -1,
+    "K": 0,
+    "y": 6,
+    "R": 10,
+    "M": 11,
+    "G": 12,
+    "Y": 14,
+    "W": 15
+  },
+  "frames": [
+    {
+      "id": "walk0",
+      "rows": [
+        "...KRYYGGYYRRK..",
+        "...KRKYGGYKRK...",
+        "...KRKYGGYKRK...",
+        "...KRRYGGYRRK...",
+        "....KRYGGYRK....",
+        "....KRYWWYRWK...",
+        ".....KyyyyyK....",
+        ".....KyyyyK.....",
+        ".....KyyyyyK....",
+        ".....KyyyyyK....",
+        "....KKyyyyKK....",
+        "...KMMMMMMMMK...",
+        "...KMMMMMyyMK...",
+        "...KMMMMMMyyK...",
+        "...KMMMMMMMyyK..",
+        "...KMMMMMMMMK...",
+        "...KMMMMMMMMK...",
+        "...KRRyyyyRRK...",
+        "...KRRRRRRRRK...",
+        "...KRRRRRRRRK...",
+        "...KRRRRRRRRK...",
+        "....KKyKyKKK....",
+        ".....KyKyK......",
+        ".....KyyyK......",
+        ".....KyyyK......",
+        ".....KyyyK......",
+        "......KyK.......",
+        "......KyK......."
+      ]
+    },
+    {
+      "id": "walk1",
+      "rows": [
+        "...KRYYGGYYRRK..",
+        "...KRKYGGYKRK...",
+        "...KRKYGGYKRK...",
+        "...KRRYGGYRRK...",
+        "....KRYGGYRK....",
+        "....KRYWWYRWK...",
+        ".....KyyyyyK....",
+        ".....KyyyyK.....",
+        ".....KyyyyyK....",
+        ".....KyyyyyK....",
+        "....KKyyyyKK....",
+        "...KMMMMMMMMK...",
+        "...KMMMMMyyMK...",
+        "...KMMMMMMMyyK..",
+        "...KMMMMMMMMK...",
+        "...KMMMMMMMMK...",
+        "...KMMMMMMMMK...",
+        "...KRRyyyyRRK...",
+        "...KRRRRRRRRK...",
+        "...KRRRRRRRRK...",
+        "...KRRRRRRRRK...",
+        "....KyKKKyKK....",
+        "....KyK.KyK.....",
+        "...KyyK.KyyK....",
+        "...KyyK.KyyK....",
+        "...KyyK.KyyK....",
+        "...KyK...KyK....",
+        "...KyK...KyK...."
+      ]
+    }
+  ],
+  "mirror": {
+    "walk0_l": {
+      "from": "walk0",
+      "flipX": true
+    },
+    "walk1_l": {
+      "from": "walk1",
+      "flipX": true
+    }
+  }
+}

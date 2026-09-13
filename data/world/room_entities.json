@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "fidelity": "recon",
+  "spawn": { "minDistanceFromEntryPx": 48, "attempts": 24, "visitSeedCap": 8 },
+  "biomeMarkers": { "hut": "8E18", "water": "93C4", "swamp": "8F2A" },
+  "authored": {
+    "8,10": { "note": "the start room is always safe", "creatures": [] }
+  },
+  "biomes": {
+    "jungle":     { "budget": { "min": 2, "max": 4 }, "weights": { "tribesman": 40, "spearman": 15, "snake": 12, "spider": 10, "boar": 10, "rhino": 7, "wildebeest": 6 }, "extras": [] },
+    "swamp":      { "budget": { "min": 2, "max": 4 }, "weights": { "hippo": 25, "frog": 25, "snake": 20, "tribesman": 20, "spearman": 10 }, "extras": [] },
+    "mountain":   { "budget": { "min": 2, "max": 3 }, "weights": { "vulture": 30, "wildebeest": 25, "rhino": 20, "tribesman": 25 }, "extras": [] },
+    "bonefields": { "budget": { "min": 3, "max": 5 }, "weights": { "scorpion": 30, "bat": 25, "spider": 20, "tribesman": 15, "vulture": 10 }, "extras": [] },
+    "hut":        { "budget": { "min": 3, "max": 5 }, "weights": { "tribesman": 45, "spearman": 30 }, "extras": [ { "id": "chief", "chancePer10k": 3500 } ] },
+    "water":      { "budget": { "min": 1, "max": 2 }, "weights": { "frog": 50, "hippo": 30, "snake": 20 }, "extras": [] }
+  }
+}

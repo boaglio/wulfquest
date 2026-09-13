@@ -1,0 +1,61 @@
+{
+  "schemaVersion": 1,
+  "name": "creature_scorpion",
+  "size": {
+    "w": 12,
+    "h": 10
+  },
+  "origin": {
+    "x": 6,
+    "y": 10
+  },
+  "legend": {
+    ".": -1,
+    "K": 0,
+    "y": 6,
+    "R": 10,
+    "Y": 14
+  },
+  "frames": [
+    {
+      "id": "walk0",
+      "rows": [
+        "KYYYYYK.....",
+        "KYYYYYK.....",
+        "YYKKKRK.....",
+        "YK...K......",
+        "YYKKKKKKK.KK",
+        "YYYYYYYYYKyy",
+        "YYYYYYYYyyKK",
+        "KYyyyyyyyKKK",
+        ".Kyyyyyyyyyy",
+        "..KyyKKyyKKK"
+      ]
+    },
+    {
+      "id": "walk1",
+      "rows": [
+        "KYYYYYK.....",
+        "KYYYYYK.....",
+        "YYKKKKRK....",
+        "YK....K.....",
+        "YYKKKKKKK...",
+        "YYYYYYYYYKKK",
+        "YYYYYYYYyyyy",
+        "KYyyyyyyyyyy",
+        "KyyyyyyyyKKK",
+        "KyyKKyyKK..."
+      ]
+    }
+  ],
+  "mirror": {
+    "walk0_l": {
+      "from": "walk0",
+      "flipX": true
+    },
+    "walk1_l": {
+      "from": "walk1",
+      "flipX": true
+    }
+  }
+}

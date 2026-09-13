@@ -22,6 +22,22 @@ class BootArgsTest {
     }
 
     @Test
+    void aSeedMakesARunReplayable() {
+        Boot.Args a = parse("--seed", "42");
+        assertThat(a.error()).isNull();
+        assertThat(a.seeded()).isTrue();
+        assertThat(a.seed()).isEqualTo(42L);
+        assertThat(parse().seeded()).isFalse();
+        assertThat(parse("--seed", "-7").seed()).isEqualTo(-7L);
+    }
+
+    @Test
+    void aNonNumericSeedIsAUsageError() {
+        assertThat(parse("--seed", "lucky").error()).isEqualTo("--seed expects a whole number, got 'lucky'");
+        assertThat(parse("--seed").error()).isEqualTo("--seed needs a value");
+    }
+
+    @Test
     void anOffMapRoomIsAUsageError() {
         assertThat(parse("--room", "16,3").error()).contains("--room").contains("'16,3'").contains("0 to 15");
     }

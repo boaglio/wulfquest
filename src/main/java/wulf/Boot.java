@@ -6,6 +6,7 @@ import java.awt.event.KeyEvent;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 import wulf.data.DataException;
@@ -18,6 +19,7 @@ import wulf.engine.GameLoop;
 import wulf.input.InputMap;
 import wulf.input.InputState;
 import wulf.input.KeyboardInput;
+import wulf.render.CreaturePainter;
 import wulf.render.Fonts;
 import wulf.render.Framebuffer;
 import wulf.render.PanelPainter;
@@ -26,6 +28,7 @@ import wulf.render.RoomPainter;
 import wulf.render.Scaler;
 import wulf.render.SpriteBank;
 import wulf.render.Window;
+import wulf.sim.Ecosystem;
 import wulf.sim.Player;
 import wulf.sim.Simulation;
 import wulf.ui.DataErrorScreen;
@@ -70,7 +73,7 @@ public final class Boot {
     }
 
     private void run(Content c, Args parsed) {
-        System.out.println("Wulf Quest — M3");
+        System.out.println("Wulf Quest — M4");
         System.out.println("  content hash : " + c.db().contentHash());
         System.out.println("  files loaded : " + c.db().loaded().size());
         System.out.println("  map          : " + c.map().gridW() + "x" + c.map().gridH()
@@ -83,6 +86,8 @@ public final class Boot {
                 + c.sprites().all().size() + " sprites");
         System.out.println("  player       : " + c.player().displayName() + ", "
                 + c.player().lives().start() + " lives, sprite '" + c.player().sprite() + "'");
+        System.out.println("  creatures    : " + c.creatures().creatures().size() + " species across "
+                + c.biomes().inUse().size() + " biomes");
         if (parsed.headless()) {
             System.out.println("  --headless: skipping the window");
             return;
@@ -128,8 +133,14 @@ public final class Boot {
         KeyboardInput keys = new KeyboardInput(new InputMap(c.input()));
         screen.window().canvas().addKeyListener(keys);
         screen.window().canvas().addFocusListener(keys);
-        GameSession session = new GameSession(
-                () -> Simulation.startingIn(c.player(), world, c.game().transition().freezeTicks(), start));
+        CreaturePainter beasts = new CreaturePainter(display, sprites, c.creatures(), palette);
+        Ecosystem eco = c.ecosystem();
+        // The run seed decides every room's creatures (§6.3). Game n of a session uses seed + n.
+        long firstSeed = parsed.seeded() ? parsed.seed() : System.nanoTime();
+        AtomicLong nextSeed = new AtomicLong(firstSeed);
+        GameSession session = new GameSession(() -> Simulation.startingIn(c.player(), world,
+                c.game().transition().freezeTicks(), start, eco, nextSeed.getAndIncrement()));
+        System.out.println("  run seed     : " + firstSeed + (parsed.seeded() ? "" : "   (replay with --seed " + firstSeed + ")"));
 
         System.out.println("  controls     : arrows or WASD walk, Space or Z swing, P pause, Esc quit"
                 + (parsed.dev() ? "   [dev: K kill, M collision mask]" : ""));
@@ -151,8 +162,10 @@ public final class Boot {
                 if (session.showMask()) {
                     rooms.paintMask(fb, room, maskColour);
                 }
+                beasts.paint(fb, sim);
                 vale.paint(fb, sim);
-                panel.paint(fb, 0L, 0L, sim.player().lives(), 0, -1, 0, session.message(parsed.dev()));
+                panel.paint(fb, sim.score(), session.best(), sim.player().lives(), 0, -1, 0,
+                        session.message(parsed.dev()));
                 screen.window().present(screen.scaler().render(fb));
             }
 
@@ -173,6 +186,7 @@ public final class Boot {
 
         private final Supplier<Simulation> newGame;
         private Simulation sim;
+        private long best;
         private boolean paused;
         private boolean showMask;
         private boolean quit;
@@ -207,6 +221,12 @@ public final class Boot {
                 sim.kill();
             }
             sim.tick(in);
+            best = Math.max(best, sim.score());
+        }
+
+        /** The best score this session, shown as the hi score until M8 keeps a table. */
+        long best() {
+            return best;
         }
 
         /** The panel line: game over, pause, or in dev mode where you are. Null for none. */
@@ -390,13 +410,15 @@ public final class Boot {
      * Command-line arguments (AGENTS.md §3.1). A malformed argument never throws:
      * it comes back as {@link #error()}, which {@link #main} reports and exits 64.
      */
-    record Args(Path dataDir, int scale, RoomAddress room, boolean headless, boolean browse, boolean dev,
-                boolean help, String error) {
+    record Args(Path dataDir, int scale, RoomAddress room, long seed, boolean seeded, boolean headless,
+                boolean browse, boolean dev, boolean help, String error) {
 
         static Args parse(String[] argv) {
             Path dataDir = defaultDataDir();
             int scale = 0;
             RoomAddress room = null;
+            long seed = 0;
+            boolean seeded = false;
             boolean headless = false;
             boolean browse = false;
             boolean dev = false;
@@ -410,14 +432,18 @@ public final class Boot {
                         case "--help", "-h" -> help = true;
                         case "--scale" -> scale = number(argv, ++i, "--scale");
                         case "--room" -> room = roomArg(argv, ++i);
+                        case "--seed" -> {
+                            seed = longNumber(argv, ++i, "--seed");
+                            seeded = true;
+                        }
                         case "--data-dir" -> dataDir = Path.of(value(argv, ++i, "--data-dir"));
                         default -> throw new IllegalArgumentException("unknown option: " + argv[i]);
                     }
                 }
             } catch (IllegalArgumentException e) {
-                return new Args(dataDir, scale, room, headless, browse, dev, help, e.getMessage());
+                return new Args(dataDir, scale, room, seed, seeded, headless, browse, dev, help, e.getMessage());
             }
-            return new Args(dataDir, scale, room, headless, browse, dev, help, null);
+            return new Args(dataDir, scale, room, seed, seeded, headless, browse, dev, help, null);
         }
 
         private static String value(String[] argv, int i, String option) {
@@ -432,6 +458,15 @@ public final class Boot {
             String v = value(argv, i, option);
             try {
                 return Integer.parseInt(v);
+            } catch (NumberFormatException e) {
+                throw new IllegalArgumentException(option + " expects a whole number, got '" + v + "'");
+            }
+        }
+
+        private static long longNumber(String[] argv, int i, String option) {
+            String v = value(argv, i, option);
+            try {
+                return Long.parseLong(v);
             } catch (NumberFormatException e) {
                 throw new IllegalArgumentException(option + " expects a whole number, got '" + v + "'");
             }
@@ -459,6 +494,7 @@ public final class Boot {
                     Wulf Quest
 
                       --room C,R       start in this room (default: the start room, 8,10)
+                      --seed N         run seed: the same seed gives the same creatures in every room
                       --browse         the room browser instead of the game
                       --scale N        window scale (1..6)
                       --data-dir PATH  content database root (default: ./data, else the jar)

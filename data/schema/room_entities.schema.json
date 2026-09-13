@@ -1,0 +1,65 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wulfquest.invalid/schema/room_entities.schema.json",
+  "title": "world/room_entities.json — AGENTS.md §12.6, §7.6",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "fidelity", "spawn", "biomeMarkers", "authored", "biomes"],
+  "properties": {
+    "schemaVersion": { "type": "integer", "minimum": 1 },
+    "fidelity": { "enum": ["recon", "canon"] },
+    "spawn": {
+      "type": "object", "additionalProperties": false, "required": ["minDistanceFromEntryPx", "attempts", "visitSeedCap"],
+      "properties": {
+        "minDistanceFromEntryPx": { "type": "integer", "minimum": 0 },
+        "attempts": { "type": "integer", "minimum": 1 },
+        "visitSeedCap": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "biomeMarkers": {
+      "type": "object", "additionalProperties": false, "required": ["hut", "water", "swamp"],
+      "properties": {
+        "hut": { "type": "string", "pattern": "^[0-9A-F]{4}$" },
+        "water": { "type": "string", "pattern": "^[0-9A-F]{4}$" },
+        "swamp": { "type": "string", "pattern": "^[0-9A-F]{4}$" }
+      }
+    },
+    "authored": {
+      "type": "object",
+      "propertyNames": { "pattern": "^[0-9]{1,2},[0-9]{1,2}$" },
+      "additionalProperties": {
+        "type": "object", "additionalProperties": false, "required": ["note", "creatures"],
+        "properties": {
+          "note": { "type": "string" },
+          "creatures": {
+            "type": "array",
+            "items": {
+              "type": "object", "additionalProperties": false, "required": ["id", "x", "y"],
+              "properties": { "id": { "type": "string" }, "x": { "type": "integer" }, "y": { "type": "integer" } }
+            }
+          }
+        }
+      }
+    },
+    "biomes": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object", "additionalProperties": false, "required": ["budget", "weights", "extras"],
+        "properties": {
+          "budget": {
+            "type": "object", "additionalProperties": false, "required": ["min", "max"],
+            "properties": { "min": { "type": "integer", "minimum": 0 }, "max": { "type": "integer", "minimum": 0 } }
+          },
+          "weights": { "type": "object", "additionalProperties": { "type": "integer", "minimum": 1 } },
+          "extras": {
+            "type": "array",
+            "items": {
+              "type": "object", "additionalProperties": false, "required": ["id", "chancePer10k"],
+              "properties": { "id": { "type": "string" }, "chancePer10k": { "type": "integer", "minimum": 0, "maximum": 10000 } }
+            }
+          }
+        }
+      }
+    }
+  }
+}

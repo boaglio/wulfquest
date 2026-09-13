@@ -1,0 +1,90 @@
+{
+  "schemaVersion": 1,
+  "name": "creature_tribesman",
+  "size": {
+    "w": 16,
+    "h": 24
+  },
+  "origin": {
+    "x": 8,
+    "y": 24
+  },
+  "legend": {
+    ".": -1,
+    "K": 0,
+    "y": 6,
+    "R": 10,
+    "G": 12,
+    "W": 15
+  },
+  "frames": [
+    {
+      "id": "walk0",
+      "rows": [
+        ".....KGKKKKK....",
+        "....KWWWWWWWK...",
+        ".....KyyyyyK....",
+        ".....KyyyyK.....",
+        ".....KyyyyyK....",
+        ".....KyyyyyK....",
+        ".....KyyyyK.....",
+        "..KKKyyyyyyK....",
+        ".KWWWWyyyyyK....",
+        ".KWWWWyyyyyyK...",
+        ".KWWWWyyyyyyyK..",
+        ".KWWRWyyyyyKK...",
+        ".KWWWWyyyyyK....",
+        ".KWWWWyyyyRRK...",
+        "..KKRRRRRRRRK...",
+        "...KRRRRRRRRK...",
+        "...KRRRRRRRRK...",
+        "....KKyKyKKK....",
+        ".....KyKyK......",
+        ".....KyyyK......",
+        ".....KyyyK......",
+        ".....KyyyK......",
+        "......KyK.......",
+        "......KyK......."
+      ]
+    },
+    {
+      "id": "walk1",
+      "rows": [
+        ".....KGKKKKK....",
+        "....KWWWWWWWK...",
+        ".....KyyyyyK....",
+        ".....KyyyyK.....",
+        ".....KyyyyyK....",
+        ".....KyyyyyK....",
+        ".....KyyyyK.....",
+        "..KKKyyyyyyK....",
+        ".KWWWWyyyyyKK...",
+        ".KWWWWyyyyyyyK..",
+        ".KWWWWyyyyyKK...",
+        ".KWWRWyyyyyK....",
+        ".KWWWWyyyyyK....",
+        ".KWWWWyyyyRRK...",
+        "..KKRRRRRRRRK...",
+        "...KRRRRRRRRK...",
+        "...KRRRRRRRRK...",
+        "....KyKKKyKK....",
+        "....KyK.KyK.....",
+        "...KyyK.KyyK....",
+        "...KyyK.KyyK....",
+        "...KyyK.KyyK....",
+        "...KyK...KyK....",
+        "...KyK...KyK...."
+      ]
+    }
+  ],
+  "mirror": {
+    "walk0_l": {
+      "from": "walk0",
+      "flipX": true
+    },
+    "walk1_l": {
+      "from": "walk1",
+      "flipX": true
+    }
+  }
+}

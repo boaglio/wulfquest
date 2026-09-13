@@ -1,0 +1,65 @@
+{
+  "schemaVersion": 1,
+  "name": "creature_frog",
+  "size": {
+    "w": 12,
+    "h": 12
+  },
+  "origin": {
+    "x": 6,
+    "y": 12
+  },
+  "legend": {
+    ".": -1,
+    "K": 0,
+    "g": 4,
+    "G": 12,
+    "Y": 14
+  },
+  "frames": [
+    {
+      "id": "walk0",
+      "rows": [
+        "............",
+        "............",
+        "............",
+        "........KK..",
+        "...KKKKKYYK.",
+        "..KGGGGGYK..",
+        ".KGGGGGGGGK.",
+        "KGGGGGGGGGGK",
+        "KGGGGGGGGGGK",
+        "KggggGGGGGK.",
+        "KggggGGGGK..",
+        ".KKKKKKKK..."
+      ]
+    },
+    {
+      "id": "walk1",
+      "rows": [
+        "............",
+        "............",
+        ".....KKKKK..",
+        "...KKGGGYYK.",
+        "..KGGGGGYKGK",
+        "..KGGGGGGGGK",
+        "..KggGGGGGGK",
+        ".KgggGGGGGGK",
+        "KgggKGGGGKK.",
+        "gggK.KKKK...",
+        "ggK.........",
+        "KK.........."
+      ]
+    }
+  ],
+  "mirror": {
+    "walk0_l": {
+      "from": "walk0",
+      "flipX": true
+    },
+    "walk1_l": {
+      "from": "walk1",
+      "flipX": true
+    }
+  }
+}

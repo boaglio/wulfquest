@@ -1,0 +1,73 @@
+{
+  "schemaVersion": 1,
+  "name": "creature_boar",
+  "size": {
+    "w": 22,
+    "h": 16
+  },
+  "origin": {
+    "x": 11,
+    "y": 16
+  },
+  "legend": {
+    ".": -1,
+    "K": 0,
+    "r": 2,
+    "y": 6,
+    "W": 15
+  },
+  "frames": [
+    {
+      "id": "walk0",
+      "rows": [
+        "......................",
+        "......................",
+        "......................",
+        "....K..KKKKKKK........",
+        "...KyKKyrryrryKKKKK...",
+        "...KrrrrrrrrrrrrrrrKK.",
+        "..KrrrrrrrrrrrrrrrrrrK",
+        ".KrrrrrrrrrrrrrrrKrrrK",
+        ".KrrrrrrrrrrrrrrrrrrWW",
+        "..KrrrrrrrrrrrrrrrryWy",
+        "..KrrrrrrrrrrrrrrrrWyy",
+        "...KrKrrrrrrrrKrKKKWKK",
+        "...KrrrKKKKKKrrrK..K..",
+        "...KrrrK....KrrrK.....",
+        "....KrK......KrK......",
+        "....KrK......KrK......"
+      ]
+    },
+    {
+      "id": "walk1",
+      "rows": [
+        "......................",
+        "......................",
+        "......................",
+        "....K..KKKKKKK........",
+        "...KyKKyrryrryKKKKK...",
+        "...KrrrrrrrrrrrrrrrKK.",
+        "..KrrrrrrrrrrrrrrrrrrK",
+        ".KrrrrrrrrrrrrrrrKrrrK",
+        ".KrrrrrrrrrrrrrrrrrrWW",
+        "..KrrrrrrrrrrrrrrrryWy",
+        "..KrrrrrrrrrrrrrrrrWyy",
+        "..KrKKKrrrrrrKKKrKKWKK",
+        ".KrrK.KrrKKrrK.KrrKK..",
+        ".KrrK.KrrKKrrK.KrrK...",
+        ".KrK...KrKKrK...KrK...",
+        ".KrK...KrKKrK...KrK..."
+      ]
+    }
+  ],
+  "mirror": {
+    "walk0_l": {
+      "from": "walk0",
+      "flipX": true
+    },
+    "walk1_l": {
+      "from": "walk1",
+      "flipX": true
+    }
+  }
+}

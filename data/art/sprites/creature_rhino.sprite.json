@@ -1,0 +1,80 @@
+{
+  "schemaVersion": 1,
+  "name": "creature_rhino",
+  "size": {
+    "w": 28,
+    "h": 20
+  },
+  "origin": {
+    "x": 14,
+    "y": 20
+  },
+  "legend": {
+    ".": -1,
+    "K": 0,
+    "w": 7,
+    "W": 15
+  },
+  "frames": [
+    {
+      "id": "walk0",
+      "rows": [
+        "............................",
+        "............................",
+        "...................KK.......",
+        "..................KwwK.....K",
+        "..................KwwK....KW",
+        "..................KwK.....KW",
+        ".......KKKKKKKKKKKwwKKKK.KWW",
+        ".....KKwwwwwwwwwwwwwwwwwKKWK",
+        "...KKwwwwwwwwwwwwwwwwwwwwWWK",
+        "..KwwwwwwwwwwwwwwwwwwwKwwwWK",
+        ".KwwwwwwwwwwwwwwwwwwwwwwwwwK",
+        ".KwwwwwwwwwwwwwwwwwwwwwwwwwK",
+        ".KwwwwwwwwwwwwwwwwwwwwwwwwwK",
+        ".KwwwwwwwwwwwwwwwwwwwwwwwwK.",
+        "..KwwwwwwwwwwwwwwwwwwwwwKK..",
+        "...KwwwwwwwwwwwwwwwwwwKK....",
+        "...KwwwwwwwwwwwwwwwwwwK.....",
+        "...KwwwKKKKKKKKKKKKwwwK.....",
+        "....KwK............KwK......",
+        "....KwK............KwK......"
+      ]
+    },
+    {
+      "id": "walk1",
+      "rows": [
+        "............................",
+        "............................",
+        "...................KK.......",
+        "..................KwwK.....K",
+        "..................KwwK....KW",
+        "..................KwK.....KW",
+        ".......KKKKKKKKKKKwwKKKK.KWW",
+        ".....KKwwwwwwwwwwwwwwwwwKKWK",
+        "...KKwwwwwwwwwwwwwwwwwwwwWWK",
+        "..KwwwwwwwwwwwwwwwwwwwKwwwWK",
+        ".KwwwwwwwwwwwwwwwwwwwwwwwwwK",
+        ".KwwwwwwwwwwwwwwwwwwwwwwwwwK",
+        ".KwwwwwwwwwwwwwwwwwwwwwwwwwK",
+        ".KwwwwwwwwwwwwwwwwwwwwwwwwK.",
+        "..KwwwwwwwwwwwwwwwwwwwwwKK..",
+        "..KwKwwwwwwwwwwwwwwwwKwK....",
+        ".KwwKKKwwwwwwwwwwwwKKKwwK...",
+        ".KwwK.KwwKKKKKKKKwwK.KwwK...",
+        ".KwK...KwK......KwK...KwK...",
+        ".KwK...KwK......KwK...KwK..."
+      ]
+    }
+  ],
+  "mirror": {
+    "walk0_l": {
+      "from": "walk0",
+      "flipX": true
+    },
+    "walk1_l": {
+      "from": "walk1",
+      "flipX": true
+    }
+  }
+}

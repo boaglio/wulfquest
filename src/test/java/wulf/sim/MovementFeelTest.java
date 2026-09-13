@@ -125,6 +125,21 @@ class MovementFeelTest {
     }
 
     @Test
+    void aSubPixelMoverPinnedAgainstAWallIsStill() {
+        // Vertical speed below a pixel a tick, pushing down into a wall: after at most one
+        // last fractional step it must not change at all, not even by a fraction.
+        Simulation sim = SimFixtures.at(SimFixtures.horizontalWall(130), 1000, 1030);
+        for (int i = 0; i < 20; i++) {
+            sim.tick(InputState.of(0, 1, false, false));
+        }
+        int y = sim.player().yFp();
+        for (int i = 0; i < 20; i++) {
+            sim.tick(InputState.of(1, 1, false, false));   // diagonal: scaled below a pixel on y until touching
+            assertThat(sim.player().yFp()).as("tick %d", i).isEqualTo(y);
+        }
+    }
+
+    @Test
     void stopsFlushAgainstAWallAndStaysStable() {
         Simulation sim = at(SimFixtures.verticalWall(130), 1000, 1000);
         run(sim, RIGHT, 60);

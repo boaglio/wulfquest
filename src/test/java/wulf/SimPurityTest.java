@@ -37,7 +37,7 @@ class SimPurityTest {
     @Test
     void simWorldAndEngineNeverReferenceUiSoundOrRandom() throws IOException {
         List<String> violations = new ArrayList<>();
-        for (String pkg : List.of("wulf/sim", "wulf/world", "wulf/engine")) {
+        for (String pkg : List.of("wulf/sim", "wulf/sim/ai", "wulf/world", "wulf/engine")) {
             List<Path> files = classesIn(pkg);
             assertThat(files).as("classes found in %s", pkg).isNotEmpty();
             for (Path f : files) {
@@ -55,7 +55,9 @@ class SimPurityTest {
     @Test
     void theSimulationNeverReadsTheClock() throws IOException {
         List<String> violations = new ArrayList<>();
-        for (Path f : classesIn("wulf/sim")) {
+        List<Path> sim = new ArrayList<>(classesIn("wulf/sim"));
+        sim.addAll(classesIn("wulf/sim/ai"));
+        for (Path f : sim) {
             String pool = constantPool(f);
             for (String banned : List.of("currentTimeMillis", "nanoTime", "java/time/")) {
                 if (pool.contains(banned)) {
@@ -69,7 +71,7 @@ class SimPurityTest {
     @Test
     void noFloatOrDoubleInAnySimulationSignature() throws Exception {
         List<String> violations = new ArrayList<>();
-        for (String pkg : List.of("wulf/sim", "wulf/world", "wulf/engine")) {
+        for (String pkg : List.of("wulf/sim", "wulf/sim/ai", "wulf/world", "wulf/engine")) {
             for (Path f : classesIn(pkg)) {
                 String name = pkg.replace('/', '.') + "." + f.getFileName().toString().replace(".class", "");
                 Class<?> type = Class.forName(name, false, getClass().getClassLoader());

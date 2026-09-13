@@ -1,0 +1,69 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wulfquest.invalid/schema/creatures.schema.json",
+  "title": "entities/creatures.json — AGENTS.md §12",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "fidelity", "diagonalScaleFp", "puffTicks", "hurtFlashTicks", "walkTicksPerFrame", "creatures", "projectiles"],
+  "properties": {
+    "schemaVersion": { "type": "integer", "minimum": 1 },
+    "fidelity": { "enum": ["recon", "canon"] },
+    "diagonalScaleFp": { "type": "integer", "minimum": 1, "maximum": 256 },
+    "puffTicks": { "type": "integer", "minimum": 1 },
+    "hurtFlashTicks": { "type": "integer", "minimum": 0 },
+    "walkTicksPerFrame": { "type": "integer", "minimum": 1 },
+    "creatures": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/species" } },
+    "projectiles": { "type": "array", "items": { "$ref": "#/$defs/projectile" } }
+  },
+  "$defs": {
+    "box": {
+      "type": "object", "additionalProperties": false, "required": ["x", "y", "w", "h"],
+      "properties": {
+        "x": { "type": "integer" }, "y": { "type": "integer" },
+        "w": { "type": "integer", "minimum": 1, "maximum": 64 },
+        "h": { "type": "integer", "minimum": 1, "maximum": 64 }
+      }
+    },
+    "species": {
+      "type": "object", "additionalProperties": false,
+      "required": ["id", "displayName", "sprite", "size", "collisionBox", "speed", "hp", "score", "ignoresScenery", "behaviour"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-z][a-z0-9_]*$" },
+        "displayName": { "type": "string", "minLength": 1 },
+        "sprite": { "type": "string", "pattern": "^[a-z][a-z0-9_]*$" },
+        "size": {
+          "type": "object", "additionalProperties": false, "required": ["w", "h"],
+          "properties": { "w": { "type": "integer", "minimum": 1, "maximum": 64 }, "h": { "type": "integer", "minimum": 1, "maximum": 64 } }
+        },
+        "collisionBox": { "$ref": "#/$defs/box" },
+        "speed": {
+          "type": "object", "additionalProperties": false, "required": ["xFp", "yFp"],
+          "properties": { "xFp": { "type": "integer", "minimum": 0, "maximum": 2048 }, "yFp": { "type": "integer", "minimum": 0, "maximum": 2048 } }
+        },
+        "hp": { "type": "integer", "minimum": 1 },
+        "score": { "type": "integer", "minimum": 0 },
+        "ignoresScenery": { "type": "boolean" },
+        "behaviour": {
+          "type": "object", "additionalProperties": false, "required": ["kind", "params"],
+          "properties": {
+            "kind": { "type": "string", "pattern": "^[A-Z][A-Z_]*$" },
+            "params": { "type": "object", "additionalProperties": { "type": "integer" } }
+          }
+        }
+      }
+    },
+    "projectile": {
+      "type": "object", "additionalProperties": false,
+      "required": ["id", "displayName", "speedFp", "lengthPx", "collisionBox", "score", "maxTicks"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-z][a-z0-9_]*$" },
+        "displayName": { "type": "string", "minLength": 1 },
+        "speedFp": { "type": "integer", "minimum": 1, "maximum": 4096 },
+        "lengthPx": { "type": "integer", "minimum": 1, "maximum": 32 },
+        "collisionBox": { "$ref": "#/$defs/box" },
+        "score": { "type": "integer", "minimum": 0 },
+        "maxTicks": { "type": "integer", "minimum": 1 }
+      }
+    }
+  }
+}

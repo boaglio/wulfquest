@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "name": "creature_snake",
+  "size": {
+    "w": 20,
+    "h": 8
+  },
+  "origin": {
+    "x": 10,
+    "y": 8
+  },
+  "legend": {
+    ".": -1,
+    "K": 0,
+    "R": 10,
+    "G": 12,
+    "Y": 14
+  },
+  "frames": [
+    {
+      "id": "walk0",
+      "rows": [
+        "......KK.......KKK..",
+        ".....KGGKK....KGGGK.",
+        "KK..KGGGGGK..KGGGGKK",
+        "GGKKGGYGGGGKKGGYGGGR",
+        "GGGGGGKKGGGGGGGKKGKR",
+        "GGGGGK..KGGGGGK..K.K",
+        "KKGYK....KKGYK......",
+        "..KK.......KK......."
+      ]
+    },
+    {
+      "id": "walk1",
+      "rows": [
+        "..KK.......KK.......",
+        "KKGGK....KKGGK......",
+        "GGGGGK..KGGGGGK..K..",
+        "GGGGGGKKGGGGGGGKKGK.",
+        "GGKKGGGGGYGKKGGGGGGK",
+        "YK..KGGGGGK..KGGGGGR",
+        "K....KYGKK....KYGGKK",
+        "......KK.......KKK.."
+      ]
+    }
+  ],
+  "mirror": {
+    "walk0_l": {
+      "from": "walk0",
+      "flipX": true
+    },
+    "walk1_l": {
+      "from": "walk1",
+      "flipX": true
+    }
+  }
+}

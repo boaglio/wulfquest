@@ -1,0 +1,77 @@
+{
+  "schemaVersion": 1,
+  "name": "creature_wildebeest",
+  "size": {
+    "w": 24,
+    "h": 18
+  },
+  "origin": {
+    "x": 12,
+    "y": 18
+  },
+  "legend": {
+    ".": -1,
+    "K": 0,
+    "y": 6,
+    "Y": 14,
+    "W": 15
+  },
+  "frames": [
+    {
+      "id": "walk0",
+      "rows": [
+        "...............K.....KK.",
+        "..............KWK...KWWK",
+        "..............KWWK..KWK.",
+        "...............KWKKKWK..",
+        ".........KKKK...KWYYWK..",
+        ".....KKKKYYYYKKKYYYYYYK.",
+        "...KKYYYYYYYYYYYyYYYYYK.",
+        "..KYYYYYYYYYYYYYyYYYKYK.",
+        "KKYYYYYYYYYYYYYYyYYYYYK.",
+        "yyYYYYYYYYYYYYYYyYYYYK..",
+        "yKYYYYYYYYYYYYYYyYYYK...",
+        "yKYYYYYYYYYYYYYYyYYYK...",
+        "yKKYYYYYYYYYYYYYYYYK....",
+        "yK.KyYYYYYYYYYYYYyK.....",
+        "K..KyyyKKYYYYKKyyyK.....",
+        "...KyyyK.KKKK.KyyyK.....",
+        "....KyK........KyK......",
+        "....KyK........KyK......"
+      ]
+    },
+    {
+      "id": "walk1",
+      "rows": [
+        "...............K.....KK.",
+        "..............KWK...KWWK",
+        "..............KWWK..KWK.",
+        "...............KWKKKWK..",
+        ".........KKKK...KWYYWK..",
+        ".....KKKKYYYYKKKYYYYYYK.",
+        "...KKYYYYYYYYYYYyYYYYYK.",
+        "..KYYYYYYYYYYYYYyYYYKYK.",
+        "KKYYYYYYYYYYYYYYyYYYYYK.",
+        "yyYYYYYYYYYYYYYYyYYYYK..",
+        "yKYYYYYYYYYYYYYYyYYYK...",
+        "yKYYYYYYYYYYYYYYyYYYK...",
+        "yKKYYYYYYYYYYYYYYYYK....",
+        "yKKyKYYYYYYYYYYYYKyK....",
+        "KKyyKKKyyYYYYyyKKKyyK...",
+        ".KyyK.KyyKKKKyyK.KyyK...",
+        ".KyK...KyK..KyK...KyK...",
+        ".KyK...KyK..KyK...KyK..."
+      ]
+    }
+  ],
+  "mirror": {
+    "walk0_l": {
+      "from": "walk0",
+      "flipX": true
+    },
+    "walk1_l": {
+      "from": "walk1",
+      "flipX": true
+    }
+  }
+}

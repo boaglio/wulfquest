@@ -76,6 +76,24 @@ public final class Sprite {
         }
     }
 
+    /** Draws a frame's silhouette in one colour: a hit flash. */
+    public void blitTinted(Framebuffer fb, String frameId, int x, int y, int paletteIndex) {
+        byte[] px = frames.get(frameId);
+        if (px == null) {
+            throw new IllegalStateException("sprite '" + name + "' has no frame '" + frameId + "'");
+        }
+        int left = x - originX;
+        int top = y - originY;
+        for (int yy = 0; yy < h; yy++) {
+            int row = yy * w;
+            for (int xx = 0; xx < w; xx++) {
+                if (px[row + xx] >= 0) {
+                    fb.set(left + xx, top + yy, paletteIndex);
+                }
+            }
+        }
+    }
+
     public void blit(Framebuffer fb, int x, int y) {
         blit(fb, firstFrame, x, y);
     }

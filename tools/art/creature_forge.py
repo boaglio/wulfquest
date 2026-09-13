@@ -1,0 +1,247 @@
+#!/usr/bin/env python3
+"""
+Creature Forge — draws the jungle's 13 creatures and the death puff as JSON pixel art.
+
+AGENTS.md §10 and §12.3. Every creature is drawn procedurally from primitives
+(ellipses, strokes, stamps) at the size creatures.json gives it, facing right,
+feet on the bottom row. Nothing is traced from any image. Deterministic.
+
+Each creature sprite has two frames, walk0 and walk1 — a gait, a slither, a flap,
+a hop — plus mirrored walk0_l and walk1_l for facing left. The renderer
+alternates them while the creature moves (fliers flap always), and flashes a
+creature white while it is hurt.
+
+The puff sprite, two frames, is what a creature leaves for 12 ticks when it dies.
+
+Reads data/entities/creatures.json for names and sizes, so sprites always match
+the roster. Outputs data/art/sprites/creature_<id>.sprite.json and
+puff.sprite.json, and merges them into data/art/sprites/index.json.
+
+Run from anywhere:  python3 tools/art/creature_forge.py
+"""
+import json
+import math
+import sys
+from pathlib import Path
+
+sys.dont_write_bytecode = True  # importing the scenery forge must not leave a .pyc behind (§2.4)
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from scenery_forge import LEGEND, ROOT, Canvas, update_index  # noqa: E402
+
+
+def legs(cv, xs, top, bottom, frame, col, stride=2):
+    """Pairs of legs that swap stride between the two frames."""
+    for i, x in enumerate(xs):
+        swing = stride if (i + frame) % 2 == 0 else -stride
+        cv.stroke(x, top, x + swing, bottom, col, 0.8, 0.8)
+
+
+def tribesman(cv, f, w, h, spear=False, chief=False):
+    base = h - 1
+    legs(cv, [w / 2 - 2, w / 2 + 1], base - 8, base, f, "y", 1.5)
+    cv.rect(w / 2 - 4, base - 10, w / 2 + 4, base - 6, "R")                  # loincloth
+    cv.ellipse(w / 2, base - 13, 3.5, 4, "y")                                  # torso
+    cv.ellipse(w / 2 + 0.5, base - 19, 2.8, 3, "y")                            # head
+    cv.set(w / 2 + 2, base - 20, "K")                                          # eye
+    cv.rect(w / 2 - 3, base - 22, w / 2 + 4, base - 21, "W")                   # headband
+    if chief:
+        for dx, col in ((-4, "R"), (-2, "Y"), (0, "G"), (2, "Y"), (4, "R")):
+            cv.stroke(w / 2 + dx * 0.6, base - 22, w / 2 + dx, base - 27, col, 0.7, 0.6)
+        cv.rect(w / 2 - 4, base - 16, w / 2 + 4, base - 10, "M")               # robe
+    else:
+        cv.stroke(w / 2 - 1, base - 22, w / 2 - 3, base - 23 - 2, "G", 0.7)    # a feather
+    arm = (w / 2 + 5, base - 12 - f)
+    cv.stroke(w / 2 + 1, base - 15, arm[0], arm[1], "y", 0.7)
+    if spear:
+        cv.stroke(arm[0], base - 1, arm[0], 2, "W", 0.6)
+        cv.stroke(arm[0], 2, arm[0], 0, "C", 0.9)
+    elif not chief:
+        cv.ellipse(w / 2 - 4, base - 12, 2.5, 3.5, "W")                        # a round shield
+        cv.set(w / 2 - 4, base - 12, "R")
+
+
+def scorpion(cv, f, w, h):
+    base = h - 1
+    for i in range(3):
+        cv.ellipse(3 + i * 2.2, base - 2, 2, 1.8, "Y")
+    tail = [(1, base - 3), (0.5, base - 6), (2.5, base - 8.5), (5, base - 8)]
+    for (x0, y0), (x1, y1) in zip(tail, tail[1:]):
+        cv.stroke(x0, y0, x1, y1, "Y", 0.8)
+    cv.set(5 + f, base - 7, "R")                                                # stinger
+    cv.stroke(8, base - 2, w - 1, base - 4 + f, "y", 0.6)                       # claws
+    cv.stroke(8, base - 1, w - 1, base - 1 - f, "y", 0.6)
+    legs(cv, [3, 5, 7], base - 1, base, f, "y", 1)
+
+
+def snake(cv, f, w, h):
+    base = h - 2
+    phase = f * math.pi
+    for x in range(0, w - 3):
+        y = base - 2 + math.sin(x * 0.7 + phase) * 1.6
+        cv.ellipse(x + 0.5, y, 1.2, 1.2, "G")
+        if x % 3 == 0:
+            cv.set(x, y + 1, "Y")
+    hy = base - 2 + math.sin((w - 3) * 0.7 + phase) * 1.6
+    cv.ellipse(w - 2.5, hy, 2, 1.6, "G")
+    cv.set(w - 2, hy - 1, "K")
+    cv.stroke(w - 1, hy + 0.5, w, hy + 1.5, "R")                               # tongue
+
+
+def spider(cv, f, w, h):
+    cx, cy = w / 2, h - 5
+    for side in (-1, 1):
+        for i, a in enumerate((0.3, 0.9, 1.5, 2.1)):
+            bend = 1.5 if (i + f) % 2 == 0 else -1.5
+            x1 = cx + side * math.cos(a * 0.7) * 5
+            y1 = cy - math.sin(a) * 2 + i - 1
+            cv.stroke(cx, cy, x1, y1 + bend, "m", 0.5)
+            cv.stroke(x1, y1 + bend, x1 + side * 1.5, y1 + bend + 3, "m", 0.5)
+    cv.ellipse(cx, cy, 3, 2.6, "M")
+    cv.ellipse(cx, cy - 2.5, 1.8, 1.5, "M")
+    cv.set(cx - 1, cy - 3, "W")
+    cv.set(cx + 1, cy - 3, "W")
+
+
+def bat(cv, f, w, h):
+    cx, cy = w / 2, h / 2
+    lift = -3 if f == 0 else 2
+    for side in (-1, 1):
+        cv.poly([(cx, cy), (cx + side * 6.5, cy + lift), (cx + side * 4, cy + 2), (cx + side * 2, cy + 1)], "M")
+    cv.ellipse(cx, cy + 0.5, 2, 2.5, "m")
+    cv.set(cx - 1, cy, "R")
+    cv.set(cx + 1, cy, "R")
+
+
+def frog(cv, f, w, h):
+    base = h - 1
+    if f == 0:     # crouched
+        cv.ellipse(w / 2, base - 3, 5, 3.2, "G")
+        cv.ellipse(w / 2 - 3, base - 1, 2.5, 1.2, "g")
+    else:          # mid-leap: body up, legs trailing
+        cv.ellipse(w / 2 + 1, base - 5, 4.5, 2.8, "G")
+        cv.stroke(w / 2 - 2, base - 4, 0, base, "g", 1.0, 0.7)
+    cv.ellipse(w / 2 + 3, base - 6 - f, 1.4, 1.4, "Y")
+    cv.set(w / 2 + 3, base - 6 - f, "K")
+
+
+def vulture(cv, f, w, h):
+    cy = h / 2 + 1
+    tip = -5 if f == 0 else 3
+    cv.poly([(4, cy), (w / 2, cy - 1), (w / 2 + 1, cy + 1), (0, cy + tip)], "w")
+    cv.poly([(w / 2 - 2, cy), (w - 4, cy + tip), (w / 2 + 3, cy + 2)], "w")
+    cv.ellipse(w / 2, cy + 1, 4, 2.5, "w")
+    cv.ellipse(w / 2 + 4, cy - 1, 2, 1.5, "W")                                # ruff
+    cv.ellipse(w - 4, cy - 2, 1.6, 1.4, "R")                                  # bare head
+    cv.stroke(w - 3, cy - 2, w - 1, cy - 1, "Y")
+
+
+def quadruped(cv, f, w, h, body, dark, head_extra):
+    base = h - 1
+    legs(cv, [4, 7, w - 9, w - 6], base - 5, base, f, dark, 1.5)
+    cv.ellipse(w / 2 - 1, base - 7, w / 2 - 3, (h - 6) / 2.6, body)
+    head_extra(cv, w, h, base)
+
+
+def boar_head(cv, w, h, base):
+    cv.ellipse(w - 5, base - 7, 4, 3.2, "r")
+    cv.rect(w - 3, base - 6, w, base - 4, "y")                                  # snout
+    cv.stroke(w - 3, base - 4, w - 1, base - 7, "W", 0.6)                       # tusk
+    cv.set(w - 5, base - 8, "K")
+    for x in range(4, w - 8, 3):
+        cv.set(x, base - 11, "y")                                               # bristles
+
+
+def rhino_head(cv, w, h, base):
+    cv.ellipse(w - 6, base - 8, 5, 4, "w")
+    cv.poly([(w - 3, base - 10), (w, base - 16), (w - 1, base - 9)], "W")      # horn
+    cv.set(w - 6, base - 10, "K")
+    cv.stroke(w - 9, base - 12, w - 8, base - 15, "w", 0.8)                     # ear
+
+
+def hippo_head(cv, w, h, base):
+    cv.ellipse(w - 6, base - 8, 6, 5, "M")
+    cv.rect(w - 6, base - 5, w, base - 4, "K")                                  # the mouth line
+    cv.set(w - 4, base - 5, "W")
+    cv.set(w - 2, base - 5, "W")
+    cv.set(w - 8, base - 12, "K")
+    cv.ellipse(w - 10, base - 13, 1.2, 1.2, "m")                                # ear
+
+
+def wildebeest_head(cv, w, h, base):
+    cv.ellipse(w - 5, base - 10, 3.5, 3, "Y")
+    cv.stroke(w - 7, base - 13, w - 9, base - 16, "W", 0.6)                     # horns
+    cv.stroke(w - 4, base - 13, w - 2, base - 16, "W", 0.6)
+    for y in range(int(base - 11), int(base - 5)):
+        cv.set(w - 8, y, "y")                                                   # mane
+    cv.set(w - 4, base - 10, "K")
+    cv.stroke(1, base - 8, 0, base - 4, "y", 0.6)                               # tail
+
+
+DRAW = {
+    "tribesman": lambda cv, f, w, h: tribesman(cv, f, w, h),
+    "spearman": lambda cv, f, w, h: tribesman(cv, f, w, h, spear=True),
+    "chief": lambda cv, f, w, h: tribesman(cv, f, w, h, chief=True),
+    "scorpion": scorpion,
+    "snake": snake,
+    "spider": spider,
+    "bat": bat,
+    "frog": frog,
+    "vulture": vulture,
+    "boar": lambda cv, f, w, h: quadruped(cv, f, w, h, "r", "r", boar_head),
+    "rhino": lambda cv, f, w, h: quadruped(cv, f, w, h, "w", "w", rhino_head),
+    "hippo": lambda cv, f, w, h: quadruped(cv, f, w, h, "M", "m", hippo_head),
+    "wildebeest": lambda cv, f, w, h: quadruped(cv, f, w, h, "Y", "y", wildebeest_head),
+}
+
+
+def puff(f):
+    cv = Canvas(12, 12)
+    for i in range(6):
+        a = i * math.pi / 3 + f * 0.5
+        r = 3 + f * 2
+        cv.ellipse(6 + math.cos(a) * r, 6 + math.sin(a) * r, 1.6 - f * 0.4, 1.6 - f * 0.4, "W" if i % 2 else "Y")
+    if f == 0:
+        cv.ellipse(6, 6, 2, 2, "W")
+    return cv.rows()
+
+
+def write_sprite(name, w, h, frames):
+    used = sorted({c for _, rows in frames for r in rows for c in r}, key=lambda c: LEGEND[c])
+    sprite = {
+        "schemaVersion": 1,
+        "name": name,
+        "size": {"w": w, "h": h},
+        "origin": {"x": w // 2, "y": h},
+        "legend": {c: LEGEND[c] for c in used},
+        "frames": [{"id": fid, "rows": rows} for fid, rows in frames],
+        "mirror": {fid + "_l": {"from": fid, "flipX": True} for fid, _ in frames},
+    }
+    with open(ROOT / f"data/art/sprites/{name}.sprite.json", "w", encoding="utf-8") as out:
+        json.dump(sprite, out, indent=2)
+        out.write("\n")
+
+
+def main():
+    roster = json.loads((ROOT / "data/entities/creatures.json").read_text(encoding="utf-8"))["creatures"]
+    names = []
+    for species in roster:
+        sid, w, h = species["id"], species["size"]["w"], species["size"]["h"]
+        if sid not in DRAW:
+            raise SystemExit(f"no drawing for creature '{sid}'")
+        frames = []
+        for f in range(2):
+            cv = Canvas(w, h)
+            DRAW[sid](cv, f, w, h)
+            cv.outline("K")
+            frames.append((f"walk{f}", cv.rows()))
+        name = species["sprite"]
+        write_sprite(name, w, h, frames)
+        names.append(name)
+    write_sprite("puff", 12, 12, [("f0", puff(0)), ("f1", puff(1))])
+    names.append("puff")
+    update_index(names, lambda n: n.startswith("creature_") or n == "puff")
+    print(f"creature forge: drew {len(roster)} creatures and the puff")
+
+
+if __name__ == "__main__":
+    main()
