@@ -66,8 +66,19 @@ public final class JsonDb {
                 builder -> builder.schemaRegistryConfig(config));
     }
 
-    /** Loads, validates and binds a content file; repeat calls return the cached value. */
+    /**
+     * Loads, validates and binds a content file whose schema is named after the
+     * file itself ({@code config/game} uses {@code schema/game.schema.json}).
+     */
     public <T> T load(String logicalName, Class<T> type) {
+        return load(logicalName, type, baseName(logicalName));
+    }
+
+    /**
+     * Loads a file against an explicitly named schema — for families of files
+     * that share one, such as the sprites ({@code "sprite"}).
+     */
+    public <T> T load(String logicalName, Class<T> type, String schemaName) {
         Object hit = cache.get(logicalName);
         if (hit != null) {
             return type.cast(hit);
@@ -75,8 +86,8 @@ public final class JsonDb {
         String source = sourceName(logicalName);
         String text = readText(logicalName, source);
         JsonNode node = parse(text, source);
-        validateAgainstSchema(logicalName, node, source);
-        checkSchemaVersion(logicalName, node, source);
+        validateAgainstSchema(schemaName, node, source);
+        checkSchemaVersion(schemaName, node, source);
 
         T value;
         try {
@@ -160,8 +171,8 @@ public final class JsonDb {
         }
     }
 
-    private void validateAgainstSchema(String logicalName, JsonNode node, String source) {
-        Schema schema = schemaFor(logicalName);
+    private void validateAgainstSchema(String schemaName, JsonNode node, String source) {
+        Schema schema = schemaFor(schemaName);
         List<Error> errors = schema.validate(node);
         if (errors.isEmpty()) {
             return;
@@ -175,9 +186,12 @@ public final class JsonDb {
         throw new DataException(source, pointer, "fails its schema: " + first.getMessage() + extra);
     }
 
-    private Schema schemaFor(String logicalName) {
-        String base = logicalName.substring(logicalName.lastIndexOf('/') + 1);
-        String schemaLogical = "schema/" + base + ".schema";
+    private static String baseName(String logicalName) {
+        return logicalName.substring(logicalName.lastIndexOf('/') + 1);
+    }
+
+    private Schema schemaFor(String schemaName) {
+        String schemaLogical = "schema/" + schemaName + ".schema";
         return schemaCache.computeIfAbsent(schemaLogical, key -> {
             String source = sourceName(key);
             JsonNode node = parse(readText(key, source), source);
@@ -185,11 +199,11 @@ public final class JsonDb {
         });
     }
 
-    private void checkSchemaVersion(String logicalName, JsonNode node, String source) {
-        if (!SchemaVersions.isVersioned(logicalName)) {
+    private void checkSchemaVersion(String schemaName, JsonNode node, String source) {
+        if (!SchemaVersions.isVersioned(schemaName)) {
             return;
         }
-        int expected = SchemaVersions.expected(logicalName);
+        int expected = SchemaVersions.expected(schemaName);
         JsonNode v = node.path("schemaVersion");
         if (!v.isInt()) {
             throw new DataException(source, "/schemaVersion",

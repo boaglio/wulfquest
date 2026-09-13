@@ -1,0 +1,72 @@
+{
+  "schemaVersion": 1,
+  "name": "scenery_72f6",
+  "size": {
+    "w": 64,
+    "h": 40
+  },
+  "origin": {
+    "x": 0,
+    "y": 0
+  },
+  "legend": {
+    ".": -1,
+    "K": 0,
+    "r": 2,
+    "g": 4,
+    "c": 5,
+    "y": 6,
+    "R": 10,
+    "G": 12,
+    "C": 13,
+    "Y": 14,
+    "W": 15
+  },
+  "frames": [
+    {
+      "id": "f0",
+      "rows": [
+        "................................................................",
+        ".........................KKKKKKKKK..............................",
+        ".......................KKggggGgGGGKKK...........................",
+        ".....................KKGgGgGGGGgGGGggKK.........................",
+        "....................KggGggGGGGGGgGGGgGGK........................",
+        "..................KKgGGgGGGGGGGGGGgGGgGK........................",
+        ".................KggGGgGGGGGGGGGGGgGGGgGK.......................",
+        "................KKgGGggGGGGGGGGGGGgGGGGK........................",
+        "...............KGgGGGKGKGGyyrryyGGGgGGGKK.......................",
+        "..............KGGgGKGgKGGyyyyyyyyGGgGGGGgK......................",
+        ".............KGGgKGGKgGGKyyyyyyyyKGggGKGgKK.....................",
+        "..............KGgGGGgKGKGKyyRRyyGKGGgKGGggGK....................",
+        ".............KGKKKKKgGGGGKKKrrrKKGKGgKGGGgGK....................",
+        "..............K.....KGKGK...KrrrKGKGKgKKGgGGK...................",
+        "....KK......KK.......KKGKKKKKRRRKGGKKK..KKKGK..KKK..............",
+        "..KKGgKKKKKKGGKK......KKKGgGGRRRGgGGGGK....K..KGgGK.............",
+        ".KGGGgGGGGGGGGgGK...KKgGggGGgrrrgGGGGGGK.....KgGGGgKKKKKKKKK....",
+        "KGGGgGGggGGggGGggKKKGGGGGGGgGrrrgGGGGgGGKKKKKGGGGGGGGGGGGGgGK...",
+        "KGggGGgGGGGGGgGgGKggGGgGGGGGGRRRGGGGGGGgGGGgKGGGGGGGGGGGGGGgK...",
+        "KGGGGGGGGGGGGGgGGGGGgGGGGGGGGRRRGGGgGGGgGGGGGGGggGGgGGGGGGGGGK..",
+        "KgGgGGGGgGGgGGGGGGGGGgGGGgGgGrrrGGGGGgGGggGGGGKKKKGgGGGGGGGGgK..",
+        ".KGGGGGGGGGGGGGGGGGGGGGGgGGGGGrrrGGgGGgGGGGGGGgKKKgGGGGgGGGGGK..",
+        "KGGggGGGGGGGgGGGGGGGGGGGGgGgGGRRRGGGGGGGGgGGGGGgGKGGgGGGGGGGK...",
+        "KGGGggGGGGGGGGGGGGGGgGgGGGGGGGRRRGGggGGgGGGGggGGGKGGGggGGGGGK...",
+        "KGGGGgGGgGKKKKGGGGGGGGGGGGGGGGrrrGGGGGGGGGGGGGGGGGggGGGGGGGGK...",
+        ".KGGGGgGGGGKKKGGGGGGGGGGGGGGGgrrrGGGGGGGgGGgGGGgGGGGgGGGgGGGGK..",
+        ".KGGGGGggGGGgKGGGGGGgGGGGGGGGGRRRGgGgGGGGGgGGGGGGGKggGgGGGGGGKK.",
+        "KgGGGGgcyYyYyGGGGgGGGGGGGGGGGGRRRgGGGGGGyYyYyGGgggyYyYyGGGGgGGGK",
+        "KGGGGGGcWWyYyGgCggGGGGGGgGGGgGrrrgGgGGGYWWyYyGGGGYWWyYyGgGGGGGGK",
+        "KGGGGGGcWWyYyGCGGGGgGGGgGGGGGGrrrGGGGGgYWWyYygGGgYWWyYyGGGggGGGK",
+        "KCCGGgGccYyYyCCGGgGGGgGGGGGgGGRRRGGGGGGYyYyYygGGGYyYyYyGGGGGgGGK",
+        "KGCCGGgccYyYCCGGGGGGGGGGGGgGgGRRRGGGGgGYyYyYyGGGGYyYyYygGGgGGGGK",
+        "KGCCCGGccYyCCCGGGGGGGGGGGGgGGGrrrggGGGGGyYyYyGGGGgyYyYyGgGGGgGGK",
+        "KGgCCCGccgCCCGGGGGGGGGGGGgGGGGrrrGGGGGGGGGGGGGGGGGGgGGGGGGGGGGgK",
+        "KGgGCCcccCCCgGGcccGGGgGGGGGGGGRRRGGGGGGGGGgGGGGGGGGgGGGgGggGGgGK",
+        "ccccCCccCCCcccccGGGgGGGGggGGGGRRRGGGGGGGGGGgGGGGGgGGGgGGGGGGGGGK",
+        "KccccCcccccccccGGGGgGGGGGGGGGGrrrGGGGGGGGgGGGGGGGGGGGGGGggGGGGGK",
+        "KGGccccccccccGGGGgGGgGGgGGGGGGrrrGGGGGGGgGGGGGGGGGGGGGGGGGGGGGGK",
+        "KGGGgccccccGGGgGGGGgGGGGGggGgGGRRRGGGGgGGGGGggGggGGGGGGGgGGGGGGK",
+        "KGgGgGgccGGgggGgGGgGGGGgGGGGGGGgGGGGGGGGGGggGGGggGGGGgGGggGGGGGK"
+      ]
+    }
+  ]
+}

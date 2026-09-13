@@ -1,0 +1,83 @@
+{
+  "schemaVersion": 1,
+  "name": "scenery_7e4b",
+  "size": {
+    "w": 64,
+    "h": 56
+  },
+  "origin": {
+    "x": 0,
+    "y": 0
+  },
+  "legend": {
+    ".": -1,
+    "K": 0,
+    "m": 3,
+    "w": 7,
+    "M": 11,
+    "W": 15
+  },
+  "frames": [
+    {
+      "id": "f0",
+      "rows": [
+        "..................................K.............................",
+        ".................................KWK............................",
+        "................................KWWK............................",
+        "................................KwwK............................",
+        "...............................KWWWwK...........................",
+        "...............................KWWwwK...........................",
+        "...............................KWwwwwK..........................",
+        "..............................KWWWWWwK..........................",
+        "..............................KWWWWWwK..........................",
+        ".............................KWWWwwwwwK.........................",
+        ".............................KWWWWWwwwK.........................",
+        ".............................KWWWWWwwwwK......K.................",
+        "............................KWWWWWWwwwwK.....KWK................",
+        "............................KWWWWWwwwwwK....KWwK................",
+        "...........................KWWWWWWWwwwwwK...KwwK................",
+        "...........................KWWWWWWWWwwwwK..KWWwwK...............",
+        "...........................KWWWWWWWWwwwwwK.KWWWWK...............",
+        "..........................KWWWWWWWwwwwwwwKKWWWWWwK..............",
+        "..........................KWWWWWWWWwwwwwwKKWWWwwwK..............",
+        ".........................KWWWWWWWWWwwwwwwwKWWWWWwK..............",
+        ".........................KWWWWWWWWWwwwwwwwWWWWWWwwK.............",
+        "................K........KWWWWWWWWwwwwwwwwwWWWWWwwK.............",
+        "...............KwK......KWWWWWWWWWWWwwwwwwwWWWWwwwwK............",
+        "..............KWWK......KWWWWWWWWWWWwwwwwwwWWWWWwwwK............",
+        "..............KWWK.....KWWWWWWWWWWWWwwwwwwwwWWwwwwwK............",
+        ".............KWwwwK....KWWWWWWWWWWWWwwwwwwwwWWWwwwwwK...........",
+        ".............KWWWWK....KWWWWWWWWWWWWwwwwwwwwwWWWwwwwK...........",
+        "............KWWwwwwK..KWWWMMWWWWWMMwwwwwmmwwwWWWwwwwwK..........",
+        "............KWWWwwwK..KWWMMMWWWWMMMWwwwmmmwwwWWWwwwwwK..........",
+        "...........KWWWWWWwwKKWWWMMMMWWWMMMMwwwmmmmwwwWwwwwwwK..........",
+        "...........KWWWWWWwwKKWWMMMMMWWMMMMmwwmmmmmwwmWWwwwwwwK.........",
+        "..........KWWWWWwwwwwKMMMMMMMMMMMMMmmmmmmmmmmmmwwwwwwwK.........",
+        "..........KWWWWWwwwwwMMMMMMMMMMMMMMmmmmmmmmmmmmMWwwwwwmK........",
+        ".........KWWWWWWWWwwwMMMMMMMMMMMMMMmmmmmmmmmmmmmmwwwwmmK........",
+        ".........KWWWWWWWWWwMMMMMMMMMMMMMMMMMmmmmmmmmmmmmwwwwmmmK.......",
+        "........KWWWWWWWWWwwMMMMMMMMMMMMMMMMmmmmmmmmmmmmmmwwmmmmK.......",
+        "........KWWWWWWWWWwwMMMMMMMMMMMMMMMMmmmmmmmmmmmmmmmwmmmmK.......",
+        ".......KWWWWMWWWWwwMMMMMMMMMMMMMMMMmmmmmmmmmmmmmmmmmmmmmmK......",
+        ".......KWWWMMMWWWWmMMMMMMMMMMMMMMMMMMmmmmmmmmmmmmmmmmmmmmK......",
+        ".......KWWWMMMWWWWMMMMMMMMMMMMMMMMMmmmmmmmmmmmmmmmmmmmmmmmK.....",
+        "......KMWWMMMMMWwmMMMMMMMMMMMMMMMMMMMmmmmmmmmmmmmmmmmmmmmmK.....",
+        "......KMMWMMMMMMWMMMMMMMMMMMMMMMMMMMmmmmmmmmmmmmmmmmmmmmmmK.....",
+        ".....KMMMMMMMMMMMMMMMMMMMMMMMMmmMMMMMmmmmmmmmmmmmmmmmmmmmmmK....",
+        ".....KMMMMMMMMMMMMMMMMMMMMMMMMmmMMMmmmmmmmmmmmmmmmmmmmmmmmmK....",
+        "....KMMMMMMMMMMMMMMMMMMMMMMMMMmmMMMmmmmmmmmmmmmmmmmmmmmmmmmmK...",
+        "....KMMMMMMMMMMMMMMMMMMMMMMMMMmMMMMMMmmmmmmmmmmmmmmmmmmmmmmmK...",
+        "...KMMMMMMMMMMMMMMMMMMMMMMMMMMmmMMMMmmmmmmmmmmmmmmmmmmmmmmmmK...",
+        "...KMMMMMMMMMMMMMMMMMMMMMMMMMMmmMMMMMMmmmmmmmmmmmmmmmmmmmmmmmK..",
+        "..KMMMMMMMMMMMMMMMMMMMMMMMMMMMmmMMMMMMmmmmmmmmmmmmmmmmmmmmmmmK..",
+        "..KMMMMMMMMMMMMMMMMMMMMMMMMMMMmmMMMMMmmmmmmmmmmmmmmmmmmmmmmmmmK.",
+        ".KMMMMMMMMMMMMMMMMMMMMMMMMMMMMmmMMMMmmmmmmmmmmmmmmmmmmmmmmmmmmK.",
+        ".KMMMMMMMMMMMMMMMMMMMMMMMMMMMMmmMMMmmmmmmmmmmmmmmmmmmmmmmmmmmmK.",
+        "KMMMMMMMMMMMMMMMMMMMMMMMMMMMMMmmMMMmmmmmmmmmmmmmmmmmmmmmmmmmmmmK",
+        "KMMMMMMMMMMMMMMMMMMMMMMMMMMMMMmMmMMmmmmmmmmmmmmmmmmmmmmmmmmmmmmK",
+        "MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMmMmMMMmmmmmmmmmmmmmmmmmmmmmmmmmmmm",
+        "MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMmMmMMMmmmmmmmmmmmmmmmmmmmmmmmmmmmm"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wulfquest.invalid/schema/sprite_index.schema.json",
+  "title": "art/sprites/index.json — AGENTS.md §20.4 (the index is authoritative; never glob)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "sprites"],
+  "properties": {
+    "schemaVersion": { "type": "integer", "minimum": 1 },
+    "sprites": {
+      "type": "array", "uniqueItems": true,
+      "items": { "type": "string", "pattern": "^[a-z][a-z0-9_]*$" }
+    }
+  }
+}

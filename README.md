@@ -12,18 +12,24 @@ engine.
 
 ## Status
 
-**Milestone M1 complete** — the JSON content database with schema validation,
-the indexed framebuffer and window, the status panel, and the canon lock on
-the extracted 256-room map. There is no playable game yet: rooms arrive in M2
-and the player in M3. The full plan lives in [AGENTS.md](AGENTS.md) §24.
+**Milestone M2 complete** — the whole 256-room jungle renders, from 41
+original scenery sprites laid out on the extracted map, with collision baked
+for every room. A navigability audit confirms all 196 interior rooms are
+reachable from the start. There is no player yet: that is M3. The full plan
+lives in [AGENTS.md](AGENTS.md) §24.
 
+Explore the map in the room browser:
+
+```bash
+./run.sh --room 7,3        # open at the stone arch (default: the start room, 8,10)
 ```
-$ mvn -q exec:java -Dexec.args="--headless"
-Wulf Quest — M1
-  content hash : 08cd040a5d66d8...
-  files loaded : [config/game, config/display, art/palette, art/font/font, world/original_map]
-  map          : 16x16 rooms, start 8,10, 48 templates (45 used), 41 scenery objects, 5105 placements
-```
+
+| Key | Room browser |
+|-----|--------------|
+| Arrows | Move to the neighbouring room |
+| `[` `]` or PgUp / PgDn | Step through all 256 rooms in order |
+| M | Show the collision mask |
+| Esc | Quit |
 
 ## Build and run
 
@@ -82,7 +88,7 @@ AGENTS.md     the full specification and working agreement — start here
 data/         the content database (world, entities, art, audio, config)
 src/main/     engine, simulation, renderer, data layer
 src/test/     unit tests, data validators, replay and golden-frame checks
-tools/        CI gates
+tools/        CI gates, and tools/art/scenery_forge.py, which draws the scenery
 ```
 
 ## Credits and attribution

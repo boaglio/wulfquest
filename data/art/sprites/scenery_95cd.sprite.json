@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 1,
+  "name": "scenery_95cd",
+  "size": {
+    "w": 48,
+    "h": 24
+  },
+  "origin": {
+    "x": 0,
+    "y": 0
+  },
+  "legend": {
+    ".": -1,
+    "K": 0,
+    "r": 2,
+    "g": 4,
+    "y": 6,
+    "R": 10,
+    "G": 12,
+    "Y": 14,
+    "W": 15
+  },
+  "frames": [
+    {
+      "id": "f0",
+      "rows": [
+        "................................................",
+        "................................................",
+        "................................................",
+        "................................................",
+        "................................................",
+        ".....KKK.....K........KK........................",
+        "...KKGGgKKKKKGKKKK.KKKGGKKKKKKKKK...............",
+        "..KGGGGGGGGGGGGGGgKGGGGGGGgGGGGGGKK.............",
+        ".KGGGGGGGGgGGGGGGGGGggGGGGGGGGGGGGGK............",
+        ".KGGGGGGGGGgGGGrGGGGGGGGGGGGGGGGGGGGK...........",
+        ".KGgGGGGGGGGGGGrGgggGGGGGGGGGGgGGGGgGKK.........",
+        "KGgGGGGGGGGGGGGrGgGGGgGgGGGGGGGGgGGGggGK........",
+        "KGGGgGGGGGgRGGgrGGGGGGGggGGGGGGGGGGGGGGGK.......",
+        "KGGGGGgGGGGRGGGrrGGGRgGGGGGgGGGGgGyYYyYyGK......",
+        "KGgGGGGggGGRRGGrrGGRRGGGGGGGgGGgGYyWWyYyYKKKKKK.",
+        "KGGGGGGgGGGGRRGrrGRRGGgGggGGGGGGGYyWWyYyYGgGGGGK",
+        "KGgGgGgGGGGgRRrrrGRRGGgGGgGGgGGGGYyYYyYyYGGgGGGK",
+        "KGGGGGGgGGGGGRrrrRRgGGGGGGGGGGGggYyYYyYyYGGgGGGK",
+        "KGGGGgGrrrGGGRrrRRRGrrrgGGGgGGGGGGyYYyYyGGGGGGGK",
+        "KgGGGGGGrrrrrRrrrrrrrrGGGGGGGGGGgGgGGGGGGGGGGGGK",
+        "KGGGGGGGGGrrrrrrrrrrGGGGGGGGGGGGGgGGGGGGGGGGGGGG",
+        "KGGGGGGgGgggGrrrrrrGGGGGGGGGGGGGGGGGGGGGGGGGGGGG",
+        "KGGgGgGGGGGGGGGrrgGGgGGGGGgGGGGGGGGGgGGGGGGGGGGg",
+        "KGGGGGGGGGGGGGGGGgGGGgGGGGGGGGGgGGGGGGGGgGGGgGGK"
+      ]
+    }
+  ]
+}

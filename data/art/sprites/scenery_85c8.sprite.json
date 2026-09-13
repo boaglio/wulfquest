@@ -1,0 +1,65 @@
+{
+  "schemaVersion": 1,
+  "name": "scenery_85c8",
+  "size": {
+    "w": 48,
+    "h": 40
+  },
+  "origin": {
+    "x": 0,
+    "y": 0
+  },
+  "legend": {
+    ".": -1,
+    "K": 0,
+    "w": 7,
+    "W": 15
+  },
+  "frames": [
+    {
+      "id": "f0",
+      "rows": [
+        "................KKKwwwwwwwwwwKKK................",
+        ".............KKKwwwWWWWWwwwwwwwWKKK.............",
+        "............KwwwwwwWWWWWwwwwwwwWWWWK............",
+        "..........KKwwwwwwwWWWWWwwwwwwwWWWWWKK..........",
+        ".........KWWwwwwwwwWWWWWwwwwwwwWWWWWwwK.........",
+        "........KwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwK........",
+        ".......KwwwwWWWwWWwwwwwwWWWwWWwwwwwwWWWwK.......",
+        "......KwwwwwWWWwWWwwwwwwWWWwWWwwwwwwWWWwWK......",
+        ".....KwwwwwwWWWwWWwwwKKKKKKwWWwwwwwwWWWwWWK.....",
+        "....KWwwwwwwWWWwWWKKKKKKKKKKKKwwwwwwWWWwWWwK....",
+        "...KwwwwwwwwwwwwwKKKKKKKKKKKKKKwwwwwwwwwwwwwK...",
+        "...KwwwWWWWWwwwKKKKKKKKKKKKKKKKKKWWWwwwwwwwWK...",
+        "..KwwwwWWWWWwwKKKKKKKKKKKKKKKKKKKKWWwwwwwwwWWK..",
+        "..KwwwwWWWWWwwKKKKKKKKKKKKKKKKKKKKWWwwwwwwwWWK..",
+        ".KwwwwwWWWWWwKKKKKKKKKKKKKKKKKKKKKKWwwwwwwwWWWK.",
+        ".KwwwwwwwwwwKKKKKKKKKKKKKKKKKKKKKKKKwwwwwwwwwwK.",
+        ".KWwWWwwwwwwKKKKKKKKKKKKKKKKKKKKKKKKWWWwWWwwwwK.",
+        "KWWwWWwwwwwwKKKKKKKKKKKKKKKKKKKKKKKKWWWwWWwwwwwK",
+        "KWWwWWwwwwwKKKKKKKKKKKKKKKKKKKKKKKKKKWWwWWwwwwwK",
+        "KWWwWWwwwwwKKKKKKKKKKKKKKKKKKKKKKKKKKWWwWWwwwwwK",
+        "KwwwwwwwwwwKKKKKKKKKKKKKKKKKKKKKKKKKKwwwwwwwwwwK",
+        "KwwwwwwWWWWKKKKKKKKKKKKKKKKKKKKKKKKKKwwwwwwWWWWK",
+        "KwwwwwwWWWWKKKKKKKKKKKKKKKKKKKKKKKKKKwwwwwwWWWWK",
+        "KwwwwwwWWWWKKKKKKKKKKKKKKKKKKKKKKKKKKwwwwwwWWWWK",
+        "KwwwwwwWWWWKKKKKKKKKKKKKKKKKKKKKKKKKKwwwwwwWWWWK",
+        "KwwwwwwwwwwKKKKKKKKKKKKKKKKKKKKKKKKKKwwwwwwwwwwK",
+        "KWWwWWwwwwwKKKKKKKKKKKKKKKKKKKKKKKKKKWWwWWwwwwwK",
+        "KWWwWWwwwwwKKKKKKKKKKKKKKKKKKKKKKKKKKWWwWWwwwwwK",
+        "KWWwWWwwwwwKKKKKKKKKKKKKKKKKKKKKKKKKKWWwWWwwwwwK",
+        "KWWwWWwwwwwKKKKKKKKKKKKKKKKKKKKKKKKKKWWwWWwwwwwK",
+        "KwwwwwwwwwwKKKKKKKKKKKKKKKKKKKKKKKKKKwwwwwwwwwwK",
+        "KwwwwwwWWWWKKKKKKKKKKKKKKKKKKKKKKKKKKwwwwwwWWWWK",
+        "KwwwwwwWWWWKKKKKKKKKKKKKKKKKKKKKKKKKKwwwwwwWWWWK",
+        "KwwwwwwWWWWKKKKKKKKKKKKKKKKKKKKKKKKKKwwwwwwWWWWK",
+        "KwwwwwwWWWWKKKKKKKKKKKKKKKKKKKKKKKKKKwwwwwwWWWWK",
+        "KwwwwwwwwwwKKKKKKKKKKKKKKKKKKKKKKKKKKwwwwwwwwwwK",
+        "KWWwWWwwwwwKKKKKKKKKKKKKKKKKKKKKKKKKKWWwWWwwwwwK",
+        "KWwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwK",
+        "KWwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwK",
+        "KWwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwK"
+      ]
+    }
+  ]
+}

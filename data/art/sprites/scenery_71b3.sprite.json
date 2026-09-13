@@ -1,0 +1,70 @@
+{
+  "schemaVersion": 1,
+  "name": "scenery_71b3",
+  "size": {
+    "w": 40,
+    "h": 40
+  },
+  "origin": {
+    "x": 0,
+    "y": 0
+  },
+  "legend": {
+    ".": -1,
+    "K": 0,
+    "r": 2,
+    "g": 4,
+    "c": 5,
+    "y": 6,
+    "R": 10,
+    "G": 12,
+    "Y": 14
+  },
+  "frames": [
+    {
+      "id": "f0",
+      "rows": [
+        "................KKKKK...................",
+        "..............KKcccGGKKKK...............",
+        "............KKGcGcGGccGGGK..............",
+        "...........KccGccGGGGGGGGGK.............",
+        "..........KccGcGGGGGGGGGccGK............",
+        "...........KGcGGGGGGGGGGGcGGK...........",
+        "..........KGGcGGGGGGGGGGGccGKK..........",
+        "..........KGGGGGGGgYYYGGGGcGGGK.........",
+        ".........KGGccGgGGGyyyGGGGcKGGGK........",
+        ".........KGGcGGGGGGGyyyGGGGcGGGK........",
+        "........KGKGGGgGGGGGYYYGGGGcgGGK........",
+        ".........KKKGgGGGGGGGYYYGgGGKKK.........",
+        ".........KGGGgGGGyyrryyyGKgGKK..........",
+        "........KKGGKgGGyyyyyyyyyGgGGGK.........",
+        ".......KgGGGggGKyyyyyyYYYGggGGK.........",
+        ".......KgGGGgKGKGyyKKyYYYGKgGGGK........",
+        "......KgKGGKgGGGGrrK.KKyyyKgKGGK........",
+        "......KgGKGKgGKGrrK...KyyyKK.KGK........",
+        "......KgK.K.KKKGRRK...KYYYK...K.........",
+        ".......K......KRRRK....KYYYK............",
+        ".............KrrrK.....KyyyK............",
+        ".............KrrrK.....KyyyK............",
+        "............KRRRK......KYYYK............",
+        "............KRRRK.......KYYYK...........",
+        "............KrrrK.......KyyyK...........",
+        "............KrrrK.......KyyyK...........",
+        "...........KRRRK........KYYYK...........",
+        "...........KRRRK........KYYYK...........",
+        "...........KrrrK.........KyyyK..........",
+        "...........KrrrK.........KyyyK..........",
+        "..........KRRRK..........KYYYK..........",
+        "..........KRRRK..........KYYYK..........",
+        "..........KrrrK..........KyyyK..........",
+        "..........KrrrK..........KyyyK..........",
+        "..........KRRRK..........KYYYK..........",
+        "..........KRRRK..........KYYYK..........",
+        "..........KrrrK..........KyyyK..........",
+        "..........KrrrK..........KyyyK..........",
+        "..........KRRRK..........KYYYK..........",
+        "..........KRRRK...........KYYYK........."
+      ]
+    }
+  ]
+}

@@ -1,0 +1,67 @@
+{
+  "schemaVersion": 1,
+  "name": "scenery_8e18",
+  "size": {
+    "w": 48,
+    "h": 40
+  },
+  "origin": {
+    "x": 0,
+    "y": 0
+  },
+  "legend": {
+    ".": -1,
+    "K": 0,
+    "r": 2,
+    "y": 6,
+    "R": 10,
+    "Y": 14
+  },
+  "frames": [
+    {
+      "id": "f0",
+      "rows": [
+        ".......................KyK......................",
+        ".......................KyK......................",
+        "................KKKKKKKKyKKKKKKK................",
+        ".............KKKYyYYYyYYyyYYYyYYKKK.............",
+        "...........KKYYYyYYYyYYYyYYYyYYYyYYKK...........",
+        "..........KyYYYyYYYyYYYyYYYyYYYyYYYyYK..........",
+        "........KKyYYYyYYYyYYYyYYYyYYYyYYYyYYYKK........",
+        ".......KYyYYYyYYYyYYYyYYYyYYYyYYYyYYYyYYK.......",
+        "......KYyYYYyYYYyYYYyYYYyYYYyYYYyYYYyYYYyK......",
+        ".....KYyYYYyYYYyYYYyYYYyYYYyYYYyYYYyYYYyYYK.....",
+        "....KYyYYYyYYYyYYYyYYYyYYYyYYYyYYYyYYYyYYYyK....",
+        "...KYyYYYyYYYyYYYyYYYyYYYyYYYyYYYyYYYyYYYyYYK...",
+        "...KyYYYyYYYyYYYyYYYyYYYyYYYyYYYyYYYyYYYyYYYK...",
+        "..KyYYYyYYYyYYYyYYYyYYYyYYYyYYYyYYYyYYYyYYYyYK..",
+        ".KyYYYyYYYyYYYyYYYyYYYyYYYyYYYyYYYyYYYyYYYyYYYK.",
+        ".KYYYyYYYyYYYyYYYyYYYyYYYyYYYyYYYyYYYyYYYyYYYyK.",
+        ".KYYyYYYyYYYyYYYyYYYyYYYyYYYyYYYyYYYyYYYyYYYyYK.",
+        "KYYyYYYyYYYyYYYyYYYyYYYyYYYyYYYyYYYyYYYyYYYyYYYK",
+        "KYyYYYyYYYyYYYyYYYyYYYyYYYyYYYyYYYyYYYyYYYyYYYyK",
+        "KyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyYK",
+        "KYyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyYK",
+        "KYyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyYK",
+        ".KKYKKYKKYrrYrrYrrYrrYKKYKKYrrYrrYrrYrKYKKYKKKK.",
+        "...K..K..KrrrrrrrrrrrKKKKKKrrrrrrrrrrrKK..K.....",
+        ".........KrrrrrrrrrrrKKKKKKrrrrrrrrrrrK.........",
+        ".........KrrrrrrrrrrrKKKKKKrrrrrrrrrrrK.........",
+        ".........KrrrrrrrrrrrKKKKKKrrrrrrrrrrrK.........",
+        "........KKrrrrrrrrrrrKKKKKKrrrrrrrrrrrKKK.......",
+        "......KKRRRrrrrrrrRRRKKKKKKrRRRrrrrrrrRRRK......",
+        ".....KyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyK.....",
+        ".....KyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyK.....",
+        "......KKRRRKKKKKKKRRRKKKKKKKRRRKKKKKKKRRRK......",
+        ".......KRRRK.....KRRRK.....KRRRK.....KRRRK......",
+        ".......KRRRK.....KRRRK.....KRRRK.....KRRRK......",
+        ".......KRRRK.....KRRRK.....KRRRK.....KRRRK......",
+        ".......KRRRK.....KRRRK.....KRRRK.....KRRRK......",
+        ".......KRRRK.....KRRRK.....KRRRK.....KRRRK......",
+        ".......KRRRK.....KRRRK.....KRRRK.....KRRRK......",
+        ".......KRRRK.....KRRRK.....KRRRK.....KRRRK......",
+        ".......KRRRK.....KRRRK.....KRRRK.....KRRRK......"
+      ]
+    }
+  ]
+}

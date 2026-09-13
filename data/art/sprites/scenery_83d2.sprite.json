@@ -1,0 +1,49 @@
+{
+  "schemaVersion": 1,
+  "name": "scenery_83d2",
+  "size": {
+    "w": 24,
+    "h": 24
+  },
+  "origin": {
+    "x": 0,
+    "y": 0
+  },
+  "legend": {
+    ".": -1,
+    "K": 0,
+    "y": 6,
+    "Y": 14
+  },
+  "frames": [
+    {
+      "id": "f0",
+      "rows": [
+        "........................",
+        ".............KK.........",
+        "...........KKYYK........",
+        ".........KKYYYyYK.......",
+        ".......KKYYYYYyyYK......",
+        "......KYYYYYYYyyYK......",
+        ".....KYYYYYYYYyyYYK.....",
+        ".....KYYYYYYYYyyYYYK....",
+        "....KYKYYYYYYYyyYYYYK...",
+        "....KYKKYYYYYYYyYYYYK...",
+        "....KYYKYYYYYYYyYYYYK...",
+        "....KYYKYYYYYYYyYYYYK...",
+        "...KYYYKYYYYYYYyyYYYK...",
+        "...KYYYYKYYYYYYyyYYYK...",
+        "...KYYYYKYYYYYYyyYYYK...",
+        "...KYYYYKYYYYYYyyYYYK...",
+        "...KYYYYYKYYYYYyyYYYK...",
+        "..KYYYYYYKYYYYYYyYYYK...",
+        "..KYYYYYYKYYYYYYyYYYK...",
+        "..KYYYYYYYYYYYYYyYYYK...",
+        "..KYYYYYYYYYYYYYyyYYK...",
+        ".KYYYYYYYYYYYYYYyyYYK...",
+        ".KYYYYYYYYYKKKKKKKKK....",
+        "..KKKKKKKKK............."
+      ]
+    }
+  ]
+}

@@ -1,0 +1,416 @@
+{
+  "schemaVersion": 1,
+  "solidCoveragePercent": 25,
+  "objects": {
+    "70BC": {
+      "cells": {
+        "w": 9,
+        "h": 3
+      },
+      "sprite": "scenery_70bc",
+      "subject": "long low leafy bank with flowers",
+      "biomeHint": "jungle",
+      "fidelity": "recon-art-canon-footprint"
+    },
+    "71B3": {
+      "cells": {
+        "w": 5,
+        "h": 5
+      },
+      "sprite": "scenery_71b3",
+      "subject": "palm cluster, two crossing trunks",
+      "biomeHint": "jungle",
+      "fidelity": "recon-art-canon-footprint"
+    },
+    "7298": {
+      "cells": {
+        "w": 2,
+        "h": 5
+      },
+      "sprite": "scenery_7298",
+      "subject": "single narrow tall fern, one slim stem",
+      "biomeHint": "jungle",
+      "fidelity": "recon-art-canon-footprint"
+    },
+    "72F6": {
+      "cells": {
+        "w": 8,
+        "h": 5
+      },
+      "sprite": "scenery_72f6",
+      "subject": "wide broad-leaf bank, hanging fruit",
+      "biomeHint": "jungle",
+      "fidelity": "recon-art-canon-footprint"
+    },
+    "7462": {
+      "cells": {
+        "w": 3,
+        "h": 7
+      },
+      "sprite": "scenery_7462",
+      "subject": "tall spike plant topped with a bloom",
+      "biomeHint": "jungle",
+      "fidelity": "recon-art-canon-footprint"
+    },
+    "7523": {
+      "cells": {
+        "w": 8,
+        "h": 7
+      },
+      "sprite": "scenery_7523",
+      "subject": "palm grove, dense, small ground detail",
+      "biomeHint": "jungle",
+      "fidelity": "recon-art-canon-footprint"
+    },
+    "771F": {
+      "cells": {
+        "w": 5,
+        "h": 7
+      },
+      "sprite": "scenery_771f",
+      "subject": "fern with a gourd at its base",
+      "biomeHint": "jungle",
+      "fidelity": "recon-art-canon-footprint"
+    },
+    "785E": {
+      "cells": {
+        "w": 4,
+        "h": 4
+      },
+      "sprite": "scenery_785e",
+      "subject": "spiky agave fan, radial blades",
+      "biomeHint": "jungle",
+      "fidelity": "recon-art-canon-footprint"
+    },
+    "78F2": {
+      "cells": {
+        "w": 3,
+        "h": 3
+      },
+      "sprite": "scenery_78f2",
+      "subject": "small palm, banded trunk",
+      "biomeHint": "jungle",
+      "fidelity": "recon-art-canon-footprint"
+    },
+    "7947": {
+      "cells": {
+        "w": 2,
+        "h": 3
+      },
+      "sprite": "scenery_7947",
+      "subject": "squat leafy plant with one fruit",
+      "biomeHint": "jungle",
+      "fidelity": "recon-art-canon-footprint"
+    },
+    "7981": {
+      "cells": {
+        "w": 4,
+        "h": 11
+      },
+      "sprite": "scenery_7981",
+      "subject": "very tall narrow conifer/cypress, crowned top",
+      "biomeHint": "jungle",
+      "fidelity": "recon-art-canon-footprint"
+    },
+    "7B11": {
+      "cells": {
+        "w": 6,
+        "h": 3
+      },
+      "sprite": "scenery_7b11",
+      "subject": "low mountain ridgeline",
+      "biomeHint": "mountain",
+      "fidelity": "recon-art-canon-footprint"
+    },
+    "7BB7": {
+      "cells": {
+        "w": 3,
+        "h": 3
+      },
+      "sprite": "scenery_7bb7",
+      "subject": "single snowy peak",
+      "biomeHint": "mountain",
+      "fidelity": "recon-art-canon-footprint"
+    },
+    "7C0C": {
+      "cells": {
+        "w": 7,
+        "h": 3
+      },
+      "sprite": "scenery_7c0c",
+      "subject": "distant mountain range, snow caps",
+      "biomeHint": "mountain",
+      "fidelity": "recon-art-canon-footprint"
+    },
+    "7CCD": {
+      "cells": {
+        "w": 7,
+        "h": 6
+      },
+      "sprite": "scenery_7ccd",
+      "subject": "scattered peaks, two tiers",
+      "biomeHint": "mountain",
+      "fidelity": "recon-art-canon-footprint"
+    },
+    "7E4B": {
+      "cells": {
+        "w": 8,
+        "h": 7
+      },
+      "sprite": "scenery_7e4b",
+      "subject": "large mountain massif, heavy snow",
+      "biomeHint": "mountain",
+      "fidelity": "recon-art-canon-footprint"
+    },
+    "8047": {
+      "cells": {
+        "w": 7,
+        "h": 6
+      },
+      "sprite": "scenery_8047",
+      "subject": "mountain range with cloud gaps",
+      "biomeHint": "mountain",
+      "fidelity": "recon-art-canon-footprint"
+    },
+    "81C5": {
+      "cells": {
+        "w": 7,
+        "h": 7
+      },
+      "sprite": "scenery_81c5",
+      "subject": "twin peaks, deep valley between",
+      "biomeHint": "mountain",
+      "fidelity": "recon-art-canon-footprint"
+    },
+    "8382": {
+      "cells": {
+        "w": 1,
+        "h": 4
+      },
+      "sprite": "scenery_8382",
+      "subject": "thin rock spur, lone (used once, at room `(10,9)`)",
+      "biomeHint": "mountain",
+      "fidelity": "recon-art-canon-footprint"
+    },
+    "83AA": {
+      "cells": {
+        "w": 1,
+        "h": 4
+      },
+      "sprite": "scenery_83aa",
+      "subject": "thin rock spur / stalagmite",
+      "biomeHint": "mountain",
+      "fidelity": "recon-art-canon-footprint"
+    },
+    "83D2": {
+      "cells": {
+        "w": 3,
+        "h": 3
+      },
+      "sprite": "scenery_83d2",
+      "subject": "small rock chunk (variant A)",
+      "biomeHint": "bonefields",
+      "fidelity": "recon-art-canon-footprint"
+    },
+    "8427": {
+      "cells": {
+        "w": 3,
+        "h": 3
+      },
+      "sprite": "scenery_8427",
+      "subject": "small rock chunk (variant B)",
+      "biomeHint": "bonefields",
+      "fidelity": "recon-art-canon-footprint"
+    },
+    "847C": {
+      "cells": {
+        "w": 8,
+        "h": 3
+      },
+      "sprite": "scenery_847c",
+      "subject": "wide horizontal rock strata shelf",
+      "biomeHint": "bonefields",
+      "fidelity": "recon-art-canon-footprint"
+    },
+    "8558": {
+      "cells": {
+        "w": 4,
+        "h": 3
+      },
+      "sprite": "scenery_8558",
+      "subject": "short rock column",
+      "biomeHint": "bonefields",
+      "fidelity": "recon-art-canon-footprint"
+    },
+    "85C8": {
+      "cells": {
+        "w": 6,
+        "h": 5
+      },
+      "sprite": "scenery_85c8",
+      "subject": "the stone arch: free-standing cave mouth",
+      "biomeHint": "arch",
+      "fidelity": "recon-art-canon-footprint"
+    },
+    "86DA": {
+      "cells": {
+        "w": 4,
+        "h": 1
+      },
+      "sprite": "scenery_86da",
+      "subject": "low rock ledge strip (variant B, pebbles)",
+      "biomeHint": "bonefields",
+      "fidelity": "recon-art-canon-footprint"
+    },
+    "8702": {
+      "cells": {
+        "w": 4,
+        "h": 1
+      },
+      "sprite": "scenery_8702",
+      "subject": "low rock ledge strip (variant A)",
+      "biomeHint": "bonefields",
+      "fidelity": "recon-art-canon-footprint"
+    },
+    "872A": {
+      "cells": {
+        "w": 4,
+        "h": 6
+      },
+      "sprite": "scenery_872a",
+      "subject": "tall rock wall slab, vertical strata",
+      "biomeHint": "bonefields",
+      "fidelity": "recon-art-canon-footprint"
+    },
+    "8806": {
+      "cells": {
+        "w": 7,
+        "h": 7
+      },
+      "sprite": "scenery_8806",
+      "subject": "rock wall with a bleached skeleton half-buried",
+      "biomeHint": "bonefields",
+      "fidelity": "recon-art-canon-footprint"
+    },
+    "89C3": {
+      "cells": {
+        "w": 7,
+        "h": 7
+      },
+      "sprite": "scenery_89c3",
+      "subject": "rock wall with scattered bones",
+      "biomeHint": "bonefields",
+      "fidelity": "recon-art-canon-footprint"
+    },
+    "8B80": {
+      "cells": {
+        "w": 4,
+        "h": 6
+      },
+      "sprite": "scenery_8b80",
+      "subject": "rock wall slab, smoother face",
+      "biomeHint": "bonefields",
+      "fidelity": "recon-art-canon-footprint"
+    },
+    "8C5C": {
+      "cells": {
+        "w": 4,
+        "h": 3
+      },
+      "sprite": "scenery_8c5c",
+      "subject": "cracked rock face (variant A)",
+      "biomeHint": "bonefields",
+      "fidelity": "recon-art-canon-footprint"
+    },
+    "8CCC": {
+      "cells": {
+        "w": 4,
+        "h": 3
+      },
+      "sprite": "scenery_8ccc",
+      "subject": "cracked rock face (variant B)",
+      "biomeHint": "bonefields",
+      "fidelity": "recon-art-canon-footprint"
+    },
+    "8D3C": {
+      "cells": {
+        "w": 4,
+        "h": 6
+      },
+      "sprite": "scenery_8d3c",
+      "subject": "rock pillar, cracked",
+      "biomeHint": "bonefields",
+      "fidelity": "recon-art-canon-footprint"
+    },
+    "8E18": {
+      "cells": {
+        "w": 6,
+        "h": 5
+      },
+      "sprite": "scenery_8e18",
+      "subject": "the hut: thatched dome roof on stilts",
+      "biomeHint": "hut",
+      "fidelity": "recon-art-canon-footprint"
+    },
+    "8F2A": {
+      "cells": {
+        "w": 6,
+        "h": 7
+      },
+      "sprite": "scenery_8f2a",
+      "subject": "reed cluster, vertical stems",
+      "biomeHint": "swamp",
+      "fidelity": "recon-art-canon-footprint"
+    },
+    "90A8": {
+      "cells": {
+        "w": 8,
+        "h": 11
+      },
+      "sprite": "scenery_90a8",
+      "subject": "the big one: mixed palm/banana grove, gourd at base",
+      "biomeHint": "jungle",
+      "fidelity": "recon-art-canon-footprint"
+    },
+    "93C4": {
+      "cells": {
+        "w": 9,
+        "h": 5
+      },
+      "sprite": "scenery_93c4",
+      "subject": "water: pool with ripple lines, walkable-look but solid",
+      "biomeHint": "water",
+      "fidelity": "recon-art-canon-footprint"
+    },
+    "955D": {
+      "cells": {
+        "w": 4,
+        "h": 3
+      },
+      "sprite": "scenery_955d",
+      "subject": "dense blocky hedge",
+      "biomeHint": "jungle",
+      "fidelity": "recon-art-canon-footprint"
+    },
+    "95CD": {
+      "cells": {
+        "w": 6,
+        "h": 3
+      },
+      "sprite": "scenery_95cd",
+      "subject": "low shrub row with one red plant and a fruit",
+      "biomeHint": "jungle",
+      "fidelity": "recon-art-canon-footprint"
+    },
+    "9673": {
+      "cells": {
+        "w": 1,
+        "h": 3
+      },
+      "sprite": "scenery_9673",
+      "subject": "single thin grass tuft (the filler piece)",
+      "biomeHint": "jungle",
+      "fidelity": "recon-art-canon-footprint"
+    }
+  }
+}

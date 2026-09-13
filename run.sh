@@ -48,14 +48,16 @@ Script options:
   -h, --help                  this message
 
 Game options (see AGENTS.md §3.1):
+  --room C,R                  open the room browser at a room (default: 8,10)
   --scale N                   window scale, 1..6
   --data-dir PATH             content database root (default: ./data)
   --headless                  load and validate the data, then exit
   --dev                       developer mode
 
 Exit codes:
-  0  clean exit        2  data error (a JSON file is bad; the message names
-                          the file and the JSON pointer)
+  0   clean exit
+  2   data error (a JSON file is bad; the message names the file and pointer)
+  64  bad command-line option (the message says which, and why)
 USAGE
 }
 

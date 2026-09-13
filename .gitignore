@@ -31,3 +31,8 @@ attic/
 
 # AGENTS.md §21.1 — the player DB lives in the OS user data dir, never here
 save/
+
+# Python bytecode from tools/art (dev-time only). The no-binaries gate (§2.4)
+# rightly fails on these; never commit them, never allowlist them.
+__pycache__/
+*.pyc

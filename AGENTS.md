@@ -201,6 +201,7 @@ directly. Never add build logic to the script that Maven does not also do.
 ./run.sh                 # build if stale, then play
 ./run.sh --scale 3       # unrecognised options pass straight to the game
 ./run.sh --headless      # load and validate the data, then exit
+./run.sh --room 7,3      # open the room browser at a room
 ./run.sh --clean         # mvn clean first
 ./run.sh --rebuild       # compile even if nothing looks stale
 ./run.sh --no-build      # skip the build (fails if nothing is compiled)
@@ -219,7 +220,9 @@ Three behaviours worth knowing:
   `--sun-misc-unsafe-memory-access=allow`, which silences a deprecation banner
   Maven 3.9's bundled Guava emits on modern JDKs.
 - It `exec`s the JVM, so the game's exit code is the script's: **0** clean,
-  **2** data error (§17.1).
+  **2** data error (§17.1), **64** bad command-line option. A malformed
+  argument is reported in one line — which option, and why — never as a stack
+  trace.
 
 ---
 
@@ -234,6 +237,7 @@ wulfquest/
   .gitattributes                LF endings for all text, §20.9
   .gitignore                    target/, attic/, *.log, save/
   tools/
+    art/scenery_forge.py        generates the 41 scenery sprites, §10.5 (dev-time only)
     check-no-binaries.sh        CI gate, §2.4 — bound to the verify phase
     check-schemas.sh            validates every data file against its schema
   data/                         THE DATABASE. Read-only at runtime. Ships in the jar.
@@ -267,6 +271,7 @@ wulfquest/
   save/                         WRITTEN AT RUNTIME to the user data dir, not here
   src/main/java/wulf/
     Boot.java                   main(), CLI args, window setup
+    Content.java                loads and cross-checks the whole content DB, for game and tools
     engine/                     tick loop, timing, fixed-point, PRNG, replay
     render/                     Framebuffer, Blitter, Palette, Scaler, HudPainter
     audio/                      BeeperSynth, SfxPlayer, MusicPlayer
@@ -533,11 +538,40 @@ collision. Default rule: **a cell is solid if the object's own art paints
 ≥ 25% of that cell's 64 pixels.** Authors may override per object with an
 explicit `collisionCells` bitmap string (rows of `#` and `.`).
 
-Why an override exists: tall canopy objects (e.g. `7981`, 4×11 cells)
-visually occupy 88 px of height, but the original let you walk under
-overhanging fronds in some places. If the map audit (§22.3) reports a sealed
-room or an unreachable room, **fix the object's `collisionCells`, never the
-room layout** — the layout is `[CANON]`.
+If the map audit (§22.3) reports a sealed room or an unreachable room, **fix
+the object's `collisionCells`, never the room layout** — the layout is
+`[CANON]`.
+
+**Measured in M2 — read before touching collision.** With every object's
+*full footprint* solid, all 196 interior rooms are reachable from the start,
+at 25 / 39 / 52 % walkable (min / median / max). The extracted map is
+therefore **a maze at footprint resolution**: the paths are the gaps between
+object rectangles. Two consequences:
+
+- **Art can never break connectivity.** An art-derived mask is always a
+  subset of the footprint, and reachability only grows as walkable space
+  grows. `RoomBakerTest` locks the subset invariant; `MapAuditTest` locks
+  the footprint baseline.
+- **The real risk runs the other way: sparse art opens routes the original
+  walled off.** Interior median walkable, by rule:
+
+  | collision rule | min / median / max % |
+  |---|---|
+  | footprint (the canon maze) | 25 / **39** / 52 |
+  | art, cell solid at ≥ 1 % painted | 38 / 48 / 57 |
+  | art, ≥ 10 % | 41 / 53 / 60 |
+  | **art, ≥ 25 % (current default)** | 41 / **56** / 61 |
+  | art, ≥ 50 % | 42 / 65 / 70 |
+
+  No threshold recovers the canon maze: thin sprites leave whole columns of
+  their footprint unpainted. The gap is concentrated — `771F`, `7462` and
+  `71B3` cause 37 % of the extra walkable area, and ten objects cause 82 %.
+
+Whether to keep art-derived collision, switch to footprint collision
+(canon routes, but invisible walls beside thin plants), or thicken the
+sparse sprites until the art fills its footprint is **an open decision —
+§25 Q13.** Until it is made, the default stays as written above; do not
+change `solidCoveragePercent` or add blanket overrides on your own.
 
 ### 7.4 Player/creature collision
 
@@ -918,6 +952,37 @@ missing glyph renders as `?`, which turns `^#[0-9A-Fa-f]{6}$` into noise. `©`
 is omitted deliberately — it is unreadable at 3×5 and belongs to the 8×8 set.
 Lowercase is optional; the painter upper-cases on draw (the period look is
 all-caps).
+
+### 10.5 Scenery Forge — where the scenery art comes from
+
+The 41 scenery sprites are **generated**, by `tools/art/scenery_forge.py`
+(Python 3, standard library only). Each object is drawn procedurally from
+primitives — fronds, banded trunks, peaks, rock slabs, blobs — with a fixed
+per-object seed, so every pixel is authored in this repository and nothing is
+traced from any image.
+
+- **Dev-time only.** Its output is committed, the game reads the JSON, and
+  neither CI nor `mvn verify` needs Python.
+- **Deterministic.** A second run reproduces all 43 output files
+  byte-for-byte (checked in M2). So if regenerating changes a file you did
+  not mean to change, the forge changed — find out why before committing.
+- **The §9 table is load-bearing.** The forge parses footprints and subjects
+  straight out of that table in this file. Reformatting it breaks the forge.
+- **Regenerate and verify together:**
+  ```bash
+  python3 tools/art/scenery_forge.py && mvn -q verify
+  ```
+  It rewrites all 41 `scenery_*.sprite.json`, `art/sprites/index.json` and
+  `world/scenery.json`.
+- **Hand edits to generated files are overwritten** on the next run. To hand
+  tune one object, change its drawing function — or take it out of the
+  forge's work order and own its JSON by hand, and say so in the commit.
+- Python bytecode (`__pycache__/`, `*.pyc`) is gitignored. The no-binaries
+  gate fails on it by design; clean it up, never allowlist it.
+
+Review art with `SpriteForgeCli sheet` / `preview` / `mask` (§10.3), or boot
+the room browser: `./run.sh --room C,R` — arrows move between rooms, `[` `]`
+or PgUp/PgDn step through all 256, `M` overlays the collision mask.
 
 ---
 
@@ -1991,10 +2056,12 @@ code in this project.
 
 Runs over the whole baked world and reports/asserts:
 
-1. **Room connectivity** — a BFS over the 256-room graph (edge = both rooms
-   have a mutually-reachable opening on the shared border, tested by walkable
-   cells along the border strip) reaches **all 196 interior rooms** from
-   `8,10`. Any unreachable room is a failure.
+1. **Room connectivity** — all 256 masks are stitched into one 512×384 cell
+   world (§7.5 preserves the cross-edge coordinate, so moving between rooms is
+   continuous movement on it; outside the map is solid). A flood fill from
+   the start room over **2×2-cell clearances** — exactly the 10×9 px feet box
+   of §7.4, which is wider and taller than one cell but never two — must
+   reach **all 196 interior rooms**. Any unreachable room is a failure.
 2. **Intra-room connectivity** — for each room, the walkable cells form the
    fewest possible connected components; a room whose entry-side border
    openings are not mutually connected is reported as a "sealed" room. Fix
@@ -2008,7 +2075,11 @@ Runs over the whole baked world and reports/asserts:
    field. Report the outliers; fail only below 12%.
 6. **Text map dump** — writes an ASCII map of all 256 rooms (walkable/solid)
    to `target/map-audit.txt` for human inspection, plus a one-line-per-room
-   summary with biome, walkable %, and component count.
+   summary with walkable %, footprint-baseline walkable %, passable blocks,
+   and whether the flood reached it.
+7. **Footprint baseline** — every room is also measured with each object's
+   whole footprint solid: the extracted maze itself (§7.3). Art collision must
+   never be tighter than it.
 
 ### 22.4 Architecture tests
 
@@ -2201,17 +2272,53 @@ Deferred, deliberately:
   data families they police, in M2 and M4.
 - Hot reload (§20.5) and the `--dev` flag beyond argument parsing.
 
-### M2 — Scenery art and the world (4 days)
+### M2 — Scenery art and the world — **COMPLETE (2026-09-12)**
 
-- All 41 scenery sprites drawn (§9), in priority order — the top 8 by
-  room-usage cover most of the map, so the world becomes legible early.
-- `scenery.json` complete with footprints and collision masks.
-- Room baking, collision masks, `SpriteForgeCli preview/sheet/mask`.
-- Free-camera room browser: `--room c,r` plus `[` `]` to step through all
-  256 rooms.
+**Accepted:** all 256 rooms render; `MapAudit` reports **196 / 196** interior
+rooms reachable, **0** sealed, **0** below the floor, **0** cramped, **0** open
+fields; `target/map-audit.txt` is a maze. 75+ tests green, `mvn -q verify`
+green.
 
-**Accept when:** all 256 rooms render, `MapAudit` reports 0 unreachable and
-0 sealed rooms, and the ASCII map dump looks like a maze.
+What landed:
+
+- **41 original scenery sprites** from the Scenery Forge (§10.5), every one at
+  its exact §9 footprint, reviewed as a contact sheet and in composed rooms.
+- `world/scenery.json` (footprints, subjects, biome hints) and
+  `art/sprites/index.json`; schemas for sprites, the index and scenery.
+  `JsonDb` now keys schema versions by **family** (one `sprite` schema, 41
+  files) and takes an explicit schema name.
+- **World model:** `SceneryCatalog` (collision derived from art, per §7.3),
+  `RoomBaker` (every template baked eagerly; rooms of one template share one
+  mask), `CollisionMask`, `Room`, and `WorldGrid` (the stitched 512×384 world,
+  solid outside). `Content` loads everything in dependency order for the game
+  and the tools alike.
+- **§20.6 validators now implemented:** sprite size and legend coverage
+  (`SpriteData.decode`), `SceneryFootprintValidator` (`SceneryCatalog`),
+  `MapReferenceValidator` and `PlacementBoundsValidator` (`RoomBaker`) — each
+  failing with a file and JSON pointer.
+- **Renderer:** `Sprite`, `SpriteBank`, `RoomPainter` with a collision overlay.
+- **Tools:** `MapAudit` (§22.3, including the footprint baseline) and
+  `SpriteForgeCli` (`validate`, `preview`, `sheet`, `mask`).
+- **Room browser:** `--room C,R`; arrows, `[` `]` / PgUp / PgDn, `M` for the
+  mask. Brackets are matched by character, not key code, so they work on
+  ABNT2 and other layouts.
+
+Found along the way:
+
+- **The extracted map is a maze at footprint resolution** (§7.3). This
+  retired a claim this file used to make without evidence — that the original
+  let you walk under overhanging fronds — and opened §25 Q13: art-derived
+  collision leaves the interior 56 % walkable against the canon maze's 39 %.
+  M2 passes either way; the rule is the user's call.
+- The no-binaries gate caught a real file: a `.pyc` from checking the forge's
+  syntax. Fixed by deleting it and ignoring Python bytecode, not by loosening
+  the gate.
+- The command line crashed with a raw stack trace on `--room 16,3`, and would
+  have on `--scale big` or a missing value. `Boot.Args` now turns every
+  malformed argument into a one-line usage error with exit code 64, covered by
+  `BootArgsTest`.
+- `8047`'s first art cut its cloud gaps as transparent holes, which showed the
+  black ground through the peaks as notches. They are drawn as clouds now.
 
 ### M3 — Ranger Vale (2 days)
 
@@ -2302,6 +2409,7 @@ the source wins.
 | Q10 | Whether anything besides orchids and the amulet was collectable | nothing | `loot.json` |
 | Q11 | Sabre swing duration, reach, and whether movement was locked | 12 ticks, 14 px, movement free | `player.json → sabre` |
 | Q12 | Whether creature spawns were fixed per room or random | authored-with-fallback | `room_entities.json` |
+| Q13 | How the original resolved scenery collision — per pixel, per cell, or per object rectangle — and so which rule reproduces its routes | art-derived, cell solid at ≥ 25 % painted: interior median 56 % walkable, against 39 % for the footprint maze the map defines (§7.3) | `world/scenery.json → solidCoveragePercent`, per-object `collisionCells` |
 
 Two facts are **already closed** and must not be re-litigated: the 16×16 /
 256-room grid and the start room at `(8, 10)` are `[CANON]`, extracted

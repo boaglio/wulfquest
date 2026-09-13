@@ -1,0 +1,83 @@
+{
+  "schemaVersion": 1,
+  "name": "scenery_8f2a",
+  "size": {
+    "w": 48,
+    "h": 56
+  },
+  "origin": {
+    "x": 0,
+    "y": 0
+  },
+  "legend": {
+    ".": -1,
+    "K": 0,
+    "r": 2,
+    "g": 4,
+    "R": 10,
+    "G": 12
+  },
+  "frames": [
+    {
+      "id": "f0",
+      "rows": [
+        "................................................",
+        "..................K.............................",
+        "...............K.KGK............................",
+        "..............KRKKgK...............K............",
+        ".............KrrKKGK..............KgK...........",
+        ".............KrrKKGK..............KgK...........",
+        ".............KrrKKGK..............KgK...........",
+        ".............KrrKKGK..............KgK...........",
+        ".....K.......KrrKKGK..............KgK.....K.....",
+        "....KgK......KRK.KGK..............KgK....KGK....",
+        "....KgK......KRK.KGK..............KgK....KGK....",
+        "....KgK......KRK.KGK..............KgK....KGK....",
+        "....KgK......KRK.KGK..............KgK....KGK....",
+        "....KgK......KRK.KGK....K.........KgK....KGK....",
+        "....KgK......KRK.KGK...KgK........KgK....KGK....",
+        "....KgK......KRK.KGK...KRK........KgK....KGK....",
+        "....KgK......KRK.KGK..KrrK.....K..KgK....KGK....",
+        "....KgKK.....KRK.KGK..KrrK....KgK.KgK....KgK....",
+        "....KgKgK....KRK.KGK..KrrK....KgK.KgKK...KGK....",
+        "....KgKGK....KRK.KGK..KrrK....KGK.KgKrK..KGK....",
+        "....KgKgK....KRK.KGK..KrrK....KgK.KgKrrK.KGK....",
+        "....KgKGK....KRK.KGK..KgrK....KgK.KgrrrK.KGK....",
+        ".....KgK....KGRK.KgK..KgRK....KGKKggrrrK.KGK....",
+        ".....KgK.....KGK.KGK..KgRK...KgGKKggrrrK.KGK....",
+        ".....KgK.....KGGKGGK..KgRK....KgKKggKrrK.KGK....",
+        "..K..KgK.....KRGKGGK..KgRK...KGggKggKKRK.KGK..K.",
+        ".KgK.KgK.....KRKGGgK..KgRK...KGKgKggKKRK.KgK.KGK",
+        "..KgKKgK.....KRKGGGK..KgRK...KGKKgggKKRK.KgKKGGK",
+        "..KggKgK.....KRKKGGgK.KgRK...KgKKgggKKRK.KGKgGK.",
+        "...KgggK.K...KRKKGKgK.KgRRK..KGK.KggKKRK.KGKGK..",
+        "....KggKKGK..KRKKGKKgKKgRRGK.KGK.KggKKRK.KGGGK..",
+        "....KggKKgK..KRKKGKKggKgRRKGKKGK.KggKKRK.KGgK...",
+        ".....KgKGK...KRKKGK.KgggRRKGgKGK.KggKKRK.KGK....",
+        "....KGgGGK...KRKKGK..KggKRKKGGGK.KggKKRK.KGK....",
+        "....KGgGK....KRKKgK..KggKRK.KGGK.KggKKRK.KGK....",
+        "....KGgK.....KRKKGK..KggKRK.KGGK.KggKKRK.KgK....",
+        "....KGgK.....KRKKGK..KggKRK..KgK.KggKKRK.KGK....",
+        "....KGggK....KRKKGK..KggKRK..KGK.KggKKRRKKGK....",
+        "....KgggK....KRKKGK..KggKRK..KGK.KggKKRRKKggK...",
+        "....KGggK...KRRKKgK..KggKRK..KgK.KggKKRRKKGGK...",
+        "....KGggK...KRRKKGK..KggKRK..KGK.KggKKRRKKgGK...",
+        "....KGggK...KRRKKgK..KggKRK..KGK.KggKKRRKKGgK...",
+        "....KGggK...KRRKKgK..KggKRK..KGK.KggK.KRKKGGK...",
+        "....KGggK...KRRKKGK..KgKKRK..KGK.KggK.KRKKGGK...",
+        "...KgGKgK.KKGGGGKGK..KgKKRK..KGK.KggK.KRKKGGK...",
+        "...KGGKgKKgGGGGGGGKK.KgKKRRKKKGK.KggK.KRGGgGK...",
+        "...KGGKgKGGGGgGGGGgGKKGgGGGGgGgKKKGGGKKGGGGGK...",
+        "...KgGKgGGGgGGGGGGGGGGGGGGgGGGGGGGGGGGGGgGGGK...",
+        "...KGGKgGGGgGGGgGGggGgGGGGGGGgGGgGGgGGGgGGGGgK..",
+        ".KKKGGKggggggGGGgGgGgGgGGGgGGGGGGgGGGGGGGgGGGKK.",
+        "KgGGgGGGGGGGGggGGGgGGgGGgGGGGGGGGGGGGgGGGGGgGgGK",
+        "KGggGGGGGggGGGGGGGGGgGGGgGGGGGgGGGGgGgGGGGgGGGgK",
+        "KgGGGGGGGGGGGGGGGGGGGGGGGGgGGgGGGGGGGggGGGGGGGGg",
+        "KGGGGGGgGgGGGGGGGGGGGGgGgGGgGGGGGGGGGGGGGGGGGGGg",
+        "KGGGGGGGGGGGGgggGGGGGGGGGGGGGGGGGGgGGGGGGGGgGGGG",
+        "KGGgGGGGggGgGgGGGGGGGGgGGgGGGgGgGGggGgGGGGGggGGK"
+      ]
+    }
+  ]
+}

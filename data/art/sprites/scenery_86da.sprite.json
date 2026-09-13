@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "name": "scenery_86da",
+  "size": {
+    "w": 32,
+    "h": 8
+  },
+  "origin": {
+    "x": 0,
+    "y": 0
+  },
+  "legend": {
+    ".": -1,
+    "K": 0,
+    "y": 6,
+    "Y": 14
+  },
+  "frames": [
+    {
+      "id": "f0",
+      "rows": [
+        "................................",
+        ".KKKKKKKKKKKKKKKKKKKKKKKKKKKKKK.",
+        "KYyyYYYyyYYYyyYYYyyYYYyyYYYyyYYK",
+        "YYyyYYYyyYYYyyYYYyyYYYyyYYYyyYYY",
+        "YYYYYYYYYYYYYYYYYYYYYYYYYYYYYyyY",
+        "YYYYYYYYYYYYYYYYYYYYYYYYYYYYYyyY",
+        "YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY",
+        "KYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYK"
+      ]
+    }
+  ]
+}

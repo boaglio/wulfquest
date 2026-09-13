@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "name": "scenery_83aa",
+  "size": {
+    "w": 8,
+    "h": 32
+  },
+  "origin": {
+    "x": 0,
+    "y": 0
+  },
+  "legend": {
+    ".": -1,
+    "K": 0,
+    "m": 3,
+    "M": 11
+  },
+  "frames": [
+    {
+      "id": "f0",
+      "rows": [
+        "........",
+        "...K....",
+        "..KMK...",
+        "..KMmK..",
+        "..KMmK..",
+        "..KMmK..",
+        "..KMmK..",
+        "..KMmK..",
+        "..KMmK..",
+        "..KMmK..",
+        "..KMmK..",
+        "..KMmK..",
+        "..KMmK..",
+        "..KMmK..",
+        "..KMmMK.",
+        ".KMMmMK.",
+        ".KMMmMK.",
+        ".KMMmMK.",
+        ".KMMmMK.",
+        ".KMMmMK.",
+        ".KMMmMK.",
+        ".KMMmMK.",
+        ".KMMmMK.",
+        ".KMMmMK.",
+        ".KMMmMK.",
+        ".KMMmMK.",
+        ".KMMmMK.",
+        "KMMMmMK.",
+        "KMMMmMK.",
+        "KMMMmMK.",
+        "MMMMmMMK",
+        "MMMMMmMM"
+      ]
+    }
+  ]
+}

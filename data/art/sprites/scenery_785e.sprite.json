@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "name": "scenery_785e",
+  "size": {
+    "w": 32,
+    "h": 32
+  },
+  "origin": {
+    "x": 0,
+    "y": 0
+  },
+  "legend": {
+    ".": -1,
+    "K": 0,
+    "g": 4,
+    "G": 12
+  },
+  "frames": [
+    {
+      "id": "f0",
+      "rows": [
+        "................................",
+        "................................",
+        "................................",
+        "................................",
+        "................................",
+        "................................",
+        "................................",
+        "................................",
+        "................................",
+        "................................",
+        "................................",
+        "...............K................",
+        "..............KGK...............",
+        "..............KGK...............",
+        ".............KGGK.......K.......",
+        ".............KGGK...K..KGK......",
+        ".........K...KGGK..KgKKGK.......",
+        ".....K..KGK.KgGGK..KgKGGK.......",
+        "....KgK.KGK.KgGGK.KggKGK...KK...",
+        "....KggKKGGKKgGGK.KgKGGK..KggK..",
+        ".....KggKKGGKgGGGKggGGGK.KggK...",
+        "......KggKGGKgGGGKggGGKKKggK....",
+        ".......KggKGGgGGGggGGGKgggK.....",
+        "....KK.KgggGGgGGGgGGGKgggK......",
+        "...KGGKKKgggGGGGGgGGggggK.KK....",
+        "....KGGGGKggGGGGgGGggggKKKGGK...",
+        ".....KKGGGGggGGGGGggggKGGGGK....",
+        ".....KKKGGGGgGGggggGGGGGGKK.....",
+        "....KgggggGGgGGgggggggggggKK....",
+        ".....KggggggGgggggggggggggggK...",
+        "......KKKKgggGgggggggggKKKKK....",
+        "..........KKKKKgggKKKKK........."
+      ]
+    }
+  ]
+}

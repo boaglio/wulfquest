@@ -1,0 +1,83 @@
+{
+  "schemaVersion": 1,
+  "name": "scenery_81c5",
+  "size": {
+    "w": 56,
+    "h": 56
+  },
+  "origin": {
+    "x": 0,
+    "y": 0
+  },
+  "legend": {
+    ".": -1,
+    "K": 0,
+    "m": 3,
+    "w": 7,
+    "M": 11,
+    "W": 15
+  },
+  "frames": [
+    {
+      "id": "f0",
+      "rows": [
+        "........................................................",
+        "........................................................",
+        "........................................................",
+        "...............K........................................",
+        "..............KWK.......................................",
+        ".............KWwK.........................K.............",
+        ".............KWwK........................KWK............",
+        ".............KWWK.......................KWwK............",
+        "............KWWwwK......................KWWK............",
+        "............KWWWWK......................KwwK............",
+        "............KWWWWK.....................KWWwwK...........",
+        "...........KWWWWWwK....................KWWWwK...........",
+        "...........KWWWWwwK....................KWWwwK...........",
+        "...........KWWWWwwK...................KWWWwwwK..........",
+        "...........KWWWwwwK...................KWWWWWwK..........",
+        "..........KWWWWwwwwK..................KWWWWwwK..........",
+        "..........KWWWWwwwwK..................KWWWwwwwK.........",
+        "..........KWWWWWWwwK.................KWWWWWwwwK.........",
+        ".........KWWWWWwwwwwK................KWWWWWwwwK.........",
+        ".........KWWWWWWWwwwK................KWWWWwwwwK.........",
+        ".........KWWWWWwwwwwK...............KWWWWWwwwwwK........",
+        ".........KWWWWWWWwwwK...............KWWWWWwwwwwK........",
+        "........KWWWWWWWWwwwwK..............KWWWWWWWwwwK........",
+        "........KWWWWWWwwwwwwK.............KWWWWWWwwwwwwK.......",
+        "........KWWWMWWWWWwmwK.............KWWWWWWWWwwwwK.......",
+        ".......KWWWMMMWWWWmmmwK............KWWWWMWwwwwwmK.......",
+        ".......KWWWMMMMWWWmmmmK............KWWWMMMWwwwmmmK......",
+        ".......KWWMMMMMWWmmmmmK...........KWWWWMMMWWwwmmmK......",
+        ".......KMMMMMMMMmmmmmmK...........KMWWMMMMMwwmmmmK......",
+        "......KMMMMMMMMMMMmmmmmK..........KMMWMMMMMmwmmmmK......",
+        "......KMMMMMMMMMMMmmmmmK.........KMMMMMMMMMmmmmmmmK.....",
+        "......KMMMMMMMMMMmmmmmmK.........KMMMMMMMMMMmmmmmmK.....",
+        ".....KMMMMMMMMMMMMmmmmmmK........KMMMMMMMMMMMmmmmmK.....",
+        ".....KMMMMMMMMMMMMmmmmmmK.......KMMMMMMMMMmmmmmmmmmK....",
+        ".....KMMMMMMMMMMMmmmmmmmK.......KMMMMMMMMMMMmmmmmmmK....",
+        ".....KMMMMMMMMMmmmmmmmmmK.......KMMMMMMMMMMMmmmmmmmK....",
+        "....KMMMMMMMMMMMMmmmmmmmmK......KMMMMMMMMMMmmmmmmmmmK...",
+        "....KMMMMMMMMMMMMmmmmmmmmK.....KMMMMMMMMMMMMMmmmmmmmK...",
+        "....KMMMMMMMMMMMmmmmmmmmmK.....KMMMMMMMMMMMMmmmmmmmmK...",
+        "...KMMMMMMMMMMMMmmmmmmmmmmK....KMMMMMMMMMMMmmmmmmmmmK...",
+        "...KMMMMMMMMMMMMMmmmmmmmmmK...KMMMMMMMMMMMMMMmmmmmmmmK..",
+        "...KMMMMMMMMMMMMMMmmmmmmmmK...KMMMMMMMMMMMMmmmmmmmmmmK..",
+        "...KMMMMMMMMMMMMMmmmmmmmmmK...KMMMMMMMMMMMMMMmmmmmmmmK..",
+        "..KMMMMMMMMMmMMMMMmmmmmmmmmK.KMMMMMmMMMMmMMMMmmmmmmmmmK.",
+        "..KMMMMMMMMMmMMMMmmmmmmmmmmK.KMMMMMmMMMMmMMMmmmmmmmmmmK.",
+        "..KMMMMMMMMMmmMMMMmmmmmmmmmK.KMMMMMmMMMMmMMMmmmmmmmmmmK.",
+        ".KMMMMMMMMMMMmMMMmmmmmmmmmmmKKMMMMMmMMMMmMMmmmmmmmmmmmmK",
+        ".KMMMMMMMMMMMmMMmmmmmmmmmmmmKMMMMMMmMMMMMmMMmmmmmmmmmmmK",
+        ".KMMMMMMMMMMMmMMMmmmmmmmmmmmKMMMMMMmMMMMMmMMMmmmmmmmmmmK",
+        ".KMMMMMMMMMMMmMMmmmmmmmmmmmmKMMMMMMmMMMMMmMmmmmmmmmmmmmK",
+        "KMMMMMMMMMMMMmMMMMmmmmmmmmmmMMMMMMMmMMMMMmMMmmmmmmmmmmmm",
+        "KMMMMMMMMMMMMmMMMMmmmmmmmmmmMMMMMMMmMMMMMmmMMMmmmmmmmmmm",
+        "KMMMMMMMMMMMMmMMmmmmmmmmmmmmMMMMMMMmMMMMMMmMMmmmmmmmmmmm",
+        "MMMMMMMMMMMMMmMMMmmmmmmmmmmMMMMMMMMmMMMMMMmMMmmmmmmmmmmm",
+        "MMMMMMMMMMMMMmMMMmmmmmmmmmmMMMMMMMMmMMMMMMmMmmmmmmmmmmmm",
+        "MMMMMMMMMMMMMmMMmmmmmmmmmmmMMMMMMMMmMMMMMMmmmmmmmmmmmmmm"
+      ]
+    }
+  ]
+}

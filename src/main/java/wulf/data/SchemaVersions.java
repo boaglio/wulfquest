@@ -10,32 +10,35 @@ import java.util.Set;
  */
 public final class SchemaVersions {
 
-    /** logical name -> expected {@code schemaVersion}. */
+    /** schema name -> expected {@code schemaVersion}. Keyed by family, not file. */
     private static final Map<String, Integer> EXPECTED = Map.of(
-            "config/game", 1,
-            "config/display", 1,
-            "art/palette", 1,
-            "art/font/font", 1);
+            "game", 1,
+            "display", 1,
+            "palette", 1,
+            "font", 1,
+            "sprite", 1,
+            "sprite_index", 1,
+            "scenery", 1);
 
     /**
      * Files that carry no {@code schemaVersion}. The sole member is the
      * extracted map data: it is imported canon (AGENTS.md §8) and its bytes
      * are locked by md5, so we do not edit a version field into it.
      */
-    private static final Set<String> UNVERSIONED = Set.of("world/original_map");
+    private static final Set<String> UNVERSIONED = Set.of("original_map");
 
     private SchemaVersions() {
     }
 
-    static boolean isVersioned(String logicalName) {
-        return !UNVERSIONED.contains(logicalName);
+    static boolean isVersioned(String schemaName) {
+        return !UNVERSIONED.contains(schemaName);
     }
 
-    static int expected(String logicalName) {
-        Integer v = EXPECTED.get(logicalName);
+    static int expected(String schemaName) {
+        Integer v = EXPECTED.get(schemaName);
         if (v == null) {
             throw new IllegalStateException(
-                    "no expected schemaVersion registered for '" + logicalName
+                    "no expected schemaVersion registered for schema '" + schemaName
                             + "'; add it to SchemaVersions (AGENTS.md §20.7)");
         }
         return v;
