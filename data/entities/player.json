@@ -25,12 +25,12 @@
     "repelWulfStunTicks": 30
   },
   "animations": {
-    "walk_side":  { "frames": ["side_walk0", "side_walk1", "side_walk2", "side_walk3"], "ticksPerFrame": 5, "loop": true },
-    "walk_up":    { "frames": ["up_walk0", "up_walk1", "up_walk2", "up_walk3"], "ticksPerFrame": 5, "loop": true },
-    "walk_down":  { "frames": ["down_walk0", "down_walk1", "down_walk2", "down_walk3"], "ticksPerFrame": 5, "loop": true },
-    "swing_side": { "frames": ["side_swing0", "side_swing1", "side_swing2"], "ticksPerFrame": 4, "loop": false },
-    "swing_up":   { "frames": ["up_swing0", "up_swing1", "up_swing2"], "ticksPerFrame": 4, "loop": false },
-    "swing_down": { "frames": ["down_swing0", "down_swing1", "down_swing2"], "ticksPerFrame": 4, "loop": false },
-    "die":        { "frames": ["die0", "die1", "die2", "die3"], "ticksPerFrame": 10, "loop": false }
+    "walk_side":  { "frames": ["side_walk0", "side_walk1", "side_walk2", "side_walk3"], "ticksPerFrame": 5, "loop": true, "driver": "ticks", "gaitVariants": false },
+    "walk_up":    { "frames": ["up_walk0", "up_walk1", "up_walk2", "up_walk3"], "ticksPerFrame": 5, "loop": true, "driver": "ticks", "gaitVariants": false },
+    "walk_down":  { "frames": ["down_walk0", "down_walk1", "down_walk2", "down_walk3"], "ticksPerFrame": 5, "loop": true, "driver": "ticks", "gaitVariants": false },
+    "swing_side": { "frames": ["side_swing0", "side_swing1", "side_swing2"], "ticksPerFrame": 0, "loop": false, "driver": "sabrePhase", "gaitVariants": true },
+    "swing_up":   { "frames": ["up_swing0", "up_swing1", "up_swing2"], "ticksPerFrame": 0, "loop": false, "driver": "sabrePhase", "gaitVariants": true },
+    "swing_down": { "frames": ["down_swing0", "down_swing1", "down_swing2"], "ticksPerFrame": 0, "loop": false, "driver": "sabrePhase", "gaitVariants": true },
+    "die":        { "frames": ["die0", "die1", "die2", "die3"], "ticksPerFrame": 10, "loop": false, "driver": "ticks", "gaitVariants": false }
   }
 }

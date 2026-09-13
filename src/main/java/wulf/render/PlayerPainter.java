@@ -4,18 +4,21 @@ import wulf.data.AnimationValidator;
 import wulf.data.DisplayConfig;
 import wulf.data.Palette;
 import wulf.data.PlayerData;
+import wulf.data.SpriteData;
 import wulf.engine.Fixed;
 import wulf.sim.Direction8;
-import wulf.sim.PixelRect;
 import wulf.sim.Player;
 import wulf.sim.Simulation;
 
 /**
  * Draws Ranger Vale and his blade (AGENTS.md §11.4–§11.7).
  *
- * <p>Frame choice is a pure function of simulation state ({@link #frameFor}),
- * so it is tested without a window. The blade is drawn from the live hitbox,
- * not from the sprite: what you see is exactly what hits.
+ * <p>Frame choice is a pure function of simulation state ({@link #frameFor}), so
+ * it is tested without a window. A swing's pose follows the sabre's phases, so
+ * the strike pose is on screen exactly while the blade can hit; while moving,
+ * the pose is drawn on walking legs. The blade comes out of the hand anchor with
+ * the hitbox's exact reach — the hitbox itself lies on the ground plane beneath
+ * it, where creatures' feet are.
  */
 public final class PlayerPainter {
 
@@ -36,17 +39,18 @@ public final class PlayerPainter {
     public void paint(Framebuffer fb, Simulation sim) {
         Player p = sim.player();
         // World pixels to screen: subtract the room origin, add the playfield origin.
-        int ox = field.x() - sim.room().col() * Simulation.ROOM_W_PX;
-        int oy = field.y() - sim.room().row() * Simulation.ROOM_H_PX;
+        int feetX = Fixed.px(p.xFp()) + field.x() - sim.room().col() * Simulation.ROOM_W_PX;
+        int feetY = Fixed.px(p.yFp()) + field.y() - sim.room().row() * Simulation.ROOM_H_PX;
+        String frame = frameFor(p, rules);
         // A player straddling a room edge is cut at the playfield: flip-screen, not scrolling.
         fb.setClip(field.x(), field.y(), field.w(), field.h());
         try {
-            if (visible(p, rules)) {
-                sprite.blit(fb, frameFor(p, rules), Fixed.px(p.xFp()) + ox, Fixed.px(p.yFp()) + oy);
+            if (!visible(p, rules)) {
+                return;
             }
-            PixelRect r = sim.sabre();
-            if (!r.isEmpty()) {
-                paintBlade(fb, r, p.facing(), ox, oy);
+            sprite.blit(fb, frame, feetX, feetY);
+            if (!sim.sabre().isEmpty()) {
+                paintBlade(fb, p.facing(), sprite.anchor(frame, AnimationValidator.HAND), feetX, feetY);
             }
         } finally {
             fb.clearClip();
@@ -68,12 +72,33 @@ public final class PlayerPainter {
             }
         }
         String view = viewOf(p.facing());
-        String suffix = view.equals("side") && p.facing().dx() < 0 ? AnimationValidator.MIRROR_SUFFIX : "";
+        String mirror = view.equals("side") && p.facing().dx() < 0 ? AnimationValidator.MIRROR_SUFFIX : "";
+        PlayerData.Animation walk = rules.animation("walk_" + view);
         if (p.swinging()) {
-            return frameAt(rules.animation("swing_" + view), p.swingTick(), false) + suffix;
+            PlayerData.Animation swing = rules.animation("swing_" + view);
+            String frame = swing.sabrePhase()
+                    ? swing.frames().get(phaseOf(p.swingTick(), rules.sabre()))
+                    : frameAt(swing, p.swingTick(), false);
+            if (swing.gaitVariants() && p.walkTicks() > 0) {
+                // Swinging on the move: the same pose on walking legs, so he never glides (§11.6).
+                frame = frame + AnimationValidator.GAIT_INFIX + gaitIndex(walk, p.walkTicks());
+            }
+            return frame + mirror;
         }
         // Idle snaps to frame 0 at once; the gait is driven by ticks actually moved (§11.5).
-        return frameAt(rules.animation("walk_" + view), p.walkTicks(), true) + suffix;
+        return walk.frames().get(gaitIndex(walk, p.walkTicks())) + mirror;
+    }
+
+    /** 0 windup, 1 strike, 2 recover — exactly the sabre's phases (§11.6). */
+    static int phaseOf(int swingTick, PlayerData.Sabre sabre) {
+        if (swingTick < sabre.windupTicks()) {
+            return 0;
+        }
+        return swingTick < sabre.windupTicks() + sabre.activeTicks() ? 1 : 2;
+    }
+
+    private static int gaitIndex(PlayerData.Animation walk, int walkTicks) {
+        return walk.ticksPerFrame() == 0 ? 0 : (walkTicks / walk.ticksPerFrame()) % walk.frames().size();
     }
 
     private static String frameAt(PlayerData.Animation a, int ticks, boolean loop) {
@@ -102,19 +127,24 @@ public final class PlayerPainter {
         return p.invulnTicks() % period < (period + 1) / 2;
     }
 
-    private void paintBlade(Framebuffer fb, PixelRect r, Direction8 facing, int ox, int oy) {
-        int x = r.x() + ox;
-        int y = r.y() + oy;
-        if (facing.dx() != 0) {
-            int mid = y + r.h() / 2;
-            fb.fillRect(x, mid - 1, r.w(), 2, blade);
-            int base = facing.dx() > 0 ? x : x + r.w() - 2;          // the end nearest the hand
-            fb.fillRect(base, mid - 3, 2, 6, hilt);
+    /** The blade: out of the hand along the facing, as long as the hitbox reaches, 2 px thick. */
+    private void paintBlade(Framebuffer fb, Direction8 d, SpriteData.Point hand, int feetX, int feetY) {
+        int hx = feetX - sprite.originX() + hand.x();
+        int hy = feetY - sprite.originY() + hand.y();
+        PlayerData.Sabre s = rules.sabre();
+        int reach = s.reachPx();
+        if (d.dx() != 0) {
+            for (int i = 1; i <= reach; i++) {
+                // Diagonals tilt toward their vertical by the same offset the hitbox is shifted.
+                int y = hy + (d.diagonal() ? d.dy() * (i * s.diagonalOffsetPx() / reach) : 0);
+                fb.fillRect(hx + d.dx() * i, y, 1, 2, blade);
+            }
+            fb.fillRect(hx + d.dx(), hy - 2, 1, 6, hilt);       // crossguard just past the hand
         } else {
-            int mid = x + r.w() / 2;
-            fb.fillRect(mid - 1, y, 2, r.h(), blade);
-            int base = facing.dy() > 0 ? y : y + r.h() - 2;
-            fb.fillRect(mid - 3, base, 6, 2, hilt);
+            for (int i = 1; i <= reach; i++) {
+                fb.fillRect(hx, hy + d.dy() * i, 2, 1, blade);
+            }
+            fb.fillRect(hx - 2, hy + d.dy(), 6, 1, hilt);
         }
     }
 }

@@ -63,9 +63,22 @@ public record PlayerData(
         }
     }
 
-    public record Animation(List<String> frames, int ticksPerFrame, boolean loop) {
+    /**
+     * @param driver       {@value #TICKS}: frame = ticks / ticksPerFrame; {@value #SABRE_PHASE}: windup,
+     *                     strike and recover follow the sabre's phases exactly (§11.6)
+     * @param gaitVariants swing_* only: every frame also exists as {@code <frame>_walk<g>}, used while moving
+     */
+    public record Animation(List<String> frames, int ticksPerFrame, boolean loop, String driver, boolean gaitVariants) {
+
+        public static final String TICKS = "ticks";
+        public static final String SABRE_PHASE = "sabrePhase";
+
         public Animation {
             frames = List.copyOf(frames);
+        }
+
+        public boolean sabrePhase() {
+            return SABRE_PHASE.equals(driver);
         }
     }
 

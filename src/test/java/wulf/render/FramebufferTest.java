@@ -76,6 +76,22 @@ class FramebufferTest {
     }
 
     @Test
+    void aRectWhollyOutsideTheClipOrTheBufferDrawsNothingAndDoesNotThrow() {
+        Framebuffer fb = new Framebuffer(8, 8);
+        fb.clear(0);
+        String before = fb.hash();
+        fb.setClip(4, 4, 4, 4);
+        fb.fillRect(0, 0, 2, 2, 5);     // left of and above the clip
+        fb.fillRect(0, 5, 3, 1, 5);     // left of the clip only
+        fb.clearClip();
+        fb.fillRect(-5, 2, 3, 2, 5);    // left of the buffer
+        fb.fillRect(9, 2, 3, 2, 5);     // right of the buffer
+        fb.fillRect(2, -4, 2, 2, 5);    // above the buffer
+        fb.fillRect(2, 2, 0, 3, 5);     // zero width
+        assertThat(fb.hash()).isEqualTo(before);
+    }
+
+    @Test
     void hashIsStableAndSensitive() {
         Framebuffer a = new Framebuffer(16, 16);
         Framebuffer b = new Framebuffer(16, 16);

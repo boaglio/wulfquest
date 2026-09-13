@@ -80,11 +80,20 @@
       "type": "object",
       "required": ["walk_side", "walk_up", "walk_down", "swing_side", "swing_up", "swing_down", "die"],
       "additionalProperties": {
-        "type": "object", "additionalProperties": false, "required": ["frames", "ticksPerFrame", "loop"],
+        "type": "object", "additionalProperties": false,
+        "required": ["frames", "ticksPerFrame", "loop", "driver", "gaitVariants"],
         "properties": {
           "frames": { "type": "array", "minItems": 1, "items": { "type": "string", "pattern": "^[a-z0-9_]+$" } },
           "ticksPerFrame": { "type": "integer", "minimum": 0 },
-          "loop": { "type": "boolean" }
+          "loop": { "type": "boolean" },
+          "driver": {
+            "description": "ticks: frame = ticks / ticksPerFrame. sabrePhase: windup, strike, recover follow the sabre's phases exactly (§11.6)",
+            "enum": ["ticks", "sabrePhase"]
+          },
+          "gaitVariants": {
+            "description": "swing_* only: each frame also exists as <frame>_walk<g> for every gait frame, used while moving",
+            "type": "boolean"
+          }
         }
       }
     }

@@ -47,6 +47,27 @@ class SpriteDataTest {
     }
 
     @Test
+    void anchorsMirrorWithTheirFrame() {
+        SpriteData d = new SpriteData(1, "t", new SpriteData.Size(3, 2), new SpriteData.Origin(0, 0),
+                Map.of(".", -1, "a", 3, "b", 12),
+                List.of(new SpriteData.Frame("f0", List.of("ab.", "..a"), Map.of("hand", new SpriteData.Point(0, 1)))),
+                Map.of("f0_l", new SpriteData.Mirror("f0", true)));
+        assertThat(d.anchors().get("f0").get("hand")).isEqualTo(new SpriteData.Point(0, 1));
+        assertThat(d.anchors().get("f0_l").get("hand")).isEqualTo(new SpriteData.Point(2, 1));
+    }
+
+    @Test
+    void anAnchorOutsideTheSpriteIsReported() {
+        SpriteData d = new SpriteData(1, "t", new SpriteData.Size(3, 2), new SpriteData.Origin(0, 0),
+                Map.of(".", -1, "a", 3),
+                List.of(new SpriteData.Frame("f0", List.of("a..", "..a"), Map.of("hand", new SpriteData.Point(3, 0)))),
+                Map.of());
+        DataException e = catchThrowableOfType(DataException.class, () -> d.decode("x.sprite.json"));
+        assertThat(e).isNotNull();
+        assertThat(e.pointer()).isEqualTo("/frames/0/anchors/hand");
+    }
+
+    @Test
     void aMirrorOfAMissingFrameIsReported() {
         DataException e = catchThrowableOfType(DataException.class,
                 () -> sprite(List.of("ab.", "..a"), Map.of("x", new SpriteData.Mirror("nope", true))).decode("t"));

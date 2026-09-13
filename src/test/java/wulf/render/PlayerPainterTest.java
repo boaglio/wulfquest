@@ -20,16 +20,18 @@ import wulf.sim.Simulation;
 import wulf.world.CollisionWorld;
 import wulf.world.WorldGrid;
 
-/** AGENTS.md §11.4–§11.7: which frame Ranger Vale shows, and that he stays in the playfield. */
+/** AGENTS.md §11.4–§11.7: which frame Ranger Vale shows, where the blade is drawn, and that he stays in the playfield. */
 class PlayerPainterTest {
 
     private static final JsonDb DB = new JsonDb(Path.of("data"));
     private static final PlayerData RULES = DB.load("entities/player", PlayerData.class);
     private static final CollisionWorld OPEN =
             (gx, gy) -> gx < 0 || gy < 0 || gx >= WorldGrid.COLS || gy >= WorldGrid.ROWS;
+    private static final InputState RIGHT = InputState.of(1, 0, false, false);
+    private static final InputState FIRE = InputState.of(0, 0, true, true);
 
     private static Simulation sim() {
-        return Simulation.at(RULES, OPEN, 0, Fixed.fp(1000), Fixed.fp(1000));
+        return Simulation.at(RULES, OPEN, 0, Fixed.fp(3 * 256 + 128), Fixed.fp(5 * 192 + 100));
     }
 
     private static String frame(Simulation s) {
@@ -52,7 +54,7 @@ class PlayerPainterTest {
         Simulation s = sim();
         List<String> seen = new ArrayList<>();
         for (int i = 0; i < 20; i++) {
-            s.tick(InputState.of(1, 0, false, false));
+            s.tick(RIGHT);
             seen.add(frame(s));
         }
         assertThat(seen.subList(0, 4)).containsOnly("side_walk0");
@@ -85,22 +87,104 @@ class PlayerPainterTest {
     @Test
     void stoppingSnapsToFrameZeroAndKeepsTheFacing() {
         Simulation s = sim();
-        run(s, InputState.of(1, 0, false, false), 7);
+        run(s, RIGHT, 7);
         assertThat(frame(s)).isEqualTo("side_walk1");
         s.tick(InputState.NONE);
         assertThat(frame(s)).isEqualTo("side_walk0");
     }
 
     @Test
-    void aSwingShowsWindupStrikeAndRecover() {
+    void theSwingPoseFollowsTheSabrePhasesExactly() {
         Simulation s = sim();
-        s.tick(InputState.of(1, 0, false, false));
-        s.tick(InputState.of(0, 0, true, true));
+        s.tick(RIGHT);
+        s.tick(FIRE);
+        PlayerData.Sabre sabre = RULES.sabre();
+        for (int t = 0; t < sabre.totalTicks(); t++) {
+            assertThat(s.player().swingTick()).isEqualTo(t);
+            String expected = t < sabre.windupTicks() ? "side_swing0"
+                    : t < sabre.windupTicks() + sabre.activeTicks() ? "side_swing1" : "side_swing2";
+            assertThat(frame(s)).as("swing tick %d", t).isEqualTo(expected);
+            s.tick(InputState.NONE);
+        }
+    }
+
+    @Test
+    void theStrikePoseIsShownExactlyWhileTheBladeIsLive() {
+        // The M3 bug: poses changed every 4 ticks while the blade was live on ticks 3-8.
+        Simulation s = sim();
+        s.tick(RIGHT);
+        s.tick(FIRE);
+        for (int t = 0; t < RULES.sabre().totalTicks(); t++) {
+            boolean live = !s.sabre().isEmpty();
+            assertThat(frame(s).equals("side_swing1")).as("swing tick %d", t).isEqualTo(live);
+            s.tick(InputState.NONE);
+        }
+    }
+
+    @Test
+    void swingingOnTheMoveKeepsWalking() {
+        // The M3 bug: fixed-leg swing frames made a moving swing glide.
+        Simulation s = sim();
+        run(s, RIGHT, 6);
+        s.tick(InputState.of(1, 0, true, true));
+        List<String> seen = new ArrayList<>();
+        for (int i = 0; i < RULES.sabre().totalTicks() - 1; i++) {
+            seen.add(frame(s));
+            s.tick(RIGHT);
+        }
+        assertThat(seen).allMatch(f -> f.matches("side_swing[012]_walk[0-3]"));
+        Set<Character> gaits = new LinkedHashSet<>();
+        seen.forEach(f -> gaits.add(f.charAt(f.length() - 1)));
+        assertThat(gaits).as("the legs keep stepping through the swing").hasSizeGreaterThan(1);
+    }
+
+    @Test
+    void stoppingMidSwingDropsToTheStandingPose() {
+        Simulation s = sim();
+        run(s, RIGHT, 6);
+        s.tick(InputState.of(1, 0, true, true));
+        assertThat(frame(s)).endsWith("_walk1");
+        s.tick(InputState.NONE);
         assertThat(frame(s)).isEqualTo("side_swing0");
-        run(s, InputState.NONE, 4);
-        assertThat(frame(s)).isEqualTo("side_swing1");
-        run(s, InputState.NONE, 4);
-        assertThat(frame(s)).isEqualTo("side_swing2");
+    }
+
+    @Test
+    void theBladeIsDrawnFromTheHandNotFromTheFeet() {
+        DisplayConfig display = DB.load("config/display", DisplayConfig.class);
+        Palette palette = DB.load("art/palette", Palette.class);
+        SpriteBank bank = new SpriteBank(new SpriteRepository(DB));
+        PlayerPainter painter = new PlayerPainter(display, bank, RULES, palette);
+        DisplayConfig.Playfield f = display.playfield();
+
+        Simulation s = sim();
+        s.tick(RIGHT);
+        s.tick(FIRE);
+        run(s, InputState.NONE, RULES.sabre().windupTicks());
+        assertThat(s.sabre().isEmpty()).isFalse();
+        String strike = frame(s);
+        assertThat(strike).isEqualTo("side_swing1");
+
+        Framebuffer fb = new Framebuffer(display.canvas().w(), display.canvas().h());
+        fb.clear(0);
+        painter.paint(fb, s);
+
+        int feetX = Fixed.px(s.player().xFp()) + f.x() - 3 * 256;
+        int feetY = Fixed.px(s.player().yFp()) + f.y() - 5 * 192;
+        Sprite vale = bank.get("player");
+        SpriteData.Point hand = vale.anchor(strike, "hand");
+        int handY = feetY - vale.originY() + hand.y();
+        int white = palette.indexOf("brightWhite");
+        List<Integer> bladeRows = new ArrayList<>();
+        for (int x = feetX + 9; x <= feetX + 8 + RULES.sabre().reachPx(); x++) {   // right of the sprite
+            for (int y = 0; y < fb.height(); y++) {
+                if (fb.get(x, y) == white) {
+                    bladeRows.add(y);
+                }
+            }
+        }
+        assertThat(bladeRows).as("a blade was drawn beyond the sprite").isNotEmpty();
+        assertThat(bladeRows).allSatisfy(y -> assertThat(y).isBetween(handY, handY + 1));
+        assertThat(handY).as("at hand height, well clear of the feet").isLessThan(feetY - 8);
     }
 
     @Test
@@ -133,12 +217,18 @@ class PlayerPainterTest {
         Set<String> available = sprite.decode("player.sprite.json").keySet();
         Set<String> chosen = new LinkedHashSet<>();
         for (String view : List.of("side", "up", "down")) {
-            for (String kind : List.of("walk_", "swing_")) {
-                for (String f : RULES.animation(kind + view).frames()) {
-                    chosen.add(f);
-                    if (view.equals("side")) {
-                        chosen.add(f + "_l");
-                    }
+            int gaits = RULES.animation("walk_" + view).frames().size();
+            List<String> names = new ArrayList<>(RULES.animation("walk_" + view).frames());
+            for (String swing : RULES.animation("swing_" + view).frames()) {
+                names.add(swing);
+                for (int g = 0; g < gaits; g++) {
+                    names.add(swing + "_walk" + g);
+                }
+            }
+            for (String n : names) {
+                chosen.add(n);
+                if (view.equals("side")) {
+                    chosen.add(n + "_l");
                 }
             }
         }
@@ -153,10 +243,10 @@ class PlayerPainterTest {
         PlayerPainter painter = new PlayerPainter(display, new SpriteBank(new SpriteRepository(DB)), RULES, palette);
         DisplayConfig.Playfield f = display.playfield();
 
-        // Feet 2 px inside the west edge of room 8,10, facing west and mid-swing: sprite and blade both overhang.
+        // Feet just inside the west edge of room 8,10, facing west and mid-strike: sprite and blade both overhang.
         Simulation s = Simulation.at(RULES, OPEN, 0, Fixed.fp(8 * 256 + 6), Fixed.fp(10 * 192 + 100));
         s.tick(InputState.of(-1, 0, false, false));
-        s.tick(InputState.of(0, 0, true, true));
+        s.tick(FIRE);
         run(s, InputState.NONE, 4);
         assertThat(s.room().col()).isEqualTo(8);
         assertThat(s.sabre().isEmpty()).isFalse();

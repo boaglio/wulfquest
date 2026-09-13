@@ -2,17 +2,22 @@
 """
 Character Forge — draws Ranger Vale, frame by frame, as JSON pixel art.
 
-AGENTS.md §10 and §11.5. Every frame is composed from small hand-authored
+AGENTS.md §10 and §11.5–§11.7. Every frame is composed from small hand-authored
 stamps (hat, head, torso) plus limbs stroked between joints, then outlined.
 Nothing is traced from any image. Deterministic: no randomness at all.
 
-Frames match the animations in data/entities/player.json exactly:
-  side_walk0-3, up_walk0-3, down_walk0-3      4-frame gaits (§11.5)
-  side_swing0-2, up_swing0-2, down_swing0-2   windup, strike, recover (§11.6)
-  die0-3                                      the death sequence (§11.7)
-Left-facing side frames are mirrors, declared in the file, never duplicated.
-The blade itself is not in the sprite: the renderer draws it from the live
-hitbox, so what you see is exactly what hits.
+Frames match the animations in data/entities/player.json:
+  side_walk0-3, up_walk0-3, down_walk0-3        4-frame gaits (§11.5)
+  side_swing0-2, up_swing0-2, down_swing0-2     windup, strike, recover, standing (§11.6)
+  <view>_swing<p>_walk<g>                       the same three poses on each walking
+                                                gait, so a swing on the move never glides
+  die0-3                                        the death sequence (§11.7)
+
+Every swing frame carries a "hand" anchor. The renderer draws the blade out of
+that hand, with the hitbox's exact reach and timing; the hitbox itself stays on
+the ground plane, where creatures' feet are.
+
+Left-facing side frames are mirrors (anchors mirror with them), never duplicated.
 
 Outputs data/art/sprites/player.sprite.json and merges "player" into
 data/art/sprites/index.json.
@@ -74,6 +79,19 @@ TORSO = {
              ".yyyyyy."],
 }
 
+# Side gait: front foot x, back foot x, free hand, body bob. Contact, passing, contact, passing.
+SIDE_GAIT = [(11, 4, (5, 13), 0), (8, 7, (8, 14), -1), (11, 4, (11, 13), 0), (8, 7, (8, 14), -1)]
+SIDE_STANCE = (11, 4, None, 0)
+# Front and back gait: left leg lift, right leg lift, left hand y, right hand y.
+FRONT_GAIT = [(0, 0, 13, 13), (1, 0, 14, 12), (0, 0, 13, 13), (0, 1, 12, 14)]
+FRONT_STANCE = (0, 0, 13, 13)
+# The sword hand through windup, strike, recover.
+SIDE_SWING_HAND = [(4, 4), (15, 9), (13, 13)]            # behind the hat, level forward, low
+FRONT_SWING_HAND = {
+    "down": [(13, 2), (11, 19), (12, 15)],               # overhead, then down toward the viewer
+    "up":   [(13, 15), (12, 1), (13, 6)],                # low, then up and away
+}
+
 
 def stamp(cv, rows, x, y):
     for dy, row in enumerate(rows):
@@ -115,50 +133,48 @@ def finish(cv):
 
 # ---------------------------------------------------------------- the frames
 
-def side_walk(i):
-    # contact, passing (bob), contact with the other arm forward, passing (bob)
-    front, back, hand, bob = [(11, 4, (5, 13), 0), (8, 7, (8, 14), -1),
-                              (11, 4, (11, 13), 0), (8, 7, (8, 14), -1)][i]
+def side_walk(g):
+    front, back, hand, bob = SIDE_GAIT[g]
     cv = Canvas(W, H)
     leg_side(cv, back)
     leg_side(cv, front)
     upper(cv, "side", bob)
     arm(cv, (8, 9 + bob), (hand[0], hand[1] + bob))
-    return finish(cv)
+    return finish(cv), None
 
 
-def front_walk(view, i):
-    left_lift, right_lift, left_hand_y, right_hand_y = [(0, 0, 13, 13), (1, 0, 14, 12),
-                                                        (0, 0, 13, 13), (0, 1, 12, 14)][i]
+def front_walk(view, g):
+    left_lift, right_lift, left_hand_y, right_hand_y = FRONT_GAIT[g]
     cv = Canvas(W, H)
     legs_front(cv, left_lift, right_lift)
     upper(cv, view)
     arm(cv, (4, 9), (3, left_hand_y))
     arm(cv, (11, 9), (12, right_hand_y))
-    return finish(cv)
+    return finish(cv), None
 
 
-def side_swing(i):
-    hand = [(4, 4), (15, 9), (13, 13)][i]          # windup behind the hat, strike level, recover low
+def side_swing(phase, gait=None):
+    """A swing pose; with a gait, on that gait's legs and body bob."""
+    front, back, _, bob = SIDE_STANCE if gait is None else SIDE_GAIT[gait]
     cv = Canvas(W, H)
-    leg_side(cv, 4)
-    leg_side(cv, 11)
-    upper(cv, "side")
-    arm(cv, (8, 9), hand)
-    return finish(cv)
+    leg_side(cv, back)
+    leg_side(cv, front)
+    upper(cv, "side", bob)
+    hx, hy = SIDE_SWING_HAND[phase]
+    hy += bob
+    arm(cv, (8, 9 + bob), (hx, hy))
+    return finish(cv), {"hand": {"x": hx, "y": hy}}
 
 
-def front_swing(view, i):
-    if view == "down":
-        hand = [(13, 2), (11, 19), (12, 15)][i]   # overhead, then down toward the viewer
-    else:
-        hand = [(13, 15), (12, 1), (13, 6)][i]    # low, then up and away
+def front_swing(view, phase, gait=None):
+    left_lift, right_lift, left_hand_y, _ = FRONT_STANCE if gait is None else FRONT_GAIT[gait]
     cv = Canvas(W, H)
-    legs_front(cv)
+    legs_front(cv, left_lift, right_lift)
     upper(cv, view)
-    arm(cv, (4, 9), (3, 13))
-    arm(cv, (11, 9), hand)
-    return finish(cv)
+    arm(cv, (4, 9), (3, left_hand_y))
+    hx, hy = FRONT_SWING_HAND[view][phase]
+    arm(cv, (11, 9), (hx, hy))
+    return finish(cv), {"hand": {"x": hx, "y": hy}}
 
 
 def die(i):
@@ -168,7 +184,7 @@ def die(i):
         upper(cv, "down", hat_dy=-1)
         arm(cv, (4, 9), (1, 6))
         arm(cv, (11, 9), (14, 6))
-        return finish(cv)
+        return finish(cv), None
     if i == 1:        # buckling to the knees
         cv.rect(5, 19, 7, 22, "w")
         cv.rect(9, 19, 11, 22, "w")
@@ -177,13 +193,10 @@ def die(i):
         upper(cv, "down", bob=4)
         arm(cv, (4, 13), (3, 18))
         arm(cv, (11, 13), (12, 18))
-        return finish(cv)
+        return finish(cv), None
+    blank = "." * W
     rows = {
-        2: [  # toppled onto his side, hat falling
-            "................", "................", "................", "................",
-            "................", "................", "................", "................",
-            "................", "................", "................", "................",
-            "................", "................",
+        2: [blank] * 14 + [  # toppled onto his side, hat falling
             "..YYYY..........",
             ".yyyyyy.........",
             "YYYYYYYY........",
@@ -192,13 +205,8 @@ def die(i):
             ".WWWWCCCCCCCywwr",
             "..WW..CCCCCC.wwr",
             "......W....W....",
-            "................", "................",
-        ],
-        3: [  # flat on the ground, hat knocked clear
-            "................", "................", "................", "................",
-            "................", "................", "................", "................",
-            "................", "................", "................", "................",
-            "................", "................", "................", "................",
+        ] + [blank] * 2,
+        3: [blank] * 16 + [  # flat on the ground, hat knocked clear
             "...........YYYY.",
             "..........YYYYYY",
             "................",
@@ -210,34 +218,53 @@ def die(i):
         ],
     }[i]
     stamp(cv, rows, 0, 0)
-    return finish(cv)
+    return finish(cv), None
 
 
 def main():
     frames = []
-    for i in range(4):
-        frames.append(("side_walk%d" % i, side_walk(i)))
-    for view in ("up", "down"):
-        for i in range(4):
-            frames.append(("%s_walk%d" % (view, i), front_walk(view, i)))
-    for i in range(3):
-        frames.append(("side_swing%d" % i, side_swing(i)))
-    for view in ("up", "down"):
-        for i in range(3):
-            frames.append(("%s_swing%d" % (view, i), front_swing(view, i)))
-    for i in range(4):
-        frames.append(("die%d" % i, die(i)))
 
-    used = sorted({c for _, rows in frames for r in rows for c in r}, key=lambda c: LEGEND[c])
+    def add(fid, drawn):
+        rows, anchors = drawn
+        frames.append((fid, rows, anchors))
+
+    for g in range(4):
+        add("side_walk%d" % g, side_walk(g))
+    for view in ("up", "down"):
+        for g in range(4):
+            add("%s_walk%d" % (view, g), front_walk(view, g))
+    for p in range(3):
+        add("side_swing%d" % p, side_swing(p))
+    for view in ("up", "down"):
+        for p in range(3):
+            add("%s_swing%d" % (view, p), front_swing(view, p))
+    # Swing poses on walking legs: a swing on the move keeps walking instead of gliding (§11.6).
+    for p in range(3):
+        for g in range(4):
+            add("side_swing%d_walk%d" % (p, g), side_swing(p, g))
+    for view in ("up", "down"):
+        for p in range(3):
+            for g in range(4):
+                add("%s_swing%d_walk%d" % (view, p, g), front_swing(view, p, g))
+    for i in range(4):
+        add("die%d" % i, die(i))
+
+    used = sorted({c for _, rows, _ in frames for r in rows for c in r}, key=lambda c: LEGEND[c])
+    out_frames = []
+    for fid, rows, anchors in frames:
+        entry = {"id": fid, "rows": rows}
+        if anchors:
+            entry["anchors"] = anchors
+        out_frames.append(entry)
     sprite = {
         "schemaVersion": 1,
         "name": "player",
         "size": {"w": W, "h": H},
         "origin": {"x": W // 2, "y": H},
         "legend": {c: LEGEND[c] for c in used},
-        "frames": [{"id": fid, "rows": rows} for fid, rows in frames],
+        "frames": out_frames,
         # Left-facing side frames are mirrors of the right-facing ones (§10.1).
-        "mirror": {fid + "_l": {"from": fid, "flipX": True} for fid, _ in frames if fid.startswith("side_")},
+        "mirror": {fid + "_l": {"from": fid, "flipX": True} for fid, _, _ in frames if fid.startswith("side_")},
     }
     out = ROOT / "data/art/sprites/player.sprite.json"
     with open(out, "w", encoding="utf-8") as f:

@@ -32,10 +32,19 @@ public record SpriteData(
     public record Origin(int x, int y) {
     }
 
-    public record Frame(String id, List<String> rows) {
+    public record Frame(String id, List<String> rows, Map<String, Point> anchors) {
         public Frame {
             rows = List.copyOf(rows);
+            anchors = anchors == null ? Map.of() : Map.copyOf(anchors);
         }
+
+        public Frame(String id, List<String> rows) {
+            this(id, rows, Map.of());
+        }
+    }
+
+    /** A named point inside a frame, in sprite pixels — e.g. the hand that holds the blade. */
+    public record Point(int x, int y) {
     }
 
     public record Mirror(String from, boolean flipX) {
@@ -58,6 +67,13 @@ public record SpriteData(
             if (frame.rows().size() != size.h()) {
                 throw new DataException(source, at + "/rows",
                         "has " + frame.rows().size() + " rows but size.h is " + size.h());
+            }
+            for (Map.Entry<String, Point> a : frame.anchors().entrySet()) {
+                Point pt = a.getValue();
+                if (pt.x() < 0 || pt.y() < 0 || pt.x() >= size.w() || pt.y() >= size.h()) {
+                    throw new DataException(source, at + "/anchors/" + a.getKey(),
+                            "is at " + pt.x() + "," + pt.y() + ", outside the " + size.w() + "x" + size.h() + " sprite");
+                }
             }
             byte[] px = new byte[size.w() * size.h()];
             for (int y = 0; y < size.h(); y++) {
@@ -94,5 +110,32 @@ public record SpriteData(
             out.put(e.getKey(), px);
         }
         return out;
+    }
+
+    /**
+     * Every frame's anchors, mirrored frames included with x flipped.
+     *
+     * @return frame id -> anchor name -> point
+     */
+    public Map<String, Map<String, Point>> anchors() {
+        Map<String, Frame> byId = new java.util.LinkedHashMap<>();
+        Map<String, Map<String, Point>> out = new java.util.LinkedHashMap<>();
+        for (Frame f : frames) {
+            byId.put(f.id(), f);
+            out.put(f.id(), f.anchors());
+        }
+        for (Map.Entry<String, Mirror> e : mirror.entrySet()) {
+            Frame from = byId.get(e.getValue().from());
+            if (from == null) {
+                continue;   // decode() reports the dangling mirror with a pointer
+            }
+            Map<String, Point> flipped = new java.util.LinkedHashMap<>();
+            for (Map.Entry<String, Point> a : from.anchors().entrySet()) {
+                Point pt = a.getValue();
+                flipped.put(a.getKey(), e.getValue().flipX() ? new Point(size.w() - 1 - pt.x(), pt.y()) : pt);
+            }
+            out.put(e.getKey(), Map.copyOf(flipped));
+        }
+        return Map.copyOf(out);
     }
 }

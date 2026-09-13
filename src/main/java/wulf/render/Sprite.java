@@ -12,6 +12,7 @@ public final class Sprite {
     private final int originX;
     private final int originY;
     private final Map<String, byte[]> frames;
+    private final Map<String, Map<String, SpriteData.Point>> anchors;
     private final String firstFrame;
 
     public Sprite(SpriteData data, String source) {
@@ -21,6 +22,7 @@ public final class Sprite {
         this.originX = data.origin().x();
         this.originY = data.origin().y();
         this.frames = Map.copyOf(data.decode(source));
+        this.anchors = data.anchors();
         this.firstFrame = data.frames().get(0).id();
     }
 
@@ -34,6 +36,25 @@ public final class Sprite {
 
     public int h() {
         return h;
+    }
+
+    public int originX() {
+        return originX;
+    }
+
+    public int originY() {
+        return originY;
+    }
+
+    /** A named anchor on a frame, in sprite pixels. Missing anchors are a data error caught at load. */
+    public SpriteData.Point anchor(String frameId, String anchorName) {
+        Map<String, SpriteData.Point> onFrame = anchors.get(frameId);
+        SpriteData.Point p = onFrame == null ? null : onFrame.get(anchorName);
+        if (p == null) {
+            throw new IllegalStateException("sprite '" + name + "' frame '" + frameId + "' has no '" + anchorName
+                    + "' anchor");
+        }
+        return p;
     }
 
     /** Draws a frame so that the sprite's origin lands on (x, y). */

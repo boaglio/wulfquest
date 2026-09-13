@@ -77,6 +77,11 @@ public final class Framebuffer {
         int y0 = Math.max(clipY0, y);
         int x1 = Math.min(clipX1, x + w);
         int y1 = Math.min(clipY1, y + h);
+        if (x0 >= x1 || y0 >= y1) {
+            // Wholly outside the clip. Arrays.fill would throw on the reversed range —
+            // a blade drawn pixel by pixel off the playfield edge hit exactly this.
+            return;
+        }
         byte v = (byte) paletteIndex;
         for (int yy = y0; yy < y1; yy++) {
             int row = yy * width;

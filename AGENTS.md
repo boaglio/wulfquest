@@ -935,6 +935,10 @@ Rules:
   in `rows` but missing from `legend` is a fatal error.
 - `mirror` derives left-facing frames from right-facing ones at load — never
   duplicate mirrored pixel data in the file.
+- A frame may carry `anchors`: named points in sprite pixels, e.g.
+  `"anchors": { "hand": { "x": 15, "y": 9 } }`. They mirror with their frame
+  (`x` becomes `w - 1 - x`), and one outside the sprite is a load-time
+  `DataException`. The blade is drawn from the swing frames' `hand` (§11.6).
 - The example above is a **placeholder skeleton**, not the final art.
   Replace it with real 16×24 art in milestone M2.
 
@@ -944,14 +948,28 @@ Animations live with the entity, not the sprite:
 
 ```json
 "animations": {
-  "walk_side":  { "frames": ["walk0","walk1","walk2","walk3"], "ticksPerFrame": 5, "loop": true },
-  "walk_up":    { "frames": ["up0","up1","up2","up3"],         "ticksPerFrame": 5, "loop": true },
-  "walk_down":  { "frames": ["dn0","dn1","dn2","dn3"],         "ticksPerFrame": 5, "loop": true },
-  "idle":       { "frames": ["walk0"],                          "ticksPerFrame": 0, "loop": false },
-  "swing":      { "frames": ["sw0","sw1","sw2"],               "ticksPerFrame": 4, "loop": false },
-  "die":        { "frames": ["die0","die1","die2","die3"],     "ticksPerFrame": 10, "loop": false }
+  "walk_side":  { "frames": ["side_walk0","side_walk1","side_walk2","side_walk3"],
+                  "ticksPerFrame": 5, "loop": true, "driver": "ticks", "gaitVariants": false },
+  "swing_side": { "frames": ["side_swing0","side_swing1","side_swing2"],
+                  "ticksPerFrame": 0, "loop": false, "driver": "sabrePhase", "gaitVariants": true },
+  "die":        { "frames": ["die0","die1","die2","die3"],
+                  "ticksPerFrame": 10, "loop": false, "driver": "ticks", "gaitVariants": false }
 }
 ```
+
+- **`driver: "ticks"`** — frame = ticks / `ticksPerFrame`. A held (0-tick)
+  animation has exactly one frame.
+- **`driver: "sabrePhase"`** — exactly three frames, windup, strike and
+  recover, switched by the sabre's own phase boundaries (§11.6), never by a
+  tick count. `ticksPerFrame` must be 0. A uniform tick count cannot line up
+  with a 3 / 6 / 3 split: M3's first swing changed pose every 4 ticks, so the
+  blade was out while the arm was still raised in the windup.
+- **`gaitVariants: true`** (swing animations only) — every frame also exists as
+  `<frame>_walk<g>` for each gait frame of the matching walk, e.g.
+  `side_swing1_walk2`. While moving, the renderer uses the variant for the
+  current gait, so a swing on the move keeps stepping instead of gliding.
+- The `AnimationValidator` (§20.6) enforces all of this at load, plus mirrors
+  for side-view frames and a `hand` anchor on every strike frame.
 
 ### 10.3 SpriteForgeCli
 
@@ -1004,10 +1022,10 @@ traced from any image.
   It rewrites all 41 `scenery_*.sprite.json`, `art/sprites/index.json` and
   `world/scenery.json`.
 - **`character_forge.py`** draws Ranger Vale the same way, from hand-authored
-  stamps (hat, head, torso) and limbs stroked between joints: 25 frames plus
-  their left-facing mirrors. It has no randomness at all. The blade is not in
-  the sprite — the renderer draws it from the live hitbox, so what you see is
-  exactly what hits.
+  stamps (hat, head, torso) and limbs stroked between joints: 61 frames — the
+  swing poses standing and on every walking gait — plus 19 left-facing mirrors.
+  It has no randomness at all. The blade is not in the sprite: every swing frame
+  carries a `hand` anchor, and the renderer draws the blade out of it (§11.6).
 - **Forges share `art/sprites/index.json`** and each merges only its own
   entries into it. Regenerating the scenery must never drop the player sprite,
   and vice versa.
@@ -1120,6 +1138,19 @@ then         COOLDOWN 6 ticks before another swing is allowed
 - The player **can still move** during the swing at full speed
   (`moveSpeedScaleFp = 256` = ×1.0). The original let you walk and slash;
   keep it.
+- **The pose follows the phases exactly** (`driver: "sabrePhase"`, §10.2):
+  windup pose during WINDUP, strike pose during ACTIVE, recover pose during
+  RECOVER. The strike pose is on screen precisely while the blade can hit.
+- **A swing on the move keeps walking**: while moving, the same pose is drawn on
+  the current gait's legs (`gaitVariants`, §10.2). Fixed-leg swing frames at
+  full speed make Vale skate.
+- **The blade is drawn from the hand, the hitbox lies on the ground.** The
+  hitbox is projected from the feet box, on the ground plane where creatures'
+  feet are; that is what collides. The visible blade comes out of the strike
+  frame's `hand` anchor with the hitbox's exact reach and timing — horizontal
+  for side views, tilting by `diagonalOffsetPx` for diagonals, vertical for up
+  and down. Drawing it from the hitbox itself put the blade at knee height, and
+  between the legs or through the pack facing down or up (found in M3).
 - Hitbox: a rectangle `reachPx` (14) long and `thicknessPx` (12) wide,
   projected from the player's collision-box centre along `facing`. For
   diagonals, project along the dominant axis and offset by 4 px on the
@@ -2436,6 +2467,22 @@ Found along the way:
 Deferred, deliberately: gamepad input (`gamepad.enabled` is false); score, hi
 score and the amulet on the panel stay placeholders until M4–M6; `--dev` hot
 reload (§20.5) is still pending.
+
+**Follow-up, 2026-09-13 — the swing looked wrong.** Reported by the user
+after playing. A tick-by-tick probe measured three defects:
+
+1. **Pose and blade out of step.** Poses changed every 4 ticks; the blade was
+   live on ticks 3–8, so it showed with the windup pose on tick 3 and the
+   recover pose on tick 8. Swing animations are now `sabrePhase`-driven (§10.2).
+2. **The blade at knee height.** It was drawn from the ground-plane hitbox: 5 px
+   above the feet side-on, 15 px below the hand; between the legs facing down;
+   through the pack facing up. It is now drawn from a `hand` anchor (§10.1,
+   §11.6). The hitbox is unchanged.
+3. **Gliding.** Swing frames had fixed legs while Vale kept moving at full
+   speed. The forge now draws every swing pose on every gait (`gaitVariants`).
+
+Tests pin all three: the strike pose shows exactly while the blade is live, a
+moving swing steps through gaits, and the blade's pixels sit at the hand's row.
 
 ### M4 — Creatures (4 days)
 
