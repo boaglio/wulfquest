@@ -11,7 +11,8 @@
       "pause": ["P"],
       "quit": ["ESCAPE"],
       "devKill": ["K"],
-      "devMask": ["M"]
+      "devMask": ["M"],
+      "devWulf": ["H"]
     },
     "period": {
       "up": ["Q"],
@@ -22,7 +23,8 @@
       "pause": ["H"],
       "quit": ["ESCAPE"],
       "devKill": ["K"],
-      "devMask": ["N"]
+      "devMask": ["N"],
+      "devWulf": ["J"]
     }
   },
   "gamepad": { "enabled": false, "deadzonePercent": 40, "dpadAsDirections": true }

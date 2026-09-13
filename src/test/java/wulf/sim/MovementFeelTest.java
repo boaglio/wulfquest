@@ -63,7 +63,7 @@ class MovementFeelTest {
     @Test
     void opposingKeysCancel() {
         Simulation sim = at(OPEN, 1000, 1000);
-        sim.tick(new InputState(false, false, true, true, false, false, false, false, false, false));
+        sim.tick(new InputState(false, false, true, true, false, false, false, false, false, false, false));
         assertThat(sim.player().xFp()).isEqualTo(Fixed.fp(1000));
     }
 

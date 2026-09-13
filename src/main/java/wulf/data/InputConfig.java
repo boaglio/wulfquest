@@ -20,7 +20,8 @@ public record InputConfig(int schemaVersion, String active, Map<String, Profile>
             List<String> pause,
             List<String> quit,
             List<String> devKill,
-            List<String> devMask) {
+            List<String> devMask,
+            List<String> devWulf) {
 
         public Profile {
             up = List.copyOf(up);
@@ -32,6 +33,7 @@ public record InputConfig(int schemaVersion, String active, Map<String, Profile>
             quit = List.copyOf(quit);
             devKill = List.copyOf(devKill);
             devMask = List.copyOf(devMask);
+            devWulf = List.copyOf(devWulf);
         }
     }
 

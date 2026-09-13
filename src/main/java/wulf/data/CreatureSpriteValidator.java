@@ -25,6 +25,11 @@ public final class CreatureSpriteValidator {
     }
 
     public static void check(CreatureData creatures, SpriteRepository sprites) {
+        check(creatures, framesBySprite(sprites));
+    }
+
+    /** Sprite name to its frame ids, mirrors included. */
+    public static Map<String, Set<String>> framesBySprite(SpriteRepository sprites) {
         Map<String, Set<String>> framesBySprite = new LinkedHashMap<>();
         for (Map.Entry<String, SpriteData> e : sprites.all().entrySet()) {
             Set<String> frames = new LinkedHashSet<>();
@@ -32,7 +37,7 @@ public final class CreatureSpriteValidator {
             frames.addAll(e.getValue().mirror().keySet());
             framesBySprite.put(e.getKey(), frames);
         }
-        check(creatures, framesBySprite);
+        return framesBySprite;
     }
 
     /** @param framesBySprite sprite name to its frame ids, mirrors included */

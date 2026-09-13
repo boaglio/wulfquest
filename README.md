@@ -12,20 +12,18 @@ engine.
 
 ## Status
 
-**Milestone M4 complete** — the jungle bites back. Thirteen creatures, each
-with its own way of moving: tribesmen that patrol, spearmen that throw, a chief
-that hunts you down, scorpions that skitter, snakes that hug the undergrowth,
-spiders that drop, bats on the wing, hopping toads, circling vultures, a
-warthog that charges, a rhino slow to turn, hippos that fill corridors and
-wildebeest in herds. They fill each room by its landscape, one touch kills you,
-the sabre kills them, and the panel keeps score. There is no Wulf yet (M5) and
-no quest (M6). The full plan lives in [AGENTS.md](AGENTS.md) §24.
+**Milestone M5 complete** — and something is hunting you. Thirteen kinds of
+creature fill the jungle by its landscape, and now there is the Wulf: it howls
+at the edge of the screen, gives you less than a second, then comes — faster
+than you, unkillable, following you from room to room. The sabre only buys you
+a moment. Terrain is your friend. There is no quest yet (M6). The full plan lives in [AGENTS.md](AGENTS.md) §24.
 
 ```bash
 ./run.sh                   # play, starting in 8,10
 ./run.sh --seed 42         # replay the same creatures in every room
 ./run.sh --room 3,4        # start somewhere else
-./run.sh --dev             # K kills Vale, M shows collision, the panel shows position
+./run.sh --dev             # K kills Vale, M shows collision, H calls the Wulf
+./run.sh --record run.json # save the first game as a replay
 ./run.sh --browse          # the room browser: arrows, [ ] or PgUp/PgDn, M
 ```
 

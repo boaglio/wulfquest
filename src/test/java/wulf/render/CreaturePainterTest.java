@@ -23,6 +23,10 @@ import wulf.sim.Simulation;
 import wulf.world.CollisionWorld;
 import wulf.world.RoomAddress;
 import wulf.world.WorldGrid;
+import java.util.Set;
+import wulf.data.WulfData;
+import wulf.sim.Wulf;
+import wulf.sim.WulfRules;
 
 /** AGENTS.md §12, §5.3 — how creatures are drawn. */
 class CreaturePainterTest {
@@ -34,6 +38,7 @@ class CreaturePainterTest {
             (gx, gy) -> gx < 0 || gy < 0 || gx >= WorldGrid.COLS || gy >= WorldGrid.ROWS;
     private static final RoomAddress ROOM = new RoomAddress(3, 5);
     private static final int TPF = CREATURES.walkTicksPerFrame();
+    private static final WulfData WULF = DB.load("entities/wulf", WulfData.class);
 
     /** The roster with one species held still. */
     private static CreatureData still(String id) {
@@ -121,6 +126,34 @@ class CreaturePainterTest {
             s.tick(InputState.NONE);
         }
         assertThat(CreaturePainter.puffFrame(c, CREATURES.puffTicks())).isEqualTo("f1");
+    }
+
+    @Test
+    void theWulfHowlsWhileItWarnsThenRunsAndIsDrawn() {
+        Ecosystem eco = new Ecosystem(CREATURES, RoomPopulator.NONE, 0, WulfRules.of(WULF, 12, 250, Set.of()));
+        Simulation s = Simulation.at(RULES, OPEN, 0, Fixed.fp(ROOM.col() * 256 + 40), Fixed.fp(ROOM.row() * 192 + 100), eco, 3L);
+        assertThat(s.summonWulf()).isTrue();
+        assertThat(CreaturePainter.wulfFrame(s.wulf(), s.tick(), TPF)).isIn("howl", "howl_l");
+
+        DisplayConfig display = DB.load("config/display", DisplayConfig.class);
+        Palette palette = DB.load("art/palette", Palette.class);
+        CreaturePainter painter = new CreaturePainter(display, new SpriteBank(new SpriteRepository(DB)), CREATURES, palette);
+        Framebuffer fb = new Framebuffer(display.canvas().w(), display.canvas().h());
+        fb.clear(3);
+        painter.paint(fb, s);
+        int drawn = 0;
+        for (int y = 0; y < fb.height(); y++) {
+            for (int x = 0; x < fb.width(); x++) {
+                drawn += fb.get(x, y) != 3 ? 1 : 0;
+            }
+        }
+        assertThat(drawn).as("the only thing in the room is drawn").isPositive();
+
+        for (int i = 0; i < WULF.appearance().warningTicks() + 2 * TPF; i++) {
+            s.tick(InputState.NONE);
+        }
+        assertThat(s.wulf().state()).isEqualTo(Wulf.State.PURSUE);
+        assertThat(CreaturePainter.wulfFrame(s.wulf(), s.tick(), TPF)).startsWith("walk");
     }
 
     @Test

@@ -47,7 +47,7 @@ class InputMapTest {
     void oneKeyForTwoActionsIsADataError() {
         InputConfig.Profile m = config.profiles().get("modern");
         InputConfig.Profile clash = new InputConfig.Profile(m.up(), m.down(), m.left(), m.right(),
-                List.of("SPACE"), List.of("SPACE"), m.quit(), m.devKill(), m.devMask());
+                List.of("SPACE"), List.of("SPACE"), m.quit(), m.devKill(), m.devMask(), m.devWulf());
         DataException e = catchThrowableOfType(DataException.class,
                 () -> new InputMap(new InputConfig(1, "clash", Map.of("clash", clash), config.gamepad())));
         assertThat(e).isNotNull();

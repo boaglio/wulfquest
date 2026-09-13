@@ -24,6 +24,11 @@ import wulf.sim.ai.BehaviourCatalog;
 import wulf.world.BiomeResolver;
 import wulf.world.RoomBaker;
 import wulf.world.SceneryCatalog;
+import java.util.Set;
+import wulf.data.WulfData;
+import wulf.data.WulfValidator;
+import wulf.sim.WulfRules;
+import wulf.world.RoomAddress;
 
 /**
  * Everything loaded from the content database, validated and cross-checked,
@@ -45,7 +50,8 @@ public record Content(
         CreatureData creatures,
         RoomEntitiesData roomEntities,
         LootData loot,
-        BiomeResolver biomes) {
+        BiomeResolver biomes,
+        WulfData wulf) {
 
     public static Content load(Path dataDir) {
         return load(new JsonDb(dataDir));
@@ -72,15 +78,26 @@ public record Content(
         LootData loot = db.load("entities/loot", LootData.class);
         BiomeResolver biomes = new BiomeResolver(map, scenery, roomEntities.biomeMarkers());
         CreatureRefValidator.check(creatures, roomEntities, biomes.inUse(), scenery.ids());
+        WulfData wulf = db.load("entities/wulf", WulfData.class);
+        WulfValidator.check(wulf, sprites);
 
         return new Content(db, game, display, palette, font, input, map, sprites, scenery, rooms, player,
-                creatures, roomEntities, loot, biomes);
+                creatures, roomEntities, loot, biomes, wulf);
     }
 
-    /** The living jungle: creatures, how rooms are populated, and what exploring scores. */
+    /** The living jungle: creatures, how rooms are populated, what exploring scores, and the Wulf. */
     public Ecosystem ecosystem() {
         return new Ecosystem(creatures,
                 new BiomePopulator(creatures, roomEntities, biomes, game.difficulty()),
-                loot.event("roomFirstVisit"));
+                loot.event("roomFirstVisit"),
+                wulfRules());
+    }
+
+    /** The Wulf's rules, with its forbidden rooms resolved (§13.3). Lairs and the exit join in M6. */
+    public WulfRules wulfRules() {
+        Set<RoomAddress> never = wulf.appearance().neverInRooms().contains(WulfData.START)
+                ? Set.of(map.startRoom())
+                : Set.of();
+        return WulfRules.of(wulf, game.transition().wulfArrivalDelayTicks(), loot.event("wulfEvaded"), never);
     }
 }

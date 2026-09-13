@@ -35,6 +35,7 @@ import wulf.ui.DataErrorScreen;
 import wulf.world.Room;
 import wulf.world.RoomAddress;
 import wulf.world.WorldGrid;
+import wulf.engine.ReplayRecorder;
 
 /**
  * Entry point. See AGENTS.md §3 for the argument list and §24 for what each
@@ -126,6 +127,7 @@ public final class Boot {
         PlayerPainter vale = new PlayerPainter(display, sprites, c.player(), palette);
         int border = palette.indexOf(display.border().idleColour());
         int alarm = palette.indexOf("brightRed");
+        int parry = palette.indexOf("brightWhite");
         int maskColour = palette.indexOf("brightRed");
 
         WorldGrid world = new WorldGrid(c.rooms());
@@ -140,16 +142,24 @@ public final class Boot {
         AtomicLong nextSeed = new AtomicLong(firstSeed);
         GameSession session = new GameSession(() -> Simulation.startingIn(c.player(), world,
                 c.game().transition().freezeTicks(), start, eco, nextSeed.getAndIncrement()));
+        ReplayRecorder recorder = parsed.record() == null ? null
+                : new ReplayRecorder(nameOf(parsed.record()), c.db().contentHash(), firstSeed, start, parsed.dev());
         System.out.println("  run seed     : " + firstSeed + (parsed.seeded() ? "" : "   (replay with --seed " + firstSeed + ")"));
 
         System.out.println("  controls     : arrows or WASD walk, Space or Z swing, P pause, Esc quit"
-                + (parsed.dev() ? "   [dev: K kill, M collision mask]" : ""));
+                + (parsed.dev() ? "   [dev: K kill, M collision mask, H summon the Wulf]" : ""));
 
         GameLoop loop = new GameLoop(c.game().tickHz(), c.game().maxCatchupTicks());
         loop.run(new GameLoop.Stepper() {
             @Override
             public void tick() {
-                session.tick(keys.sample(), parsed.dev());
+                InputState in = keys.sample();
+                Simulation playing = session.sim();
+                long before = playing.tick();
+                session.tick(in, parsed.dev());
+                if (recorder != null && session.sim() == playing && playing.tick() != before) {
+                    recorder.record(in, playing);   // the first game only: a restart is a new run
+                }
             }
 
             @Override
@@ -157,7 +167,11 @@ public final class Boot {
                 Simulation sim = session.sim();
                 Room room = c.rooms().room(sim.room());
                 Framebuffer fb = screen.fb();
-                fb.clear(display.border().flashOnEvent() && sim.borderAlarm() ? alarm : border);
+                fb.clear(!display.border().flashOnEvent() ? border : switch (sim.borderFlash()) {
+                    case ALARM -> alarm;
+                    case PARRY -> parry;
+                    case NONE -> border;
+                });
                 rooms.paint(fb, room);
                 if (session.showMask()) {
                     rooms.paintMask(fb, room, maskColour);
@@ -175,6 +189,15 @@ public final class Boot {
             }
         });
         screen.window().close();
+        if (recorder != null) {
+            recorder.write(parsed.record());
+            System.out.println("  recorded     : " + recorder.ticks() + " ticks to " + parsed.record());
+        }
+    }
+
+    private static String nameOf(Path file) {
+        String name = file.getFileName().toString();
+        return name.endsWith(".json") ? name.substring(0, name.length() - 5) : name;
     }
 
     /**
@@ -217,10 +240,7 @@ public final class Boot {
             if (paused) {
                 return;
             }
-            if (dev && in.devKillPressed()) {
-                sim.kill();
-            }
-            sim.tick(in);
+            sim.play(in, dev);
             best = Math.max(best, sim.score());
         }
 
@@ -410,7 +430,7 @@ public final class Boot {
      * Command-line arguments (AGENTS.md §3.1). A malformed argument never throws:
      * it comes back as {@link #error()}, which {@link #main} reports and exits 64.
      */
-    record Args(Path dataDir, int scale, RoomAddress room, long seed, boolean seeded, boolean headless,
+    record Args(Path dataDir, int scale, RoomAddress room, long seed, boolean seeded, Path record, boolean headless,
                 boolean browse, boolean dev, boolean help, String error) {
 
         static Args parse(String[] argv) {
@@ -419,6 +439,7 @@ public final class Boot {
             RoomAddress room = null;
             long seed = 0;
             boolean seeded = false;
+            Path record = null;
             boolean headless = false;
             boolean browse = false;
             boolean dev = false;
@@ -432,6 +453,7 @@ public final class Boot {
                         case "--help", "-h" -> help = true;
                         case "--scale" -> scale = number(argv, ++i, "--scale");
                         case "--room" -> room = roomArg(argv, ++i);
+                        case "--record" -> record = Path.of(value(argv, ++i, "--record"));
                         case "--seed" -> {
                             seed = longNumber(argv, ++i, "--seed");
                             seeded = true;
@@ -441,9 +463,9 @@ public final class Boot {
                     }
                 }
             } catch (IllegalArgumentException e) {
-                return new Args(dataDir, scale, room, seed, seeded, headless, browse, dev, help, e.getMessage());
+                return new Args(dataDir, scale, room, seed, seeded, record, headless, browse, dev, help, e.getMessage());
             }
-            return new Args(dataDir, scale, room, seed, seeded, headless, browse, dev, help, null);
+            return new Args(dataDir, scale, room, seed, seeded, record, headless, browse, dev, help, null);
         }
 
         private static String value(String[] argv, int i, String option) {
@@ -495,6 +517,7 @@ public final class Boot {
 
                       --room C,R       start in this room (default: the start room, 8,10)
                       --seed N         run seed: the same seed gives the same creatures in every room
+                      --record FILE    write the first game's input to a replay (§22.6) on exit
                       --browse         the room browser instead of the game
                       --scale N        window scale (1..6)
                       --data-dir PATH  content database root (default: ./data, else the jar)

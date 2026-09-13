@@ -1,0 +1,117 @@
+{
+  "schemaVersion": 1,
+  "name": "creature_wulf",
+  "size": {
+    "w": 32,
+    "h": 22
+  },
+  "origin": {
+    "x": 16,
+    "y": 22
+  },
+  "legend": {
+    ".": -1,
+    "K": 0,
+    "r": 2,
+    "w": 7,
+    "R": 10,
+    "W": 15
+  },
+  "frames": [
+    {
+      "id": "walk0",
+      "rows": [
+        "................................",
+        "......................K.........",
+        ".....................KwK........",
+        ".....................KwK........",
+        ".......K.....K.....K.KwK........",
+        "......KWK.K.KWK.K.KWKKwKKKK.....",
+        "KK....KWKKWKKWKKWKKWKKwwwwwKK...",
+        "wwKK..KWKKWKKWKKWKKWKwwwwwwwwK..",
+        "KwwwKKKWWWWWWWWWWWWwWwwwwwRwwK..",
+        ".KwwwWWWWWWWWWWWWWWWWwwwwwwwwwK.",
+        "..KwwWWWWWWWWWWWWWWWWwwwwwwwwwKK",
+        "...KKwwWWWWWWWWWWWWwwwwwwwwwrrrr",
+        "....KwwwwwwwwwwwwwwwwwwwwKKKrWKK",
+        ".....KwwwwwwwwwwwwwwwwwwK...KK..",
+        "......KwwwwwwwwwwwwwwwwwK.......",
+        ".....KwwwwwwwwwwwwwwwwwwwK......",
+        ".....KwwKwwKKKKKKKKKwwKwwK......",
+        "....KwwKwwK.........KwwKwwK.....",
+        "...KwwKKwK...........KwKKwwK....",
+        "..KwwKKwwK...........KwwKKwwK...",
+        "..KwK.KwK.............KwK.KwK...",
+        "..KwK.KwK..............KwK.KwK.."
+      ]
+    },
+    {
+      "id": "walk1",
+      "rows": [
+        "......................K.........",
+        ".....................KwK........",
+        ".....................KwK........",
+        ".......K.....K.....K.KwK........",
+        "......KWK.K.KWK.K.KWKKwKKKK.....",
+        "......KWKKWKKWKKWKKWKKwwwwwKK...",
+        "......KWKKWKKWKKWKKWKwwwwwwwwK..",
+        ".....KKWWWWWWWWWWWWwWwwwwwRwwK..",
+        ".KKKKWWWWWWWWWWWWWWWWwwwwwwwwwK.",
+        "KwwwwWWWWWWWWWWWWWWWWwwwwwwwwwKK",
+        "wwwwwwwWWWWWWWWWWWWwwwwwwwwwrrrr",
+        "KKKKKwwwwwwwwwwwwwwwwwwwwKKKrWKK",
+        ".....KwwwwwwwwwwwwwwwwwwK...KK..",
+        "......KwwwwwwwwwwwwwwwwK........",
+        ".......KKwwwwwwwwwwwwwK.........",
+        "........KwwKwwKKKwwKwwK.........",
+        ".........KwwwwK.KwwwwK..........",
+        ".........KwwKwwKwwKwwK..........",
+        "..........KwwKwKwKwwK...........",
+        "..........KwwKwwwKwwK...........",
+        "...........KwKKwKKwK............",
+        "............KwKwwKwK............"
+      ]
+    },
+    {
+      "id": "howl",
+      "rows": [
+        "................KwK......KwK....",
+        "................KwK.....KwwK....",
+        ".................KwKKKKKwrrK....",
+        ".................KwwwwwwwrK.....",
+        ".................KwwwwwwrwK.....",
+        "...............KKKwwwRwwrK......",
+        "..............KWWwwwwwwwwK......",
+        ".............KWWWWwwwwwwK.......",
+        ".....K.K....KWWWWWWwwwwK........",
+        "....KWKWK.K.KWWWWWWwwKK.........",
+        "....KWKWKKWKWWWWWWWwwK..........",
+        "....KWKKWKWKWWWWWWWwwK..........",
+        ".....KWwWwWwwWWWWWwwwK..........",
+        "....KwwwwwwWwWwWWwwwwK..........",
+        "...KwwwwwwwwwwwwwwwwwK..........",
+        "...KwwwwwwwwwwwwwwwwwK..........",
+        "...KwwwwwwwwwwwwwwwwwwK.........",
+        "...KwwwwwwwwwwwwwwwKwwK.........",
+        "...KKwwwwwwwwwwwwwwKwwK.........",
+        "KKKwwwwwwwwwwwwKKwwKKwwK........",
+        "wwwwwwKKKKKKKKK.KwwKKwwK........",
+        "wKKKKK..........KwwKKwwK........"
+      ]
+    }
+  ],
+  "mirror": {
+    "walk0_l": {
+      "from": "walk0",
+      "flipX": true
+    },
+    "walk1_l": {
+      "from": "walk1",
+      "flipX": true
+    },
+    "howl_l": {
+      "from": "howl",
+      "flipX": true
+    }
+  }
+}

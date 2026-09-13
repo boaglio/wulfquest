@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "name": "wulf_escape",
+  "note": "Forged by WulfEscapeForge: the Wulf appeared in 9,10 at tick 294 and chased across 4 rooms to 12,10, parried 4 times, until it was outrun; no lives lost. Replayed by ReplayTest.",
+  "contentHash": "2502be26116ace631d21c097b1a3597e63b0e92aa5febcfbcdfe034903799682",
+  "seed": 2,
+  "startRoom": "8,10",
+  "dev": false,
+  "checkpointEvery": 50,
+  "input": [
+    [3, 5], [177, 8], [1, 58], [1, 9], [17, 8], [1, 50], [1, 9], [17, 8], [1, 1], [1, 54],
+    [1, 9], [19, 1], [1, 54], [1, 9], [28, 1], [5, 4], [8, 1], [32, 4], [40, 1], [5, 8],
+    [8, 1], [117, 8], [1, 52], [3, 0], [44, 8], [1, 56], [37, 8], [8, 0], [1, 52], [6, 0],
+    [96, 8], [1, 52], [3, 0], [78, 8], [8, 0], [1, 52], [7, 0], [165, 8]
+  ],
+  "hashes": [
+    "4c7e65183cc2a9b3", "0d0f476a40e21f90", "b33a3fec1b42bd2a", "2408b03d825fb983",
+    "29410cf1c4efe0a0", "4566693a6fab8b3b", "83088d31348c1312", "d9685a64b7473c03",
+    "bd63fef3ee601870", "acbd46751db0c457", "9f7d199e100e6442", "901862717b43fcd3",
+    "3798e8f61e5b1628", "2a1f0f5f73543b64", "e402eec63eebd60d", "2ec38056cda84970",
+    "74bfa59a549e8fee", "68c3bace7e0a83df"
+  ]
+}

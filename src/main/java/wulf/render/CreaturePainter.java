@@ -11,12 +11,15 @@ import wulf.engine.Fixed;
 import wulf.sim.Creature;
 import wulf.sim.Simulation;
 import wulf.sim.Spear;
+import wulf.sim.Wulf;
 
 /**
  * Draws the room's creatures and spears (AGENTS.md §12, §5.3): back to front by
  * feet, a two-frame gait while moving — fliers flap always — mirrored when facing
  * left, a white flash while hurt, the puff while dying, a spider's thread, and
- * spears as a shaft with a bright point. Clipped to the playfield.
+ * spears as a shaft with a bright point. Then the Wulf, over the creatures and under
+ * the player (§5.3): galloping, or howling at the edge while it warns. Clipped to the
+ * playfield.
  */
 public final class CreaturePainter {
 
@@ -56,6 +59,10 @@ public final class CreaturePainter {
             for (int i = 0; i < order.size(); i++) {
                 paintCreature(fb, order.get(i), sim.tick(), ox, oy);
             }
+            Wulf wulf = sim.wulf();
+            if (wulf.visible()) {
+                paintWulf(fb, wulf, sim.tick(), ox, oy);
+            }
             if (!sim.spears().isEmpty()) {
                 int length = roster.projectile("spear").lengthPx();
                 for (int i = 0; i < sim.spears().size(); i++) {
@@ -87,6 +94,28 @@ public final class CreaturePainter {
         } else {
             sprite.blit(fb, frame, x, y);
         }
+    }
+
+    private void paintWulf(Framebuffer fb, Wulf wulf, long tick, int ox, int oy) {
+        Creature body = wulf.body();
+        Sprite sprite = sprites.get(body.species().sprite());
+        String frame = wulfFrame(wulf, tick, roster.walkTicksPerFrame());
+        int x = Fixed.px(body.xFp()) + ox;
+        int y = Fixed.px(body.yFp()) + oy;
+        if (flashing(body)) {
+            sprite.blitTinted(fb, frame, x, y, flash);   // stunned by a parry
+        } else {
+            sprite.blit(fb, frame, x, y);
+        }
+    }
+
+    /** Howling while it warns (§13.3); otherwise the ordinary gait, facing its way. */
+    static String wulfFrame(Wulf wulf, long tick, int ticksPerFrame) {
+        Creature body = wulf.body();
+        if (wulf.state() == Wulf.State.WARNING) {
+            return body.faceX() < 0 ? "howl_l" : "howl";
+        }
+        return frameFor(body, tick, ticksPerFrame);
     }
 
     private void paintSpear(Framebuffer fb, Spear s, int length, int ox, int oy) {

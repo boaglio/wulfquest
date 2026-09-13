@@ -1,0 +1,76 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wulfquest.invalid/schema/wulf.schema.json",
+  "title": "entities/wulf.json — AGENTS.md §13",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "fidelity", "id", "displayName", "sprite", "size", "collisionBox", "speed", "appearance", "pursuit", "parry", "audio"],
+  "properties": {
+    "schemaVersion": { "type": "integer", "minimum": 1 },
+    "fidelity": { "enum": ["recon", "canon"] },
+    "id": { "type": "string", "pattern": "^[a-z][a-z0-9_]*$" },
+    "displayName": { "type": "string", "minLength": 1 },
+    "sprite": { "type": "string", "pattern": "^[a-z][a-z0-9_]*$" },
+    "size": {
+      "type": "object", "additionalProperties": false, "required": ["w", "h"],
+      "properties": { "w": { "type": "integer", "minimum": 1, "maximum": 64 }, "h": { "type": "integer", "minimum": 1, "maximum": 64 } }
+    },
+    "collisionBox": {
+      "type": "object", "additionalProperties": false, "required": ["x", "y", "w", "h"],
+      "properties": {
+        "x": { "type": "integer" }, "y": { "type": "integer" },
+        "w": { "type": "integer", "minimum": 1, "maximum": 64 },
+        "h": { "type": "integer", "minimum": 1, "maximum": 64 }
+      }
+    },
+    "speed": {
+      "type": "object", "additionalProperties": false, "required": ["xFp", "yFp"],
+      "properties": { "xFp": { "type": "integer", "minimum": 0, "maximum": 2048 }, "yFp": { "type": "integer", "minimum": 0, "maximum": 2048 } }
+    },
+    "appearance": {
+      "type": "object", "additionalProperties": false,
+      "required": ["baseChancePer10k", "chancePerAmuletPiecePer10k", "chancePerQuietRoomPer10k", "quietRoomsCap", "rollEveryTicks",
+                   "minTicksBetweenAppearances", "graceTicksAfterPlayerDeath", "neverInRooms", "warningTicks",
+                   "warningFlashPeriodTicks", "warningFlashOnTicks", "minDistancePx"],
+      "properties": {
+        "baseChancePer10k": { "type": "integer", "minimum": 0, "maximum": 10000 },
+        "chancePerAmuletPiecePer10k": { "type": "integer", "minimum": 0, "maximum": 10000 },
+        "chancePerQuietRoomPer10k": { "type": "integer", "minimum": 0, "maximum": 10000 },
+        "quietRoomsCap": { "type": "integer", "minimum": 0 },
+        "rollEveryTicks": { "type": "integer", "minimum": 1 },
+        "minTicksBetweenAppearances": { "type": "integer", "minimum": 0 },
+        "graceTicksAfterPlayerDeath": { "type": "integer", "minimum": 0 },
+        "neverInRooms": { "type": "array", "uniqueItems": true, "items": { "enum": ["start", "lair", "exit"] } },
+        "warningTicks": { "type": "integer", "minimum": 1 },
+        "warningFlashPeriodTicks": { "type": "integer", "minimum": 1 },
+        "warningFlashOnTicks": { "type": "integer", "minimum": 0 },
+        "minDistancePx": { "type": "integer", "minimum": 0, "maximum": 256 }
+      }
+    },
+    "pursuit": {
+      "type": "object", "additionalProperties": false,
+      "required": ["turnCooldownTicks", "stallTicks", "giveUpTicks", "giveUpRoomDistance", "leaveMaxTicks", "arrivalClearancePx"],
+      "properties": {
+        "turnCooldownTicks": { "type": "integer", "minimum": 0 },
+        "stallTicks": { "type": "integer", "minimum": 0 },
+        "giveUpTicks": { "type": "integer", "minimum": 1 },
+        "giveUpRoomDistance": { "type": "integer", "minimum": 1, "maximum": 15 },
+        "leaveMaxTicks": { "type": "integer", "minimum": 1 },
+        "arrivalClearancePx": { "type": "integer", "minimum": 0, "maximum": 192 }
+      }
+    },
+    "parry": {
+      "type": "object", "additionalProperties": false, "required": ["borderFlashTicks"],
+      "properties": { "borderFlashTicks": { "type": "integer", "minimum": 0 } }
+    },
+    "audio": {
+      "type": "object", "additionalProperties": false, "required": ["warning", "loop", "parry", "loopSilentAtPx"],
+      "properties": {
+        "warning": { "type": "string", "pattern": "^[a-z][a-z0-9_]*$" },
+        "loop": { "type": "string", "pattern": "^[a-z][a-z0-9_]*$" },
+        "parry": { "type": "string", "pattern": "^[a-z][a-z0-9_]*$" },
+        "loopSilentAtPx": { "type": "integer", "minimum": 1 }
+      }
+    }
+  }
+}

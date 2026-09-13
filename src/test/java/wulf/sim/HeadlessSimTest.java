@@ -29,6 +29,7 @@ class HeadlessSimTest {
         int maxCreatures = 0;
         int maxSpears = 0;
         long kills = 0;
+        long wulfAppearances = 0;
         long deaths = 0;
         int games = 1;
         Set<String> rooms = new TreeSet<>();
@@ -44,6 +45,7 @@ class HeadlessSimTest {
             boolean fire = input.chance(800);
             if (sim.player().mode() == Player.Mode.GAME_OVER) {
                 kills += sim.kills();
+                wulfAppearances += sim.wulf().appearances();
                 sim = Simulation.startingIn(c.player(), grid, freeze, c.map().startRoom(), eco, t);
                 games++;
             }
@@ -60,9 +62,10 @@ class HeadlessSimTest {
             }
         }
         kills += sim.kills();
+        wulfAppearances += sim.wulf().appearances();
         long millis = (System.nanoTime() - start) / 1_000_000L;
-        System.out.printf("headless: %d ms, %d games, %d deaths, %d kills, %d rooms, %d species, max %d creatures, %d spears%n",
-                millis, games, deaths, kills, rooms.size(), species.size(), maxCreatures, maxSpears);
+        System.out.printf("headless: %d ms, %d games, %d deaths, %d kills, %d rooms, %d species, max %d creatures, %d spears, %d Wulf appearances%n",
+                millis, games, deaths, kills, rooms.size(), species.size(), maxCreatures, maxSpears, wulfAppearances);
 
         assertThat(millis).as("100k ticks in under 10 s").isLessThan(10_000L);
         assertThat(maxCreatures).as("bounded population").isLessThanOrEqualTo(20);
@@ -70,5 +73,6 @@ class HeadlessSimTest {
         assertThat(rooms.size()).as("it went places").isGreaterThan(5);
         assertThat(deaths).as("creatures are dangerous").isPositive();
         assertThat(species.size()).as("met a variety of creatures").isGreaterThanOrEqualTo(6);
+        assertThat(wulfAppearances).as("the Wulf came").isPositive();
     }
 }

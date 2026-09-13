@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Creature Forge — draws the jungle's 13 creatures and the death puff as JSON pixel art.
+Creature Forge — draws the jungle's 13 creatures, the Wulf and the death puff as JSON pixel art.
 
 AGENTS.md §10 and §12.3. Every creature is drawn procedurally from primitives
 (ellipses, strokes, stamps) at the size creatures.json gives it, facing right,
@@ -12,6 +12,10 @@ alternates them while the creature moves (fliers flap always), and flashes a
 creature white while it is hurt.
 
 The puff sprite, two frames, is what a creature leaves for 12 ticks when it dies.
+
+The Wulf (AGENTS.md §13) is drawn here too, from data/entities/wulf.json: a lean,
+pale, hackled beast, deliberately nothing like the original's — two galloping
+frames and a "howl" frame it holds at the room's edge while it warns.
 
 Reads data/entities/creatures.json for names and sizes, so sprites always match
 the roster. Outputs data/art/sprites/creature_<id>.sprite.json and
@@ -177,6 +181,48 @@ def wildebeest_head(cv, w, h, base):
     cv.stroke(1, base - 8, 0, base - 4, "y", 0.6)                               # tail
 
 
+def wulf(cv, f, w, h, howl=False):
+    """Pale and long, hackles up, a red eye. Galloping, or sat back and howling."""
+    base = h - 1
+    if howl:
+        cv.stroke(8, base - 2, 0, base, "w", 1.2, 0.5)                                 # tail on the ground
+        cv.ellipse(11, base - 5, 7, 4.5, "w")                                          # haunch
+        cv.ellipse(17, base - 9, 4.5, 6, "w")                                          # chest
+        cv.ellipse(16, base - 11, 3, 4, "W")
+        for i in range(4):
+            cv.stroke(6 + i * 2.5, base - 9 + i * 0.5, 5 + i * 2.5, base - 12 + i * 0.5, "W", 0.6)   # hackles
+        cv.stroke(18, base - 4, 18, base, "w", 0.9)                                    # forelegs
+        cv.stroke(21, base - 4, 22, base, "w", 0.9)
+        cv.ellipse(21, base - 15, 3.5, 3, "w")                                         # head, raised
+        cv.poly([(22, base - 17), (27, base - 21), (25, base - 14)], "w")              # muzzle to the sky
+        cv.stroke(24, base - 16, 26, base - 19, "r", 0.5)                              # open jaws
+        cv.stroke(19, base - 17, 17, base - 21, "w", 0.9, 0.4)                         # ear
+        cv.set(21, base - 16, "R")                                                     # eye
+        return
+    lift = 1 if f == 1 else 0
+    cv.stroke(6, base - 10 - lift, 0, base - 14 + 3 * f, "w", 1.3, 0.5)               # tail streaming
+    cv.ellipse(15, base - 9 - lift, 10, 4.5, "w")                                      # body
+    cv.ellipse(13, base - 11 - lift, 8, 2.2, "W")                                      # pale back
+    for i in range(5):
+        cv.stroke(8 + i * 3, base - 13 - lift, 7 + i * 3, base - 16 - lift + i % 2, "W", 0.6)    # hackles
+    if f == 0:     # stretched: fore and hind legs reaching apart
+        cv.stroke(22, base - 7, 28, base, "w", 1.1, 0.6)
+        cv.stroke(20, base - 7, 24, base, "w", 1.0, 0.6)
+        cv.stroke(9, base - 7, 3, base, "w", 1.1, 0.6)
+        cv.stroke(11, base - 7, 7, base, "w", 1.0, 0.6)
+    else:          # gathered: all four under the body
+        cv.stroke(22, base - 8, 18, base, "w", 1.1, 0.6)
+        cv.stroke(20, base - 8, 15, base, "w", 1.0, 0.6)
+        cv.stroke(9, base - 8, 13, base, "w", 1.1, 0.6)
+        cv.stroke(11, base - 8, 16, base, "w", 1.0, 0.6)
+    cv.ellipse(25, base - 12 - lift, 4, 3.2, "w")                                      # head
+    cv.poly([(27, base - 14 - lift), (31, base - 11 - lift), (27, base - 9 - lift)], "w")   # muzzle
+    cv.stroke(28, base - 9 - lift, 31, base - 10 - lift, "r", 0.5)                     # jaws
+    cv.set(29, base - 9 - lift, "W")                                                   # a fang
+    cv.stroke(23, base - 14 - lift, 22, base - 19 - lift, "w", 0.9, 0.4)               # ear
+    cv.set(26, base - 13 - lift, "R")                                                  # eye
+
+
 DRAW = {
     "tribesman": lambda cv, f, w, h: tribesman(cv, f, w, h),
     "spearman": lambda cv, f, w, h: tribesman(cv, f, w, h, spear=True),
@@ -237,10 +283,20 @@ def main():
         name = species["sprite"]
         write_sprite(name, w, h, frames)
         names.append(name)
+    beast = json.loads((ROOT / "data/entities/wulf.json").read_text(encoding="utf-8"))
+    ww, wh = beast["size"]["w"], beast["size"]["h"]
+    frames = []
+    for fid, f, howl in (("walk0", 0, False), ("walk1", 1, False), ("howl", 0, True)):
+        cv = Canvas(ww, wh)
+        wulf(cv, f, ww, wh, howl)
+        cv.outline("K")
+        frames.append((fid, cv.rows()))
+    write_sprite(beast["sprite"], ww, wh, frames)
+    names.append(beast["sprite"])
     write_sprite("puff", 12, 12, [("f0", puff(0)), ("f1", puff(1))])
     names.append("puff")
     update_index(names, lambda n: n.startswith("creature_") or n == "puff")
-    print(f"creature forge: drew {len(roster)} creatures and the puff")
+    print(f"creature forge: drew {len(roster)} creatures, the Wulf and the puff")
 
 
 if __name__ == "__main__":

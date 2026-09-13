@@ -29,6 +29,8 @@
     <assertj.version>3.27.7</assertj.version>
 
     <mainClass>wulf.Boot</mainClass>
+    <!-- -Dexec.mainClass=wulf.tools.X runs a tool; the exec plugin reads this, defaulting to the game. -->
+    <exec.mainClass>${mainClass}</exec.mainClass>
   </properties>
 
   <dependencies>
@@ -117,7 +119,7 @@
         <artifactId>exec-maven-plugin</artifactId>
         <version>3.6.4</version>
         <configuration>
-          <mainClass>${mainClass}</mainClass>
+          <mainClass>${exec.mainClass}</mainClass>
         </configuration>
         <executions>
           <!-- AGENTS.md §2.4: the no-binaries gate blocks the build. -->

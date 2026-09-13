@@ -14,9 +14,9 @@
       "additionalProperties": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["up", "down", "left", "right", "fire", "pause", "quit", "devKill", "devMask"],
+        "required": ["up", "down", "left", "right", "fire", "pause", "quit", "devKill", "devMask", "devWulf"],
         "patternProperties": {
-          "^(up|down|left|right|fire|pause|quit|devKill|devMask)$": {
+          "^(up|down|left|right|fire|pause|quit|devKill|devMask|devWulf)$": {
             "type": "array", "minItems": 1, "uniqueItems": true,
             "items": { "type": "string", "pattern": "^([A-Z]|[0-9]|UP|DOWN|LEFT|RIGHT|SPACE|ESCAPE|ENTER|TAB|BACKSPACE)$" }
           }

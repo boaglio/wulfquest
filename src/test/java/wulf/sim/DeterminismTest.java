@@ -62,6 +62,28 @@ class DeterminismTest {
     }
 
     @Test
+    void runsWithTheWulfAgreeOnEveryTick() {
+        Content c = Content.load(Path.of("data"));
+        WorldGrid grid = new WorldGrid(c.rooms());
+        int freeze = c.game().transition().freezeTicks();
+        RoomAddress populated = new RoomAddress(4, 1);   // a hut the Wulf can get into
+        Simulation a = Simulation.startingIn(c.player(), grid, freeze, populated, c.ecosystem(), 91L);
+        Simulation b = Simulation.startingIn(c.player(), grid, freeze, populated, c.ecosystem(), 91L);
+        for (int t = 0; t < 5000; t++) {
+            InputState s = script(t);
+            // The dev key brings the Wulf now and then, so the chase is certain to be in the run.
+            InputState in = new InputState(s.up(), s.down(), s.left(), s.right(), s.fire(), s.firePressed(),
+                    false, false, false, false, t % 900 == 30);
+            a.play(in, true);
+            b.play(in, true);
+            if (a.stateHash() != b.stateHash()) {
+                throw new AssertionError("diverged at tick " + t);
+            }
+        }
+        assertThat(a.wulf().appearances()).as("the Wulf was in the run").isPositive();
+    }
+
+    @Test
     void theRunSeedChangesTheJungle() {
         Content c = Content.load(Path.of("data"));
         WorldGrid grid = new WorldGrid(c.rooms());

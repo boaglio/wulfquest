@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "fidelity": "recon",
+  "id": "wulf",
+  "displayName": "The Wulf",
+  "sprite": "creature_wulf",
+  "size": { "w": 32, "h": 22 },
+  "collisionBox": { "x": -13, "y": -9, "w": 26, "h": 9 },
+  "speed": { "xFp": 486, "yFp": 346 },
+  "appearance": {
+    "baseChancePer10k": 1200,
+    "chancePerAmuletPiecePer10k": 400,
+    "chancePerQuietRoomPer10k": 200,
+    "quietRoomsCap": 10,
+    "rollEveryTicks": 200,
+    "minTicksBetweenAppearances": 400,
+    "graceTicksAfterPlayerDeath": 250,
+    "minDistancePx": 72,
+    "neverInRooms": ["start", "lair", "exit"],
+    "warningTicks": 40,
+    "warningFlashPeriodTicks": 8,
+    "warningFlashOnTicks": 2
+  },
+  "pursuit": {
+    "turnCooldownTicks": 6,
+    "stallTicks": 10,
+    "giveUpTicks": 900,
+    "giveUpRoomDistance": 3,
+    "arrivalClearancePx": 32,
+    "leaveMaxTicks": 150
+  },
+  "parry": { "borderFlashTicks": 2 },
+  "audio": { "warning": "wulf_howl", "loop": "wulf_growl", "parry": "wulf_parry", "loopSilentAtPx": 300 }
+}

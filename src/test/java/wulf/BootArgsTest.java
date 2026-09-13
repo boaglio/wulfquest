@@ -38,6 +38,13 @@ class BootArgsTest {
     }
 
     @Test
+    void recordNamesAReplayFile() {
+        assertThat(parse("--record", "replays/mine.json").record()).isEqualTo(java.nio.file.Path.of("replays/mine.json"));
+        assertThat(parse().record()).isNull();
+        assertThat(parse("--record").error()).isEqualTo("--record needs a value");
+    }
+
+    @Test
     void anOffMapRoomIsAUsageError() {
         assertThat(parse("--room", "16,3").error()).contains("--room").contains("'16,3'").contains("0 to 15");
     }

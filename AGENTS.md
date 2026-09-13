@@ -414,7 +414,8 @@ Hard rules:
   fun. Never on by default.
 - `spriteFlicker` — when 3+ sprites overlap one cell, alternate which draws
   on odd/even ticks.
-- `border.flashOnEvent` — the border strobes on pickup/death/wulf-spawn,
+- `border.flashOnEvent` — the border strobes on pickup/death/wulf-spawn (red) and
+  flashes white on a parry (§13.5),
   Ultimate style. **This one defaults on** — it is part of the feel.
 
 ---
@@ -1038,11 +1039,12 @@ traced from any image.
   swing poses standing and on every walking gait — plus 19 left-facing mirrors.
   It has no randomness at all. The blade is not in the sprite: every swing frame
   carries a `hand` anchor, and the renderer draws the blade out of it (§11.6).
-- **`creature_forge.py`** draws the 13 creatures the same way — silhouettes
+- **`creature_forge.py`** draws the 13 creatures and the Wulf the same way — silhouettes
   built from ellipses, strokes and stamps, two walk frames each plus their
   left-facing mirrors — and the 2-frame death `puff`. Deliberately different
   animals from the original's: a tribesman with a shield, a hat-less chief with a
-  headdress, a warthog rather than a boar. `CreatureSpriteValidator` fails the
+  headdress, a warthog rather than a boar, and a pale, hackled Wulf with two
+  galloping frames and a howl it holds while it warns. `CreatureSpriteValidator` fails the
   load if a creature's sprite or any of `walk0`, `walk1`, `walk0_l`, `walk1_l`
   is missing.
 - **Forges share `art/sprites/index.json`** and each merges only its own
@@ -1439,81 +1441,136 @@ decision below serves "oh no, not now".
 ```json
 {
   "schemaVersion": 1,
+  "fidelity": "recon",
   "id": "wulf",
+  "displayName": "The Wulf",
   "sprite": "creature_wulf",
   "size": { "w": 32, "h": 22 },
   "collisionBox": { "x": -13, "y": -9, "w": 26, "h": 9 },
   "speed": { "xFp": 486, "yFp": 346 },
-  "killable": false,
-  "spawn": {
-    "baseChanceOnRoomEnter": 0.12,
-    "chanceBonusPerAmuletPiece": 0.04,
-    "chanceBonusPerQuietRoom": 0.02,
+  "appearance": {
+    "baseChancePer10k": 1200,
+    "chancePerAmuletPiecePer10k": 400,
+    "chancePerQuietRoomPer10k": 200,
+    "quietRoomsCap": 10,
+    "rollEveryTicks": 200,
     "minTicksBetweenAppearances": 400,
     "graceTicksAfterPlayerDeath": 250,
+    "minDistancePx": 72,
     "neverInRooms": ["start", "lair", "exit"],
-    "warningTicks": 40
+    "warningTicks": 40,
+    "warningFlashPeriodTicks": 8,
+    "warningFlashOnTicks": 2
   },
   "pursuit": {
     "turnCooldownTicks": 6,
-    "stallTicksWhenBlocked": 10,
+    "stallTicks": 10,
     "giveUpTicks": 900,
     "giveUpRoomDistance": 3,
-    "followsThroughRoomFlip": true
+    "arrivalClearancePx": 32,
+    "leaveMaxTicks": 150
   },
-  "repel": { "pushPx": 24, "stunTicks": 30, "invulnToSabre": true },
-  "audio": { "warning": "wulf_howl", "loop": "wulf_growl", "loopVolumeByDistance": true }
+  "parry": { "borderFlashTicks": 2 },
+  "audio": { "warning": "wulf_howl", "loop": "wulf_growl", "parry": "wulf_parry", "loopSilentAtPx": 300 }
 }
 ```
 
+Integers only, like every file the simulation reads. Three Wulf numbers live
+elsewhere, where their siblings are: the parry's push and stun are the sabre's
+(`player.json → sabre.repelWulfPx` 24, `repelWulfStunTicks` 30), the arrival
+delay is the flip's (`game.json → transition.wulfArrivalDelayTicks` 12), and an
+escape's score is loot (`loot.json → events.wulfEvaded` 250). `WulfValidator`
+checks the sprite has `walk0`, `walk1`, `howl` and their `_l` mirrors, that a
+warning flash fits its period, and that the box fits the sprite. `neverInRooms`
+resolves `start` now; `lair` and `exit` resolve when landmarks arrive (M6).
+
+The Wulf's body is an ordinary `Creature` steered by `CHASE_DIRECT` — the rhino's
+behaviour, same collision, same turning — carried in `Simulation` rather than in
+the room's creature list, so a flip never discards it.
+
 ### 13.3 Appearance algorithm
 
+States: `ABSENT → WARNING → PURSUE ⇄ ARRIVING`, and `PURSUE → LEAVING → ABSENT`.
+
 ```
-on room enter (and every 200 ticks while in a room):
-    if wulf already active: skip
-    if ticksSinceLastWulf < minTicksBetweenAppearances: skip
-    if room is start / lair / exit: skip
-    p = base (0.12)
-      + 0.04 * amuletPiecesHeld
-      + 0.02 * quietRooms         (rooms entered since the last appearance, cap 10)
-    if simRng.chance(p):
-        choose an edge the player is NOT closest to
-        choose an entry point on that edge on a non-solid cell
-        enter WARNING state:
-            play wulf_howl
-            border flashes bright red on ticks 0,8,16,24,32
-            the Wulf is drawn at the edge, not yet moving, for warningTicks (40)
-        then PURSUE
+roll — on entering a room (quietRooms += 1 first, capped), and every rollEveryTicks in one:
+    skip if the Wulf is about, the player is not ALIVE, it left fewer than
+         minTicksBetweenAppearances ago, the player respawned fewer than
+         graceTicksAfterPlayerDeath ago, or the room is in neverInRooms
+    chance per 10 000 = baseChancePer10k
+                      + chancePerAmuletPiecePer10k × pieces held
+                      + chancePerQuietRoomPer10k × quietRooms
+    if simRng.chance(chance): appear
+
+appear:
+    the three edges the player's feet-box centre is NOT nearest (ties go W, E, N, S)
+    from a random one of them, at a random point along it, searching outward in 4 px steps,
+    seat the Wulf's box just inside the edge where it is
+        clear of the scenery (the room's edges are walls),
+        within a cell of feet the player can reach without leaving the room (§12.2),
+        at least minDistancePx from the player, centre to centre on either axis
+    no seat on any of the three: no appearance this roll (the RNG draws still happened)
+    WARNING: standing still in its howl frame for warningTicks; the border
+             strobes bright red on stateTick % warningFlashPeriodTicks < warningFlashOnTicks
+             (ticks 0,1, 8,9, … 32,33); quietRooms = 0
+    then PURSUE
 ```
 
 The 40-tick warning is essential and non-negotiable: the player must always
-get 0.8 s to react. Without it the Wulf feels unfair instead of frightening.
+get 0.8 s to react. Without it the Wulf feels unfair instead of frightening. It
+is already lethal to touch while it warns, and a swing already parries it.
+
+**Refuges.** The Wulf's box is 26 px wide. Measured in M5, 13 of the 196
+interior rooms (`7,3` among them) have no edge it can seat at — their openings
+are too narrow for it — so it never appears in them, and a chase into one
+leaves it waiting at the door until it gives up. Terrain is the player's weapon;
+this is that, not a bug.
+
+The dev key (`--dev`, **H** in the modern profile) calls `summonWulf()`: an
+appearance now, skipping the chance, the cooldown, the grace and `neverInRooms`,
+but never the seat rules.
 
 ### 13.4 Pursuit
 
 - `CHASE_DIRECT` with `turnCooldownTicks: 6` — it commits to a direction
-  briefly, which is what lets a skilled player juke it around foliage.
+  briefly, which is what lets a skilled player juke it around foliage. Blocked,
+  it tries the two neighbouring directions, then stalls for `stallTicks`.
 - Blocked by scenery like anything else. It does **not** pathfind. Terrain is
   the player's weapon.
-- **Follows through room flips.** On transition, if the Wulf is active it is
-  re-inserted into the new room at the mirrored edge position, after a
-  `12`-tick delay (it "arrives" a moment later — a beat of false hope).
-- Gives up after `giveUpTicks` (900 = 18 s) of failing to catch the player,
-  or immediately if the player is `giveUpRoomDistance` (3) rooms away from
-  where the pursuit began. Exit is a run off the nearest edge, not a
-  despawn-in-place.
-- Never spawns during the death/respawn sequence or within
-  `graceTicksAfterPlayerDeath` (250) after it.
+- **Follows through room flips.** When the player flips while it warns, chases
+  or is still arriving: if the new room is `giveUpRoomDistance` (3) or more rooms
+  from where it appeared (Chebyshev), the chase is over — the player escaped.
+  Otherwise it is `ARRIVING`: off screen through the flip's hitch plus
+  `wulfArrivalDelayTicks` (12) — a beat of false hope — then it comes in by the
+  edge the player came through, where it was along that edge (or, if it was
+  still arriving from an earlier flip, on the player's line), **at least
+  `arrivalClearancePx` (32) from the player**, searching outward along the edge.
+  With no such spot yet, it waits at the door and tries every tick.
+  *Found in M5:* without the clearance it arrived on top of a player just through
+  the edge — the escape forge's bot died that way 1 159 times in 12 000 runs,
+  a death with no chance to act.
+- **Gives up** after `giveUpTicks` (900 = 18 s) counted from the end of the
+  warning, arrivals included: it turns for the nearest edge and runs off it
+  (`LEAVING`) — the scenery still stops it, the room's edge does not — and is
+  gone once its box has left the room, or after `leaveMaxTicks` (150). Exit is a
+  run off an edge, not a despawn in place. It is still lethal while it leaves.
+- An escape — given up, or outrun by distance — scores `wulfEvaded` (250) once
+  and counts in `Wulf.evasions()`.
+- **Killing the player** ends the chase: it stands over the fallen player
+  through the death animation and is gone at the respawn, which starts the
+  `graceTicksAfterPlayerDeath` (250) grace.
 
 ### 13.5 The sabre against the Wulf
 
-A connecting swing does **not** kill it. It:
+A connecting swing does **not** kill it. Once per swing, it:
 
-- pushes it back `24 px` along the swing direction,
-- stuns it for `30 ticks`,
+- pushes it back `repelWulfPx` (24 px) along the player's facing (diagonals
+  scaled like movement), through the collision resolver,
+- stuns it for `repelWulfStunTicks` (30) — `CHASE_DIRECT`'s stall counter —
+  flashing white on alternate ticks,
 - awards **0 points**,
-- plays a distinct metallic `wulf_parry` sound,
-- flashes the border white for 2 ticks.
+- flashes the border bright white for `borderFlashTicks` (2),
+- counts in `Wulf.parries()`; the `wulf_parry` sound plays from M8.
 
 This gives the player exactly one tool: buy 0.6 s, then run. Do not add a
 "3 parries kills it" mechanic.
@@ -1521,8 +1578,17 @@ This gives the player exactly one tool: buy 0.6 s, then run. Do not add a
 ### 13.6 Audio presence
 
 A low growl loop whose volume scales with distance to the player — the
-player should hear it before the room even settles. `loopVolumeByDistance`
-maps 0..300 px to gain 1.0..0.0.
+player should hear it before the room even settles — and the howl on
+`WARNING`. The names are in `wulf.json → audio`; `loopSilentAtPx` (300) maps
+0..300 px to gain 1.0..0.0. Nothing plays until the synthesiser lands (M8).
+
+### 13.7 Where it is checked
+
+`WulfTest` pins every rule above on hand-built worlds — a corridor where only
+one edge fits, and a pen whose 16 px door lets the player through but never the
+Wulf — plus the shipped chance (about one first room entry in seven, measured
+over 2 000 seeds). `DeterminismTest` runs it; `HeadlessSimTest` requires it to
+appear; `replays/wulf_escape.json` (§22.6) is a chase survived across four rooms.
 
 ---
 
@@ -1923,12 +1989,12 @@ else. With two channels, a higher-priority event steals channel 0.
       "up":    ["UP", "W"],  "down":  ["DOWN", "S"],
       "left":  ["LEFT", "A"], "right": ["RIGHT", "D"],
       "fire":  ["SPACE", "Z"], "pause": ["P"], "quit": ["ESCAPE"],
-      "devKill": ["K"], "devMask": ["M"]
+      "devKill": ["K"], "devMask": ["M"], "devWulf": ["H"]
     },
     "period": {
       "up": ["Q"], "down": ["A"], "left": ["O"], "right": ["P"],
       "fire": ["M"], "pause": ["H"], "quit": ["ESCAPE"],
-      "devKill": ["K"], "devMask": ["N"]
+      "devKill": ["K"], "devMask": ["N"], "devWulf": ["J"]
     }
   },
   "active": "modern",
@@ -1939,7 +2005,8 @@ else. With two channels, a higher-priority event steals channel 0.
 The `period` profile is `Q/A/O/P/M` — the era's default key layout. Offer it
 on the title screen as a nod; do not make it default.
 
-- `devKill` and `devMask` act only with `--dev`.
+- `devKill`, `devMask` and `devWulf` act only with `--dev`. `devWulf` summons the
+  Wulf (§13.3); it is not `W`, which is up.
 - A key bound to two actions within a profile is a load-time `DataException`.
 - The deadzone is an integer percent: nothing that reaches the game is a float.
 - **X11 auto-repeat** delivers a release and a press with the same timestamp
@@ -2260,14 +2327,53 @@ any screenshot review.
 `replays/*.json` hold recorded per-tick input plus the expected sim-state
 hash at every 50th tick. `ReplayRunner` re-executes them. Ship at least:
 
-- `replays/attract.json` — the title-screen demo (doubles as a test).
-- `replays/lair_nw.json` — start → NW lair → piece → back.
-- `replays/wulf_escape.json` — a Wulf pursuit survived across 4 rooms.
+- `replays/attract.json` — the title-screen demo (doubles as a test). (M8)
+- `replays/lair_nw.json` — start → NW lair → piece → back. (M6)
+- `replays/wulf_escape.json` — a Wulf pursuit survived across 4 rooms. (**M5, shipped**)
 - `replays/full_run.json` — a complete 4-piece win (long; tagged
-  `@Tag("slow")`, run in CI only).
+  `@Tag("slow")`, run in CI only). (M9)
 
 A replay divergence means determinism broke (§6.4). It is never "just update
-the hash" — find the cause first.
+the hash" — find the cause first. The exception is a deliberate change to the
+simulation's rules or data: then re-forge the replay in the same commit and say
+why.
+
+**Format** (`wulf.engine.Replay`, schema version 1):
+
+```json
+{
+  "schemaVersion": 1,
+  "name": "wulf_escape",
+  "note": "what it shows and how it was made",
+  "contentHash": "sha-256 of the content DB when recorded — informational",
+  "seed": 1234,
+  "startRoom": "8,10",
+  "dev": false,
+  "checkpointEvery": 50,
+  "input": [[12, 8], [3, 0], [1, 56]],
+  "hashes": ["00c0ffee00c0ffee", "…"]
+}
+```
+
+`input` is run-length encoded `[ticks, bits]`: up 1, down 2, left 4, right 8,
+fire 16, fire pressed 32, dev kill 64, dev Wulf 128 (`RecordedInput`). Pause,
+quit and the mask toggle never reach the simulation and are not kept. Every tick
+goes through `Simulation.play(input, dev)` — the dev actions first, then the
+tick — in the game, the recorder and the runner alike, so a dev-mode recording
+replays exactly.
+
+**Making one:** `./run.sh --record FILE` records the first game of a session
+(a restart is a new run) and writes it on exit. Acceptance replays that must
+show something specific are **forged**: `WulfEscapeForge` (test sources) drives
+a bot — a planned route, predictive parries, standing its ground when the Wulf
+closes — through the real game, trying seeds until a run shows the escape, and
+records it. `ReplayTest` then checks both the hashes and that the replay still
+shows what it was made to show, so a rules change that quietly turns the escape
+into a death fails loudly.
+
+```bash
+mvn -q exec:java -Dexec.mainClass=wulf.tools.ReplayRunner -Dexec.args="replays/wulf_escape.json"
+```
 
 ---
 
@@ -2620,14 +2726,79 @@ Deferred, deliberately: guardian behaviours (M6); creature sound (M8); the
 hurt flash and spears are covered by tests but were not caught on a sampled
 contact-sheet frame.
 
-### M5 — The Wulf (1.5 days)
-
-- Spawn algorithm, warning state, howl, pursuit, cross-room following,
-  parry-repel, give-up, distance-scaled growl.
+### M5 — The Wulf — **COMPLETE (2026-09-13)**
 
 **Accept when:** the `wulf_escape.json` replay passes, and the first time it
 appears while you are playing you swear out loud. That is the acceptance
 test. It is not a joke.
+
+**Accepted, half of it:** `replays/wulf_escape.json` passes — every hash, and
+`ReplayTest` re-derives what it shows: from the start room, the Wulf appears in
+`9,10` and chases the player across four rooms to `12,10`, where it is outrun —
+parried four times on the way, no life lost, 945 ticks.
+The other half is the user's to judge at the keyboard: `./run.sh`, or
+`./run.sh --dev` and **H** to call it.
+
+What landed:
+
+- **Data:** `wulf.json` and its schema, integers only (§13.2); `WulfValidator`;
+  `devWulf` in both input profiles.
+- **Simulation:** the `Wulf` state machine — `ABSENT`, `WARNING`, `PURSUE`,
+  `ARRIVING`, `LEAVING` — on a `CHASE_DIRECT` body carried across flips;
+  appearance rolls on entry and every 200 ticks with cooldown, grace, quiet-room
+  bonus and forbidden rooms; seats at an edge the player is not nearest, clear,
+  reachable and at a distance; follow-through with the arrival delay and
+  clearance; give-up by time (running off an edge) or by distance; the parry;
+  lethal contact. `WulfRules` rides in `Ecosystem`; `Simulation.play(input, dev)`
+  is the one tick path for game, recorder and runner; `borderFlash()` replaces
+  `borderAlarm()` as what the border shows.
+- **Rendering and play:** the Wulf over the creatures, howling while it warns,
+  flashing while stunned; the border red for the warning and white for a parry;
+  **H** summons it in `--dev`.
+- **Replays (§22.6):** `RecordedInput`, `Replay`, `ReplayRecorder`,
+  `ReplayRunner`; `./run.sh --record FILE`; `WulfEscapeForge`.
+- **Art:** the Wulf in `creature_forge.py` — two galloping frames and a howl.
+- **Tests:** 274 runs, from 244 — `WulfTest` (14), `WulfValidatorTest`,
+  `RecordedInputTest`, `ReplayTest`, a determinism run with the Wulf, the soak
+  requiring it (29 appearances in 100 000 ticks), the painter, the session's dev
+  key and `--record`.
+
+Found along the way:
+
+- **The Wulf arrived on top of the player.** Seated "where it was along the
+  edge", a Wulf right behind a player who had just flipped landed on them: an
+  instant death with no chance to act. No test caught it — the escape forge
+  did, by tallying how its bot died: 1 159 of 12 000 runs, the largest single
+  cause. Arrivals now keep `arrivalClearancePx` (32) and wait at the door if
+  they must, appearances keep `minDistancePx` (72), and
+  `WulfTest.itNeverArrivesOnTopOfYou` flips with it close behind over 60 seeds.
+- **Refuges.** 13 of 196 interior rooms have no edge the Wulf fits (§13.3),
+  measured by probe. Kept as terrain doing its job. Two tests that started in
+  `7,3` — one of them — had silently never met the Wulf; they start in the hut
+  at `4,1` now.
+- **A false escape, caught by eye.** The first forged replay "escaped across six
+  rooms" and passed `ReplayTest` — but a contact sheet of it showed two chases,
+  each giving up in the room it began. The forge and the test both opened a
+  "chase" whenever the Wulf was not `ABSENT`, so its `LEAVING` run-off started
+  one that credited the player's ordinary wandering. A chase now begins at the
+  appearance, and a room counts only if the Wulf was after the player through
+  that flip. The real replay needed four parries.
+- **Balance, for a player's eye.** Across the forge's runs its bot died to
+  creatures — vultures most, then rhinos and boars — about as often as to the
+  Wulf, and the parry window is roughly 4–5 ticks. M4's creature speeds deserve
+  a look at the keyboard.
+- **`mvn exec:java -Dexec.mainClass=…` ran the game.** The plugin read a
+  `${mainClass}` property, so every documented tool command (§3) started the
+  game instead. The pom now routes `exec.mainClass`, defaulting to the game.
+- **Stale test classes.** Adding a component to `InputState` and
+  `InputConfig.Profile` left old test classes that still compiled nothing new:
+  the incremental build did not recompile the tests calling the old
+  constructors, and they failed at runtime with `NoSuchMethodError`. After
+  changing a record's components, run `mvn clean verify`.
+
+Deferred, deliberately: the howl, growl and parry sounds (M8); `lair` and
+`exit` in `neverInRooms` and the amulet-piece chance bonus (M6); Wulf
+encounter statistics (M8).
 
 ### M6 — Quest (2 days)
 

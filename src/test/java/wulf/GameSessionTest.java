@@ -12,6 +12,13 @@ import wulf.sim.Player;
 import wulf.sim.Simulation;
 import wulf.world.CollisionWorld;
 import wulf.world.WorldGrid;
+import java.util.Set;
+import wulf.data.CreatureData;
+import wulf.data.WulfData;
+import wulf.sim.Ecosystem;
+import wulf.sim.RoomPopulator;
+import wulf.sim.Wulf;
+import wulf.sim.WulfRules;
 
 /** The play loop's pause, quit, game-over and dev behaviour — headless (AGENTS.md §17). */
 class GameSessionTest {
@@ -26,7 +33,7 @@ class GameSessionTest {
     }
 
     private static InputState pressed(boolean fire, boolean pause, boolean quit, boolean kill, boolean mask) {
-        return new InputState(false, false, false, false, fire, fire, pause, quit, kill, mask);
+        return new InputState(false, false, false, false, fire, fire, pause, quit, kill, mask, false);
     }
 
     @Test
@@ -49,6 +56,19 @@ class GameSessionTest {
         Boot.GameSession s = session();
         s.tick(pressed(false, false, true, false, false), false);
         assertThat(s.quit()).isTrue();
+    }
+
+    @Test
+    void theDevKeySummonsTheWulfOnlyInDevMode() {
+        WulfData wulf = new JsonDb(Path.of("data")).load("entities/wulf", WulfData.class);
+        Ecosystem eco = new Ecosystem(CreatureData.EMPTY, RoomPopulator.NONE, 0, WulfRules.of(wulf, 12, 250, Set.of()));
+        Boot.GameSession s = new Boot.GameSession(
+                () -> Simulation.at(RULES, OPEN, 0, Fixed.fp(1000), Fixed.fp(1000), eco, 1L));
+        InputState summon = new InputState(false, false, false, false, false, false, false, false, false, false, true);
+        s.tick(summon, false);
+        assertThat(s.sim().wulf().state()).isEqualTo(Wulf.State.ABSENT);
+        s.tick(summon, true);
+        assertThat(s.sim().wulf().state()).isEqualTo(Wulf.State.WARNING);
     }
 
     @Test

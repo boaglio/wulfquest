@@ -80,6 +80,7 @@ public final class KeyboardInput implements KeyListener, FocusListener {
                 map.held(InputMap.Action.PAUSE, pressed),
                 map.held(InputMap.Action.QUIT, pressed),
                 map.held(InputMap.Action.DEV_KILL, pressed),
-                map.held(InputMap.Action.DEV_MASK, pressed));
+                map.held(InputMap.Action.DEV_MASK, pressed),
+                map.held(InputMap.Action.DEV_WULF, pressed));
     }
 }

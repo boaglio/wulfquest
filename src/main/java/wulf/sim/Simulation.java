@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.List;
 import wulf.data.CreatureData;
 import wulf.data.PlayerData;
+import wulf.data.WulfData;
 import wulf.engine.Fixed;
 import wulf.engine.Rng;
 import wulf.input.InputState;
@@ -23,7 +24,8 @@ import wulf.world.RoomAddress;
  *
  * <p>M3: Ranger Vale — movement, collision, flip-screen rooms, the sabre, death
  * and respawn. M4: the creatures — room population, behaviours, spears, sabre
- * kills, contact deaths, score and extra lives.
+ * kills, contact deaths, score and extra lives. M5: the Wulf — appearance, warning,
+ * pursuit across rooms, parry, and giving up.
  */
 public final class Simulation {
 
@@ -32,6 +34,11 @@ public final class Simulation {
     public static final int ROOM_H_PX = 192;
     /** How close to reachable feet a ground creature must start (§12.6): one cell. */
     static final int REACH_SLACK_PX = 8;
+    /** Counters stop here instead of wrapping: "a very long time ago" is all they need to say. */
+    private static final int SATURATED = 1 << 30;
+
+    /** What the border shows this tick (§5.4, §11.7, §13.3, §13.5). */
+    public enum BorderFlash { NONE, ALARM, PARRY }
 
     private final PlayerData rules;
     private final CollisionWorld world;
@@ -48,6 +55,8 @@ public final class Simulation {
     private final int[] visits = new int[RoomAddress.GRID_W * RoomAddress.GRID_H];
     private final Context context = new Context();
     private final Spawns spawns = new Spawns();
+    private final Wulf wulf;
+    private final Behaviour chase = BehaviourCatalog.of("CHASE_DIRECT");
 
     private RoomAddress room;
     private CollisionWorld roomSolid;
@@ -81,6 +90,10 @@ public final class Simulation {
         player.entryXFp = xFp;
         player.entryYFp = yFp;
         player.lives = rules.lives().start();
+        WulfData.Appearance appearance = eco.wulf().data().appearance();
+        this.wulf = new Wulf(new Creature(Wulf.ID, eco.wulf().species(), -1, xFp, yFp, Herd.NONE));
+        wulf.ticksSinceGone = appearance.minTicksBetweenAppearances();
+        wulf.ticksSinceRespawn = appearance.graceTicksAfterPlayerDeath();
         this.room = new RoomAddress(roomColOf(rules.collisionBox(), xFp), roomRowOf(rules.collisionBox(), yFp));
         enterRoom(false);
     }
@@ -151,7 +164,23 @@ public final class Simulation {
         }
         sabre = computeSabre();
         tickCreatures();
+        tickWulf();
         resolveCombat();
+    }
+
+    /**
+     * One tick as the game drives it: in dev mode the kill and summon keys act first,
+     * then the tick. Replays go through here too, so a recording made with dev keys
+     * plays back identically.
+     */
+    public void play(InputState in, boolean dev) {
+        if (dev && in.devKillPressed()) {
+            kill();
+        }
+        if (dev && in.devWulfPressed()) {
+            summonWulf();
+        }
+        tick(in);
     }
 
     /**
@@ -262,12 +291,14 @@ public final class Simulation {
         }
         // §7.5: the feet-box centre crossed an edge. Position is untouched — world
         // coordinates carry the cross-edge offset across exactly.
+        RoomAddress from = room;
         room = new RoomAddress(col, row);
         freeze = transitionFreezeTicks;
         roomsEntered++;
         player.entryXFp = player.xFp;
         player.entryYFp = player.yFp;
         enterRoom(true);
+        wulfEntersRoom(from);
         return true;
     }
 
@@ -320,6 +351,11 @@ public final class Simulation {
         player.modeTick = 0;
         player.invulnTicks = rules.spawn().invulnTicks();
         repopulate();
+        if (wulf.state != Wulf.State.ABSENT) {
+            gone();   // it caught you; it does not wait at the respawn
+        }
+        wulf.ticksSinceRespawn = 0;
+        wulf.ticksInRoom = 0;
     }
 
     // ---------------------------------------------------------------- creatures and spears
@@ -417,6 +453,7 @@ public final class Simulation {
                     }
                 }
             }
+            parryWulf();
         }
         if (player.mode != Player.Mode.ALIVE || player.invulnTicks > 0) {
             return;
@@ -425,6 +462,14 @@ public final class Simulation {
         PlayerData.Box pb = rules.collisionBox();
         int px = Fixed.px(player.xFp) + pb.x();
         int py = Fixed.px(player.yFp) + pb.y();
+        if (wulf.touchable()) {
+            CreatureData.Box wb = wulf.body.species().collisionBox();
+            if (overlaps(px, py, pb.w(), pb.h(), Fixed.px(wulf.body.xFp) + wb.x(), Fixed.px(wulf.body.yFp) + wb.y(),
+                    wb.w(), wb.h())) {
+                kill();
+                return;
+            }
+        }
         for (int i = 0; i < creatures.size(); i++) {
             Creature c = creatures.get(i);
             CreatureData.Box b = c.species().collisionBox();
@@ -453,6 +498,335 @@ public final class Simulation {
 
     private static boolean overlaps(int ax, int ay, int aw, int ah, int bx, int by, int bw, int bh) {
         return ax < bx + bw && bx < ax + aw && ay < by + bh && by < ay + ah;
+    }
+
+    // ---------------------------------------------------------------- the Wulf (§13)
+
+    /**
+     * Brings the Wulf in now, warning first, at an edge the player is not closest to —
+     * skipping the chance, the cooldown, the grace and the rooms it avoids. The dev key.
+     *
+     * @return whether it came: not while it is already about, the player is down, or no edge has room
+     */
+    public boolean summonWulf() {
+        if (!eco.wulf().enabled() || wulf.state != Wulf.State.ABSENT || player.mode != Player.Mode.ALIVE) {
+            return false;
+        }
+        return appear();
+    }
+
+    private void tickWulf() {
+        WulfRules hunt = eco.wulf();
+        if (!hunt.enabled()) {
+            return;
+        }
+        WulfData.Pursuit pursuit = hunt.data().pursuit();
+        Wulf w = wulf;
+        Creature body = w.body;
+        if (w.parryFlash > 0) {
+            w.parryFlash--;
+        }
+        if (body.hurtTicks > 0) {
+            body.hurtTicks--;
+        }
+        w.ticksSinceRespawn = saturating(w.ticksSinceRespawn);
+        w.ticksInRoom = saturating(w.ticksInRoom);
+        switch (w.state) {
+            case ABSENT -> {
+                w.ticksSinceGone = saturating(w.ticksSinceGone);
+                if (w.ticksInRoom % hunt.data().appearance().rollEveryTicks() == 0) {
+                    rollForWulf();
+                }
+            }
+            case WARNING -> {
+                // §13.3: it stands at the edge for 0.8 s before it moves. Without that beat the
+                // Wulf is unfair rather than frightening. Non-negotiable.
+                if (++w.stateTick >= hunt.data().appearance().warningTicks()) {
+                    w.state = Wulf.State.PURSUE;
+                    w.stateTick = 0;
+                    w.pursuitTicks = 0;
+                }
+            }
+            case PURSUE -> {
+                w.stateTick++;
+                if (++w.pursuitTicks >= pursuit.giveUpTicks()) {
+                    leave();
+                    return;
+                }
+                int ox = body.xFp;
+                int oy = body.yFp;
+                chase.tick(body, context);   // a parry's stun is CHASE_DIRECT's stall counter
+                body.moveTicks = body.xFp != ox || body.yFp != oy ? body.moveTicks + 1 : 0;
+            }
+            case ARRIVING -> {
+                w.stateTick++;
+                if (++w.pursuitTicks >= pursuit.giveUpTicks()) {
+                    gone();
+                    evaded();
+                    return;
+                }
+                if (w.stateTick >= hunt.arrivalDelayTicks()
+                        && seatAtEdge(w.arrivalEdge, w.arrivalAlongPx, playerReach(), pursuit.arrivalClearancePx())) {
+                    w.state = Wulf.State.PURSUE;
+                    w.stateTick = 0;
+                    body.timer(0);
+                    body.aux(0);
+                    body.moveTicks = 0;
+                    faceThePlayer(body);
+                }
+            }
+            case LEAVING -> {
+                w.stateTick++;
+                stepOut(pursuit);
+            }
+        }
+    }
+
+    /** The appearance roll (§13.3): on entering a room, and every {@code rollEveryTicks} while in one. */
+    private void rollForWulf() {
+        WulfRules hunt = eco.wulf();
+        WulfData.Appearance a = hunt.data().appearance();
+        if (wulf.state != Wulf.State.ABSENT || player.mode != Player.Mode.ALIVE
+                || wulf.ticksSinceGone < a.minTicksBetweenAppearances()
+                || wulf.ticksSinceRespawn < a.graceTicksAfterPlayerDeath()
+                || hunt.neverIn().contains(room)) {
+            return;
+        }
+        int pieces = 0;   // amulet pieces arrive with the quest in M6
+        int chance = a.baseChancePer10k() + a.chancePerAmuletPiecePer10k() * pieces
+                + a.chancePerQuietRoomPer10k() * Math.min(wulf.quietRooms, a.quietRoomsCap());
+        if (rng.chance(chance)) {
+            appear();
+        }
+    }
+
+    /** At an edge the player is not closest to, somewhere the player could reach, warning first. */
+    private boolean appear() {
+        PlayerData.Box pb = rules.collisionBox();
+        int lx = Fixed.px(player.xFp) + pb.x() + pb.w() / 2 - room.col() * ROOM_W_PX;
+        int ly = Fixed.px(player.yFp) + pb.y() + pb.h() / 2 - room.row() * ROOM_H_PX;
+        Wulf.Edge[] edges = Wulf.Edge.values();
+        int[] distance = {lx, ROOM_W_PX - lx, ly, ROOM_H_PX - ly};
+        int closest = 0;
+        for (int i = 1; i < edges.length; i++) {
+            if (distance[i] < distance[closest]) {
+                closest = i;
+            }
+        }
+        Wulf.Edge[] others = new Wulf.Edge[edges.length - 1];
+        int n = 0;
+        for (int i = 0; i < edges.length; i++) {
+            if (i != closest) {
+                others[n++] = edges[i];
+            }
+        }
+        Reach reachable = playerReach();
+        CreatureData.Box b = eco.wulf().species().collisionBox();
+        int first = rng.nextInt(others.length);
+        for (int k = 0; k < others.length; k++) {
+            Wulf.Edge edge = others[(first + k) % others.length];
+            int lo = edge.alongY() ? -b.y() : -b.x();
+            int hi = edge.alongY() ? ROOM_H_PX - b.y() - b.h() : ROOM_W_PX - b.x() - b.w();
+            if (seatAtEdge(edge, lo + rng.nextInt(hi - lo + 1), reachable, eco.wulf().data().appearance().minDistancePx())) {
+                Wulf w = wulf;
+                w.state = Wulf.State.WARNING;
+                w.stateTick = 0;
+                w.pursuitTicks = 0;
+                w.origin = room;
+                w.quietRooms = 0;
+                w.followedFlips = 0;
+                w.appearances++;
+                Creature body = w.body;
+                body.timer(0);
+                body.aux(0);
+                body.hurtTicks = 0;
+                body.moveTicks = 0;
+                body.lastHitSwing = -1;
+                faceThePlayer(body);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Puts the body just inside an edge, as near {@code alongPx} as it fits clear of the
+     * scenery, within reach of the player and at least {@code clearancePx} from them,
+     * searching outwards in 4 px steps.
+     */
+    private boolean seatAtEdge(Wulf.Edge edge, int alongPx, Reach reachable, int clearancePx) {
+        CreatureData.Box b = eco.wulf().species().collisionBox();
+        PlayerData.Box pb = rules.collisionBox();
+        int playerX = Fixed.px(player.xFp) + pb.x() + pb.w() / 2 - room.col() * ROOM_W_PX;
+        int playerY = Fixed.px(player.yFp) + pb.y() + pb.h() / 2 - room.row() * ROOM_H_PX;
+        boolean alongY = edge.alongY();
+        int lo = alongY ? -b.y() : -b.x();
+        int hi = alongY ? ROOM_H_PX - b.y() - b.h() : ROOM_W_PX - b.x() - b.w();
+        int across = switch (edge) {
+            case WEST -> -b.x();
+            case EAST -> ROOM_W_PX - b.x() - b.w();
+            case NORTH -> -b.y();
+            case SOUTH -> ROOM_H_PX - b.y() - b.h();
+        };
+        int start = Math.max(lo, Math.min(hi, alongPx));
+        for (int k = 0; k <= hi - lo; k += Reach.STEP_PX) {
+            for (int sign = 1; sign >= -1; sign -= 2) {
+                int along = start + sign * k;
+                if ((k == 0 && sign < 0) || along < lo || along > hi) {
+                    continue;
+                }
+                int x = alongY ? across : along;
+                int y = alongY ? along : across;
+                int xFp = Fixed.fp(room.col() * ROOM_W_PX + x);
+                int yFp = Fixed.fp(room.row() * ROOM_H_PX + y);
+                int gap = Math.max(Math.abs(x + b.x() + b.w() / 2 - playerX), Math.abs(y + b.y() + b.h() / 2 - playerY));
+                if (gap >= clearancePx && !Collision.blocked(roomSolid, b.x(), b.y(), b.w(), b.h(), xFp, yFp)
+                        && reachable.near(x, y, REACH_SLACK_PX)) {
+                    wulf.body.xFp = xFp;
+                    wulf.body.yFp = yFp;
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private Reach playerReach() {
+        return Reach.from(roomSolid, rules.collisionBox(), room, player.xFp, player.yFp);
+    }
+
+    private void faceThePlayer(Creature body) {
+        Direction8 d = Direction8.toward(context.playerCentreXPx() - body.centreXPx(),
+                context.playerCentreYPx() - body.centreYPx());
+        body.direction(d.dx(), d.dy());
+    }
+
+    /** §13.4: it follows through the flip — unless the chase has now gone too far from where it began. */
+    private void wulfEntersRoom(RoomAddress from) {
+        WulfRules hunt = eco.wulf();
+        if (!hunt.enabled()) {
+            return;
+        }
+        Wulf w = wulf;
+        w.ticksInRoom = 0;
+        switch (w.state) {
+            case ABSENT -> {
+                w.quietRooms = Math.min(hunt.data().appearance().quietRoomsCap(), w.quietRooms + 1);
+                rollForWulf();
+            }
+            case LEAVING -> gone();
+            case WARNING, PURSUE, ARRIVING -> {
+                int distance = Math.max(Math.abs(room.col() - w.origin.col()), Math.abs(room.row() - w.origin.row()));
+                if (distance >= hunt.data().pursuit().giveUpRoomDistance()) {
+                    gone();
+                    evaded();
+                    return;
+                }
+                // It comes in by the edge the player did, where it was along that edge: a mirrored
+                // position, a beat later. Still arriving from an earlier flip, it takes the player's line.
+                Wulf.Edge edge = room.col() > from.col() ? Wulf.Edge.WEST
+                        : room.col() < from.col() ? Wulf.Edge.EAST
+                        : room.row() > from.row() ? Wulf.Edge.NORTH
+                        : Wulf.Edge.SOUTH;
+                int along;
+                if (w.state == Wulf.State.ARRIVING) {
+                    along = edge.alongY() ? Fixed.px(player.yFp) - room.row() * ROOM_H_PX
+                            : Fixed.px(player.xFp) - room.col() * ROOM_W_PX;
+                } else {
+                    along = edge.alongY() ? Fixed.px(w.body.yFp) - from.row() * ROOM_H_PX
+                            : Fixed.px(w.body.xFp) - from.col() * ROOM_W_PX;
+                }
+                if (w.state == Wulf.State.WARNING) {
+                    w.pursuitTicks = 0;
+                }
+                w.state = Wulf.State.ARRIVING;
+                w.stateTick = 0;
+                w.arrivalEdge = edge;
+                w.arrivalAlongPx = along;
+                w.followedFlips++;
+            }
+        }
+    }
+
+    /** Given up (§13.4): it runs off the nearest edge rather than vanishing where it stands. */
+    private void leave() {
+        Wulf w = wulf;
+        Creature body = w.body;
+        int cx = body.centreXPx() - room.col() * ROOM_W_PX;
+        int cy = body.centreYPx() - room.row() * ROOM_H_PX;
+        int[] distance = {cx, ROOM_W_PX - cx, cy, ROOM_H_PX - cy};
+        int nearest = 0;
+        for (int i = 1; i < distance.length; i++) {
+            if (distance[i] < distance[nearest]) {
+                nearest = i;
+            }
+        }
+        Wulf.Edge edge = Wulf.Edge.values()[nearest];
+        w.leaveDirX = edge == Wulf.Edge.WEST ? -1 : edge == Wulf.Edge.EAST ? 1 : 0;
+        w.leaveDirY = edge == Wulf.Edge.NORTH ? -1 : edge == Wulf.Edge.SOUTH ? 1 : 0;
+        body.direction(w.leaveDirX, w.leaveDirY);
+        w.state = Wulf.State.LEAVING;
+        w.stateTick = 0;
+        evaded();
+    }
+
+    private void stepOut(WulfData.Pursuit pursuit) {
+        Wulf w = wulf;
+        Creature body = w.body;
+        CreatureData.Box b = body.species().collisionBox();
+        CreatureData.Speed speed = body.species().speed();
+        int ox = body.xFp;
+        int oy = body.yFp;
+        // The scenery still stops it; the room's edge does not.
+        body.xFp = Collision.resolve(world, b.x(), b.y(), b.w(), b.h(), body.xFp, body.yFp, w.leaveDirX * speed.xFp(), true);
+        body.yFp = Collision.resolve(world, b.x(), b.y(), b.w(), b.h(), body.xFp, body.yFp, w.leaveDirY * speed.yFp(), false);
+        body.moveTicks = body.xFp != ox || body.yFp != oy ? body.moveTicks + 1 : 0;
+        int left = Fixed.px(body.xFp) + b.x() - room.col() * ROOM_W_PX;
+        int top = Fixed.px(body.yFp) + b.y() - room.row() * ROOM_H_PX;
+        boolean outside = left >= ROOM_W_PX || left + b.w() <= 0 || top >= ROOM_H_PX || top + b.h() <= 0;
+        if (outside || w.stateTick >= pursuit.leaveMaxTicks()) {
+            gone();
+        }
+    }
+
+    /** §13.5: never a kill and never points — pushed back along the swing and stunned, once per swing. */
+    private void parryWulf() {
+        Wulf w = wulf;
+        Creature body = w.body;
+        if (!w.touchable() || body.lastHitSwing == swingSerial) {
+            return;
+        }
+        CreatureData.Box b = body.species().collisionBox();
+        if (!overlaps(sabre, Fixed.px(body.xFp) + b.x(), Fixed.px(body.yFp) + b.y(), b.w(), b.h())) {
+            return;
+        }
+        body.lastHitSwing = swingSerial;
+        PlayerData.Sabre s = rules.sabre();
+        Direction8 f = player.facing;
+        int push = Fixed.fp(s.repelWulfPx());
+        if (f.diagonal()) {
+            push = Fixed.mul(push, rules.speed().diagonalScaleFp());
+        }
+        context.move(body, f.dx() * push, f.dy() * push);
+        body.aux(s.repelWulfStunTicks());
+        body.hurtTicks = s.repelWulfStunTicks();
+        w.parryFlash = eco.wulf().data().parry().borderFlashTicks();
+        w.parries++;
+    }
+
+    private void gone() {
+        wulf.state = Wulf.State.ABSENT;
+        wulf.stateTick = 0;
+        wulf.ticksSinceGone = 0;
+    }
+
+    private void evaded() {
+        wulf.evasions++;
+        addScore(eco.wulf().evadedScore());
+    }
+
+    private static int saturating(int ticks) {
+        return ticks < SATURATED ? ticks + 1 : ticks;
     }
 
     /** Score, and the extra lives its thresholds award, capped at the maximum (§16.3). */
@@ -689,9 +1063,30 @@ public final class Simulation {
         return runSeed;
     }
 
-    /** The Ultimate-style border strobe while dying: two ticks on, two off, four times (§11.7). */
+    /**
+     * The Ultimate-style border: a red strobe while dying — two ticks on, two off, four
+     * times (§11.7) — and while the Wulf warns (§13.3); white for a parry (§13.5).
+     */
+    public BorderFlash borderFlash() {
+        if (player.mode == Player.Mode.DYING && player.modeTick < 16 && player.modeTick % 4 < 2) {
+            return BorderFlash.ALARM;
+        }
+        if (wulf.parryFlash > 0) {
+            return BorderFlash.PARRY;
+        }
+        WulfData.Appearance a = eco.wulf().data().appearance();
+        if (wulf.state == Wulf.State.WARNING && wulf.stateTick % a.warningFlashPeriodTicks() < a.warningFlashOnTicks()) {
+            return BorderFlash.ALARM;
+        }
+        return BorderFlash.NONE;
+    }
+
     public boolean borderAlarm() {
-        return player.mode == Player.Mode.DYING && player.modeTick < 16 && player.modeTick % 4 < 2;
+        return borderFlash() == BorderFlash.ALARM;
+    }
+
+    public Wulf wulf() {
+        return wulf;
     }
 
     public PlayerData rules() {
@@ -756,6 +1151,33 @@ public final class Simulation {
             h = mix(h, s.yFp);
             h = mix(h, s.ticks);
         }
+        Wulf w = wulf;
+        Creature wb = w.body;
+        h = mix(h, w.state.ordinal());
+        h = mix(h, w.stateTick);
+        h = mix(h, w.pursuitTicks);
+        h = mix(h, w.origin.index());
+        h = mix(h, w.arrivalEdge.ordinal());
+        h = mix(h, w.arrivalAlongPx);
+        h = mix(h, ((long) w.leaveDirX << 32) ^ (w.leaveDirY & 0xFFFFFFFFL));
+        h = mix(h, w.ticksSinceGone);
+        h = mix(h, w.ticksSinceRespawn);
+        h = mix(h, w.ticksInRoom);
+        h = mix(h, w.quietRooms);
+        h = mix(h, w.parryFlash);
+        h = mix(h, w.appearances);
+        h = mix(h, w.parries);
+        h = mix(h, w.evasions);
+        h = mix(h, w.followedFlips);
+        h = mix(h, wb.xFp);
+        h = mix(h, wb.yFp);
+        h = mix(h, ((long) wb.dirX << 32) ^ (wb.dirY & 0xFFFFFFFFL));
+        h = mix(h, wb.faceX);
+        h = mix(h, wb.timer());
+        h = mix(h, wb.aux());
+        h = mix(h, wb.hurtTicks);
+        h = mix(h, wb.lastHitSwing);
+        h = mix(h, wb.moveTicks);
         return h;
     }
 

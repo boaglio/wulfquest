@@ -11,7 +11,7 @@ import wulf.data.InputConfig;
 /** Key names from {@code input.json} resolved to key codes, per action (AGENTS.md §19.1). */
 public final class InputMap {
 
-    public enum Action { UP, DOWN, LEFT, RIGHT, FIRE, PAUSE, QUIT, DEV_KILL, DEV_MASK }
+    public enum Action { UP, DOWN, LEFT, RIGHT, FIRE, PAUSE, QUIT, DEV_KILL, DEV_MASK, DEV_WULF }
 
     private static final String SOURCE = "data/config/input.json";
 
@@ -33,6 +33,7 @@ public final class InputMap {
         bind(Action.QUIT, p.quit(), at + "/quit");
         bind(Action.DEV_KILL, p.devKill(), at + "/devKill");
         bind(Action.DEV_MASK, p.devMask(), at + "/devMask");
+        bind(Action.DEV_WULF, p.devWulf(), at + "/devWulf");
         rejectConflicts(at);
     }
 

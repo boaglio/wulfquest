@@ -18,10 +18,11 @@ public record InputState(
         boolean pausePressed,
         boolean quitPressed,
         boolean devKillPressed,
-        boolean devMaskPressed) {
+        boolean devMaskPressed,
+        boolean devWulfPressed) {
 
     public static final InputState NONE = new InputState(false, false, false, false, false, false, false, false,
-            false, false);
+            false, false, false);
 
     /** Horizontal intent: -1, 0 or 1. Opposing keys cancel (§11.3). */
     public int dx() {
@@ -35,6 +36,6 @@ public record InputState(
 
     /** Directions held, plus fire level and fire edge — for tests and replays. */
     public static InputState of(int dx, int dy, boolean fire, boolean firePressed) {
-        return new InputState(dy < 0, dy > 0, dx < 0, dx > 0, fire, firePressed, false, false, false, false);
+        return new InputState(dy < 0, dy > 0, dx < 0, dx > 0, fire, firePressed, false, false, false, false, false);
     }
 }
