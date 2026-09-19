@@ -16,6 +16,8 @@ import wulf.sim.ai.SimContext;
 import wulf.world.CollisionMask;
 import wulf.world.CollisionWorld;
 import wulf.world.RoomAddress;
+import wulf.data.OrchidData;
+import wulf.sim.effects.EffectState;
 
 /**
  * The game's single source of truth, advanced one fixed tick at a time
@@ -27,7 +29,8 @@ import wulf.world.RoomAddress;
  * and respawn. M4: the creatures — room population, behaviours, spears, sabre
  * kills, contact deaths, score and extra lives. M5: the Wulf — appearance, warning,
  * pursuit across rooms, parry, and giving up. M6: the quest — guardians, the amulet,
- * the Keeper of the Arch, the shrines' hints, and the escape.
+ * the Keeper of the Arch, the shrines' hints, and the escape. M7: the orchids —
+ * their growth, and what a bloom does to you.
  */
 public final class Simulation {
 
@@ -61,6 +64,13 @@ public final class Simulation {
     private final Behaviour chase = BehaviourCatalog.of("CHASE_DIRECT");
     private final Quest quest;
     private final Behaviour orbit = BehaviourCatalog.of("GUARD_ORBIT");
+    private final OrchidField orchids;
+    private final EffectState effect = new EffectState();
+    /** When each anchor's cycle began, by room and anchor; {@link Long#MIN_VALUE} until first seen. */
+    private final long[] orchidCycleStart;
+    private int[] roomOrchids = new int[0];
+    private int orchidBase;
+    private long orchidStagesRead;
 
     private RoomAddress room;
     private CollisionWorld roomSolid;
@@ -100,6 +110,10 @@ public final class Simulation {
         wulf.ticksSinceRespawn = appearance.graceTicksAfterPlayerDeath();
         Creature keeper = new Creature(Quest.KEEPER_ID, eco.quest().keeperSpecies(), -1, xFp, yFp, Herd.NONE);
         this.quest = new Quest(keeper, keeper);   // the guardian is seated on entering a lair
+        this.orchids = new OrchidField(eco.orchids());
+        this.orchidCycleStart = new long[RoomAddress.GRID_W * RoomAddress.GRID_H
+                * Math.max(1, eco.orchids().anchors().perRoom())];
+        java.util.Arrays.fill(orchidCycleStart, Long.MIN_VALUE);
         this.room = new RoomAddress(roomColOf(rules.collisionBox(), xFp), roomRowOf(rules.collisionBox(), yFp));
         enterRoom(false);
     }
@@ -179,6 +193,7 @@ public final class Simulation {
         tickCreatures();
         tickWulf();
         tickQuest();
+        tickOrchids();
         resolveCombat();
     }
 
@@ -206,6 +221,7 @@ public final class Simulation {
         if (player.mode != Player.Mode.ALIVE || player.invulnTicks > 0) {
             return false;
         }
+        effect.clear();   // §15.2: whatever was in the blood dies with you
         player.lives--;
         player.mode = Player.Mode.DYING;
         player.modeTick = 0;
@@ -259,14 +275,17 @@ public final class Simulation {
     // ---------------------------------------------------------------- the player's movement
 
     private void move(InputState in) {
-        int dx = in.dx();
-        int dy = in.dy();
+        // §15.2: the flower has the legs, not the keyboard — steering is changed here, inside the
+        // simulation, so a recorded replay still holds the player's own honest input.
+        int[] steered = effect.steer(in.dx(), in.dy(), eco.orchids().delirium(), rng);
+        int dx = steered[0];
+        int dy = steered[1];
         if (dx != 0 || dy != 0) {
             player.facing = Direction8.of(dx, dy);   // facing persists when the keys are released (§11.4)
         }
         PlayerData.Speed speed = rules.speed();
-        int speedX = speed.xFp();
-        int speedY = speed.yFp();
+        int speedX = effect.speedFp(speed.xFp());
+        int speedY = effect.speedFp(speed.yFp());
         if (player.swingTick >= 0 && rules.sabre().moveSpeedScaleFp() != Fixed.ONE) {
             speedX = Fixed.mul(speedX, rules.sabre().moveSpeedScaleFp());
             speedY = Fixed.mul(speedY, rules.sabre().moveSpeedScaleFp());
@@ -330,6 +349,7 @@ public final class Simulation {
         roomSolid = (gx, gy) -> gx < x0 || gy < y0 || gx >= x1 || gy >= y1 || scenery.isSolid(gx, gy);
         repopulate();
         questEntersRoom();
+        enterOrchidRoom();
     }
 
     /** The room's creatures, rolled afresh: on every entry and after every respawn (§7.6, §11.7). */
@@ -389,6 +409,10 @@ public final class Simulation {
             }
             if (c.hurtTicks > 0) {
                 c.hurtTicks--;
+            }
+            if (effect.kind().freezesCreatures()) {
+                c.moveTicks = 0;   // §15.2: the blue flower stops the room dead
+                continue;
             }
             int ox = c.xFp;
             int oy = c.yFp;
@@ -483,7 +507,9 @@ public final class Simulation {
         PlayerData.Box pb = rules.collisionBox();
         int px = Fixed.px(player.xFp) + pb.x();
         int py = Fixed.px(player.yFp) + pb.y();
-        if (quest.inLair()) {
+        // §15.2: the green flower stops contact killing you — the Keeper still bars the arch.
+        boolean immune = effect.kind().blocksLethalContact();
+        if (quest.inLair() && !immune) {
             Creature g = quest.guardian;
             CreatureData.Box gb = g.species().collisionBox();
             if (overlaps(px, py, pb.w(), pb.h(), Fixed.px(g.xFp) + gb.x(), Fixed.px(g.yFp) + gb.y(), gb.w(), gb.h())) {
@@ -507,7 +533,7 @@ public final class Simulation {
                 }
             }
         }
-        if (wulf.touchable()) {
+        if (wulf.touchable() && !immune) {
             CreatureData.Box wb = wulf.body.species().collisionBox();
             if (overlaps(px, py, pb.w(), pb.h(), Fixed.px(wulf.body.xFp) + wb.x(), Fixed.px(wulf.body.yFp) + wb.y(),
                     wb.w(), wb.h())) {
@@ -515,7 +541,7 @@ public final class Simulation {
                 return;
             }
         }
-        for (int i = 0; i < creatures.size(); i++) {
+        for (int i = 0; i < creatures.size() && !immune; i++) {
             Creature c = creatures.get(i);
             CreatureData.Box b = c.species().collisionBox();
             if (c.mode == Creature.Mode.ALIVE
@@ -530,8 +556,10 @@ public final class Simulation {
                 Spear s = spears.get(i);
                 if (s.alive && overlaps(px, py, pb.w(), pb.h(), Fixed.px(s.xFp) + b.x(), Fixed.px(s.yFp) + b.y(), b.w(), b.h())) {
                     s.alive = false;
-                    kill();
-                    return;
+                    if (!immune) {
+                        kill();
+                        return;
+                    }
                 }
             }
         }
@@ -543,6 +571,58 @@ public final class Simulation {
 
     private static boolean overlaps(int ax, int ay, int aw, int ah, int bx, int by, int bw, int bh) {
         return ax < bx + bw && bx < ax + aw && ay < by + bh && by < ay + ah;
+    }
+
+    // ---------------------------------------------------------------- the orchids (§15)
+
+    /** The room's anchors, found once on entry; guardian rooms and the way out never flower (§14.3). */
+    private void enterOrchidRoom() {
+        OrchidData data = eco.orchids();
+        if (data.orchids().isEmpty()) {
+            roomOrchids = new int[0];
+            return;
+        }
+        QuestRules q = eco.quest();
+        boolean sacred = q.enabled()
+                && (q.landmarks().lairIndexIn(room) >= 0 || room.equals(q.landmarks().exitRoom()));
+        roomOrchids = sacred ? new int[0] : orchids.anchors(room, world, runSeed);
+        orchidBase = room.index() * data.anchors().perRoom();
+        for (int i = 0; i < roomOrchids.length / 2; i++) {
+            if (orchidCycleStart[orchidBase + i] == Long.MIN_VALUE) {
+                // Staggered, and counted from before the game began, so a room is mid-cycle when first seen.
+                orchidCycleStart[orchidBase + i] = orchids.firstCycleStart(runSeed, room, i);
+            }
+        }
+    }
+
+    private void tickOrchids() {
+        // Age first, take second: a bloom picked this tick keeps every tick it promised.
+        effect.tick();
+        if (roomOrchids.length == 0) {
+            return;
+        }
+        OrchidData data = eco.orchids();
+        PlayerData.Box pb = rules.collisionBox();
+        int px = Fixed.px(player.xFp) + pb.x();
+        int py = Fixed.px(player.yFp) + pb.y();
+        int roomX = room.col() * ROOM_W_PX;
+        int roomY = room.row() * ROOM_H_PX;
+        for (int i = 0; i < roomOrchids.length / 2; i++) {
+            orchidStagesRead++;
+            long start = orchidCycleStart[orchidBase + i];
+            if (orchids.stageAt(orchids.phase(tick, start)) != OrchidField.Stage.BLOOM) {
+                continue;
+            }
+            int bx = roomX + roomOrchids[2 * i] - 8;
+            int by = roomY + roomOrchids[2 * i + 1] - 16;
+            if (!overlaps(px, py, pb.w(), pb.h(), bx, by, 16, 16)) {
+                continue;
+            }
+            int which = orchids.orchidAt(runSeed, room, i, start);
+            effect.take(which, data.orchid(which));
+            addScore(data.orchid(which).score());
+            orchidCycleStart[orchidBase + i] = tick;   // picked: straight back to seed (§15.1)
+        }
     }
 
     // ---------------------------------------------------------------- the quest (§14)
@@ -1356,6 +1436,55 @@ public final class Simulation {
         return quest;
     }
 
+    /** Whether the player's sprite is flashing white this tick: immunity (§15.2). */
+    public boolean effectFlash() {
+        return effect.kind().flashesThePlayer()
+                && (tick / eco.orchids().immunity().flashPeriodTicks()) % 2 == 0;
+    }
+
+    /** The one effect the player is under (§15.2). */
+    public EffectState effect() {
+        return effect;
+    }
+
+    /** The current room's orchid anchors, room-local feet positions as {@code x, y} pairs. */
+    public int[] orchidAnchors() {
+        return roomOrchids.clone();
+    }
+
+    public OrchidField orchidField() {
+        return orchids;
+    }
+
+    /** Where anchor {@code i} is in its cycle this tick (§15.1). */
+    public int orchidPhase(int anchor) {
+        return orchids.phase(tick, orchidCycleStart[orchidBase + anchor]);
+    }
+
+    /** Which orchid anchor {@code i} is growing this time round. */
+    public int orchidAt(int anchor) {
+        return orchids.orchidAt(runSeed, room, anchor, orchidCycleStart[orchidBase + anchor]);
+    }
+
+    /**
+     * How many orchid stages have been worked out since the game began. The jungle goes on
+     * flowering everywhere, but only the room the player is in costs anything (§15.1) — this
+     * is what the test measures.
+     */
+    public long orchidStagesRead() {
+        return orchidStagesRead;
+    }
+
+    /** Puts the player under an effect outright: {@code --debug-effect}, and the tests. */
+    public boolean giveEffect(String effectName) {
+        int which = eco.orchids().indexOfEffect(effectName);
+        if (which < 0 || player.mode != Player.Mode.ALIVE) {
+            return false;
+        }
+        effect.take(which, eco.orchids().orchid(which));
+        return true;
+    }
+
     public PlayerData rules() {
         return rules;
     }
@@ -1477,6 +1606,12 @@ public final class Simulation {
         }
         h = mix(h, q.keeper.xFp);
         h = mix(h, q.keeper.yFp);
+        h = mix(h, effect.hashValue());
+        for (int i = 0; i < orchidCycleStart.length; i++) {
+            if (orchidCycleStart[i] != Long.MIN_VALUE) {
+                h = mix(h, ((long) i << 40) ^ orchidCycleStart[i]);
+            }
+        }
         return h;
     }
 

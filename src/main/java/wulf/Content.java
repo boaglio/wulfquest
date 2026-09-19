@@ -39,6 +39,8 @@ import java.util.ArrayList;
 import java.util.List;
 import wulf.sim.QuestRules;
 import wulf.sim.RoomPopulator;
+import wulf.data.OrchidData;
+import wulf.data.OrchidValidator;
 
 /**
  * Everything loaded from the content database, validated and cross-checked,
@@ -63,7 +65,8 @@ public record Content(
         BiomeResolver biomes,
         WulfData wulf,
         GuardianData guardians,
-        LandmarksData landmarks) {
+        LandmarksData landmarks,
+        OrchidData orchids) {
 
     public static Content load(Path dataDir) {
         return load(new JsonDb(dataDir));
@@ -94,12 +97,14 @@ public record Content(
         WulfValidator.check(wulf, sprites);
         GuardianData guardians = db.load("entities/guardians", GuardianData.class);
         GuardianValidator.check(guardians, creatures, palette, sprites);
+        OrchidData orchids = db.load("entities/orchids", OrchidData.class);
+        OrchidValidator.check(orchids, palette, sprites);
         LandmarksData landmarks = db.load("world/landmarks", LandmarksData.class);
         LandmarkValidator.check(landmarks, guardians, creatures, map, scenery.ids(),
                 CreatureSpriteValidator.framesBySprite(sprites), solidity(rooms));
 
         return new Content(db, game, display, palette, font, input, map, sprites, scenery, rooms, player,
-                creatures, roomEntities, loot, biomes, wulf, guardians, landmarks);
+                creatures, roomEntities, loot, biomes, wulf, guardians, landmarks, orchids);
     }
 
     /** The living jungle: creatures, how rooms are populated, what exploring scores, the Wulf, and the quest. */
@@ -113,7 +118,7 @@ public record Content(
                 jungle.populate(spawner, room, seed, visit);
             }
         };
-        return new Ecosystem(creatures, populator, loot.event("roomFirstVisit"), wulfRules(), questRules());
+        return new Ecosystem(creatures, populator, loot.event("roomFirstVisit"), wulfRules(), questRules(), orchids);
     }
 
     /** The quest's rules: each lair's guardian as a species, the Keeper, and the numbers that pace and score it. */

@@ -26,6 +26,7 @@ public final class PlayerPainter {
     private final Sprite sprite;
     private final PlayerData rules;
     private final int blade;
+    private final int immuneFlash;
     private final int hilt;
 
     public PlayerPainter(DisplayConfig display, SpriteBank sprites, PlayerData rules, Palette palette) {
@@ -33,6 +34,7 @@ public final class PlayerPainter {
         this.sprite = sprites.get(rules.sprite());
         this.rules = rules;
         this.blade = palette.indexOf("brightWhite");
+        this.immuneFlash = palette.indexOf("brightWhite");
         this.hilt = palette.indexOf("brightYellow");
     }
 
@@ -48,7 +50,11 @@ public final class PlayerPainter {
             if (!visible(p, rules)) {
                 return;
             }
-            sprite.blit(fb, frame, feetX, feetY);
+            if (sim.effectFlash()) {
+                sprite.blitTinted(fb, frame, feetX, feetY, immuneFlash);   // §15.2: nothing can touch him
+            } else {
+                sprite.blit(fb, frame, feetX, feetY);
+            }
             if (!sim.sabre().isEmpty()) {
                 paintBlade(fb, p.facing(), sprite.anchor(frame, AnimationValidator.HAND), feetX, feetY);
             }

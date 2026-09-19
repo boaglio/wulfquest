@@ -26,7 +26,8 @@ public final class SchemaVersions {
             Map.entry("loot", 1),
             Map.entry("wulf", 1),
             Map.entry("guardians", 1),
-            Map.entry("landmarks", 1));
+            Map.entry("landmarks", 1),
+            Map.entry("orchids", 1));
 
     /**
      * Files that carry no {@code schemaVersion}. The sole member is the

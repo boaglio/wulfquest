@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wulfquest.invalid/schema/orchids.schema.json",
+  "title": "entities/orchids.json — AGENTS.md §15",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "fidelity", "sprite", "cycle", "anchors", "orchids", "delirium", "immunity"],
+  "properties": {
+    "schemaVersion": { "type": "integer", "minimum": 1 },
+    "fidelity": { "enum": ["recon", "canon"] },
+    "sprite": { "type": "string", "pattern": "^[a-z][a-z0-9_]*$" },
+    "cycle": {
+      "type": "object", "additionalProperties": false,
+      "required": ["seedTicks", "sproutTicks", "budTicks", "bloomTicks", "wiltTicks", "swayTicks"],
+      "properties": {
+        "seedTicks": { "type": "integer", "minimum": 1 },
+        "sproutTicks": { "type": "integer", "minimum": 1 },
+        "budTicks": { "type": "integer", "minimum": 1 },
+        "bloomTicks": { "type": "integer", "minimum": 1 },
+        "wiltTicks": { "type": "integer", "minimum": 1 },
+        "swayTicks": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "anchors": {
+      "type": "object", "additionalProperties": false,
+      "required": ["perRoom", "minSpacingPx", "attempts", "insetPx"],
+      "properties": {
+        "perRoom": { "type": "integer", "minimum": 0, "maximum": 8 },
+        "minSpacingPx": { "type": "integer", "minimum": 0, "maximum": 128 },
+        "attempts": { "type": "integer", "minimum": 1 },
+        "insetPx": { "type": "integer", "minimum": 0, "maximum": 64 }
+      }
+    },
+    "orchids": {
+      "type": "array", "minItems": 1,
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["colour", "weight", "effect", "ticks", "speedScaleFp", "score"],
+        "properties": {
+          "colour": { "type": "string", "pattern": "^[a-zA-Z]+$" },
+          "weight": { "type": "integer", "minimum": 1 },
+          "effect": { "enum": ["HASTE", "TORPOR", "REVERSAL", "IMMUNITY", "DELIRIUM", "STILLNESS"] },
+          "ticks": { "type": "integer", "minimum": 1 },
+          "speedScaleFp": { "type": "integer", "minimum": 1, "maximum": 2048 },
+          "score": { "type": "integer", "minimum": 0 }
+        }
+      }
+    },
+    "delirium": {
+      "type": "object", "additionalProperties": false,
+      "required": ["everyMinTicks", "everyRandomTicks", "holdTicks"],
+      "properties": {
+        "everyMinTicks": { "type": "integer", "minimum": 1 },
+        "everyRandomTicks": { "type": "integer", "minimum": 1 },
+        "holdTicks": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "immunity": {
+      "type": "object", "additionalProperties": false, "required": ["flashPeriodTicks"],
+      "properties": { "flashPeriodTicks": { "type": "integer", "minimum": 1 } }
+    }
+  }
+}

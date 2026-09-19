@@ -37,6 +37,7 @@ public final class CreaturePainter {
     private final int shaft;
     private final int point;
     private final List<Creature> order = new ArrayList<>();
+    private boolean stilled;
 
     public CreaturePainter(DisplayConfig display, SpriteBank sprites, CreatureData roster, Palette palette) {
         this.field = display.playfield();
@@ -50,6 +51,7 @@ public final class CreaturePainter {
     }
 
     public void paint(Framebuffer fb, Simulation sim) {
+        stilled = sim.effect().kind().freezesCreatures();
         int ox = field.x() - sim.room().col() * Simulation.ROOM_W_PX;
         int oy = field.y() - sim.room().row() * Simulation.ROOM_H_PX;
         order.clear();
@@ -97,6 +99,10 @@ public final class CreaturePainter {
         }
         Sprite sprite = sprites.get(s.sprite());
         String frame = frameFor(c, tick, roster.walkTicksPerFrame());
+        if (stilled) {
+            sprite.blitDimmed(fb, frame, x, y);   // §15.2: the blue flower has the room
+            return;
+        }
         if (flashing(c)) {
             sprite.blitTinted(fb, frame, x, y, flash);
         } else {

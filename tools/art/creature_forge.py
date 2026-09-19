@@ -13,8 +13,8 @@ creature white while it is hurt.
 
 The puff sprite, two frames, is what a creature leaves for 12 ticks when it dies.
 
-The guardians, the Keeper of the Arch and the amulet quarters (§14) are drawn here
-too, from data/entities/guardians.json: each guardian is its roster sibling's
+The guardians, the Keeper of the Arch, the amulet quarters (§14) and the orchids
+(§15) are drawn here too, from data/entities/guardians.json: each guardian is its roster sibling's
 silhouette grown into a 32x28 box and recoloured to its quarter's accent, so the
 player reads the family and the scale at once.
 
@@ -248,24 +248,24 @@ DRAW = {
 BRIGHT = {"brightGreen": "G", "brightBlue": "B", "brightRed": "R", "brightYellow": "Y", "brightCyan": "C",
           "brightMagenta": "M", "brightWhite": "W"}
 
-GUARDIAN_HEAD = {"hippo": hippo_head, "rhino": rhino_head, "boar": boar_head, "wildebeest": wildebeest_head}
+def upscale(rows, w, h, colour):
+    """A creature's own frame, grown to fill a bigger box and recoloured to one accent.
 
-
-def guardian(cv, f, w, h, body, head):
-    """A roster quadruped grown to fill a 32x28 box, all of it in its guardian's colour."""
-    base = h - 1
-    legs(cv, [5, 9, w - 10, w - 6], base - 8, base, f, body, 2)
-    cv.ellipse(w / 2 - 1, base - 11, w / 2 - 3, (h - 8) / 2.4, body)
-    head(cv, w, h - 4, base - 4)
-    # The sibling's head is drawn in the sibling's colours; a guardian is one colour,
-    # so everything but the outline becomes its accent. Then the pale ridge goes on top.
+    A guardian is its roster sibling seen too large and in the wrong colour — the player
+    should read hippo, rhino, boar or wildebeest at a glance, so the shape is the
+    sibling's own, pixel for pixel, not a fresh drawing of the same animal.
+    """
+    sh = len(rows)
+    sw = len(rows[0])
+    out = []
     for y in range(h):
+        line = []
         for x in range(w):
-            c = cv.px[y][x] if hasattr(cv, "px") else None
-            if c not in (None, ".", "K", body):
-                cv.set(x, y, body)
-    cv.ellipse(w / 2 - 3, base - 15, w / 2 - 7, 2.5, "W")                       # a pale ridge along the back
-    cv.set(w - 6, base - 16, "K")                                               # an eye
+            c = rows[y * sh // h][x * sw // w]
+            # Keep the outline and the pale bits — horn, tusk, teeth, eye — and take the rest.
+            line.append(c if c in (".", "K", "W") else colour)
+        out.append("".join(line))
+    return out
 
 
 def keeper(cv, f, w, h, aside):
@@ -314,6 +314,62 @@ def amulet_quarter(q):
     return cv.rows()
 
 
+# A bright letter to its plain twin: a wilted flower keeps its hue and loses its light.
+PLAIN = {"G": "g", "B": "b", "R": "r", "Y": "y", "C": "c", "M": "m", "W": "w"}
+
+
+def orchid_stem(cv, h, lean=0):
+    base = h - 1
+    cv.stroke(8 + lean, base, 8, base - 7, "g", 0.8, 0.6)
+    cv.stroke(8, base - 4, 4, base - 6, "G", 0.6)                               # leaves
+    cv.stroke(8, base - 5, 12, base - 7, "G", 0.6)
+
+
+def orchid_sprout(h):
+    """A green shoot: no colour yet, nothing to decide."""
+    cv = Canvas(16, 16)
+    base = h - 1
+    cv.stroke(8, base, 8, base - 5, "g", 0.8, 0.6)
+    cv.stroke(8, base - 3, 5, base - 6, "G", 0.6)
+    cv.stroke(8, base - 4, 11, base - 6, "G", 0.6)
+    return cv.rows()
+
+
+def orchid_bud(colour):
+    """Closed, but already showing its colour: the player's 80 ticks of warning (§15.1)."""
+    cv = Canvas(16, 16)
+    orchid_stem(cv, 16)
+    cv.ellipse(8, 5, 2.6, 3.4, colour)
+    cv.ellipse(8, 3.5, 1.4, 1.8, "W")
+    cv.stroke(6, 7, 10, 7, "g", 0.6)                                            # sepals
+    return cv.rows()
+
+
+def orchid_bloom(colour, f):
+    """Open, swaying: touch it and it is yours, for better or worse."""
+    cv = Canvas(16, 16)
+    lean = -1 if f else 1
+    orchid_stem(cv, 16, lean)
+    cx = 8 + lean
+    for a in range(5):
+        angle = a * 2 * math.pi / 5 - math.pi / 2 + (0.2 if f else 0)
+        cv.ellipse(cx + math.cos(angle) * 3.4, 5 + math.sin(angle) * 3.2, 2.2, 2.2, colour)
+    cv.ellipse(cx, 5, 1.8, 1.8, "Y")
+    cv.set(cx, 5, "K")
+    return cv.rows()
+
+
+def orchid_wilt(colour):
+    """Drooping, and drained of its bright: over for this turn."""
+    cv = Canvas(16, 16)
+    base = 15
+    cv.stroke(8, base, 7, base - 5, "g", 0.8, 0.6)
+    cv.stroke(7, base - 5, 4, base - 7, "g", 0.7)
+    for a in range(4):
+        cv.ellipse(4 + math.cos(a * 1.6) * 1.8, base - 7 + math.sin(a * 1.6) * 1.6, 1.6, 1.4, PLAIN[colour])
+    return cv.rows()
+
+
 def puff(f):
     cv = Canvas(12, 12)
     for i in range(6):
@@ -344,6 +400,7 @@ def write_sprite(name, w, h, frames):
 def main():
     roster = json.loads((ROOT / "data/entities/creatures.json").read_text(encoding="utf-8"))["creatures"]
     names = []
+    drawn = {}
     for species in roster:
         sid, w, h = species["id"], species["size"]["w"], species["size"]["h"]
         if sid not in DRAW:
@@ -357,6 +414,7 @@ def main():
         name = species["sprite"]
         write_sprite(name, w, h, frames)
         names.append(name)
+        drawn[sid] = frames
     beast = json.loads((ROOT / "data/entities/wulf.json").read_text(encoding="utf-8"))
     ww, wh = beast["size"]["w"], beast["size"]["h"]
     frames = []
@@ -370,14 +428,8 @@ def main():
     wardens = json.loads((ROOT / "data/entities/guardians.json").read_text(encoding="utf-8"))
     for g in wardens["guardians"]:
         gw, gh = g["size"]["w"], g["size"]["h"]
-        colour = BRIGHT[g["colour"]]
-        head = GUARDIAN_HEAD[g["basedOn"]]
-        frames = []
-        for f in range(2):
-            cv = Canvas(gw, gh)
-            guardian(cv, f, gw, gh, colour, head)
-            cv.outline("K")
-            frames.append((f"walk{f}", cv.rows()))
+        sibling = drawn[g["basedOn"]]
+        frames = [(fid, upscale(rows, gw, gh, BRIGHT[g["colour"]])) for fid, rows in sibling]
         write_sprite(g["sprite"], gw, gh, frames)
         names.append(g["sprite"])
     k = wardens["keeper"]
@@ -392,11 +444,21 @@ def main():
     names.append(k["sprite"])
     write_sprite("amulet_piece", 16, 16, [(fid, amulet_quarter(q)) for q, fid in enumerate(("nw", "ne", "sw", "se"))])
     names.append("amulet_piece")
+    flowers = json.loads((ROOT / "data/entities/orchids.json").read_text(encoding="utf-8"))
+    frames = [("sprout", orchid_sprout(16))]
+    for o in flowers["orchids"]:
+        colour = BRIGHT["bright" + o["colour"][0].upper() + o["colour"][1:]]
+        frames.append((f"bud_{o['colour']}", orchid_bud(colour)))
+        frames.append((f"bloom0_{o['colour']}", orchid_bloom(colour, 0)))
+        frames.append((f"bloom1_{o['colour']}", orchid_bloom(colour, 1)))
+        frames.append((f"wilt_{o['colour']}", orchid_wilt(colour)))
+    write_sprite(flowers["sprite"], 16, 16, frames)
+    names.append(flowers["sprite"])
     write_sprite("puff", 12, 12, [("f0", puff(0)), ("f1", puff(1))])
     names.append("puff")
-    update_index(names, lambda n: n.startswith("creature_") or n in ("puff", "amulet_piece"))
+    update_index(names, lambda n: n.startswith("creature_") or n in ("puff", "amulet_piece", "orchid"))
     print(f"creature forge: drew {len(roster)} creatures, the Wulf, {len(wardens['guardians'])} guardians, "
-          f"the Keeper, the amulet and the puff")
+          f"the Keeper, the amulet, {len(flowers['orchids'])} orchids and the puff")
 
 
 if __name__ == "__main__":

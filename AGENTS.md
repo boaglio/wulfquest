@@ -1774,13 +1774,22 @@ One orchid per anchor point, cycling forever:
   the player gets ~80 ticks of warning to decide whether to approach. This
   is essential: the mechanic must be a *choice*, not a lottery.
 - Touching a bloom consumes it: it jumps straight to `SEED`.
-- A room's orchid anchors are fixed per room (from `rooms.json`, or derived:
-  up to 3 non-solid cells at least 40 px apart, chosen by `roomSeed`).
+- A room's orchid anchors are **derived**, not authored: up to
+  `anchors.perRoom` (3) spots at least `anchors.minSpacingPx` (40) apart, no
+  nearer the edges than `anchors.insetPx` (24) so a bloom is never half in the
+  next room, each with its whole 16x16 footprint clear of scenery, drawn from
+  `hash(runSeed, col, row)`. The same jungle every run, and no data file to keep
+  in step with the map. **Lairs and the way out never flower** (§14.3).
 - Orchid stage **persists per room** while the game runs (the cycle keeps
   advancing for rooms you are not in — the jungle does not wait for you).
-  Advance off-screen rooms lazily: store `stageStartTick` and compute the
-  current stage on entry from `currentTick - stageStartTick`. Do **not** tick
-  256 rooms every frame.
+  Nothing is ticked: an anchor stores only the tick its cycle began, and its
+  stage is arithmetic on the clock whenever anyone asks. Picking a bloom sets
+  that tick to now, which is what "straight back to `SEED`" means. The first
+  cycle of each anchor starts at a staggered negative offset, so a room's
+  flowers are at different stages the first time it is seen, and are not in
+  step with each other. `Simulation.orchidStagesRead()` counts every stage ever
+  worked out; `OrchidTest.onlyTheRoomYouAreInCostsAnything` holds it to exactly
+  one per flower per tick in the room the player is in.
 
 ### 15.2 The effect table
 
@@ -1788,18 +1797,26 @@ One orchid per anchor point, cycling forever:
 {
   "schemaVersion": 1,
   "fidelity": "recon",
-  "cycle": { "seed": 150, "sprout": 100, "bud": 80, "bloom": 250, "wilt": 100 },
-  "weights": { "yellow": 22, "cyan": 20, "magenta": 18, "green": 15, "white": 15, "blue": 10 },
-  "effects": {
-    "yellow":  { "effect": "HASTE",        "ticks": 500, "speedScaleFp": 512, "score": 50 },
-    "cyan":    { "effect": "TORPOR",       "ticks": 400, "speedScaleFp": 128, "score": 25 },
-    "magenta": { "effect": "REVERSAL",     "ticks": 600, "score": 25 },
-    "green":   { "effect": "IMMUNITY",     "ticks": 400, "score": 75 },
-    "white":   { "effect": "DELIRIUM",     "ticks": 300, "score": 25 },
-    "blue":    { "effect": "STILLNESS",    "ticks": 250, "score": 75 }
-  }
+  "sprite": "orchid",
+  "cycle": { "seedTicks": 150, "sproutTicks": 100, "budTicks": 80, "bloomTicks": 250, "wiltTicks": 100, "swayTicks": 20 },
+  "anchors": { "perRoom": 3, "minSpacingPx": 40, "attempts": 24, "insetPx": 24 },
+  "orchids": [
+    { "colour": "yellow",  "weight": 22, "effect": "HASTE",     "ticks": 500, "speedScaleFp": 512, "score": 50 },
+    { "colour": "cyan",    "weight": 20, "effect": "TORPOR",    "ticks": 400, "speedScaleFp": 128, "score": 25 },
+    { "colour": "magenta", "weight": 18, "effect": "REVERSAL",  "ticks": 600, "speedScaleFp": 256, "score": 25 },
+    { "colour": "green",   "weight": 15, "effect": "IMMUNITY",  "ticks": 400, "speedScaleFp": 256, "score": 75 },
+    { "colour": "white",   "weight": 15, "effect": "DELIRIUM",  "ticks": 300, "speedScaleFp": 256, "score": 25 },
+    { "colour": "blue",    "weight": 10, "effect": "STILLNESS", "ticks": 250, "speedScaleFp": 256, "score": 75 }
+  ],
+  "delirium": { "everyMinTicks": 20, "everyRandomTicks": 20, "holdTicks": 10 },
+  "immunity": { "flashPeriodTicks": 4 }
 }
 ```
+
+One row per flower, colour and effect both unique, so the player can learn one
+from the other. A colour needs both halves of the palette — `yellow` for the
+wilt, `brightYellow` for the bloom — and a frame of each stage drawn for it, or
+the load fails (`OrchidValidator`).
 
 | effect | what it does |
 |--------|--------------|
@@ -1822,19 +1839,27 @@ Rules:
 
 ### 15.3 Implementation
 
-`sim/effects/EffectState.java`: `{ EffectKind kind, int remainingTicks }`.
-One instance on the player. `EffectKind` is a sealed interface / enum with
-per-kind hooks:
+`sim/effects/EffectState.java` holds the one effect: its kind, which orchid it
+came from, how many ticks are left of how many, and delirium's own little
+clock. `EffectKind` is an enum with the hooks:
 
 ```java
-int  modifySpeedX(int baseFp);
-int  modifySpeedY(int baseFp);
-InputDir modifyInput(InputDir raw, Rng rng);
-boolean blocksLethalContact();
-boolean freezesCreatures();
+int     modifySpeedFp(int baseFp, int scaleFp);   // HASTE, TORPOR
+boolean invertsInput();                           // REVERSAL
+boolean scramblesInput();                         // DELIRIUM
+boolean blocksLethalContact();                    // IMMUNITY
+boolean freezesCreatures();                       // STILLNESS
+boolean flashesThePlayer();                       // IMMUNITY
 ```
 
-Nothing else in the sim may branch on effect kind. One place, six methods.
+Nothing else in the simulation branches on which flower it was: `EffectState`
+answers "how fast", "which way" and "does this kill me", and the three places
+that ask — the player's step, the contact check and the creature tick — ask
+only that. The effect is aged before a bloom underfoot is taken, so a flower
+picked this tick keeps every tick it promised.
+
+`--debug-effect <kind>` starts every game of a session under one, which is how
+each effect is looked at on screen; an unknown name is refused at startup.
 
 ---
 
@@ -2922,13 +2947,62 @@ Deferred, deliberately: orchids (M7); the hi-score entry and title screen that
 follow the tally (M8); `lair`/`exit` in `neverInRooms` are resolved, but the
 guardians' own sounds wait for the synthesiser (M8).
 
-### M7 — Orchids (1.5 days)
-
-- Growth cycle, six effects, lazy off-screen advancement, the effect bar.
+### M7 — Orchids — **COMPLETE (2026-09-19)**
 
 **Accept when:** each effect is individually testable via
 `--debug-effect <kind>`, and off-screen orchids are provably not ticked
 per-frame (assert via a counter in a test).
+
+**Accepted:** `./run.sh --debug-effect haste` (or torpor, reversal, immunity,
+delirium, stillness) starts every game of a session under that flower, and an
+unknown name is refused at startup. Nothing is ticked off screen at all:
+`Simulation.orchidStagesRead()` counts every stage ever worked out, and
+`OrchidTest.onlyTheRoomYouAreInCostsAnything` pins it to exactly one per flower
+per tick in the room the player is in — 1 000 ticks with three flowers costs
+3 000 lookups, and the other 255 rooms nothing.
+
+What landed:
+
+- **Data:** `orchids.json` and its schema — the cycle, the anchor rules, and one
+  row per flower binding a colour to an effect, its ticks and its score — with
+  `OrchidValidator` checking both halves of each colour are in the palette, that
+  a frame is drawn for every stage of it, and that `HASTE`/`TORPOR` actually
+  change the speed.
+- **Simulation:** `OrchidField` (anchors from the run seed, stage as arithmetic
+  on the clock) and `sim/effects/` — `EffectKind`'s six hooks and `EffectState`,
+  one effect at a time, replaced outright by a new bloom, cleared by death.
+  Taking a bloom scores and sends it straight back to seed.
+- **The six effects** where they belong: speed at the player's step, steering at
+  the input inside the simulation (so a recording stays honest), immunity at the
+  contact check, stillness at the creature tick, and the player's white flash.
+- **Rendering:** `OrchidPainter` (shoot, bud in its colour, two-frame swaying
+  bloom, wilt drained of bright), the panel's effect bar in the flower's colour,
+  and creatures drawn in their plain colours while stillness holds them.
+- **Art:** 25 orchid frames from `creature_forge.py`.
+- **Tests:** 314 runs, from 293 — `OrchidTest` (13), `OrchidValidationTest`,
+  `OrchidPainterTest`, and `--debug-effect` in `BootArgsTest`.
+
+Found along the way:
+
+- **Every flower was drawn a thousand pixels off screen.** Orchid anchors are
+  room-local, but the painter offset them by the room's world origin, the way
+  the creature painter must. Three tests passed over it and my own eye missed it
+  on a contact sheet — what caught it was counting drawn pixels in the anchor's
+  box in the probe. `OrchidPainterTest.aFlowerIsDrawnAtItsAnchor` now walks a
+  whole cycle and insists on ink at every stage but seed.
+- **A bloom lost its first tick**: the effect was aged in the same tick it was
+  taken, so `HASTE` arrived with 499 of its 500 ticks. Aged first, taken second.
+- **A full cycle's phase is the next cycle's start.** `stageAt` now folds the
+  phase, which also makes it safe to ask about any tick, past or future.
+- **Both replays diverged, and both were re-forged**, as §22.6 requires when the
+  rules change deliberately: flowers now grow where the bots walk, and the state
+  hash carries the effect and every anchor's clock. The new full run is longer
+  for it (77 984 ticks against 48 272).
+- **Orchids in a guardian's lair or at the way out** would have broken §14.3's
+  clean puzzle: those rooms never flower.
+
+Deferred, deliberately: the title screen, hi-score entry and the attract-mode
+replay that follow the tally (M8), and every sound the flowers should make (M8).
 
 ### M8 — Shell and polish (3 days)
 

@@ -40,6 +40,9 @@ import java.util.List;
 import wulf.render.QuestPainter;
 import wulf.sim.Quest;
 import wulf.ui.TallyScreen;
+import java.util.Locale;
+import wulf.data.OrchidValidator;
+import wulf.render.OrchidPainter;
 
 /**
  * Entry point. See AGENTS.md §3 for the argument list and §24 for what each
@@ -129,6 +132,16 @@ public final class Boot {
         PanelPainter panel = new PanelPainter(display, new Fonts("art/font/font.json", c.font()), palette,
                 sprites.get(c.landmarks().amulet().sprite()), QuestPainter.framesBySlot(c.landmarks()));
         QuestPainter quest = new QuestPainter(display, sprites, c.landmarks(), palette.indexOf("black"));
+        if (parsed.debugEffect() != null && c.orchids().indexOfEffect(parsed.debugEffect()) < 0) {
+            System.err.println("wulfquest: --debug-effect " + parsed.debugEffect() + " is not one of the orchids'"
+                    + " effects; see data/entities/orchids.json");
+            return;
+        }
+        OrchidPainter flowers = new OrchidPainter(display, sprites, c.orchids());
+        int[] effectColours = new int[c.orchids().orchids().size()];
+        for (int i = 0; i < effectColours.length; i++) {
+            effectColours[i] = palette.indexOf(OrchidValidator.bright(c.orchids().orchids().get(i).colour()));
+        }
         TallyScreen tally = new TallyScreen(new Fonts("art/font/font.json", c.font()).small(), palette);
         RoomPainter rooms = new RoomPainter(display, sprites, c.scenery(), palette.indexOf("black"));
         PlayerPainter vale = new PlayerPainter(display, sprites, c.player(), palette);
@@ -147,8 +160,14 @@ public final class Boot {
         // The run seed decides every room's creatures (§6.3). Game n of a session uses seed + n.
         long firstSeed = parsed.seeded() ? parsed.seed() : System.nanoTime();
         AtomicLong nextSeed = new AtomicLong(firstSeed);
-        GameSession session = new GameSession(() -> Simulation.startingIn(c.player(), world,
-                c.game().transition().freezeTicks(), start, eco, nextSeed.getAndIncrement()));
+        GameSession session = new GameSession(() -> {
+            Simulation fresh = Simulation.startingIn(c.player(), world, c.game().transition().freezeTicks(), start, eco,
+                    nextSeed.getAndIncrement());
+            if (parsed.debugEffect() != null) {
+                fresh.giveEffect(parsed.debugEffect());   // --debug-effect: every game starts under it
+            }
+            return fresh;
+        });
         ReplayRecorder recorder = parsed.record() == null ? null
                 : new ReplayRecorder(nameOf(parsed.record()), c.db().contentHash(), firstSeed, start, parsed.dev());
         System.out.println("  run seed     : " + firstSeed + (parsed.seeded() ? "" : "   (replay with --seed " + firstSeed + ")"));
@@ -188,12 +207,15 @@ public final class Boot {
                     screen.window().present(screen.scaler().render(fb));
                     return;
                 }
+                flowers.paint(fb, sim);
                 quest.paintLoot(fb, sim);
                 beasts.paint(fb, sim);
                 vale.paint(fb, sim);
                 quest.paintEscape(fb, sim);
-                panel.paint(fb, sim.score(), session.best(), sim.player().lives(), sim.quest().slotMask(), -1, 0,
-                        session.message(parsed.dev()));
+                boolean under = sim.effect().active();
+                panel.paint(fb, sim.score(), session.best(), sim.player().lives(), sim.quest().slotMask(),
+                        under ? effectColours[sim.effect().orchid()] : -1,
+                        under ? sim.effect().remainingPerMille() : 0, session.message(parsed.dev()));
                 quest.paintFlight(fb, sim, panel);
                 screen.window().present(screen.scaler().render(fb));
             }
@@ -478,8 +500,8 @@ public final class Boot {
      * Command-line arguments (AGENTS.md §3.1). A malformed argument never throws:
      * it comes back as {@link #error()}, which {@link #main} reports and exits 64.
      */
-    record Args(Path dataDir, int scale, RoomAddress room, long seed, boolean seeded, Path record, boolean headless,
-                boolean browse, boolean dev, boolean help, String error) {
+    record Args(Path dataDir, int scale, RoomAddress room, long seed, boolean seeded, Path record, String debugEffect,
+                boolean headless, boolean browse, boolean dev, boolean help, String error) {
 
         static Args parse(String[] argv) {
             Path dataDir = defaultDataDir();
@@ -488,6 +510,7 @@ public final class Boot {
             long seed = 0;
             boolean seeded = false;
             Path record = null;
+            String debugEffect = null;
             boolean headless = false;
             boolean browse = false;
             boolean dev = false;
@@ -502,6 +525,7 @@ public final class Boot {
                         case "--scale" -> scale = number(argv, ++i, "--scale");
                         case "--room" -> room = roomArg(argv, ++i);
                         case "--record" -> record = Path.of(value(argv, ++i, "--record"));
+                        case "--debug-effect" -> debugEffect = value(argv, ++i, "--debug-effect").toUpperCase(Locale.ROOT);
                         case "--seed" -> {
                             seed = longNumber(argv, ++i, "--seed");
                             seeded = true;
@@ -511,9 +535,10 @@ public final class Boot {
                     }
                 }
             } catch (IllegalArgumentException e) {
-                return new Args(dataDir, scale, room, seed, seeded, record, headless, browse, dev, help, e.getMessage());
+                return new Args(dataDir, scale, room, seed, seeded, record, debugEffect, headless, browse, dev, help,
+                        e.getMessage());
             }
-            return new Args(dataDir, scale, room, seed, seeded, record, headless, browse, dev, help, null);
+            return new Args(dataDir, scale, room, seed, seeded, record, debugEffect, headless, browse, dev, help, null);
         }
 
         private static String value(String[] argv, int i, String option) {
@@ -566,6 +591,7 @@ public final class Boot {
                       --room C,R       start in this room (default: the start room, 8,10)
                       --seed N         run seed: the same seed gives the same creatures in every room
                       --record FILE    write the first game's input to a replay (§22.6) on exit
+                      --debug-effect E start every game under an orchid's effect (§15.2)
                       --browse         the room browser instead of the game
                       --scale N        window scale (1..6)
                       --data-dir PATH  content database root (default: ./data, else the jar)

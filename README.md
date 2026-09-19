@@ -12,13 +12,13 @@ engine.
 
 ## Status
 
-**Milestone M6 complete** — the game is winnable. Four amulet quarters lie on
-pedestals in four lairs, each circled by an unkillable guardian; the sabre only
-shoves one aside. Carry all four to the stone arch, where the Keeper stands
-until the amulet is whole, and walk out. Shrines in the cave mouths point the
-way when you are lost, the Wulf still hunts you between rooms, and the panel
-shows the amulet assembling as you go. Orchids (M7) and the title screen and
-hi-scores (M8) are still to come. The full plan lives in [AGENTS.md](AGENTS.md) §24.
+**Milestone M7 complete** — and the jungle is flowering. Orchids grow on their
+own clock: a shoot, then a bud that already shows its colour, then a bloom worth
+touching — or not. Yellow is speed, cyan is treacle, magenta reverses your
+hands, green makes you untouchable for a while, white takes your legs now and
+then, and blue stops every creature in the room dead. One at a time, and a new
+bloom replaces the last. Everything else is in: the whole quest, the Wulf, and
+thirteen kinds of creature. The title screen and hi-scores come with M8. The full plan lives in [AGENTS.md](AGENTS.md) §24.
 
 ```bash
 ./run.sh                   # play, starting in 8,10
@@ -26,6 +26,8 @@ hi-scores (M8) are still to come. The full plan lives in [AGENTS.md](AGENTS.md) 
 ./run.sh --room 3,4        # start somewhere else
 ./run.sh --dev             # K kills Vale, M shows collision, H calls the Wulf
 ./run.sh --record run.json # save the first game as a replay
+./run.sh --debug-effect haste  # start under an orchid's effect: haste, torpor,
+                               # reversal, immunity, delirium, stillness
 mvn -q exec:java -Dexec.mainClass=wulf.tools.ReplayRunner -Dexec.args="replays/full_run.json"
 ./run.sh --browse          # the room browser: arrows, [ ] or PgUp/PgDn, M
 ```

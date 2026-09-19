@@ -94,6 +94,26 @@ public final class Sprite {
         }
     }
 
+    /** Draws a frame with its bright colours dropped to their plain twins: a creature held still. */
+    public void blitDimmed(Framebuffer fb, String frameId, int x, int y) {
+        byte[] px = frames.get(frameId);
+        if (px == null) {
+            throw new IllegalStateException("sprite '" + name + "' has no frame '" + frameId + "'");
+        }
+        int left = x - originX;
+        int top = y - originY;
+        for (int yy = 0; yy < h; yy++) {
+            int row = yy * w;
+            for (int xx = 0; xx < w; xx++) {
+                byte v = px[row + xx];
+                if (v >= 0) {
+                    // 9..15 are the bright half of the palette; 1..7 are the same hues, plain.
+                    fb.set(left + xx, top + yy, v >= 9 ? v - 8 : v);
+                }
+            }
+        }
+    }
+
     /**
      * Draws every other pixel of a frame from its top-left corner: half size. A tint of
      * -1 keeps the frame's colours; any other index draws the silhouette in it.

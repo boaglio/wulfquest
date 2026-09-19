@@ -45,6 +45,13 @@ class BootArgsTest {
     }
 
     @Test
+    void debugEffectNamesAnOrchidsEffect() {
+        assertThat(parse("--debug-effect", "haste").debugEffect()).as("case does not matter").isEqualTo("HASTE");
+        assertThat(parse().debugEffect()).isNull();
+        assertThat(parse("--debug-effect").error()).isEqualTo("--debug-effect needs a value");
+    }
+
+    @Test
     void anOffMapRoomIsAUsageError() {
         assertThat(parse("--room", "16,3").error()).contains("--room").contains("'16,3'").contains("0 to 15");
     }

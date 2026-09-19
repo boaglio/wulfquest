@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "fidelity": "recon",
+  "sprite": "orchid",
+  "cycle": { "seedTicks": 150, "sproutTicks": 100, "budTicks": 80, "bloomTicks": 250, "wiltTicks": 100, "swayTicks": 20 },
+  "anchors": { "perRoom": 3, "minSpacingPx": 40, "attempts": 24, "insetPx": 24 },
+  "orchids": [
+    { "colour": "yellow",  "weight": 22, "effect": "HASTE",     "ticks": 500, "speedScaleFp": 512, "score": 50 },
+    { "colour": "cyan",    "weight": 20, "effect": "TORPOR",    "ticks": 400, "speedScaleFp": 128, "score": 25 },
+    { "colour": "magenta", "weight": 18, "effect": "REVERSAL",  "ticks": 600, "speedScaleFp": 256, "score": 25 },
+    { "colour": "green",   "weight": 15, "effect": "IMMUNITY",  "ticks": 400, "speedScaleFp": 256, "score": 75 },
+    { "colour": "white",   "weight": 15, "effect": "DELIRIUM",  "ticks": 300, "speedScaleFp": 256, "score": 25 },
+    { "colour": "blue",    "weight": 10, "effect": "STILLNESS", "ticks": 250, "speedScaleFp": 256, "score": 75 }
+  ],
+  "delirium": { "everyMinTicks": 20, "everyRandomTicks": 20, "holdTicks": 10 },
+  "immunity": { "flashPeriodTicks": 4 }
+}

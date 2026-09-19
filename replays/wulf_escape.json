@@ -1,23 +1,27 @@
 {
   "schemaVersion": 1,
   "name": "wulf_escape",
-  "note": "Forged by WulfEscapeForge: the Wulf appeared in 9,10 at tick 294 and chased across 4 rooms to 12,10, parried 4 times, until it was outrun; no lives lost. Replayed by ReplayTest.",
-  "contentHash": "ad60e48c59341f9a259069211ac73aba3e66eb6db0bf4ca5b639346d00091628",
-  "seed": 2,
+  "note": "Forged by WulfEscapeForge: the Wulf appeared in 9,11 at tick 419 and chased across 4 rooms to 11,12, parried 4 times, until it gave up; no lives lost. Replayed by ReplayTest.",
+  "contentHash": "fc5d49ee2a3f3f2842806516ea26f46d4448b33db48810da3c1691853e6bc3c4",
+  "seed": 17,
   "startRoom": "8,10",
   "dev": false,
   "checkpointEvery": 50,
   "input": [
-    [3, 5], [177, 8], [1, 58], [1, 9], [17, 8], [1, 50], [1, 9], [17, 8], [1, 1], [1, 54],
-    [1, 9], [19, 1], [1, 54], [1, 9], [28, 1], [5, 4], [8, 1], [32, 4], [40, 1], [5, 8],
-    [8, 1], [117, 8], [1, 52], [3, 0], [44, 8], [1, 56], [37, 8], [8, 0], [1, 52], [6, 0],
-    [96, 8], [1, 52], [3, 0], [78, 8], [8, 0], [1, 52], [7, 0], [165, 8]
+    [3, 5], [16, 4], [93, 2], [123, 8], [1, 56], [1, 4], [62, 8], [1, 56], [2, 8], [1, 0],
+    [4, 8], [40, 2], [32, 8], [64, 2], [90, 8], [1, 52], [3, 0], [15, 8], [1, 56], [18, 8],
+    [1, 56], [26, 8], [4, 2], [8, 0], [1, 52], [6, 0], [2, 10], [28, 2], [10, 0], [1, 53],
+    [6, 0], [1, 10], [60, 2], [5, 8], [1, 52], [4, 0], [94, 8], [552, 0], [41, 8], [40, 2],
+    [5, 4], [14, 2]
   ],
   "hashes": [
-    "8e05ec28d6e59ab0", "66c12b76164729a3", "b299adc1097da4d1", "b9102e16c74f85e0",
-    "8ba1dd2d0aa32c93", "c702758fb42453b8", "0a4053c76fa1c559", "7f42d27f50cf8860",
-    "285f3f0cf7898fc3", "c9137b9025b86954", "f310b0211ae36f29", "d68da25d6813b990",
-    "06f5557e2d6d067b", "f2a75d5959142c17", "4b117b9668a7753e", "60c96fb49a07a0c3",
-    "5bdcc6b227d1c655", "919e535f9bea625c"
+    "155c297c9fd0b305", "4cbff4e8c82fb850", "b1d86455036d5339", "410a8b6295276a69",
+    "9ff1cebf3243b38c", "504caa170095298d", "bd356d46cd6d29ca", "784ad2a569f43206",
+    "7f483a3b46d2efee", "a7ce388c2612f138", "87ebf49e482e88a7", "5660acaaf0392884",
+    "e1dff7af283fe8fd", "02aa4b1241b4618c", "1708051c00c34667", "90cd881c058c21f5",
+    "4556a065171ef685", "bdd10690a4388912", "51a24b9b920c095e", "5e3c46422bb1fd87",
+    "8124dedb2e15c333", "c8ddf8a51d65d7a3", "d8a609b627240194", "daf0416c4c6ec0e7",
+    "dcc1db61f1b3f4ee", "9123d6dbdb7f4b31", "76425b9859d45151", "364c69bf12358c26",
+    "961ba98e02bf5134"
   ]
 }
