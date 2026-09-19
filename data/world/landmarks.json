@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "fidelity": "recon",
+  "startFacing": "N",
+  "exit": {
+    "room": "6,11",
+    "arch": "85C8",
+    "zone": { "x": 108, "y": 104, "w": 40, "h": 24 },
+    "keeper": { "x": 128, "y": 120 },
+    "requiresPieces": 4,
+    "escapeWalkTicks": 40
+  },
+  "lairs": [
+    { "id": "lair_nw", "room": "2,7",  "guardian": "guardian_hippo",      "piece": { "id": "amulet_nw", "frame": "nw", "slot": 0 }, "pedestal": { "x": 128, "y": 88 } },
+    { "id": "lair_ne", "room": "12,7", "guardian": "guardian_rhino",      "piece": { "id": "amulet_ne", "frame": "ne", "slot": 1 }, "pedestal": { "x": 128, "y": 88 } },
+    { "id": "lair_sw", "room": "6,14", "guardian": "guardian_boar",       "piece": { "id": "amulet_sw", "frame": "sw", "slot": 2 }, "pedestal": { "x": 128, "y": 88 } },
+    { "id": "lair_se", "room": "8,14", "guardian": "guardian_wildebeest", "piece": { "id": "amulet_se", "frame": "se", "slot": 3 }, "pedestal": { "x": 128, "y": 88 } }
+  ],
+  "amulet": {
+    "sprite": "amulet_piece",
+    "size": { "w": 16, "h": 16 },
+    "collisionBox": { "x": -8, "y": -16, "w": 16, "h": 16 },
+    "pickupFlashTicks": 8,
+    "flyToPanelTicks": 24
+  },
+  "caveMouths": ["7,3", "12,8", "1,10", "14,10", "4,13", "6,13", "5,14"],
+  "hint": { "messageTicks": 90, "oncePerLife": true },
+  "stillWater": {
+    "name": "The Still Water",
+    "rooms": ["7,6", "8,7", "7,7", "9,7", "7,8", "8,8", "9,8", "8,9", "7,9", "9,9", "10,9"]
+  }
+}

@@ -291,4 +291,56 @@ public final class MapAudit {
         }
         System.exit(report.passes() ? 0 : 1);
     }
+
+    /**
+     * Rooms crossed on the shortest walk from {@code start} to every room, at the player's
+     * 2x2-cell clearance (§14.2): moving within a room costs nothing, crossing into the
+     * next costs one. {@link Integer#MAX_VALUE} where a room cannot be reached.
+     */
+    public static int[] roomDistances(WorldGrid grid, RoomAddress start) {
+        int cols = WorldGrid.COLS;
+        int[] best = new int[cols * WorldGrid.ROWS];
+        java.util.Arrays.fill(best, Integer.MAX_VALUE);
+        int[] rooms = new int[RoomAddress.GRID_W * RoomAddress.GRID_H];
+        java.util.Arrays.fill(rooms, Integer.MAX_VALUE);
+        int seed = nearestPassable(grid, start);
+        if (seed < 0) {
+            return rooms;
+        }
+        java.util.ArrayDeque<int[]> queue = new java.util.ArrayDeque<>();
+        best[seed] = 0;
+        queue.add(new int[] {seed % cols, seed / cols, 0});
+        int[][] steps = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};
+        while (!queue.isEmpty()) {
+            int[] at = queue.poll();
+            int x = at[0];
+            int y = at[1];
+            int d = at[2];
+            if (d > best[y * cols + x]) {
+                continue;
+            }
+            int room = (y / CollisionMask.ROWS) * RoomAddress.GRID_W + x / CollisionMask.COLS;
+            rooms[room] = Math.min(rooms[room], d);
+            for (int[] s : steps) {
+                int nx = x + s[0];
+                int ny = y + s[1];
+                if (nx < 0 || ny < 0 || nx >= cols || ny >= WorldGrid.ROWS || !grid.blockPassable(nx, ny)) {
+                    continue;
+                }
+                boolean crossing = nx / CollisionMask.COLS != x / CollisionMask.COLS
+                        || ny / CollisionMask.ROWS != y / CollisionMask.ROWS;
+                int nd = d + (crossing ? 1 : 0);
+                if (nd < best[ny * cols + nx]) {
+                    best[ny * cols + nx] = nd;
+                    // 0-1 breadth-first: free steps to the front, crossings to the back.
+                    if (crossing) {
+                        queue.addLast(new int[] {nx, ny, nd});
+                    } else {
+                        queue.addFirst(new int[] {nx, ny, nd});
+                    }
+                }
+            }
+        }
+        return rooms;
+    }
 }

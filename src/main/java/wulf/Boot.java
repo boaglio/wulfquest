@@ -36,6 +36,10 @@ import wulf.world.Room;
 import wulf.world.RoomAddress;
 import wulf.world.WorldGrid;
 import wulf.engine.ReplayRecorder;
+import java.util.List;
+import wulf.render.QuestPainter;
+import wulf.sim.Quest;
+import wulf.ui.TallyScreen;
 
 /**
  * Entry point. See AGENTS.md §3 for the argument list and §24 for what each
@@ -121,8 +125,11 @@ public final class Boot {
         DisplayConfig display = c.display();
         Palette palette = c.palette();
         Screen screen = openScreen(c, parsed, "Wulf Quest");
-        PanelPainter panel = new PanelPainter(display, new Fonts("art/font/font.json", c.font()), palette);
         SpriteBank sprites = new SpriteBank(c.sprites());
+        PanelPainter panel = new PanelPainter(display, new Fonts("art/font/font.json", c.font()), palette,
+                sprites.get(c.landmarks().amulet().sprite()), QuestPainter.framesBySlot(c.landmarks()));
+        QuestPainter quest = new QuestPainter(display, sprites, c.landmarks(), palette.indexOf("black"));
+        TallyScreen tally = new TallyScreen(new Fonts("art/font/font.json", c.font()).small(), palette);
         RoomPainter rooms = new RoomPainter(display, sprites, c.scenery(), palette.indexOf("black"));
         PlayerPainter vale = new PlayerPainter(display, sprites, c.player(), palette);
         int border = palette.indexOf(display.border().idleColour());
@@ -169,17 +176,25 @@ public final class Boot {
                 Framebuffer fb = screen.fb();
                 fb.clear(!display.border().flashOnEvent() ? border : switch (sim.borderFlash()) {
                     case ALARM -> alarm;
-                    case PARRY -> parry;
+                    case PARRY, PICKUP -> parry;   // bright white for a parry (§13.5) and a quarter taken (§14.6)
                     case NONE -> border;
                 });
                 rooms.paint(fb, room);
                 if (session.showMask()) {
                     rooms.paintMask(fb, room, maskColour);
                 }
+                if (sim.player().mode() == Player.Mode.WON) {
+                    tally.paint(fb, sim.quest(), sim.score(), session.best(), sim.player().modeTick() + session.sinceWon());
+                    screen.window().present(screen.scaler().render(fb));
+                    return;
+                }
+                quest.paintLoot(fb, sim);
                 beasts.paint(fb, sim);
                 vale.paint(fb, sim);
-                panel.paint(fb, sim.score(), session.best(), sim.player().lives(), 0, -1, 0,
+                quest.paintEscape(fb, sim);
+                panel.paint(fb, sim.score(), session.best(), sim.player().lives(), sim.quest().slotMask(), -1, 0,
                         session.message(parsed.dev()));
+                quest.paintFlight(fb, sim, panel);
                 screen.window().present(screen.scaler().render(fb));
             }
 
@@ -207,8 +222,12 @@ public final class Boot {
      */
     static final class GameSession {
 
+        /** Plumbing, not a game number: how long the tally ignores fire, so it cannot be skipped by accident. */
+        private static final int TALLY_HOLD_TICKS = 100;
+
         private final Supplier<Simulation> newGame;
         private Simulation sim;
+        private int sinceWon;
         private long best;
         private boolean paused;
         private boolean showMask;
@@ -227,10 +246,16 @@ public final class Boot {
             if (dev && in.devMaskPressed()) {
                 showMask = !showMask;
             }
-            if (sim.player().mode() == Player.Mode.GAME_OVER) {
-                if (in.firePressed()) {
+            Player.Mode mode = sim.player().mode();
+            if (mode == Player.Mode.GAME_OVER || mode == Player.Mode.WON) {
+                if (mode == Player.Mode.WON) {
+                    sinceWon++;
+                }
+                // A beat before fire counts, so the press that won the game cannot skip the tally.
+                if (in.firePressed() && (mode == Player.Mode.GAME_OVER || sinceWon > TALLY_HOLD_TICKS)) {
                     sim = newGame.get();
                     paused = false;
+                    sinceWon = 0;
                 }
                 return;
             }
@@ -249,13 +274,21 @@ public final class Boot {
             return best;
         }
 
-        /** The panel line: game over, pause, or in dev mode where you are. Null for none. */
+        /** Ticks the tally has been showing. */
+        int sinceWon() {
+            return sinceWon;
+        }
+
+        /** The panel line: game over, pause, a shrine's hint, or in dev mode where you are. Null for none. */
         String message(boolean dev) {
             if (sim.player().mode() == Player.Mode.GAME_OVER) {
                 return "GAME OVER - PRESS FIRE";
             }
             if (paused) {
                 return "PAUSED";
+            }
+            if (sim.quest().hintTicks() > 0) {
+                return hint(sim.quest());
             }
             if (dev) {
                 Player p = sim.player();
@@ -268,6 +301,21 @@ public final class Boot {
 
         Simulation sim() {
             return sim;
+        }
+
+        /** §14.5: {@code AMULET STIRS TO THE NORTH-WEST}, or the way to the arch once it is whole. */
+        static String hint(Quest quest) {
+            String way = switch (quest.hintDirection()) {
+                case N -> "NORTH";
+                case NE -> "NORTH-EAST";
+                case E -> "EAST";
+                case SE -> "SOUTH-EAST";
+                case S -> "SOUTH";
+                case SW -> "SOUTH-WEST";
+                case W -> "WEST";
+                case NW -> "NORTH-WEST";
+            };
+            return (quest.hintToExit() ? "THE ARCH CALLS FROM THE " : "AMULET STIRS TO THE ") + way;
         }
 
         boolean paused() {
@@ -289,7 +337,7 @@ public final class Boot {
         DisplayConfig display = c.display();
         Palette palette = c.palette();
         Screen screen = openScreen(c, parsed, "Wulf Quest — room browser");
-        PanelPainter panel = new PanelPainter(display, new Fonts("art/font/font.json", c.font()), palette);
+        PanelPainter panel = new PanelPainter(display, new Fonts("art/font/font.json", c.font()), palette, null, List.of());
         RoomPainter rooms = new RoomPainter(display, new SpriteBank(c.sprites()), c.scenery(), palette.indexOf("black"));
         int border = palette.indexOf(display.border().idleColour());
         int frameColour = palette.indexOf("blue");

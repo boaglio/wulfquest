@@ -1,0 +1,96 @@
+{
+  "schemaVersion": 1,
+  "name": "creature_guardian_wildebeest",
+  "size": {
+    "w": 32,
+    "h": 28
+  },
+  "origin": {
+    "x": 16,
+    "y": 28
+  },
+  "legend": {
+    ".": -1,
+    "K": 0,
+    "Y": 14,
+    "W": 15
+  },
+  "frames": [
+    {
+      "id": "walk0",
+      "rows": [
+        "................................",
+        "................................",
+        "................................",
+        "................................",
+        "................................",
+        "................................",
+        ".......................K.....KK.",
+        ".........KKKKKKKKKKKK.KYK...KYYK",
+        ".......KKYYYYYYYYYYYYKKYYK..KYK.",
+        ".....KKYYYYYYYYYYYYYYYYKYKKKYK..",
+        "....KYWWWWWWWWWWWWWWYYYYYYYYYK..",
+        "...KWWWWWWWWWWWWWWWWWWYYYYKYYYK.",
+        "..KYWWWWWWWWWWWWWWWWWWYYYYYYYYK.",
+        "..KYYYWWWWWWWWWWWWWWYYYYYYYYKYK.",
+        "KKYYYYYYYYYYYYYYYYYYYYYYYYYYYYK.",
+        "YYYYYYYYYYYYYYYYYYYYYYYYYYYYYK..",
+        "YKYYYYYYYYYYYYYYYYYYYYYYYYYYK...",
+        "YKYYYYYYYYYYYYYYYYYYYYYYYYYYK...",
+        "YKKYYYYYYYYYYYYYYYYYYYYYYYYK....",
+        "YKKYYYYYYYYYYYYYYYYYYYYYYYYK....",
+        "K..KYYYYYYYYYYYYYYYYYYYYYYK.....",
+        "....KYYYYYYYYYYYYYYYYYYYYYK.....",
+        "....KYYYYYYYYYYYYYYYYYYYYYK.....",
+        "....KYYYYYYYYYYYYYYYYKYYYYK.....",
+        ".....KYYKKKKKKKKKKKKK.KYYK......",
+        ".....KYYK.............KYYK......",
+        ".....KYYK.............KYYK......",
+        ".....KYYK.............KYYK......"
+      ]
+    },
+    {
+      "id": "walk1",
+      "rows": [
+        "................................",
+        "................................",
+        "................................",
+        "................................",
+        "................................",
+        "................................",
+        ".......................K.....KK.",
+        ".........KKKKKKKKKKKK.KYK...KYYK",
+        ".......KKYYYYYYYYYYYYKKYYK..KYK.",
+        ".....KKYYYYYYYYYYYYYYYYKYKKKYK..",
+        "....KYWWWWWWWWWWWWWWYYYYYYYYYK..",
+        "...KWWWWWWWWWWWWWWWWWWYYYYKYYYK.",
+        "..KYWWWWWWWWWWWWWWWWWWYYYYYYYYK.",
+        "..KYYYWWWWWWWWWWWWWWYYYYYYYYKYK.",
+        "KKYYYYYYYYYYYYYYYYYYYYYYYYYYYYK.",
+        "YYYYYYYYYYYYYYYYYYYYYYYYYYYYYK..",
+        "YKYYYYYYYYYYYYYYYYYYYYYYYYYYK...",
+        "YKYYYYYYYYYYYYYYYYYYYYYYYYYYK...",
+        "YKKYYYYYYYYYYYYYYYYYYYYYYYYK....",
+        "YKKYYYYYYYYYYYYYYYYYYYYYYYYK....",
+        "K..KYYYYYYYYYYYYYYYYYYYYYYYK....",
+        "...KYYYYYYYYYYYYYYYYYYYYYKYK....",
+        "..KYYKKYYYYYYYYYYYYYYYYKKKYYK...",
+        "..KYYK.KKYYYYYYYYYYYYYK..KYYK...",
+        "..KYK....KYKKKKKKKKKYK....KYK...",
+        "..KYK....KYK.......KYK....KYK...",
+        ".KYYK....KYYK.....KYYK....KYYK..",
+        ".KYYK....KYYK.....KYYK....KYYK.."
+      ]
+    }
+  ],
+  "mirror": {
+    "walk0_l": {
+      "from": "walk0",
+      "flipX": true
+    },
+    "walk1_l": {
+      "from": "walk1",
+      "flipX": true
+    }
+  }
+}

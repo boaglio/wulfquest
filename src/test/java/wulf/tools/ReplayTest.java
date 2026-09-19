@@ -115,6 +115,35 @@ class ReplayTest {
         assertThat(longestEscape).as("rooms in the longest chase that ended in an escape").isGreaterThanOrEqualTo(4);
     }
 
+    /**
+     * M6's acceptance replay: the whole game won — four quarters and out through the
+     * arch — so a rules change that makes the quest unwinnable fails here, loudly.
+     */
+    @Test
+    void theFullRunReplayWinsTheGame() {
+        Replay r = Replay.read(Path.of("replays/full_run.json"));
+        ReplayRunner.Result result = ReplayRunner.run(content, r);
+        assertThat(result.passed()).as("full_run diverged at tick %d: expected %s, got %s",
+                result.divergedAtTick(), result.expected(), result.actual()).isTrue();
+
+        Simulation sim = ReplayRunner.start(content, r);
+        wulf.input.RecordedInput.Cursor in = r.recorded().cursor();
+        int deaths = 0;
+        while (in.hasNext()) {
+            wulf.sim.Player.Mode before = sim.player().mode();
+            sim.play(in.next(), r.dev());
+            if (before == wulf.sim.Player.Mode.ALIVE && sim.player().mode() == wulf.sim.Player.Mode.DYING) {
+                deaths++;
+            }
+        }
+        assertThat(sim.player().mode()).as("won").isEqualTo(wulf.sim.Player.Mode.WON);
+        assertThat(sim.quest().piecesHeld()).isEqualTo(4);
+        assertThat(sim.quest().slotMask()).isEqualTo(0b1111);
+        assertThat(sim.quest().keeperState()).isEqualTo(wulf.sim.Quest.Keeper.ASIDE);
+        assertThat(sim.score()).isGreaterThan(4L * content.loot().event("amuletPiece"));
+        assertThat(deaths).as("forged clean").isZero();
+    }
+
     @Test
     void aWrongHashIsCaughtAtItsCheckpoint() {
         Replay r = record(5L, 600);

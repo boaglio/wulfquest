@@ -1,0 +1,188 @@
+{
+  "schemaVersion": 1,
+  "name": "creature_keeper",
+  "size": {
+    "w": 24,
+    "h": 32
+  },
+  "origin": {
+    "x": 12,
+    "y": 32
+  },
+  "legend": {
+    ".": -1,
+    "K": 0,
+    "y": 6,
+    "w": 7,
+    "C": 13,
+    "W": 15
+  },
+  "frames": [
+    {
+      "id": "stand",
+      "rows": [
+        "........................",
+        "................KK......",
+        "...............KCCK.....",
+        ".......KKKKKKKKCCCCK....",
+        "......KCCCCCCCCCCCCK....",
+        ".......KKWWWWWWKCCK.....",
+        "........KWWWWWWKyyK.....",
+        "........KWWKWWKKyyK.....",
+        ".......KKWWWWWWKyyK.....",
+        "......KwwwWWWWwwyyK.....",
+        "......KwwwwwwwwwyyK.....",
+        "......KwwwwwwwwwyyK.....",
+        "......KwwwwwwwwwyyK.....",
+        "......KwCwwCwwCwyyK.....",
+        "......KwwwwwwwwwyyK.....",
+        "......KwwwwwwwwwyyK.....",
+        "......KwwwwwwwwwyyK.....",
+        "......KwwwwwwwwwyyK.....",
+        "......KwwwwwwwwwyyK.....",
+        "......KwwwwwwwwwyyK.....",
+        "......KwwwwwwwwwyyK.....",
+        "......KwwwwwwwwwyyK.....",
+        "......KwwwwwwwwwyyK.....",
+        ".......KwwKKwwKKyyK.....",
+        "........KwKKwK.KyyK.....",
+        "........KwKKwK.KyyK.....",
+        "........KwKKwK.KyyK.....",
+        "........KwwwwK.KyyK.....",
+        "........KwwwwK.KyyK.....",
+        "........KwwwwK.KyyK.....",
+        "........KwwwwK.KyyK.....",
+        ".........KwwK...KK......"
+      ]
+    },
+    {
+      "id": "step0",
+      "rows": [
+        "........................",
+        "..................K.....",
+        ".................KCK....",
+        "........KKKKKKKKKCCCK...",
+        ".......KCCCCCCCCCCCCK...",
+        "........KKKWWWWWKKCK....",
+        ".........KWWWWWWWKyK....",
+        ".........KWWKWWKWKyK....",
+        "........KKKWWWWWKKyK....",
+        ".......KwwwWWWWWwKyK....",
+        ".......KwwwwwwwwwKyK....",
+        ".......KwwwwwwwwwKyK....",
+        ".......KwwwwwwwwwKyK....",
+        ".......KwCwwCwwCwKyK....",
+        ".......KwwwwwwwwwKyK....",
+        ".......KwwwwwwwwwKyK....",
+        ".......KwwwwwwwwwKyK....",
+        ".......KwwwwwwwwwKyK....",
+        ".......KwwwwwwwwwKyK....",
+        ".......KwwwwwwwwwKyK....",
+        ".......KwwwwwwwwwKyK....",
+        ".......KwwwwwwwwwKyK....",
+        ".......KwwwwwwwwwKyK....",
+        "........KKwKKKwwKKyK....",
+        "........KwwK.KwwKKyK....",
+        "........KwwK.KwwKKyK....",
+        "........KwwK.KwwKKyK....",
+        "........KwwK..KwKKyK....",
+        "........KwwK..KwKKyK....",
+        "........KwK...KwKKyK....",
+        "........KwK...KwwKyK....",
+        "........KwK...KwKKyK...."
+      ]
+    },
+    {
+      "id": "step1",
+      "rows": [
+        "........................",
+        "....................K...",
+        "...................KCK..",
+        "..........KKKKKKKKKCCCK.",
+        ".........KCCCCCCCCCCCCK.",
+        "..........KKWWWWWWKyCK..",
+        "...........KWWWWWWKyyK..",
+        "...........KWWKWWKKyyK..",
+        "..........KKWWWWWWKyyK..",
+        ".........KwwwWWWWwwyyK..",
+        ".........KwwwwwwwwwyyK..",
+        ".........KwwwwwwwwwyyK..",
+        ".........KwwwwwwwwwyyK..",
+        ".........KwCwwCwwCwyyK..",
+        ".........KwwwwwwwwwyyK..",
+        ".........KwwwwwwwwwyyK..",
+        ".........KwwwwwwwwwyyK..",
+        ".........KwwwwwwwwwyyK..",
+        ".........KwwwwwwwwwyyK..",
+        ".........KwwwwwwwwwyyK..",
+        ".........KwwwwwwwwwyyK..",
+        ".........KwwwwwwwwwyyK..",
+        ".........KwwwwwwwwwyyK..",
+        "..........KKwKKwwKKyyK..",
+        "...........KwKKwwKKyyK..",
+        "...........KwKKwwKKyyK..",
+        "...........KwwKwK.KyyK..",
+        "...........KwwKwK.KyyK..",
+        "...........KwwKwK.KyyK..",
+        "...........KwwwwK.KyyK..",
+        "............KwwwK.KyyK..",
+        "............KwwwK..KyK.."
+      ]
+    },
+    {
+      "id": "aside",
+      "rows": [
+        "........................",
+        ".....................K..",
+        "....................KCK.",
+        "...........KKKKKKKKKCCCK",
+        "..........KCCCCCCCCCCCCK",
+        "...........KKKWWWWWWKCyK",
+        ".............KWWWWWWKyyK",
+        ".............KWKWWKWKyyK",
+        "...........KKKWWWWWWKyyK",
+        "..........KwwwwWWWWwKyyK",
+        "..........KwwwwwwwwwKyyK",
+        "..........KwwwwwwwwwKyyK",
+        "..........KwwwwwwwwwKyyK",
+        "..........KwCwwCwwCwKyyK",
+        "..........KwwwwwwwwwKyyK",
+        "..........KwwwwwwwwwKyyK",
+        "..........KwwwwwwwwwKyyK",
+        "..........KwwwwwwwwwKyyK",
+        "..........KwwwwwwwwwKyyK",
+        "..........KwwwwwwwwwKyyK",
+        "..........KwwwwwwwwwKyyK",
+        "..........KwwwwwwwwwKyyK",
+        "..........KwwwwwwwwwKyyK",
+        "...........KKwKKKwwKKyyK",
+        "............KwK.KwwKKyyK",
+        "............KwK.KwwKKyyK",
+        "...........KwwK..KwKKyyK",
+        "...........KwwK..KwKKyyK",
+        "...........KwwK..KwKKyyK",
+        "...........KwwK..KwwKyyK",
+        "...........KwK...KwwKyyK",
+        "...........KwK...KwwKyK."
+      ]
+    }
+  ],
+  "mirror": {
+    "stand_l": {
+      "from": "stand",
+      "flipX": true
+    },
+    "step0_l": {
+      "from": "step0",
+      "flipX": true
+    },
+    "step1_l": {
+      "from": "step1",
+      "flipX": true
+    },
+    "aside_l": {
+      "from": "aside",
+      "flipX": true
+    }
+  }
+}

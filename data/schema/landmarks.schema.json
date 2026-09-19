@@ -1,0 +1,96 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wulfquest.invalid/schema/landmarks.schema.json",
+  "title": "world/landmarks.json — AGENTS.md §14",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "fidelity", "startFacing", "exit", "lairs", "amulet", "caveMouths", "hint", "stillWater"],
+  "properties": {
+    "schemaVersion": { "type": "integer", "minimum": 1 },
+    "fidelity": { "enum": ["recon", "canon"] },
+    "startFacing": { "enum": ["N", "NE", "E", "SE", "S", "SW", "W", "NW"] },
+    "exit": {
+      "type": "object", "additionalProperties": false,
+      "required": ["room", "arch", "zone", "keeper", "requiresPieces", "escapeWalkTicks"],
+      "properties": {
+        "room": { "$ref": "#/$defs/room" },
+        "arch": { "type": "string", "pattern": "^[0-9A-F]{4}$" },
+        "zone": { "$ref": "#/$defs/rect" },
+        "keeper": { "$ref": "#/$defs/point" },
+        "requiresPieces": { "type": "integer", "minimum": 1, "maximum": 4 },
+        "escapeWalkTicks": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "lairs": {
+      "type": "array", "minItems": 4, "maxItems": 4,
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["id", "room", "guardian", "piece", "pedestal"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^lair_[a-z]+$" },
+          "room": { "$ref": "#/$defs/room" },
+          "guardian": { "type": "string", "pattern": "^guardian_[a-z][a-z0-9_]*$" },
+          "piece": {
+            "type": "object", "additionalProperties": false, "required": ["id", "frame", "slot"],
+            "properties": {
+              "id": { "type": "string", "pattern": "^amulet_[a-z]+$" },
+              "frame": { "type": "string", "pattern": "^[a-z0-9_]+$" },
+              "slot": { "type": "integer", "minimum": 0, "maximum": 3 }
+            }
+          },
+          "pedestal": { "$ref": "#/$defs/point" }
+        }
+      }
+    },
+    "amulet": {
+      "type": "object", "additionalProperties": false,
+      "required": ["sprite", "size", "collisionBox", "pickupFlashTicks", "flyToPanelTicks"],
+      "properties": {
+        "sprite": { "type": "string", "pattern": "^[a-z][a-z0-9_]*$" },
+        "size": {
+          "type": "object", "additionalProperties": false, "required": ["w", "h"],
+          "properties": { "w": { "type": "integer", "minimum": 1, "maximum": 64 }, "h": { "type": "integer", "minimum": 1, "maximum": 64 } }
+        },
+        "collisionBox": {
+          "type": "object", "additionalProperties": false, "required": ["x", "y", "w", "h"],
+          "properties": {
+            "x": { "type": "integer" }, "y": { "type": "integer" },
+            "w": { "type": "integer", "minimum": 1, "maximum": 64 },
+            "h": { "type": "integer", "minimum": 1, "maximum": 64 }
+          }
+        },
+        "pickupFlashTicks": { "type": "integer", "minimum": 0 },
+        "flyToPanelTicks": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "caveMouths": { "type": "array", "uniqueItems": true, "items": { "$ref": "#/$defs/room" } },
+    "hint": {
+      "type": "object", "additionalProperties": false, "required": ["messageTicks", "oncePerLife"],
+      "properties": {
+        "messageTicks": { "type": "integer", "minimum": 1 },
+        "oncePerLife": { "type": "boolean" }
+      }
+    },
+    "stillWater": {
+      "type": "object", "additionalProperties": false, "required": ["name", "rooms"],
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "rooms": { "type": "array", "uniqueItems": true, "items": { "$ref": "#/$defs/room" } }
+      }
+    }
+  },
+  "$defs": {
+    "room": { "type": "string", "pattern": "^(1[0-5]|[0-9]),(1[0-5]|[0-9])$" },
+    "point": {
+      "type": "object", "additionalProperties": false, "required": ["x", "y"],
+      "properties": { "x": { "type": "integer", "minimum": 0, "maximum": 255 }, "y": { "type": "integer", "minimum": 0, "maximum": 191 } }
+    },
+    "rect": {
+      "type": "object", "additionalProperties": false, "required": ["x", "y", "w", "h"],
+      "properties": {
+        "x": { "type": "integer", "minimum": 0, "maximum": 255 }, "y": { "type": "integer", "minimum": 0, "maximum": 191 },
+        "w": { "type": "integer", "minimum": 1, "maximum": 256 }, "h": { "type": "integer", "minimum": 1, "maximum": 192 }
+      }
+    }
+  }
+}

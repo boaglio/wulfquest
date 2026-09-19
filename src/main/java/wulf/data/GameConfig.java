@@ -25,7 +25,8 @@ public record GameConfig(
         }
     }
 
-    public record Exit(int keeperNudgeZonePx, int keeperStepAsideTicks) {
+    /** §14.4: in front of the Keeper, a push of {@code keeperNudgePx} instead of a death. */
+    public record Exit(int keeperNudgeZonePx, int keeperStepAsideTicks, int keeperNudgePx) {
     }
 
     /** A feature flag (AGENTS.md §1.1); unknown names are a programmer error. */

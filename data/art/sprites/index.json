@@ -1,11 +1,17 @@
 {
   "schemaVersion": 1,
   "sprites": [
+    "amulet_piece",
     "creature_bat",
     "creature_boar",
     "creature_chief",
     "creature_frog",
+    "creature_guardian_boar",
+    "creature_guardian_hippo",
+    "creature_guardian_rhino",
+    "creature_guardian_wildebeest",
     "creature_hippo",
+    "creature_keeper",
     "creature_rhino",
     "creature_scorpion",
     "creature_snake",

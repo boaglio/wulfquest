@@ -12,11 +12,13 @@ engine.
 
 ## Status
 
-**Milestone M5 complete** — and something is hunting you. Thirteen kinds of
-creature fill the jungle by its landscape, and now there is the Wulf: it howls
-at the edge of the screen, gives you less than a second, then comes — faster
-than you, unkillable, following you from room to room. The sabre only buys you
-a moment. Terrain is your friend. There is no quest yet (M6). The full plan lives in [AGENTS.md](AGENTS.md) §24.
+**Milestone M6 complete** — the game is winnable. Four amulet quarters lie on
+pedestals in four lairs, each circled by an unkillable guardian; the sabre only
+shoves one aside. Carry all four to the stone arch, where the Keeper stands
+until the amulet is whole, and walk out. Shrines in the cave mouths point the
+way when you are lost, the Wulf still hunts you between rooms, and the panel
+shows the amulet assembling as you go. Orchids (M7) and the title screen and
+hi-scores (M8) are still to come. The full plan lives in [AGENTS.md](AGENTS.md) §24.
 
 ```bash
 ./run.sh                   # play, starting in 8,10
@@ -24,6 +26,7 @@ a moment. Terrain is your friend. There is no quest yet (M6). The full plan live
 ./run.sh --room 3,4        # start somewhere else
 ./run.sh --dev             # K kills Vale, M shows collision, H calls the Wulf
 ./run.sh --record run.json # save the first game as a replay
+mvn -q exec:java -Dexec.mainClass=wulf.tools.ReplayRunner -Dexec.args="replays/full_run.json"
 ./run.sh --browse          # the room browser: arrows, [ ] or PgUp/PgDn, M
 ```
 

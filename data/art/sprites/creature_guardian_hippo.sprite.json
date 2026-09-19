@@ -1,0 +1,96 @@
+{
+  "schemaVersion": 1,
+  "name": "creature_guardian_hippo",
+  "size": {
+    "w": 32,
+    "h": 28
+  },
+  "origin": {
+    "x": 16,
+    "y": 28
+  },
+  "legend": {
+    ".": -1,
+    "K": 0,
+    "G": 12,
+    "W": 15
+  },
+  "frames": [
+    {
+      "id": "walk0",
+      "rows": [
+        "................................",
+        "................................",
+        "................................",
+        "................................",
+        "................................",
+        "................................",
+        "................................",
+        ".........KKKKKKKKKKKK...........",
+        ".......KKGGGGGGGGGGGGKK.........",
+        ".....KKGGGGGGGGGGGGGGGGKKKKKK...",
+        "....KGWWWWWWWWWWWWWWGGGGGGGGGK..",
+        "...KWWWWWWWWWWWWWWWWWWGGKGKGGGK.",
+        "..KGWWWWWWWWWWWWWWWWWWGGGGGGGGGK",
+        "..KGGGWWWWWWWWWWWWWWGGGGGGGGGGGG",
+        ".KGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG",
+        ".KGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG",
+        ".KGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG",
+        ".KGGGGGGGGGGGGGGGGGGGGGGGGGGGGGK",
+        "..KGGGGGGGGGGGGGGGGGGGGGGGKKGKGK",
+        "..KGGGGGGGGGGGGGGGGGGGGGGGGGGKK.",
+        "...KGGGGGGGGGGGGGGGGGGGGGGKKK...",
+        "....KGGGGGGGGGGGGGGGGGGGGGK.....",
+        "....KGGGGGGGGGGGGGGGGGGGGGK.....",
+        "....KGGGGGGGGGGGGGGGGKGGGGK.....",
+        ".....KGGKKKKKKKKKKKKK.KGGK......",
+        ".....KGGK.............KGGK......",
+        ".....KGGK.............KGGK......",
+        ".....KGGK.............KGGK......"
+      ]
+    },
+    {
+      "id": "walk1",
+      "rows": [
+        "................................",
+        "................................",
+        "................................",
+        "................................",
+        "................................",
+        "................................",
+        "................................",
+        ".........KKKKKKKKKKKK...........",
+        ".......KKGGGGGGGGGGGGKK.........",
+        ".....KKGGGGGGGGGGGGGGGGKKKKKK...",
+        "....KGWWWWWWWWWWWWWWGGGGGGGGGK..",
+        "...KWWWWWWWWWWWWWWWWWWGGKGKGGGK.",
+        "..KGWWWWWWWWWWWWWWWWWWGGGGGGGGGK",
+        "..KGGGWWWWWWWWWWWWWWGGGGGGGGGGGG",
+        ".KGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG",
+        ".KGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG",
+        ".KGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG",
+        ".KGGGGGGGGGGGGGGGGGGGGGGGGGGGGGK",
+        "..KGGGGGGGGGGGGGGGGGGGGGGGKKGKGK",
+        "..KGGGGGGGGGGGGGGGGGGGGGGGGGGKK.",
+        "...KGGGGGGGGGGGGGGGGGGGGGGGKK...",
+        "...KGGGGGGGGGGGGGGGGGGGGGKGK....",
+        "..KGGKKGGGGGGGGGGGGGGGGKKKGGK...",
+        "..KGGK.KKGGGGGGGGGGGGGK..KGGK...",
+        "..KGK....KGKKKKKKKKKGK....KGK...",
+        "..KGK....KGK.......KGK....KGK...",
+        ".KGGK....KGGK.....KGGK....KGGK..",
+        ".KGGK....KGGK.....KGGK....KGGK.."
+      ]
+    }
+  ],
+  "mirror": {
+    "walk0_l": {
+      "from": "walk0",
+      "flipX": true
+    },
+    "walk1_l": {
+      "from": "walk1",
+      "flipX": true
+    }
+  }
+}

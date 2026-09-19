@@ -4,7 +4,7 @@
   "maxCatchupTicks": 5,
   "transition": { "freezeTicks": 6, "wulfArrivalDelayTicks": 12 },
   "difficulty": { "budgetBonusByPieces": [0, 0, 1, 1, 2], "maxRoomBudget": 6 },
-  "exit": { "keeperNudgeZonePx": 16, "keeperStepAsideTicks": 60 },
+  "exit": { "keeperNudgeZonePx": 16, "keeperStepAsideTicks": 60, "keeperNudgePx": 8 },
   "features": {
     "caveHints": true,
     "animatedWater": false,

@@ -1,0 +1,77 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wulfquest.invalid/schema/guardians.schema.json",
+  "title": "entities/guardians.json — AGENTS.md §14.3, §14.4",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "fidelity", "orbit", "guardians", "keeper"],
+  "properties": {
+    "schemaVersion": { "type": "integer", "minimum": 1 },
+    "fidelity": { "enum": ["recon", "canon"] },
+    "orbit": {
+      "type": "object", "additionalProperties": false,
+      "required": ["radiusPx", "ticksPerRev", "lungePx", "lungeTicks", "repelPx", "stunTicks", "hurtFlashTicks"],
+      "properties": {
+        "radiusPx": { "type": "integer", "minimum": 8, "maximum": 96 },
+        "ticksPerRev": { "type": "integer", "minimum": 8 },
+        "lungePx": { "type": "integer", "minimum": 0, "maximum": 256 },
+        "lungeTicks": { "type": "integer", "minimum": 1 },
+        "repelPx": { "type": "integer", "minimum": 0, "maximum": 64 },
+        "stunTicks": { "type": "integer", "minimum": 0 },
+        "hurtFlashTicks": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "guardians": {
+      "type": "array", "minItems": 4, "maxItems": 4,
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["id", "displayName", "sprite", "basedOn", "colour", "size", "collisionBox", "speed"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^guardian_[a-z][a-z0-9_]*$" },
+          "displayName": { "type": "string", "minLength": 1 },
+          "sprite": { "type": "string", "pattern": "^[a-z][a-z0-9_]*$" },
+          "basedOn": { "type": "string", "pattern": "^[a-z][a-z0-9_]*$" },
+          "colour": { "type": "string", "pattern": "^[a-zA-Z]+$" },
+          "size": {
+            "type": "object", "additionalProperties": false, "required": ["w", "h"],
+            "properties": { "w": { "type": "integer", "minimum": 1, "maximum": 64 }, "h": { "type": "integer", "minimum": 1, "maximum": 64 } }
+          },
+          "collisionBox": {
+            "type": "object", "additionalProperties": false, "required": ["x", "y", "w", "h"],
+            "properties": {
+              "x": { "type": "integer" }, "y": { "type": "integer" },
+              "w": { "type": "integer", "minimum": 1, "maximum": 64 },
+              "h": { "type": "integer", "minimum": 1, "maximum": 64 }
+            }
+          },
+          "speed": {
+            "type": "object", "additionalProperties": false, "required": ["xFp", "yFp"],
+            "properties": { "xFp": { "type": "integer", "minimum": 0, "maximum": 2048 }, "yFp": { "type": "integer", "minimum": 0, "maximum": 2048 } }
+          }
+        }
+      }
+    },
+    "keeper": {
+      "type": "object", "additionalProperties": false,
+      "required": ["id", "displayName", "sprite", "size", "collisionBox", "stepAsidePx"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-z][a-z0-9_]*$" },
+        "displayName": { "type": "string", "minLength": 1 },
+        "sprite": { "type": "string", "pattern": "^[a-z][a-z0-9_]*$" },
+        "size": {
+          "type": "object", "additionalProperties": false, "required": ["w", "h"],
+          "properties": { "w": { "type": "integer", "minimum": 1, "maximum": 64 }, "h": { "type": "integer", "minimum": 1, "maximum": 64 } }
+        },
+        "collisionBox": {
+          "type": "object", "additionalProperties": false, "required": ["x", "y", "w", "h"],
+          "properties": {
+            "x": { "type": "integer" }, "y": { "type": "integer" },
+            "w": { "type": "integer", "minimum": 1, "maximum": 64 },
+            "h": { "type": "integer", "minimum": 1, "maximum": 64 }
+          }
+        },
+        "stepAsidePx": { "type": "integer", "minimum": 0, "maximum": 128 }
+      }
+    }
+  }
+}

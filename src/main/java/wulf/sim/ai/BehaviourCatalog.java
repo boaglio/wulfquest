@@ -11,7 +11,9 @@ import wulf.data.DataException;
  * Behaviour kinds by name (AGENTS.md §12.5), and the load-time check that every
  * species names a known kind with exactly the parameters it reads.
  *
- * <p>GUARD_ORBIT and BLOCK_STATIC arrive with the guardians and the Keeper in M6.
+ * <p>GUARD_ORBIT and BLOCK_STATIC belong to the guardians and the Keeper (§14), which
+ * are not roster species: {@code guardians.json} names them, so no creature declares
+ * them and {@link #validate} never sees them.
  */
 public final class BehaviourCatalog {
 
@@ -28,7 +30,9 @@ public final class BehaviourCatalog {
             Map.entry("SINE_FLIGHT", new SineFlight()),
             Map.entry("HOP", new Hop()),
             Map.entry("AMBUSH_BURST", new AmbushBurst()),
-            Map.entry("HERD_BOUNCE", new HerdBounce()));
+            Map.entry("HERD_BOUNCE", new HerdBounce()),
+            Map.entry("GUARD_ORBIT", new GuardOrbit()),
+            Map.entry("BLOCK_STATIC", new BlockStatic()));
 
     private BehaviourCatalog() {
     }

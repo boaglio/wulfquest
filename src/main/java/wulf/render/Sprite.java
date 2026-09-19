@@ -94,6 +94,26 @@ public final class Sprite {
         }
     }
 
+    /**
+     * Draws every other pixel of a frame from its top-left corner: half size. A tint of
+     * -1 keeps the frame's colours; any other index draws the silhouette in it.
+     */
+    public void blitHalf(Framebuffer fb, String frameId, int left, int top, int tint) {
+        byte[] px = frames.get(frameId);
+        if (px == null) {
+            throw new IllegalStateException("sprite '" + name + "' has no frame '" + frameId + "'");
+        }
+        for (int yy = 0; yy < h; yy += 2) {
+            int row = yy * w;
+            for (int xx = 0; xx < w; xx += 2) {
+                byte v = px[row + xx];
+                if (v >= 0) {
+                    fb.set(left + xx / 2, top + yy / 2, tint < 0 ? v : tint);
+                }
+            }
+        }
+    }
+
     public void blit(Framebuffer fb, int x, int y) {
         blit(fb, firstFrame, x, y);
     }

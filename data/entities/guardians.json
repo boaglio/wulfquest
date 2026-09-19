@@ -1,0 +1,63 @@
+{
+  "schemaVersion": 1,
+  "fidelity": "recon",
+  "orbit": {
+    "radiusPx": 32,
+    "ticksPerRev": 240,
+    "lungePx": 40,
+    "lungeTicks": 90,
+    "repelPx": 20,
+    "stunTicks": 20,
+    "hurtFlashTicks": 8
+  },
+  "guardians": [
+    {
+      "id": "guardian_hippo",
+      "displayName": "The Green Guardian",
+      "sprite": "creature_guardian_hippo",
+      "basedOn": "hippo",
+      "colour": "brightGreen",
+      "size": { "w": 32, "h": 28 },
+      "collisionBox": { "x": -15, "y": -12, "w": 30, "h": 12 },
+      "speed": { "xFp": 282, "yFp": 205 }
+    },
+    {
+      "id": "guardian_rhino",
+      "displayName": "The Blue Guardian",
+      "sprite": "creature_guardian_rhino",
+      "basedOn": "rhino",
+      "colour": "brightBlue",
+      "size": { "w": 32, "h": 28 },
+      "collisionBox": { "x": -15, "y": -12, "w": 30, "h": 12 },
+      "speed": { "xFp": 282, "yFp": 205 }
+    },
+    {
+      "id": "guardian_boar",
+      "displayName": "The Red Guardian",
+      "sprite": "creature_guardian_boar",
+      "basedOn": "boar",
+      "colour": "brightRed",
+      "size": { "w": 32, "h": 28 },
+      "collisionBox": { "x": -15, "y": -12, "w": 30, "h": 12 },
+      "speed": { "xFp": 282, "yFp": 205 }
+    },
+    {
+      "id": "guardian_wildebeest",
+      "displayName": "The Yellow Guardian",
+      "sprite": "creature_guardian_wildebeest",
+      "basedOn": "wildebeest",
+      "colour": "brightYellow",
+      "size": { "w": 32, "h": 28 },
+      "collisionBox": { "x": -15, "y": -12, "w": 30, "h": 12 },
+      "speed": { "xFp": 282, "yFp": 205 }
+    }
+  ],
+  "keeper": {
+    "id": "cave_guardian",
+    "displayName": "Keeper of the Arch",
+    "sprite": "creature_keeper",
+    "size": { "w": 24, "h": 32 },
+    "collisionBox": { "x": -10, "y": -14, "w": 20, "h": 14 },
+    "stepAsidePx": 36
+  }
+}

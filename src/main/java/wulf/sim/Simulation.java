@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import wulf.data.CreatureData;
+import wulf.data.LandmarksData;
 import wulf.data.PlayerData;
 import wulf.data.WulfData;
 import wulf.engine.Fixed;
@@ -25,7 +26,8 @@ import wulf.world.RoomAddress;
  * <p>M3: Ranger Vale — movement, collision, flip-screen rooms, the sabre, death
  * and respawn. M4: the creatures — room population, behaviours, spears, sabre
  * kills, contact deaths, score and extra lives. M5: the Wulf — appearance, warning,
- * pursuit across rooms, parry, and giving up.
+ * pursuit across rooms, parry, and giving up. M6: the quest — guardians, the amulet,
+ * the Keeper of the Arch, the shrines' hints, and the escape.
  */
 public final class Simulation {
 
@@ -38,7 +40,7 @@ public final class Simulation {
     private static final int SATURATED = 1 << 30;
 
     /** What the border shows this tick (§5.4, §11.7, §13.3, §13.5). */
-    public enum BorderFlash { NONE, ALARM, PARRY }
+    public enum BorderFlash { NONE, ALARM, PARRY, PICKUP }
 
     private final PlayerData rules;
     private final CollisionWorld world;
@@ -57,6 +59,8 @@ public final class Simulation {
     private final Spawns spawns = new Spawns();
     private final Wulf wulf;
     private final Behaviour chase = BehaviourCatalog.of("CHASE_DIRECT");
+    private final Quest quest;
+    private final Behaviour orbit = BehaviourCatalog.of("GUARD_ORBIT");
 
     private RoomAddress room;
     private CollisionWorld roomSolid;
@@ -94,6 +98,8 @@ public final class Simulation {
         this.wulf = new Wulf(new Creature(Wulf.ID, eco.wulf().species(), -1, xFp, yFp, Herd.NONE));
         wulf.ticksSinceGone = appearance.minTicksBetweenAppearances();
         wulf.ticksSinceRespawn = appearance.graceTicksAfterPlayerDeath();
+        Creature keeper = new Creature(Quest.KEEPER_ID, eco.quest().keeperSpecies(), -1, xFp, yFp, Herd.NONE);
+        this.quest = new Quest(keeper, keeper);   // the guardian is seated on entering a lair
         this.room = new RoomAddress(roomColOf(rules.collisionBox(), xFp), roomRowOf(rules.collisionBox(), yFp));
         enterRoom(false);
     }
@@ -144,6 +150,13 @@ public final class Simulation {
                 }
                 return;
             }
+            case ESCAPING -> {
+                stepEscape();
+                return;
+            }
+            case WON -> {
+                return;
+            }
             case ALIVE -> {
                 // fall through to play
             }
@@ -165,6 +178,7 @@ public final class Simulation {
         sabre = computeSabre();
         tickCreatures();
         tickWulf();
+        tickQuest();
         resolveCombat();
     }
 
@@ -315,6 +329,7 @@ public final class Simulation {
         roomEdges = (gx, gy) -> gx < x0 || gy < y0 || gx >= x1 || gy >= y1;
         roomSolid = (gx, gy) -> gx < x0 || gy < y0 || gx >= x1 || gy >= y1 || scenery.isSolid(gx, gy);
         repopulate();
+        questEntersRoom();
     }
 
     /** The room's creatures, rolled afresh: on every entry and after every respawn (§7.6, §11.7). */
@@ -356,6 +371,11 @@ public final class Simulation {
         }
         wulf.ticksSinceRespawn = 0;
         wulf.ticksInRoom = 0;
+        questEntersRoom();   // the guardian back on its ring
+        if (eco.quest().landmarks().hint().oncePerLife()) {
+            java.util.Arrays.fill(quest.hintUsed, false);
+        }
+        quest.hintTicks = 0;
     }
 
     // ---------------------------------------------------------------- creatures and spears
@@ -454,6 +474,7 @@ public final class Simulation {
                 }
             }
             parryWulf();
+            parryGuardian();
         }
         if (player.mode != Player.Mode.ALIVE || player.invulnTicks > 0) {
             return;
@@ -462,6 +483,30 @@ public final class Simulation {
         PlayerData.Box pb = rules.collisionBox();
         int px = Fixed.px(player.xFp) + pb.x();
         int py = Fixed.px(player.yFp) + pb.y();
+        if (quest.inLair()) {
+            Creature g = quest.guardian;
+            CreatureData.Box gb = g.species().collisionBox();
+            if (overlaps(px, py, pb.w(), pb.h(), Fixed.px(g.xFp) + gb.x(), Fixed.px(g.yFp) + gb.y(), gb.w(), gb.h())) {
+                kill();   // unkillable, and lethal to touch (§14.3)
+                return;
+            }
+        }
+        if (quest.keeperHere && quest.keeperState != Quest.Keeper.ASIDE) {
+            Creature k = quest.keeper;
+            CreatureData.Box kb = k.species().collisionBox();
+            if (overlaps(px, py, pb.w(), pb.h(), Fixed.px(k.xFp) + kb.x(), Fixed.px(k.yFp) + kb.y(), kb.w(), kb.h())) {
+                // §14.4 grace: brushing it from the front, in the nudge zone, pushes you back
+                // instead of killing you — so a first-minute stumble into the way out is not a death.
+                int ahead = Fixed.px(player.yFp) - Fixed.px(k.yFp);
+                if (ahead > 0 && ahead <= eco.quest().nudgeZonePx()) {
+                    player.yFp = Collision.resolve(world, pb.x(), pb.y(), pb.w(), pb.h(), player.xFp, player.yFp,
+                            Fixed.fp(eco.quest().nudgePx()), false);
+                } else {
+                    kill();
+                    return;
+                }
+            }
+        }
         if (wulf.touchable()) {
             CreatureData.Box wb = wulf.body.species().collisionBox();
             if (overlaps(px, py, pb.w(), pb.h(), Fixed.px(wulf.body.xFp) + wb.x(), Fixed.px(wulf.body.yFp) + wb.y(),
@@ -498,6 +543,214 @@ public final class Simulation {
 
     private static boolean overlaps(int ax, int ay, int aw, int ah, int bx, int by, int bw, int bh) {
         return ax < bx + bw && bx < ax + aw && ay < by + bh && by < ay + ah;
+    }
+
+    // ---------------------------------------------------------------- the quest (§14)
+
+    /** Seats the lair's guardian or the Keeper as the player arrives, and after a respawn. */
+    private void questEntersRoom() {
+        QuestRules rules = eco.quest();
+        if (!rules.enabled()) {
+            return;
+        }
+        LandmarksData marks = rules.landmarks();
+        Quest q = quest;
+        q.lair = marks.lairIndexIn(room);
+        if (q.lair >= 0) {
+            LandmarksData.Point pedestal = marks.lairs().get(q.lair).pedestal();
+            int x = Fixed.fp(room.col() * ROOM_W_PX + pedestal.x());
+            int y = Fixed.fp(room.row() * ROOM_H_PX + pedestal.y());
+            // Allocated per lair entry, not per tick: each lair's beast is a different species.
+            q.guardian = new Creature(Quest.GUARDIAN_ID, rules.guardianSpecies().get(q.lair), -1, x, y, Herd.NONE);
+            orbit.spawn(q.guardian, context, rng);
+        }
+        q.keeperHere = room.equals(marks.exitRoom());
+        if (q.keeperHere) {
+            seatKeeper();
+        }
+    }
+
+    private void seatKeeper() {
+        QuestRules rules = eco.quest();
+        LandmarksData.Point at = rules.landmarks().exit().keeper();
+        int aside = switch (quest.keeperState) {
+            case BLOCKING -> 0;
+            case STEPPING_ASIDE -> rules.stepAsidePx() * quest.keeperTick / rules.stepAsideTicks();
+            case ASIDE -> rules.stepAsidePx();
+        };
+        LandmarksData.Point p = at;
+        quest.keeper.place(Fixed.fp(room.col() * ROOM_W_PX + p.x() + aside), Fixed.fp(room.row() * ROOM_H_PX + p.y()));
+    }
+
+    private void tickQuest() {
+        QuestRules rules = eco.quest();
+        if (!rules.enabled()) {
+            return;
+        }
+        LandmarksData marks = rules.landmarks();
+        Quest q = quest;
+        if (q.pickupFlash > 0) {
+            q.pickupFlash--;
+        }
+        if (q.flyTicks > 0) {
+            q.flyTicks--;
+        }
+        if (q.hintTicks > 0) {
+            q.hintTicks--;
+        }
+        if (q.lair >= 0) {
+            Creature g = q.guardian;
+            if (g.hurtTicks > 0) {
+                g.hurtTicks--;
+            }
+            int ox = g.xFp;
+            int oy = g.yFp;
+            orbit.tick(g, context);
+            g.moveTicks = g.xFp != ox || g.yFp != oy ? g.moveTicks + 1 : 0;
+        }
+        if (q.keeperState == Quest.Keeper.STEPPING_ASIDE) {
+            if (++q.keeperTick >= rules.stepAsideTicks()) {
+                q.keeperState = Quest.Keeper.ASIDE;
+            }
+            if (q.keeperHere) {
+                seatKeeper();
+            }
+        }
+        PlayerData.Box pb = this.rules.collisionBox();
+        int px = Fixed.px(player.xFp) + pb.x();
+        int py = Fixed.px(player.yFp) + pb.y();
+        int roomX = room.col() * ROOM_W_PX;
+        int roomY = room.row() * ROOM_H_PX;
+
+        if (q.lair >= 0 && !q.taken[q.lair]) {
+            LandmarksData.Lair lair = marks.lairs().get(q.lair);
+            CreatureData.Box ab = marks.amulet().collisionBox();
+            int ax = roomX + lair.pedestal().x() + ab.x();
+            int ay = roomY + lair.pedestal().y() + ab.y();
+            if (overlaps(px, py, pb.w(), pb.h(), ax, ay, ab.w(), ab.h())) {
+                takePiece(lair, ax + ab.w() / 2, ay + ab.h() / 2);
+            }
+        }
+
+        LandmarksData.Rect zone = marks.exit().zone();
+        boolean inZone = overlaps(px, py, pb.w(), pb.h(), roomX + zone.x(), roomY + zone.y(), zone.w(), zone.h());
+        if (rules.caveHints() && inZone && marks.isCaveMouth(room) && !q.hintUsed[room.index()]) {
+            // §14.5: the shrine in front of the arch — the same spot in every arch room — points the way.
+            q.hintUsed[room.index()] = true;
+            q.hintTicks = marks.hint().messageTicks();
+            pointTheWay(marks);
+        }
+        if (inZone && room.equals(marks.exitRoom()) && q.keeperState == Quest.Keeper.ASIDE
+                && q.piecesHeld >= marks.exit().requiresPieces()) {
+            player.mode = Player.Mode.ESCAPING;
+            player.modeTick = 0;
+            player.swingTick = -1;
+            player.cooldown = 0;
+            sabre = PixelRect.NONE;
+            q.escapeFromXFp = player.xFp;
+        }
+    }
+
+    private void takePiece(LandmarksData.Lair lair, int centreXPx, int centreYPx) {
+        QuestRules rules = eco.quest();
+        LandmarksData.Amulet amulet = rules.landmarks().amulet();
+        Quest q = quest;
+        q.taken[q.lair] = true;
+        q.piecesHeld++;
+        q.slotMask |= 1 << lair.piece().slot();
+        q.pickupFlash = amulet.pickupFlashTicks();
+        q.flyTicks = amulet.flyToPanelTicks();
+        q.flySlot = lair.piece().slot();
+        q.flyFromXPx = centreXPx;
+        q.flyFromYPx = centreYPx;
+        addScore(rules.pieceScore());
+        if (q.piecesHeld >= rules.landmarks().exit().requiresPieces() && q.keeperState == Quest.Keeper.BLOCKING) {
+            q.keeperState = Quest.Keeper.STEPPING_ASIDE;   // wherever the player is: it is aside by the time they get there
+            q.keeperTick = 0;
+        }
+    }
+
+    /** The compass way from this room to the nearest quarter still out there — or to the arch once none are. */
+    private void pointTheWay(LandmarksData marks) {
+        Quest q = quest;
+        int bestDx = 0;
+        int bestDy = 0;
+        int best = Integer.MAX_VALUE;
+        for (int i = 0; i < marks.lairs().size(); i++) {
+            if (q.taken[i]) {
+                continue;
+            }
+            RoomAddress lair = LandmarksData.room(marks.lairs().get(i).room());
+            int dx = lair.col() - room.col();
+            int dy = lair.row() - room.row();
+            int d = Math.abs(dx) + Math.abs(dy);
+            if (d < best) {
+                best = d;
+                bestDx = dx;
+                bestDy = dy;
+            }
+        }
+        q.hintToExit = best == Integer.MAX_VALUE;
+        if (q.hintToExit) {
+            bestDx = marks.exitRoom().col() - room.col();
+            bestDy = marks.exitRoom().row() - room.row();
+        }
+        q.hintDirection = Direction8.toward(bestDx, bestDy);
+    }
+
+    /** §14.7: control locked, Vale walks up into the arch's mouth, then the tally. */
+    private void stepEscape() {
+        QuestRules rules = eco.quest();
+        LandmarksData marks = rules.landmarks();
+        player.modeTick++;
+        player.facing = Direction8.N;
+        player.walkTicks++;
+        LandmarksData.Rect zone = marks.exit().zone();
+        int targetX = Fixed.fp(room.col() * ROOM_W_PX + zone.x() + zone.w() / 2);
+        int stepX = Math.min(Math.abs(targetX - player.xFp), this.rules.speed().xFp());
+        player.xFp += Integer.signum(targetX - player.xFp) * stepX;
+        player.yFp -= this.rules.speed().yFp();   // no collision: the arch is the way out
+        if (player.modeTick >= marks.exit().escapeWalkTicks()) {
+            win();
+        }
+    }
+
+    private void win() {
+        QuestRules rules = eco.quest();
+        Quest q = quest;
+        q.scoreBeforeBonuses = score;
+        q.escapeBonus = rules.escapeBonus();
+        q.timeBonus = Math.max(0, rules.timeBonusMax() - tick / rules.timeBonusTicksDivisor());
+        q.livesBonus = (long) player.lives * rules.lifeRemainingBonus();
+        addScore((int) q.escapeBonus);
+        addScore((int) q.timeBonus);
+        addScore((int) q.livesBonus);
+        player.mode = Player.Mode.WON;
+        player.modeTick = 0;
+    }
+
+    /** A guardian is never hurt: a swing pushes it back and stuns it, once per swing (§12.5, §14.3). */
+    private void parryGuardian() {
+        Quest q = quest;
+        if (q.lair < 0) {
+            return;
+        }
+        Creature g = q.guardian;
+        CreatureData.Box b = g.species().collisionBox();
+        if (g.lastHitSwing == swingSerial
+                || !overlaps(sabre, Fixed.px(g.xFp) + b.x(), Fixed.px(g.yFp) + b.y(), b.w(), b.h())) {
+            return;
+        }
+        g.lastHitSwing = swingSerial;
+        wulf.data.GuardianData.Orbit o = eco.quest().orbit();
+        Direction8 f = player.facing;
+        int push = Fixed.fp(o.repelPx());
+        if (f.diagonal()) {
+            push = Fixed.mul(push, rules.speed().diagonalScaleFp());
+        }
+        context.move(g, f.dx() * push, f.dy() * push);
+        g.aux(o.stunTicks());
+        g.hurtTicks = o.hurtFlashTicks();
     }
 
     // ---------------------------------------------------------------- the Wulf (§13)
@@ -592,7 +845,7 @@ public final class Simulation {
                 || hunt.neverIn().contains(room)) {
             return;
         }
-        int pieces = 0;   // amulet pieces arrive with the quest in M6
+        int pieces = quest.piecesHeld;
         int chance = a.baseChancePer10k() + a.chancePerAmuletPiecePer10k() * pieces
                 + a.chancePerQuietRoomPer10k() * Math.min(wulf.quietRooms, a.quietRoomsCap());
         if (rng.chance(chance)) {
@@ -716,6 +969,13 @@ public final class Simulation {
             }
             case LEAVING -> gone();
             case WARNING, PURSUE, ARRIVING -> {
+                if (hunt.neverIn().contains(room)) {
+                    // Found by the full-run forge: it followed players into lairs, which §14.3 keeps a clean
+                    // puzzle. A room it never appears in is one it never enters — the chase ends at the door,
+                    // unscored, so a sanctuary cannot be farmed for escapes.
+                    gone();
+                    return;
+                }
                 int distance = Math.max(Math.abs(room.col() - w.origin.col()), Math.abs(room.row() - w.origin.row()));
                 if (distance >= hunt.data().pursuit().giveUpRoomDistance()) {
                     gone();
@@ -996,7 +1256,7 @@ public final class Simulation {
 
         @Override
         public int amuletPieces() {
-            return 0;   // the quest arrives in M6
+            return quest.piecesHeld;
         }
 
         @Override
@@ -1074,6 +1334,9 @@ public final class Simulation {
         if (wulf.parryFlash > 0) {
             return BorderFlash.PARRY;
         }
+        if (quest.pickupFlash > 0) {
+            return BorderFlash.PICKUP;
+        }
         WulfData.Appearance a = eco.wulf().data().appearance();
         if (wulf.state == Wulf.State.WARNING && wulf.stateTick % a.warningFlashPeriodTicks() < a.warningFlashOnTicks()) {
             return BorderFlash.ALARM;
@@ -1087,6 +1350,10 @@ public final class Simulation {
 
     public Wulf wulf() {
         return wulf;
+    }
+
+    public Quest quest() {
+        return quest;
     }
 
     public PlayerData rules() {
@@ -1178,6 +1445,38 @@ public final class Simulation {
         h = mix(h, wb.hurtTicks);
         h = mix(h, wb.lastHitSwing);
         h = mix(h, wb.moveTicks);
+        Quest q = quest;
+        h = mix(h, q.piecesHeld);
+        h = mix(h, q.slotMask);
+        h = mix(h, (q.taken[0] ? 1 : 0) | (q.taken[1] ? 2 : 0) | (q.taken[2] ? 4 : 0) | (q.taken[3] ? 8 : 0));
+        h = mix(h, q.lair);
+        h = mix(h, q.keeperState.ordinal());
+        h = mix(h, q.keeperTick);
+        h = mix(h, q.keeperHere ? 1 : 0);
+        h = mix(h, q.pickupFlash);
+        h = mix(h, q.flyTicks);
+        h = mix(h, q.flySlot);
+        h = mix(h, q.hintTicks);
+        h = mix(h, q.hintDirection.ordinal());
+        h = mix(h, q.escapeBonus + 31 * q.timeBonus + 961 * q.livesBonus);
+        for (int i = 0; i < q.hintUsed.length; i++) {
+            if (q.hintUsed[i]) {
+                h = mix(h, i);
+            }
+        }
+        if (q.lair >= 0) {
+            Creature g = q.guardian;
+            h = mix(h, g.xFp);
+            h = mix(h, g.yFp);
+            h = mix(h, ((long) g.dirX << 32) ^ (g.dirY & 0xFFFFFFFFL));
+            h = mix(h, g.timer());
+            h = mix(h, g.phase());
+            h = mix(h, g.aux());
+            h = mix(h, g.hurtTicks);
+            h = mix(h, g.lastHitSwing);
+        }
+        h = mix(h, q.keeper.xFp);
+        h = mix(h, q.keeper.yFp);
         return h;
     }
 

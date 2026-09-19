@@ -319,6 +319,16 @@ class WulfTest {
     }
 
     @Test
+    void itDoesNotFollowYouIntoARoomItNeverEnters() {
+        Simulation s = sim(OPEN, 6, 236, 100, chance(0), 5L, new RoomAddress(4, 5));
+        assertThat(s.summonWulf()).isTrue();
+        walkIntoTheRoomEast(s);
+        assertThat(s.wulf().state()).isEqualTo(Wulf.State.ABSENT);
+        assertThat(s.wulf().evasions()).as("a sanctuary is not an escape to farm").isZero();
+        assertThat(s.score()).isZero();
+    }
+
+    @Test
     void itGivesUpWhenItCannotGetToYouAndRunsForAnEdge() {
         Simulation s = sim(POCKET, 0, 228, 100, chance(0), 5L);
         assertThat(s.summonWulf()).isTrue();
@@ -431,9 +441,12 @@ class WulfTest {
     }
 
     @Test
-    void theStartRoomIsOffLimits() {
+    void theStartTheLairsAndTheWayOutAreOffLimits() {
         Content c = Content.load(Path.of("data"));
-        assertThat(c.wulfRules().neverIn()).containsExactly(c.map().startRoom());
+        java.util.Set<RoomAddress> expected = new java.util.HashSet<>(c.landmarks().lairRooms());
+        expected.add(c.map().startRoom());
+        expected.add(c.landmarks().exitRoom());
+        assertThat(c.wulfRules().neverIn()).containsExactlyInAnyOrderElementsOf(expected);
         assertThat(c.wulfRules().enabled()).isTrue();
     }
 }

@@ -1,0 +1,96 @@
+{
+  "schemaVersion": 1,
+  "name": "creature_guardian_boar",
+  "size": {
+    "w": 32,
+    "h": 28
+  },
+  "origin": {
+    "x": 16,
+    "y": 28
+  },
+  "legend": {
+    ".": -1,
+    "K": 0,
+    "R": 10,
+    "W": 15
+  },
+  "frames": [
+    {
+      "id": "walk0",
+      "rows": [
+        "................................",
+        "................................",
+        "................................",
+        "................................",
+        "................................",
+        "................................",
+        "................................",
+        ".........KKKKKKKKKKKK...........",
+        ".......KKRRRRRRRRRRRRKK.........",
+        ".....KKRRRRRRRRRRRRRRRRKK.......",
+        "....KRWWWWWWWWWWWWWWRRRRRK......",
+        "...KWWWWWWWWWWWWWWWWWWRRRRK.....",
+        "..KRWWWWWWWWWWWWWWWWWWRRRRRKK...",
+        "..KRRRWWWWWWWWWWWWWWRRRRRRRRRKK.",
+        ".KRRRRRRRRRRRRRRRRRRRRRRRRRRRRRK",
+        ".KRRRRRRRRRRRRRRRRRRRRRRRRRKRRRK",
+        ".KRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR",
+        ".KRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR",
+        "..KRRRRRRRRRRRRRRRRRRRRRRRRRRRRR",
+        "..KRRRRRRRRRRRRRRRRRRRRRRRRKKRKK",
+        "...KRRRRRRRRRRRRRRRRRRRRRRK..K..",
+        "....KRRRRRRRRRRRRRRRRRRRRRK.....",
+        "....KRRRRRRRRRRRRRRRRRRRRRK.....",
+        "....KRRRRRRRRRRRRRRRRKRRRRK.....",
+        ".....KRRKKKKKKKKKKKKK.KRRK......",
+        ".....KRRK.............KRRK......",
+        ".....KRRK.............KRRK......",
+        ".....KRRK.............KRRK......"
+      ]
+    },
+    {
+      "id": "walk1",
+      "rows": [
+        "................................",
+        "................................",
+        "................................",
+        "................................",
+        "................................",
+        "................................",
+        "................................",
+        ".........KKKKKKKKKKKK...........",
+        ".......KKRRRRRRRRRRRRKK.........",
+        ".....KKRRRRRRRRRRRRRRRRKK.......",
+        "....KRWWWWWWWWWWWWWWRRRRRK......",
+        "...KWWWWWWWWWWWWWWWWWWRRRRK.....",
+        "..KRWWWWWWWWWWWWWWWWWWRRRRRKK...",
+        "..KRRRWWWWWWWWWWWWWWRRRRRRRRRKK.",
+        ".KRRRRRRRRRRRRRRRRRRRRRRRRRRRRRK",
+        ".KRRRRRRRRRRRRRRRRRRRRRRRRRKRRRK",
+        ".KRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR",
+        ".KRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR",
+        "..KRRRRRRRRRRRRRRRRRRRRRRRRRRRRR",
+        "..KRRRRRRRRRRRRRRRRRRRRRRRRKKRKK",
+        "...KRRRRRRRRRRRRRRRRRRRRRRRK.K..",
+        "...KRRRRRRRRRRRRRRRRRRRRRKRK....",
+        "..KRRKKRRRRRRRRRRRRRRRRKKKRRK...",
+        "..KRRK.KKRRRRRRRRRRRRRK..KRRK...",
+        "..KRK....KRKKKKKKKKKRK....KRK...",
+        "..KRK....KRK.......KRK....KRK...",
+        ".KRRK....KRRK.....KRRK....KRRK..",
+        ".KRRK....KRRK.....KRRK....KRRK.."
+      ]
+    }
+  ],
+  "mirror": {
+    "walk0_l": {
+      "from": "walk0",
+      "flipX": true
+    },
+    "walk1_l": {
+      "from": "walk1",
+      "flipX": true
+    }
+  }
+}

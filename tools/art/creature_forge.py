@@ -13,6 +13,11 @@ creature white while it is hurt.
 
 The puff sprite, two frames, is what a creature leaves for 12 ticks when it dies.
 
+The guardians, the Keeper of the Arch and the amulet quarters (§14) are drawn here
+too, from data/entities/guardians.json: each guardian is its roster sibling's
+silhouette grown into a 32x28 box and recoloured to its quarter's accent, so the
+player reads the family and the scale at once.
+
 The Wulf (AGENTS.md §13) is drawn here too, from data/entities/wulf.json: a lean,
 pale, hackled beast, deliberately nothing like the original's — two galloping
 frames and a "howl" frame it holds at the room's edge while it warns.
@@ -240,6 +245,75 @@ DRAW = {
 }
 
 
+BRIGHT = {"brightGreen": "G", "brightBlue": "B", "brightRed": "R", "brightYellow": "Y", "brightCyan": "C",
+          "brightMagenta": "M", "brightWhite": "W"}
+
+GUARDIAN_HEAD = {"hippo": hippo_head, "rhino": rhino_head, "boar": boar_head, "wildebeest": wildebeest_head}
+
+
+def guardian(cv, f, w, h, body, head):
+    """A roster quadruped grown to fill a 32x28 box, all of it in its guardian's colour."""
+    base = h - 1
+    legs(cv, [5, 9, w - 10, w - 6], base - 8, base, f, body, 2)
+    cv.ellipse(w / 2 - 1, base - 11, w / 2 - 3, (h - 8) / 2.4, body)
+    head(cv, w, h - 4, base - 4)
+    # The sibling's head is drawn in the sibling's colours; a guardian is one colour,
+    # so everything but the outline becomes its accent. Then the pale ridge goes on top.
+    for y in range(h):
+        for x in range(w):
+            c = cv.px[y][x] if hasattr(cv, "px") else None
+            if c not in (None, ".", "K", body):
+                cv.set(x, y, body)
+    cv.ellipse(w / 2 - 3, base - 15, w / 2 - 7, 2.5, "W")                       # a pale ridge along the back
+    cv.set(w - 6, base - 16, "K")                                               # an eye
+
+
+def keeper(cv, f, w, h, aside):
+    """A tall, still figure with a staff, facing the player. `aside` shifts it off the arch's mouth."""
+    base = h - 1
+    dx = aside * (w / 6)
+    cv.stroke(w / 2 + dx + 5, base - 26, w / 2 + dx + 5, base, "y", 0.7)        # the staff
+    cv.ellipse(w / 2 + dx + 5, base - 27, 1.6, 1.6, "C")                        # its stone
+    legs(cv, [w / 2 + dx - 3, w / 2 + dx + 1], base - 9, base, f, "w", 1.2)
+    cv.rect(w / 2 + dx - 5, base - 22, w / 2 + dx + 4, base - 8, "w")           # robe
+    cv.ellipse(w / 2 + dx, base - 24, 3.2, 3.4, "W")                            # head
+    cv.set(w / 2 + dx - 1, base - 24, "K")
+    cv.set(w / 2 + dx + 2, base - 24, "K")
+    cv.rect(w / 2 + dx - 5, base - 27, w / 2 + dx + 4, base - 26, "C")          # headdress
+    for i in range(3):
+        cv.set(w / 2 + dx - 4 + i * 3, base - 18, "C")                          # necklace
+
+
+def amulet_quarter(q):
+    """One quarter of a 16x16 amulet: a filled quarter-disc in its accent, gold-rimmed.
+
+    Its arc is centred on the amulet's middle — the corner this quarter is away from —
+    so the four quarters assemble into one disc in the panel's 2x2 slots.
+    """
+    colour = ("G", "B", "R", "Y")[q]
+    cv = Canvas(16, 16)
+    sx = 1 if q % 2 == 0 else -1          # nw/sw fill leftwards from the right edge
+    sy = 1 if q < 2 else -1               # nw/ne fill upwards from the bottom edge
+    cx = 15.5 if sx > 0 else 0.5
+    cy = 15.5 if sy > 0 else 0.5
+    for y in range(16):
+        for x in range(16):
+            dx = abs(x - cx)
+            dy = abs(y - cy)
+            r = math.hypot(dx, dy)
+            if r > 15.0 or (sx > 0 and x > 15) or (sy > 0 and y > 15):
+                continue
+            if r > 13.4:
+                cv.set(x, y, "w")          # the amulet's rim: grey, so the yellow quarter still reads
+            elif r > 3.0:
+                cv.set(x, y, colour)
+            elif r > 1.6:
+                cv.set(x, y, "W")          # the hole at the centre of the disc
+    cv.set(cx - sx * 11, cy - sy * 5, "W")
+    cv.set(cx - sx * 5, cy - sy * 11, "W")
+    return cv.rows()
+
+
 def puff(f):
     cv = Canvas(12, 12)
     for i in range(6):
@@ -293,10 +367,36 @@ def main():
         frames.append((fid, cv.rows()))
     write_sprite(beast["sprite"], ww, wh, frames)
     names.append(beast["sprite"])
+    wardens = json.loads((ROOT / "data/entities/guardians.json").read_text(encoding="utf-8"))
+    for g in wardens["guardians"]:
+        gw, gh = g["size"]["w"], g["size"]["h"]
+        colour = BRIGHT[g["colour"]]
+        head = GUARDIAN_HEAD[g["basedOn"]]
+        frames = []
+        for f in range(2):
+            cv = Canvas(gw, gh)
+            guardian(cv, f, gw, gh, colour, head)
+            cv.outline("K")
+            frames.append((f"walk{f}", cv.rows()))
+        write_sprite(g["sprite"], gw, gh, frames)
+        names.append(g["sprite"])
+    k = wardens["keeper"]
+    kw, kh = k["size"]["w"], k["size"]["h"]
+    frames = []
+    for fid, f, aside in (("stand", 0, 0), ("step0", 1, 0.4), ("step1", 0, 0.8), ("aside", 1, 1.2)):
+        cv = Canvas(kw, kh)
+        keeper(cv, f, kw, kh, aside)
+        cv.outline("K")
+        frames.append((fid, cv.rows()))
+    write_sprite(k["sprite"], kw, kh, frames)
+    names.append(k["sprite"])
+    write_sprite("amulet_piece", 16, 16, [(fid, amulet_quarter(q)) for q, fid in enumerate(("nw", "ne", "sw", "se"))])
+    names.append("amulet_piece")
     write_sprite("puff", 12, 12, [("f0", puff(0)), ("f1", puff(1))])
     names.append("puff")
-    update_index(names, lambda n: n.startswith("creature_") or n == "puff")
-    print(f"creature forge: drew {len(roster)} creatures, the Wulf and the puff")
+    update_index(names, lambda n: n.startswith("creature_") or n in ("puff", "amulet_piece"))
+    print(f"creature forge: drew {len(roster)} creatures, the Wulf, {len(wardens['guardians'])} guardians, "
+          f"the Keeper, the amulet and the puff")
 
 
 if __name__ == "__main__":

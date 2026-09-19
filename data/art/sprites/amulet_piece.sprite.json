@@ -1,0 +1,125 @@
+{
+  "schemaVersion": 1,
+  "name": "amulet_piece",
+  "size": {
+    "w": 16,
+    "h": 16
+  },
+  "origin": {
+    "x": 8,
+    "y": 16
+  },
+  "legend": {
+    ".": -1,
+    "w": 7,
+    "B": 9,
+    "R": 10,
+    "G": 12,
+    "Y": 14,
+    "W": 15
+  },
+  "frames": [
+    {
+      "id": "nw",
+      "rows": [
+        "................",
+        "............wwww",
+        ".........wwwwwww",
+        "........wwwGGGGG",
+        "......wwwGWGGGGG",
+        ".....wwwGGGGGGGG",
+        "....wwwGGGGGGGGG",
+        "....wwGGGGGGGGGG",
+        "...wwGGGGGGGGGGG",
+        "..wwGGGGGGGGGGGG",
+        "..wwWGGGGGGGGGGG",
+        "..wGGGGGGGGGGGGG",
+        ".wwGGGGGGGGGGGGG",
+        ".wwGGGGGGGGGGGWW",
+        ".wwGGGGGGGGGGWW.",
+        ".wwGGGGGGGGGGW.."
+      ]
+    },
+    {
+      "id": "ne",
+      "rows": [
+        "................",
+        "wwwww...........",
+        "wwwwwwww........",
+        "BBBBBBwww.......",
+        "BBBBBWBBwww.....",
+        "BBBBBBBBBwww....",
+        "BBBBBBBBBBwww...",
+        "BBBBBBBBBBBww...",
+        "BBBBBBBBBBBBww..",
+        "BBBBBBBBBBBBBww.",
+        "BBBBBBBBBBBWBww.",
+        "BBBBBBBBBBBBBBw.",
+        "BBBBBBBBBBBBBBww",
+        "WWWBBBBBBBBBBBww",
+        "..WWBBBBBBBBBBww",
+        "...WBBBBBBBBBBww"
+      ]
+    },
+    {
+      "id": "sw",
+      "rows": [
+        ".wwRRRRRRRRRRW..",
+        ".wwRRRRRRRRRRW..",
+        ".wwRRRRRRRRRRWW.",
+        ".wwRRRRRRRRRRRWW",
+        ".wwRRRRRRRRRRRRR",
+        "..wRWRRRRRRRRRRR",
+        "..wwRRRRRRRRRRRR",
+        "..wwRRRRRRRRRRRR",
+        "...wwRRRRRRRRRRR",
+        "....wwRRRRRRRRRR",
+        "....wwwRRRRRRRRR",
+        ".....wwwRRWRRRRR",
+        "......wwwRRRRRRR",
+        "........wwwRRRRR",
+        ".........wwwwwww",
+        "............wwww"
+      ]
+    },
+    {
+      "id": "se",
+      "rows": [
+        "...WYYYYYYYYYYww",
+        "...WYYYYYYYYYYww",
+        "..WWYYYYYYYYYYww",
+        "WWWYYYYYYYYYYYww",
+        "YYYYYYYYYYYYYYww",
+        "YYYYYYYYYYYWYYw.",
+        "YYYYYYYYYYYYYww.",
+        "YYYYYYYYYYYYYww.",
+        "YYYYYYYYYYYYww..",
+        "YYYYYYYYYYYww...",
+        "YYYYYYYYYYwww...",
+        "YYYYYWYYYwww....",
+        "YYYYYYYYwww.....",
+        "YYYYYYwww.......",
+        "wwwwwwww........",
+        "wwwww..........."
+      ]
+    }
+  ],
+  "mirror": {
+    "nw_l": {
+      "from": "nw",
+      "flipX": true
+    },
+    "ne_l": {
+      "from": "ne",
+      "flipX": true
+    },
+    "sw_l": {
+      "from": "sw",
+      "flipX": true
+    },
+    "se_l": {
+      "from": "se",
+      "flipX": true
+    }
+  }
+}

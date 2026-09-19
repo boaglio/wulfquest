@@ -1338,8 +1338,8 @@ file — they arrive with audio (M8) if a species earns them.
 | `HOP` | Alternate `BURST` (move at burst speed, `hopTicks`) and `REST` (still, `restTicks`). Direction re-rolled at the start of each burst, biased 60% toward the player. |
 | `AMBUSH_BURST` | Idle (still, facing the player) until the player enters `triggerPx` (96) **and** has line-of-cells (no solid cell on the straight cell path). Then charge along that direction at `chargeSpeedFp` for `chargeTicks`, ignoring further input. On hitting scenery, stun 24 ticks. Then idle again. |
 | `HERD_BOUNCE` | A group entity: one shared direction, N members in a loose triangle offset by ±20 px. Reflects as one. If one member dies the others continue. |
-| `GUARD_ORBIT` | **M6.** Circle a fixed anchor (the amulet pedestal) at `orbitRadiusPx` (56) and `orbitTicksPerRev` (240). If the player comes within `lungePx` (40), break orbit and `CHASE_DIRECT` for 90 ticks, then return to the nearest orbit point. Unkillable; sabre repels 20 px and stuns 20 ticks. |
-| `BLOCK_STATIC` | **M6.** Never moves. Occupies its collision box as an impassable, lethal volume. |
+| `GUARD_ORBIT` | Walk the ring round a fixed anchor — the amulet pedestal — at `orbitRadiusPx` (32, §14.3) and `orbitTicksPerRev` (240); scenery still stops it. Within `lungePx` (40), break off and charge the player for `lungeTicks` (90), then back to the ring. Unkillable: a swing repels and stuns it (§14.3). |
+| `BLOCK_STATIC` | Never moves. Occupies its collision box as an impassable, lethal volume. |
 
 Every behaviour class implements:
 
@@ -1388,13 +1388,15 @@ How a room fills (`BiomePopulator`, M4):
 
 1. The room's RNG is `Rng.hash(runSeed, col, row, min(visit, visitSeedCap))`,
    so the same run replays exactly and the first eight visits to a room differ.
-2. An `authored` room places exactly its list (guardian lairs join it in M6).
-3. Otherwise roll `count = min(maxRoomBudget, budget.min + rng(span) + bonus)`
+2. A lair or the way out is left alone entirely: a lair is one clean puzzle (§14.3),
+   and its guardian and quarter are placed by the quest, not the populator.
+3. An `authored` room places exactly its list.
+4. Otherwise roll `count = min(maxRoomBudget, budget.min + rng(span) + bonus)`
    picks from `weights`, walked in file order; a herd species fills one slot
    with its whole herd. Then each `extras` entry is rolled once — this is how
    "1 chief per hut room, 35%" is expressed.
-4. Each pick tries up to `attempts` positions against the §12.2 rules.
-5. Rooms repopulate on every entry and after every respawn (§7.6, §11.7).
+5. Each pick tries up to `attempts` positions against the §12.2 rules.
+6. Rooms repopulate on every entry and after every respawn (§7.6, §11.7).
 
 `CreatureRefValidator` fails the load on a marker that is not a scenery id, a
 biome the resolver can produce but the file lacks, `min > max`, an unknown
@@ -1540,7 +1542,9 @@ but never the seat rules.
 - **Follows through room flips.** When the player flips while it warns, chases
   or is still arriving: if the new room is `giveUpRoomDistance` (3) or more rooms
   from where it appeared (Chebyshev), the chase is over — the player escaped.
-  Otherwise it is `ARRIVING`: off screen through the flip's hitch plus
+  It also never follows into a room it never appears in (§13.3's `neverInRooms`:
+  the start room, the lairs, the way out) — the chase ends at that door, unscored,
+  so a sanctuary cannot be farmed for escapes. Otherwise it is `ARRIVING`: off screen through the flip's hitch plus
   `wulfArrivalDelayTicks` (12) — a beat of false hope — then it comes in by the
   edge the player came through, where it was along that edge (or, if it was
   still arriving from an earlier flip, on the player's line), **at least
@@ -1608,94 +1612,141 @@ pass the Keeper of the Arch and escape. That is the whole game.
 {
   "schemaVersion": 1,
   "fidelity": "recon",
-  "startRoom": "8,10",
-  "startFacing": "up",
-  "exit": { "room": "8,10", "prop": "arch", "x": 128, "y": 40, "requiresPieces": 4 },
+  "startFacing": "N",
+  "exit": {
+    "room": "6,11", "arch": "85C8",
+    "zone": { "x": 108, "y": 104, "w": 40, "h": 24 },
+    "keeper": { "x": 128, "y": 120 },
+    "requiresPieces": 4, "escapeWalkTicks": 40
+  },
   "lairs": [
-    { "id": "lair_nw", "room": "2,2",   "guardian": "guardian_hippo",      "piece": "amulet_nw", "pedestal": { "x": 128, "y": 96 } },
-    { "id": "lair_ne", "room": "13,2",  "guardian": "guardian_rhino",      "piece": "amulet_ne", "pedestal": { "x": 128, "y": 96 } },
-    { "id": "lair_sw", "room": "2,13",  "guardian": "guardian_boar",       "piece": "amulet_sw", "pedestal": { "x": 128, "y": 96 } },
-    { "id": "lair_se", "room": "13,13", "guardian": "guardian_wildebeest", "piece": "amulet_se", "pedestal": { "x": 128, "y": 96 } }
+    { "id": "lair_nw", "room": "2,7",  "guardian": "guardian_hippo",      "piece": { "id": "amulet_nw", "frame": "nw", "slot": 0 }, "pedestal": { "x": 128, "y": 88 } },
+    { "id": "lair_ne", "room": "12,7", "guardian": "guardian_rhino",      "piece": { "id": "amulet_ne", "frame": "ne", "slot": 1 }, "pedestal": { "x": 128, "y": 88 } },
+    { "id": "lair_sw", "room": "6,14", "guardian": "guardian_boar",       "piece": { "id": "amulet_sw", "frame": "sw", "slot": 2 }, "pedestal": { "x": 128, "y": 88 } },
+    { "id": "lair_se", "room": "8,14", "guardian": "guardian_wildebeest", "piece": { "id": "amulet_se", "frame": "se", "slot": 3 }, "pedestal": { "x": 128, "y": 88 } }
   ],
-  "caveMouths": ["7,3", "12,8", "1,10", "14,10", "6,11", "4,13", "6,13", "5,14"],
-  "stillWater": { "rooms": ["7,6", "8,7", "7,7", "9,7", "7,8", "8,8", "9,8", "8,9", "7,9", "9,9", "10,9"], "name": "The Still Water" }
+  "amulet": { "sprite": "amulet_piece", "size": { "w": 16, "h": 16 }, "collisionBox": { "x": -8, "y": -16, "w": 16, "h": 16 },
+              "pickupFlashTicks": 8, "flyToPanelTicks": 24 },
+  "caveMouths": ["7,3", "12,8", "1,10", "14,10", "4,13", "6,13", "5,14"],
+  "hint": { "messageTicks": 90, "oncePerLife": true },
+  "stillWater": { "name": "The Still Water", "rooms": ["7,6", "…"] }
 }
 ```
 
-- The four lair rooms are the **deepest interior room of each quadrant**
-  reachable without crossing the central lake, chosen so all four trips are
-  roughly equal length from the start. Verify with `MapAudit` (§22.3): the
-  BFS distance from `8,10` to each lair must be within ±4 rooms of the
-  others. If a lair is unreachable or trivially close, move it and record
-  the reason in a commit message.
-- The pedestal position must be on a non-solid cell; `MapAudit` asserts it.
+The start room is **not** here: it is extracted canon (§8), and duplicating it
+would let the two disagree. Only the direction Vale faces at the start is.
+
+**Chosen against the real map, and measured, in M6:**
+
+- **The lairs are balanced, not deepest.** One per quadrant, each with a clear
+  80 px square at its centre for a pedestal and an orbit. The deepest rooms of
+  each quadrant lie 22, 22, 10 and 8 rooms from the start — the start room is a
+  southern one, so "the deepest room of each quadrant" is wildly unfair. These
+  four are 11, 11, 10 and 8 rooms away: a spread of 3, inside the ±4 this
+  section asks for, checked by `LandmarkBalanceTest` through
+  `MapAudit.roomDistances` (a 0-1 flood: free within a room, one per crossing).
+- **Pedestals sit at (128, 88)**, that clear centre. The (128, 96) of this
+  section's first draft is solid scenery in every room it named.
+- **The way out is a real arch.** The start room has no arch in the extracted
+  map, and its largest clear space is 32 px — nowhere to put one without
+  inventing scenery over canon. The exit is therefore `6,11`, the arch room
+  nearest the start (3 rooms), which keeps this section's intent: the player
+  meets the way out early and finds it barred.
+- **The arch's own cells are solid**, so nobody can stand under it. The exit is
+  the `zone` in front of it — where the Keeper stands, and where a shrine is
+  touched. Every arch room places its arch identically, at cells (13, 8), so one
+  rectangle serves all of them.
+- `LandmarkValidator` checks the lot at load: the rooms exist and hold an arch,
+  one lair per quadrant, ids and slots unique, and that the guardian, the
+  quarter, the Keeper and its step aside all fit where they are put.
 
 ### 14.3 Guardians `data/entities/guardians.json`
 
-Four beasts, `GUARD_ORBIT`, unkillable, one per lair, each a recoloured
-larger sibling of a roster species so the player recognises the family and
-fears the scale:
+Four beasts, `GUARD_ORBIT`, unkillable, one per lair, each a larger sibling of a
+roster species recoloured to its quarter's accent, so the player reads the
+family and the scale at once:
 
 | id | based on | colour | lair |
 |----|----------|--------|------|
-| `guardian_hippo` | `hippo`, 1.4× size | bright green | NW |
-| `guardian_rhino` | `rhino`, 1.4× | bright blue | NE |
-| `guardian_boar` | `boar`, 1.4× | bright red | SW |
-| `guardian_wildebeest` | `wildebeest`, 1.4× | bright yellow | SE |
+| `guardian_hippo` | `hippo` | bright green | NW `2,7` |
+| `guardian_rhino` | `rhino` | bright blue | NE `12,7` |
+| `guardian_boar` | `boar` | bright red | SW `6,14` |
+| `guardian_wildebeest` | `wildebeest` | bright yellow | SE `8,14` |
 
-Guardian rooms have **no other creatures** and **no orchids**. The room is a
-single clean puzzle: time the orbit, take the piece, leave. The Wulf never
-spawns here.
+All four are **32x28** (§12.3's roster line), drawn by `creature_forge.py` as
+their sibling's silhouette grown into that box: "1.4x" in the first draft of
+this section was prose, the roster's numbers are the contract.
+
+```json
+"orbit": { "radiusPx": 32, "ticksPerRev": 240, "lungePx": 40, "lungeTicks": 90,
+           "repelPx": 20, "stunTicks": 20, "hurtFlashTicks": 8 }
+```
+
+- It walks the ring rather than being placed on it, so scenery still stops it;
+  in a lair's clear middle that reads as a clean, timeable orbit.
+- **The radius is 32 px, not 56.** The clearest centre any candidate lair has is
+  80 px across (§14.2): a 56 px ring puts a 32 px beast through the hedges.
+- Within `lungePx` it breaks off and charges for `lungeTicks`, then returns to
+  the ring. A swing never hurts it: `repelPx` back, `stunTicks` stunned, white
+  flash, no score — the Wulf's parry (§13.5) by another name.
+- Lair rooms hold **no other creatures** and no orchids: `Content.ecosystem()`
+  keeps the populator out of them and out of the exit room. The Wulf never
+  appears in them **and never follows into them** (§13.4) — a chase ends at a
+  sanctuary's door, unscored.
 
 ### 14.4 The Keeper of the Arch
 
-- A `BLOCK_STATIC` figure standing in front of the exit arch in the start
-  room, `24×32 px`, lethal to touch.
-- While `piecesHeld < 4`: it stands there. Walking into it kills you.
-  (Grace: a 16 px "nudge zone" in front of it where the player is pushed
-  back 8 px instead of dying, so that accidentally brushing the exit on your
-  first 30 seconds of play is not a death. `game.json →
-  exit.keeperNudgeZonePx: 16`.)
-- When the 4th piece is collected, the Keeper **steps aside** over 60 ticks
-  (a 4-frame animation) and becomes non-lethal, permanently.
-- Walking into the arch then triggers the win sequence.
+- A `BLOCK_STATIC` figure standing in the exit zone in front of the arch,
+  `24x32 px`, lethal to touch.
+- While `piecesHeld < 4` it stands there. Walking into it kills you — except
+  from the front, within `game.json → exit.keeperNudgeZonePx` (16 px), where you
+  are pushed back `exit.keeperNudgePx` (8 px) instead, so brushing the way out in
+  your first minute is not a death.
+- When the last quarter is taken — wherever the player is — it **steps aside**
+  over `exit.keeperStepAsideTicks` (60) and `guardians.json → keeper.stepAsidePx`
+  (36 px), through a four-frame animation, and is harmless from then on.
+- Standing in the zone with the whole amulet then starts the escape (§14.7).
 
 ### 14.5 Cave mouths **[RECON]**
 
-The 8 arch rooms from §8.2 are flavour landmarks with a mechanical use: each
-contains a **shrine niche** that, when touched, reveals a directional hint
-toward the nearest uncollected amulet piece (a 90-tick panel message such as
-`AMULET STIRS TO THE NORTH-WEST`). One use per room per life. This is
-`[RECON]` navigation aid for a 256-room map; flag
-`features.caveHints`, **default on** — 256 rooms without any guidance is
-genuinely unfair to a modern player, and the original's map came printed on
-the inlay.
+The arch rooms of §8.2 are shrines: touch the spot in front of the arch — the
+same rectangle as the way out's, since every arch room is laid out alike — and
+the panel names the way to the nearest quarter still out there for
+`hint.messageTicks` (90): `AMULET STIRS TO THE SOUTH-WEST`. Once the amulet is
+whole it names the way to the arch instead. **Once per room per life**
+(`hint.oncePerLife`), cleared by a death, so it cannot be tapped for a compass.
+Seven rooms, not eight: the way out's own arch belongs to the Keeper. Flag
+`features.caveHints`, default on — 256 rooms with no guidance is unfair to a
+player who has no inlay map.
 
 ### 14.6 Amulet pieces
 
-- Sprite: a quarter of a four-part amulet, `16×16 px`, each quarter a
-  different palette accent (green/blue/red/yellow matching its guardian).
-- Pickup: box overlap with the player's collision box. Awards `5000` points,
-  plays a 5-note rising arpeggio, flashes the border bright white for 8
-  ticks, and animates the quarter flying into its panel slot over 24 ticks.
-- The panel shows the amulet assembling — 4 slots, filled quarters drawn in
-  place, the silhouette of missing quarters in dark grey. Completion of the
-  panel is the game's only progress display.
+- Sprite: a quarter of a 16x16 amulet, each quarter its guardian's accent, rim
+  in plain white so the yellow quarter still reads.
+- Pickup: box overlap with the player's feet box. Awards `5000`, flashes the
+  border bright white for `pickupFlashTicks` (8), and flies to its panel slot
+  over `flyToPanelTicks` (24). The arpeggio arrives with the synthesiser (M8).
+- The panel shows the amulet assembling: four slots, held quarters drawn from
+  the sprite at half size, missing ones as silhouettes in `white` (§17.3).
+- **Kept on death** (`player.json → death.keepAmulet`): a quarter taken is taken.
 
 ### 14.7 The win sequence
 
 ```
-walk into the arch with 4 pieces
-  ──► control locked
-  ──► Vale walks into the arch over 40 ticks, fading to black by row
-  ──► score tally screen:
+stand in the exit zone with 4 pieces
+  ──► control locked (mode ESCAPING)
+  ──► Vale walks up into the arch over escapeWalkTicks (40), the playfield
+      going black a row at a time
+  ──► mode WON, and the tally:
         collected score
         + escape bonus            10000
         + time bonus              max(0, 30000 - ticksElapsed / 2)
         + lives remaining bonus   lives * 2500
-  ──► hi-score entry if it qualifies (§21.2)
-  ──► title screen
+  ──► fire starts a new game (hi-score entry and the title screen: M8)
 ```
+
+The tally holds fire for 100 ticks first, so the press that won the game cannot
+skip it.
 
 ---
 
@@ -1880,7 +1931,8 @@ data-driven game; build it in M1.
 
 - `LIVES` shows up to 5 small head icons then `x7` numerically beyond that.
 - The amulet quarters assemble into a single shape in the centre — the
-  visual goal of the game. Empty slots are silhouettes in `white` (index 7)
+  visual goal of the game, drawn from the quarter sprites at half size so all
+  four fit rows 10-26. Empty slots are silhouettes in `white` (index 7)
   against the panel's black ground, with held quarters in `brightWhite`.
   **Not index 8**: `brightBlack` is `#000000` in this palette — bright black
   is still black — so anything drawn in it on the panel is invisible. The
@@ -2330,8 +2382,8 @@ hash at every 50th tick. `ReplayRunner` re-executes them. Ship at least:
 - `replays/attract.json` — the title-screen demo (doubles as a test). (M8)
 - `replays/lair_nw.json` — start → NW lair → piece → back. (M6)
 - `replays/wulf_escape.json` — a Wulf pursuit survived across 4 rooms. (**M5, shipped**)
-- `replays/full_run.json` — a complete 4-piece win (long; tagged
-  `@Tag("slow")`, run in CI only). (M9)
+- `replays/full_run.json` — a complete 4-piece win, forged by `FullRunForge`
+  (**M6**).
 
 A replay divergence means determinism broke (§6.4). It is never "just update
 the hash" — find the cause first. The exception is a deliberate change to the
@@ -2364,10 +2416,15 @@ replays exactly.
 
 **Making one:** `./run.sh --record FILE` records the first game of a session
 (a restart is a new run) and writes it on exit. Acceptance replays that must
-show something specific are **forged**: `WulfEscapeForge` (test sources) drives
-a bot — a planned route, predictive parries, standing its ground when the Wulf
-closes — through the real game, trying seeds until a run shows the escape, and
-records it. `ReplayTest` then checks both the hashes and that the replay still
+show something specific are **forged**: `WulfEscapeForge` and `FullRunForge`
+(test sources) drive a bot — a planned route, predictive parries, standing its
+ground when something comes at it — through the real game until a run shows what
+is wanted, and record it. `FullRunForge` also **searches**: the simulation is
+deterministic, so on a death or a stall it replays the input so far minus a
+stretch into a fresh simulation and plays on from there with different dice,
+reaching further back when the same place keeps killing it, and never undoing a
+quarter already carried out of its lair. What it writes is an ordinary input
+stream with no death in it. `ReplayTest` then checks both the hashes and that the replay still
 shows what it was made to show, so a rules change that quietly turns the escape
 into a death fails loudly.
 
@@ -2800,13 +2857,70 @@ Deferred, deliberately: the howl, growl and parry sounds (M8); `lair` and
 `exit` in `neverInRooms` and the amulet-piece chance bonus (M6); Wulf
 encounter statistics (M8).
 
-### M6 — Quest (2 days)
+### M6 — Quest — **COMPLETE (2026-09-18)**
 
-- Guardians, lairs, pedestals, amulet pieces, panel assembly animation, the
-  Keeper of the Arch, the win sequence and tally.
+**Accept when:** a full run is completable and `replays/full_run.json` passes.
 
-**Accept when:** a full run is completable and `replays/full_run.json`
-passes.
+**Accepted:** `replays/full_run.json` is a whole game won on the real map — all
+four quarters and out through the arch, 48 272 ticks (16 minutes of play), no
+death, 70 384 points — and `ReplayTest` replays it every build, checking both
+its 965 state hashes and that it still ends in `WON` with four quarters and the
+Keeper aside.
+
+What landed:
+
+- **Data:** `landmarks.json` and `guardians.json` with schemas and validators
+  (§14.2, §14.3); `exit.keeperNudgePx` and `escapeWalkTicks` moved out of the
+  code into `game.json` and `landmarks.json`.
+- **Simulation:** a `Quest` beside the `Wulf` — guardians seated on their rings
+  in lairs, quarters taken (score, flash, flight), the Keeper blocking, nudging,
+  stepping aside, the shrines' hints, the escape walk and the tally; `Player.Mode`
+  gains `ESCAPING` and `WON`; the difficulty ramp and the Wulf's chance now see
+  real amulet pieces; lairs and the way out are kept clear of creatures.
+- **Behaviours:** `GUARD_ORBIT` and `BLOCK_STATIC` (§12.5), the last two kinds.
+- **Rendering:** guardians and the Keeper over the creatures; the quarter on its
+  pedestal and its flight to the panel; the panel's amulet assembling from the
+  real quarter art; the playfield going black row by row as Vale walks into the
+  arch; `TallyScreen`.
+- **Art:** four guardians, the Keeper with a four-frame step aside, and the four
+  amulet quarters, all from `creature_forge.py`.
+- **Tools:** `MapAudit.roomDistances` (a 0-1 flood over rooms) and
+  `FullRunForge`, a searching bot (§22.6).
+- **Tests:** 293 runs, from 274 — `QuestTest` (nine, including a scripted whole
+  quest to the tally with its sums), `QuestDataValidationTest`,
+  `LandmarkBalanceTest`, `PanelAmuletTest`, and the full-run replay.
+
+Found along the way:
+
+- **The spec's own placements do not fit the map.** Every lair room it named has
+  solid scenery at the pedestal it named, the four were 18, 19, 9 and 8 rooms
+  from the start (the ±4 rule wants a spread of 4), and the start room has no
+  arch to escape through and no space to put one. §14.2 now records what the map
+  will actually take, and why.
+- **The Wulf followed players into lairs**, which §14.3 keeps as a clean puzzle:
+  in the forge's search it was the single biggest killer inside lair rooms. A
+  room it never appears in is now a room it never enters (§13.4).
+- **A lair's door can sit inside its guardian's reach** (`8,14` is 60 px from
+  pedestal to doorway), so a death there can respawn you inside the orbit. Kept:
+  the guardian is slower than Vale and a swing buys 20 ticks. Worth watching at
+  the keyboard.
+- **`mvn verify` excluded the `slow` group**, so an acceptance replay tagged
+  that way would never have run. The full run takes 50 ms; it runs every build.
+- **Forging a full run needed a search, not a better bot.** Straight bot runs
+  died to attrition — creatures, the chief, the Wulf — in 6 000 attempts without
+  ever winning. Because the simulation is deterministic, the forge now rewinds
+  on a death, replays the input minus a stretch and plays on with different
+  dice, anchoring on each quarter once it is out of its lair. The winning run
+  took 13 065 rewinds. The bot is no better than a nervous beginner; the replay
+  is proof the game can be won, not a demonstration of good play.
+- **Balance, again for a player's eye.** Across the searches the killers were,
+  in order: the Wulf, the chief, the guardians, hippos and rhinos. The Wulf's
+  quiet-room bonus (+2% a room, capped at +20%) means it is rarely away for long
+  on a cross-map trek. Nothing changed without a player's judgement.
+
+Deferred, deliberately: orchids (M7); the hi-score entry and title screen that
+follow the tally (M8); `lair`/`exit` in `neverInRooms` are resolved, but the
+guardians' own sounds wait for the synthesiser (M8).
 
 ### M7 — Orchids (1.5 days)
 

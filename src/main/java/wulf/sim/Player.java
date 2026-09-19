@@ -11,7 +11,8 @@ package wulf.sim;
  */
 public final class Player {
 
-    public enum Mode { ALIVE, DYING, DOWN, GAME_OVER }
+    /** ESCAPING: walking into the arch, control locked (§14.7). WON: the game is over, and won. */
+    public enum Mode { ALIVE, DYING, DOWN, GAME_OVER, ESCAPING, WON }
 
     int xFp;
     int yFp;

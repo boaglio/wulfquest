@@ -12,6 +12,7 @@ import wulf.sim.Creature;
 import wulf.sim.Simulation;
 import wulf.sim.Spear;
 import wulf.sim.Wulf;
+import wulf.sim.Quest;
 
 /**
  * Draws the room's creatures and spears (AGENTS.md §12, §5.3): back to front by
@@ -58,6 +59,13 @@ public final class CreaturePainter {
         try {
             for (int i = 0; i < order.size(); i++) {
                 paintCreature(fb, order.get(i), sim.tick(), ox, oy);
+            }
+            Quest quest = sim.quest();
+            if (quest.inLair()) {
+                paintBody(fb, quest.guardian(), frameFor(quest.guardian(), sim.tick(), roster.walkTicksPerFrame()), ox, oy);
+            }
+            if (quest.keeperHere()) {
+                paintBody(fb, quest.keeper(), keeperFrame(quest, sim.ecosystem().quest().stepAsideTicks()), ox, oy);
             }
             Wulf wulf = sim.wulf();
             if (wulf.visible()) {
@@ -107,6 +115,29 @@ public final class CreaturePainter {
         } else {
             sprite.blit(fb, frame, x, y);
         }
+    }
+
+    private void paintBody(Framebuffer fb, Creature body, String frame, int ox, int oy) {
+        Sprite sprite = sprites.get(body.species().sprite());
+        int x = Fixed.px(body.xFp()) + ox;
+        int y = Fixed.px(body.yFp()) + oy;
+        if (flashing(body)) {
+            sprite.blitTinted(fb, frame, x, y, flash);
+        } else {
+            sprite.blit(fb, frame, x, y);
+        }
+    }
+
+    /** Standing; then its four-frame step aside once the amulet is whole (§14.4); then aside. */
+    static String keeperFrame(Quest quest, int stepAsideTicks) {
+        return switch (quest.keeperState()) {
+            case BLOCKING -> "stand";
+            case ASIDE -> "aside";
+            case STEPPING_ASIDE -> {
+                int i = Math.min(3, quest.keeperTick() * 4 / Math.max(1, stepAsideTicks));
+                yield List.of("stand", "step0", "step1", "aside").get(i);
+            }
+        };
     }
 
     /** Howling while it warns (§13.3); otherwise the ordinary gait, facing its way. */

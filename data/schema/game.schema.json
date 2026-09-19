@@ -35,10 +35,11 @@
     "exit": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["keeperNudgeZonePx", "keeperStepAsideTicks"],
+      "required": ["keeperNudgeZonePx", "keeperStepAsideTicks", "keeperNudgePx"],
       "properties": {
         "keeperNudgeZonePx": { "type": "integer", "minimum": 0 },
-        "keeperStepAsideTicks": { "type": "integer", "minimum": 1 }
+        "keeperStepAsideTicks": { "type": "integer", "minimum": 1 },
+        "keeperNudgePx": { "type": "integer", "minimum": 0, "maximum": 64 }
       }
     },
     "features": {
