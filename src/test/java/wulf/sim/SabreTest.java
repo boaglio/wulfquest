@@ -65,10 +65,41 @@ class SabreTest {
     }
 
     @Test
-    void holdingFireDoesNotAutoRepeat() {
-        Simulation sim = facingEast();
-        run(sim, HOLD_FIRE, 40);
-        assertThat(sim.player().swinging()).as("a held key without a fresh edge never swings").isFalse();
+    void holdingFireKeepsTheSabreWorking() {
+        // Reported by the user from the original: keep the key down and the weapon keeps going.
+        Simulation sim = SimFixtures.at(SimFixtures.OPEN, 1000, 1000);
+        // Held, the swings chain with no gap, so the player is never not swinging: count the
+        // blade instead, which is live only through each swing's ACTIVE ticks.
+        int strokes = 0;
+        int liveTicks = 0;
+        boolean wasLive = false;
+        for (int t = 0; t < 120; t++) {
+            sim.tick(HOLD_FIRE);
+            boolean live = !sim.sabre().isEmpty();
+            if (live) {
+                liveTicks++;
+                if (!wasLive) {
+                    strokes++;
+                }
+            }
+            wasLive = live;
+        }
+        int perSwing = RULES.sabre().totalTicks() + RULES.sabre().holdRepeatTicks();
+        assertThat(strokes).as("a stroke every %d ticks while held", perSwing).isEqualTo(120 / perSwing);
+        assertThat(liveTicks).as("and the blade lives its full ACTIVE each time")
+                .isEqualTo(strokes * RULES.sabre().activeTicks());
+    }
+
+    @Test
+    void lettingGoCostsTheCooldown() {
+        Simulation sim = SimFixtures.at(SimFixtures.OPEN, 1000, 1000);
+        sim.tick(SimFixtures.FIRE);
+        run(sim, InputState.NONE, RULES.sabre().totalTicks());
+        assertThat(sim.player().swinging()).as("the swing runs to its end").isFalse();
+        assertThat(sim.player().cooldown()).isEqualTo(RULES.sabre().cooldownTicks());
+        run(sim, InputState.NONE, RULES.sabre().cooldownTicks() - 1);
+        sim.tick(SimFixtures.FIRE);
+        assertThat(sim.player().swinging()).as("and then it may swing again").isTrue();
     }
 
     @Test

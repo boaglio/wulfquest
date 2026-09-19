@@ -240,13 +240,15 @@ public final class Simulation {
         if (player.swingTick >= 0) {
             if (++player.swingTick >= s.totalTicks()) {
                 player.swingTick = -1;
-                player.cooldown = s.cooldownTicks();
+                // §11.6: held, the sabre goes again straight away; let go and it needs its cooldown,
+                // so tapping is never quicker than keeping the blade working.
+                player.cooldown = in.fire() ? s.holdRepeatTicks() : s.cooldownTicks();
             }
         } else if (player.cooldown > 0) {
             player.cooldown--;
         }
-        // A fresh key-down edge only: holding fire never auto-repeats (§11.6).
-        if (player.swingTick < 0 && player.cooldown == 0 && in.firePressed()) {
+        // Held or tapped: the level, not the edge (§11.6).
+        if (player.swingTick < 0 && player.cooldown == 0 && in.fire()) {
             player.swingTick = 0;
             swingSerial++;   // each swing may hit each creature once
         }

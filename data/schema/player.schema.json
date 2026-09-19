@@ -61,13 +61,14 @@
     },
     "sabre": {
       "type": "object", "additionalProperties": false,
-      "required": ["windupTicks", "activeTicks", "recoverTicks", "cooldownTicks", "reachPx", "thicknessPx",
-                   "diagonalOffsetPx", "moveSpeedScaleFp", "repelWulfPx", "repelWulfStunTicks"],
+      "required": ["windupTicks", "activeTicks", "recoverTicks", "cooldownTicks", "holdRepeatTicks", "reachPx",
+                   "thicknessPx", "diagonalOffsetPx", "moveSpeedScaleFp", "repelWulfPx", "repelWulfStunTicks"],
       "properties": {
         "windupTicks": { "type": "integer", "minimum": 0 },
         "activeTicks": { "type": "integer", "minimum": 1 },
         "recoverTicks": { "type": "integer", "minimum": 0 },
         "cooldownTicks": { "type": "integer", "minimum": 0 },
+        "holdRepeatTicks": { "type": "integer", "minimum": 0 },
         "reachPx": { "type": "integer", "minimum": 1 },
         "thicknessPx": { "type": "integer", "minimum": 1 },
         "diagonalOffsetPx": { "type": "integer", "minimum": 0 },

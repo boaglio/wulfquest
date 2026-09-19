@@ -1179,8 +1179,18 @@ then         COOLDOWN 6 ticks before another swing is allowed
 - One creature may be hit **once per swing** (keep a per-swing hit set).
 - The hitbox is **not** blocked by scenery. The blade sweeps over the
   foliage line.
-- Holding the fire key does **not** auto-repeat. Each swing needs a fresh
-  key-down edge. This is a skill-expression choice and matches the period.
+- **Holding the fire key keeps the sabre working.** While it is held, the next
+  swing begins as soon as the last one ends — `holdRepeatTicks` (0) is the gap.
+  Let go and the full `cooldownTicks` (6) applies before the next swing, so
+  tapping is never quicker than holding. The swing itself is still
+  non-interruptible, and the blade is still live only during ACTIVE, so holding
+  gives a repeated slash rather than a permanently extended blade.
+  *Corrected in M7*: this was built edge-triggered — one swing per key-down, on
+  the reasoning that it was a skill-expression choice — and the user, who has
+  played the original, reported that holding the key there keeps the weapon
+  going. Canon beats our reasoning (§27.7). The X11 auto-repeat handling in
+  §19.2 still matters: `firePressed` drives menus, where a repeat would skip
+  screens.
 
 ### 11.7 Death and respawn
 
@@ -3003,6 +3013,18 @@ Found along the way:
 
 Deferred, deliberately: the title screen, hi-score entry and the attract-mode
 replay that follow the tally (M8), and every sound the flowers should make (M8).
+
+**Follow-up, 2026-09-19 — holding fire keeps the sabre working.** Reported by
+the user, who has played the original: keep the key down there and the weapon
+stays busy. We had built it edge-triggered since M3 — one swing per key-down,
+§11.6 calling it "a skill-expression choice" — which was our reasoning against
+their memory of the game, and canon wins (§27.7). The swing now starts again the
+moment the last ends while the key is held (`sabre.holdRepeatTicks`, 0), while
+letting go still costs the full `cooldownTicks` (6), so tapping is never
+quicker. Measured over 26 ticks of holding, the blade reads
+`...######......######.....` — three windup, six live, three recover, straight
+into the next — and Vale walked 171 px through it. Neither replay moved: the
+forge bots tap fire for a single tick, and the level is what changed.
 
 ### M8 — Shell and polish (3 days)
 

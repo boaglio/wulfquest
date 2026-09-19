@@ -16,7 +16,7 @@
     "windupTicks": 3,
     "activeTicks": 6,
     "recoverTicks": 3,
-    "cooldownTicks": 6,
+    "cooldownTicks": 6, "holdRepeatTicks": 0,
     "reachPx": 14,
     "thicknessPx": 12,
     "diagonalOffsetPx": 4,

@@ -46,11 +46,13 @@ public record PlayerData(
     public record Death(int animTicks, int freezeTicks, boolean keepAmulet) {
     }
 
+    /** @param holdRepeatTicks the gap between swings while fire is held; 0 chains them (§11.6) */
     public record Sabre(
             int windupTicks,
             int activeTicks,
             int recoverTicks,
             int cooldownTicks,
+            int holdRepeatTicks,
             int reachPx,
             int thicknessPx,
             int diagonalOffsetPx,
