@@ -93,4 +93,17 @@ class BootArgsTest {
         assertThat(Boot.linear(new RoomAddress(0, 0), -1)).isEqualTo(new RoomAddress(15, 15));
         assertThat(Boot.linear(new RoomAddress(15, 3), 1)).isEqualTo(new RoomAddress(0, 4));
     }
+
+    @Test
+    void theUserDirDefaultsToThePlatformsOwnAndCanBePointedElsewhere() {
+        assertThat(parse().userDir()).isEqualTo(wulf.data.UserDataDir.resolve());
+        assertThat(parse("--user-dir", "/tmp/saves").userDir()).hasToString("/tmp/saves");
+        assertThat(parse("--user-dir").error()).isEqualTo("--user-dir needs a value");
+    }
+
+    @Test
+    void audioIsOnUnlessThisRunAsksForSilence() {
+        assertThat(parse().noAudio()).isFalse();
+        assertThat(parse("--no-audio").noAudio()).isTrue();
+    }
 }

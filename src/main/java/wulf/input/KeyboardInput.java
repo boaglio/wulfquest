@@ -20,6 +20,9 @@ public final class KeyboardInput implements KeyListener, FocusListener {
     private final Set<Integer> held = ConcurrentHashMap.newKeySet();
     private final Set<Integer> pressedSinceSample = ConcurrentHashMap.newKeySet();
     private final Map<Integer, Long> lastRelease = new ConcurrentHashMap<>();
+    private final java.util.Queue<Character> typedSinceDrain = new java.util.concurrent.ConcurrentLinkedQueue<>();
+    private final java.util.concurrent.atomic.AtomicBoolean anyKeySinceDrain =
+            new java.util.concurrent.atomic.AtomicBoolean();
 
     public KeyboardInput(InputMap map) {
         this.map = map;
@@ -38,7 +41,23 @@ public final class KeyboardInput implements KeyListener, FocusListener {
         }
         if (held.add(code)) {
             pressedSinceSample.add(code);
+            anyKeySinceDrain.set(true);
+            char ch = menuChar(code);
+            if (ch != 0) {
+                typedSinceDrain.add(ch);
+            }
         }
+    }
+
+    /** Letters and digits only: what a title-screen hotkey can be (§17.2). */
+    private static char menuChar(int code) {
+        if (code >= KeyEvent.VK_A && code <= KeyEvent.VK_Z) {
+            return (char) ('A' + code - KeyEvent.VK_A);
+        }
+        if (code >= KeyEvent.VK_0 && code <= KeyEvent.VK_9) {
+            return (char) ('0' + code - KeyEvent.VK_0);
+        }
+        return 0;
     }
 
     @Override
@@ -58,11 +77,29 @@ public final class KeyboardInput implements KeyListener, FocusListener {
         held.clear();
         pressedSinceSample.clear();
         lastRelease.clear();
+        typedSinceDrain.clear();
+        anyKeySinceDrain.set(false);
     }
 
     @Override
     public void focusGained(FocusEvent e) {
         // nothing to restore
+    }
+
+    /**
+     * The shell's own keys since the last call (§17.2), drained so each press is
+     * acted on once. Never reaches the simulation.
+     */
+    public MenuInput drainMenu() {
+        boolean any = anyKeySinceDrain.getAndSet(false);
+        if (typedSinceDrain.isEmpty()) {
+            return any ? new MenuInput(java.util.List.of(), true) : MenuInput.NONE;
+        }
+        java.util.List<Character> chars = new java.util.ArrayList<>();
+        for (Character c = typedSinceDrain.poll(); c != null; c = typedSinceDrain.poll()) {
+            chars.add(c);
+        }
+        return new MenuInput(chars, true);
     }
 
     /** One snapshot per tick. Never call from the simulation itself. */

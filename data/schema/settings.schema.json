@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wulfquest.invalid/schema/settings.schema.json",
+  "title": "settings.json — AGENTS.md §21.3 (the player's choices; overrides game.json)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "scale", "audio", "inputProfile", "crt", "features"],
+  "properties": {
+    "schemaVersion": { "type": "integer", "minimum": 1 },
+    "scale": { "type": "integer", "minimum": 1, "maximum": 6 },
+    "audio": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["enabled", "volumePercent"],
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "volumePercent": { "type": "integer", "minimum": 0, "maximum": 100 }
+      }
+    },
+    "inputProfile": { "type": "string", "minLength": 1 },
+    "crt": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["scanlines", "glow", "attributeClash"],
+      "properties": {
+        "scanlines": { "type": "boolean" },
+        "glow": { "type": "boolean" },
+        "attributeClash": { "type": "boolean" }
+      }
+    },
+    "features": { "type": "object", "additionalProperties": { "type": "boolean" } }
+  }
+}

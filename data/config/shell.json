@@ -1,0 +1,118 @@
+{
+  "schemaVersion": 1,
+  "screenHoldTicks": 25,
+  "title": {
+    "wordmark": "WULF QUEST",
+    "tagline": "FOUR QUARTERS OF A BROKEN AMULET",
+    "prompt": "PRESS FIRE TO BEGIN",
+    "cycle": {
+      "colours": [
+        "green",
+        "brightGreen",
+        "brightYellow",
+        "yellow",
+        "brightYellow",
+        "brightGreen"
+      ],
+      "ticksPerStep": 5
+    },
+    "menu": [
+      {
+        "key": "K",
+        "screen": "KEY_CONFIG",
+        "label": "K KEYS"
+      },
+      {
+        "key": "A",
+        "screen": "SOUND",
+        "label": "A SOUND"
+      },
+      {
+        "key": "H",
+        "screen": "HISCORES",
+        "label": "H HI-SCORES"
+      },
+      {
+        "key": "C",
+        "screen": "CREDITS",
+        "label": "C CREDITS"
+      },
+      {
+        "key": "S",
+        "screen": "STATS",
+        "label": "S STATS"
+      }
+    ],
+    "footer": "CLEAN-ROOM HOMAGE - ALL ART AUDIO AND CODE ORIGINAL"
+  },
+  "attract": {
+    "idleTicks": 1000,
+    "replay": "replays/attract.json",
+    "banner": "PRESS ANY KEY",
+    "dimEveryOtherRow": true
+  },
+  "gameOver": {
+    "text": "GAME OVER",
+    "holdTicks": 150
+  },
+  "tally": {
+    "holdTicks": 100
+  },
+  "hiScores": {
+    "heading": "HALL OF RANGERS",
+    "entryHeading": "A NEW BEST",
+    "entryPrompt": "UP DOWN TO CHOOSE - FIRE TO SET",
+    "size": 10,
+    "nameLength": 3,
+    "alphabet": "ABCDEFGHIJKLMNOPQRSTUVWXYZ ",
+    "cursorBlinkTicks": 12,
+    "repeatDelayTicks": 18,
+    "repeatEveryTicks": 5
+  },
+  "keyConfig": {
+    "heading": "KEYS",
+    "prompt": "1 MODERN   2 PERIOD   FIRE TO RETURN",
+    "actionOrder": [
+      "UP",
+      "DOWN",
+      "LEFT",
+      "RIGHT",
+      "FIRE",
+      "PAUSE",
+      "QUIT"
+    ]
+  },
+  "sound": {
+    "heading": "SOUND",
+    "prompt": "1 ON   2 OFF   LEFT RIGHT VOLUME   FIRE TO RETURN",
+    "onLabel": "SOUND IS ON",
+    "offLabel": "SOUND IS OFF",
+    "volumeLabel": "VOLUME",
+    "volumeStepPercent": 10
+  },
+  "stats": {
+    "heading": "THE LEDGER",
+    "emptyLine": "NOTHING RECORDED YET"
+  },
+  "credits": {
+    "heading": "CREDITS",
+    "lines": [
+      "WULF QUEST",
+      "",
+      "DESIGN, CODE, ART AND AUDIO",
+      "WRITTEN FOR THIS PROJECT ALONE",
+      "",
+      "WULF QUEST IS AN INDEPENDENT, CLEAN-ROOM",
+      "HOMAGE TO THE FLIP-SCREEN JUNGLE MAZE",
+      "GENRE OF THE EARLY 1980S. ALL ARTWORK,",
+      "AUDIO, AND CODE ARE ORIGINAL. ROOM LAYOUT",
+      "GEOMETRY WAS RECONSTRUCTED FROM PUBLICLY",
+      "DOCUMENTED MAP DATA. NO ASSETS FROM ANY",
+      "COMMERCIAL GAME ARE INCLUDED. NOT",
+      "AFFILIATED WITH, ENDORSED BY, OR DERIVED",
+      "FROM THE CODE OF ANY PRIOR WORK.",
+      "",
+      "PRESS FIRE TO RETURN"
+    ]
+  }
+}

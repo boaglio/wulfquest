@@ -12,13 +12,21 @@ engine.
 
 ## Status
 
-**Milestone M7 complete** — and the jungle is flowering. Orchids grow on their
-own clock: a shoot, then a bud that already shows its colour, then a bloom worth
-touching — or not. Yellow is speed, cyan is treacle, magenta reverses your
-hands, green makes you untouchable for a while, white takes your legs now and
-then, and blue stops every creature in the room dead. One at a time, and a new
-bloom replaces the last. Everything else is in: the whole quest, the Wulf, and
-thirteen kinds of creature. The title screen and hi-scores come with M8. The full plan lives in [AGENTS.md](AGENTS.md) §24.
+**Milestone M8 complete** — and now it is a game you can sit down to. It opens
+on a title screen with its own wordmark, waits twenty seconds and then plays
+itself behind a dimmed jungle until you touch a key. Escape always goes one step
+back: out of the jungle to the title, off the title to the desktop. A run that
+earns a place asks for three letters and keeps them, along with your settings and
+a lifetime ledger of everything you have ever killed and everything that has
+ever killed you. And it makes a noise now: hard-edged square waves and noise,
+synthesised as it goes, two channels, no sample files — footsteps, the blade, a
+howl when the Wulf arrives and a growl that stays until it is gone. There are
+three tunes, none of which plays in the jungle, where there is only the jungle.
+
+Everything before it is still in: the whole quest, the Wulf, thirteen kinds of
+creature, and six colours of orchid. `mvn -q package` now gives you one jar you
+can double-click, with the game, its data and its demo inside it. The full plan
+lives in [AGENTS.md](AGENTS.md) §24.
 
 ```bash
 ./run.sh                   # play, starting in 8,10
@@ -28,6 +36,8 @@ thirteen kinds of creature. The title screen and hi-scores come with M8. The ful
 ./run.sh --record run.json # save the first game as a replay
 ./run.sh --debug-effect haste  # start under an orchid's effect: haste, torpor,
                                # reversal, immunity, delirium, stillness
+./run.sh --no-audio        # silence for this run; your settings are not changed
+./run.sh --user-dir ./save # keep hi-scores, settings and stats somewhere else
 mvn -q exec:java -Dexec.mainClass=wulf.tools.ReplayRunner -Dexec.args="replays/full_run.json"
 ./run.sh --browse          # the room browser: arrows, [ ] or PgUp/PgDn, M
 ```
@@ -52,6 +62,9 @@ mvn -q exec:java       # run
 mvn -q package && java -jar target/wulfquest-0.1.0-SNAPSHOT.jar
 ```
 
+That jar is self-contained: copy it anywhere and run it, with no `data/`
+directory and no classpath.
+
 Editing anything under `data/` takes effect on the next `./run.sh` with no
 rebuild — the game reads the working tree's `data/` directly.
 
@@ -62,11 +75,16 @@ rebuild — the game reads the working tree's `data/` directly.
 | Arrows / WASD | Walk (8 directions) |
 | Space / Z | Swing the sabre |
 | P | Pause |
-| Escape | Quit |
+| Escape | Leave the jungle for the title; quit from the title |
 
-A period key layout (`Q`/`A`/`O`/`P` to move, `M` to swing, `H` to pause) is
-defined in `data/config/input.json` — set `"active": "period"`. A title-screen
-switch arrives with the title screen in M8.
+The title screen has the rest: `K` for the keys page, where the period layout
+(`Q`/`A`/`O`/`P` to move, `M` to swing) is one digit away and the choice sticks;
+`A` for sound and volume; `H` for the hi-scores, `C` for the credits, `S` for
+your lifetime ledger. Nothing is hidden behind a key you have to know.
+
+Hi-scores, settings and stats are written to your own user directory —
+`~/.local/share/wulfquest` on Linux, `~/Library/Application Support/WulfQuest`
+on macOS, `%APPDATA%\WulfQuest` on Windows — never into the game's own files.
 
 ## How it is built
 
@@ -80,8 +98,10 @@ switch arrives with the title screen in M8.
   characters, so all the art in this game is authored, reviewable in a diff,
   and ours. The build fails if any binary image or audio file appears in the
   repository.
-- **The audio is synthesised.** Square waves and noise, generated at
-  runtime, in the spirit of a one-bit speaker.
+- **The audio is synthesised.** Square waves with hard edges and an LFSR for
+  noise, generated at runtime, in the spirit of a one-bit speaker. Two channels,
+  mixed by addition and clipped. The tunes share those channels: a sound effect
+  steals the one the music is on, and the music keeps going underneath.
 
 ## Repository layout
 
@@ -90,7 +110,8 @@ AGENTS.md     the full specification and working agreement — start here
 data/         the content database (world, entities, art, audio, config)
 src/main/     engine, simulation, renderer, data layer
 src/test/     unit tests, data validators, replay and golden-frame checks
-tools/        CI gates, and tools/art/scenery_forge.py, which draws the scenery
+tools/        CI gates, the art forges that draw the scenery, the creatures,
+              Ranger Vale and the font, and the forge that writes the music
 ```
 
 ## Credits and attribution

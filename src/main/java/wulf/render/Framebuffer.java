@@ -89,6 +89,30 @@ public final class Framebuffer {
         }
     }
 
+    /**
+     * Drops a rectangle to the non-bright half of the palette — the dimmed
+     * playfield behind the attract demo (AGENTS.md §17.2) and under PAUSE
+     * (§17.4). Indexed, so this is a mask, not a blend.
+     */
+    public void dim(int x, int y, int w, int h) {
+        int x0 = Math.max(clipX0, x);
+        int y0 = Math.max(clipY0, y);
+        int x1 = Math.min(clipX1, x + w);
+        int y1 = Math.min(clipY1, y + h);
+        for (int py = y0; py < y1; py++) {
+            for (int px = x0; px < x1; px++) {
+                pixels[py * width + px] &= 7;
+            }
+        }
+    }
+
+    /** Paints every other row of a rectangle, which reads as a darker picture still. */
+    public void stripe(int x, int y, int w, int h, int paletteIndex) {
+        for (int py = y; py < y + h; py += 2) {
+            fillRect(x, py, w, 1, paletteIndex);
+        }
+    }
+
     public void drawRect(int x, int y, int w, int h, int paletteIndex) {
         fillRect(x, y, w, 1, paletteIndex);
         fillRect(x, y + h - 1, w, 1, paletteIndex);

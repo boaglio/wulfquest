@@ -1,0 +1,137 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wulfquest.invalid/schema/shell.schema.json",
+  "title": "shell.json — AGENTS.md §17.1, §17.2, §17.5",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "screenHoldTicks", "title", "attract", "gameOver", "tally", "hiScores",
+               "keyConfig", "sound", "stats", "credits"],
+  "properties": {
+    "schemaVersion": { "type": "integer", "minimum": 1 },
+    "screenHoldTicks": { "type": "integer", "minimum": 0, "maximum": 600 },
+    "title": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["wordmark", "tagline", "prompt", "cycle", "menu", "footer"],
+      "properties": {
+        "wordmark": { "type": "string", "minLength": 1, "maxLength": 20 },
+        "tagline": { "type": "string", "maxLength": 48 },
+        "prompt": { "type": "string", "minLength": 1, "maxLength": 48 },
+        "cycle": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["colours", "ticksPerStep"],
+          "properties": {
+            "colours": { "type": "array", "minItems": 2, "maxItems": 16, "items": { "type": "string" } },
+            "ticksPerStep": { "type": "integer", "minimum": 1, "maximum": 100 }
+          }
+        },
+        "menu": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 8,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["key", "screen", "label"],
+            "properties": {
+              "key": { "type": "string", "pattern": "^[A-Z0-9]$" },
+              "screen": { "enum": ["HISCORES", "CREDITS", "STATS", "KEY_CONFIG", "SOUND"] },
+              "label": { "type": "string", "minLength": 1, "maxLength": 32 }
+            }
+          }
+        },
+        "footer": { "type": "string", "maxLength": 78 }
+      }
+    },
+    "attract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["idleTicks", "replay", "banner", "dimEveryOtherRow"],
+      "properties": {
+        "idleTicks": { "type": "integer", "minimum": 50, "maximum": 20000 },
+        "replay": { "type": "string", "minLength": 1 },
+        "banner": { "type": "string", "maxLength": 48 },
+        "dimEveryOtherRow": { "type": "boolean" }
+      }
+    },
+    "gameOver": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["text", "holdTicks"],
+      "properties": {
+        "text": { "type": "string", "minLength": 1, "maxLength": 20 },
+        "holdTicks": { "type": "integer", "minimum": 1, "maximum": 1000 }
+      }
+    },
+    "tally": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["holdTicks"],
+      "properties": { "holdTicks": { "type": "integer", "minimum": 0, "maximum": 1000 } }
+    },
+    "hiScores": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["heading", "entryHeading", "entryPrompt", "size", "nameLength", "alphabet",
+                   "cursorBlinkTicks", "repeatDelayTicks", "repeatEveryTicks"],
+      "properties": {
+        "heading": { "type": "string", "minLength": 1, "maxLength": 32 },
+        "entryHeading": { "type": "string", "minLength": 1, "maxLength": 32 },
+        "entryPrompt": { "type": "string", "maxLength": 48 },
+        "size": { "type": "integer", "minimum": 1, "maximum": 20 },
+        "nameLength": { "type": "integer", "minimum": 1, "maximum": 8 },
+        "alphabet": { "type": "string", "minLength": 2 },
+        "cursorBlinkTicks": { "type": "integer", "minimum": 1, "maximum": 100 },
+        "repeatDelayTicks": { "type": "integer", "minimum": 1, "maximum": 100 },
+        "repeatEveryTicks": { "type": "integer", "minimum": 1, "maximum": 100 }
+      }
+    },
+    "keyConfig": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["heading", "prompt", "actionOrder"],
+      "properties": {
+        "heading": { "type": "string", "minLength": 1, "maxLength": 32 },
+        "prompt": { "type": "string", "maxLength": 56 },
+        "actionOrder": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 10,
+          "items": { "enum": ["UP", "DOWN", "LEFT", "RIGHT", "FIRE", "PAUSE", "QUIT"] }
+        }
+      }
+    },
+    "sound": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["heading", "prompt", "onLabel", "offLabel", "volumeLabel", "volumeStepPercent"],
+      "properties": {
+        "heading": { "type": "string", "minLength": 1, "maxLength": 32 },
+        "prompt": { "type": "string", "maxLength": 56 },
+        "onLabel": { "type": "string", "minLength": 1, "maxLength": 32 },
+        "offLabel": { "type": "string", "minLength": 1, "maxLength": 32 },
+        "volumeLabel": { "type": "string", "minLength": 1, "maxLength": 32 },
+        "volumeStepPercent": { "type": "integer", "minimum": 1, "maximum": 50 }
+      }
+    },
+    "stats": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["heading", "emptyLine"],
+      "properties": {
+        "heading": { "type": "string", "minLength": 1, "maxLength": 32 },
+        "emptyLine": { "type": "string", "maxLength": 48 }
+      }
+    },
+    "credits": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["heading", "lines"],
+      "properties": {
+        "heading": { "type": "string", "minLength": 1, "maxLength": 32 },
+        "lines": { "type": "array", "minItems": 1, "maxItems": 24, "items": { "type": "string", "maxLength": 48 } }
+      }
+    }
+  }
+}

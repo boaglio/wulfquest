@@ -240,6 +240,8 @@ wulfquest/
     art/scenery_forge.py        generates the 41 scenery sprites, §10.5 (dev-time only)
     art/character_forge.py      generates Ranger Vale's frames, §10.5 (dev-time only)
     art/creature_forge.py       generates the 13 creature sprites and the puff, §10.5 (dev-time only)
+    art/font_forge.py           generates the 8x8 display set in font.json, §10.4 (dev-time only)
+    audio/music_forge.py        writes music.json from phrases of note tokens, §18.3 (dev-time only)
     check-no-binaries.sh        CI gate, §2.4 — bound to the verify phase
     check-schemas.sh            validates every data file against its schema
   data/                         THE DATABASE. Read-only at runtime. Ships in the jar.
@@ -248,6 +250,9 @@ wulfquest/
       game.json                 tuning: tick rate, lives, feature flags
       display.json              palette, scale, border, CRT options
       input.json                keymaps
+      shell.json                every string and beat the shell shows, §17
+      default_highscores.json   the table a first run starts from, §21.2
+      settings_defaults.json    the settings a first run starts from, §21.3
     world/
       original_map.json         [CANON] extracted grid + templates (§8)
       scenery.json              object id -> footprint, art ref, collision mask (§9)
@@ -276,13 +281,14 @@ wulfquest/
     Content.java                loads and cross-checks the whole content DB, for game and tools
     engine/                     tick loop, timing, fixed-point, PRNG, replay
     render/                     Framebuffer, Blitter, Palette, Scaler, HudPainter
-    audio/                      BeeperSynth, SfxPlayer, MusicPlayer
+    audio/                      BeeperSynth, Mixer
     input/                      InputMap, InputState, RecordedInput
     data/                       JsonDb, repositories, records, schema validation
     world/                      Room, RoomGrid, CollisionMask, RoomTransition
     sim/                        Simulation, entity systems, collision, effects
     sim/ai/                     one class per behaviour in §12.5
-    ui/                         title, credits, hi-score entry, pause, game over
+    ui/                         Shell (the state machine), ShellPainter, GamePainter,
+                                GameSession, and one class per screen
     tools/                      MapAudit, SpriteForgeCli, HeadlessSim, ReplayRunner
   src/test/java/wulf/           mirrors the above
   src/test/resources/golden/    golden framebuffer hashes, §22.5
@@ -1929,13 +1935,26 @@ meter; it is **not canon** and must not come back. One touch, one life
 
 ```
 BOOT ──► TITLE ──► (key) ──► PLAYING ──► ...
- │                   │                     │
- │                   ├─► CREDITS           ├─► PAUSED  (P; sim frozen, panel dims)
- │                   ├─► HISCORES          ├─► DYING   (§11.7)
- │                   └─► KEY_CONFIG        ├─► GAME_OVER ──► HISCORE_ENTRY ──► TITLE
- │                                         └─► WON ──► TALLY ──► HISCORE_ENTRY ──► TITLE
+ │           │        │                    │
+ │           │        ├─► CREDITS          ├─► PAUSED  (P; sim frozen, panel dims)
+ │           │        ├─► HISCORES         ├─► DYING   (§11.7)
+ │           │        ├─► STATS  [NEW]     ├─► GAME_OVER ──► HISCORE_ENTRY ──► TITLE
+ │           │        ├─► SOUND  [NEW]     └─► WON ──► TALLY ──► HISCORE_ENTRY ──► TITLE
+ │           │        └─► KEY_CONFIG
+ │           └─► ATTRACT (after `attract.idleTicks` idle; any key returns)
  └─► fatal data error ──► DATA_ERROR (renders the failing file and the reason, exits on key)
 ```
+
+Two states were added to this diagram deliberately in M8. `STATS` is the
+title-screen stats page §21.5 asks for, and `SOUND` is where the audio settings
+of §21.3 are actually reachable — a setting the player cannot change is not a
+setting. Both hang off the title like `CREDITS`, and both are named by
+`shell.json`, not by Java.
+
+`HISCORE_ENTRY` is entered from `GAME_OVER` and from `TALLY` alike, and only
+when the run qualifies (§21.2); otherwise the way back to the title is direct.
+Escape leaves the jungle for the title, banking the run; Escape on the title
+quits the game. There is no key you have to know.
 
 `DATA_ERROR` is a real state, not an exception dump. A JSON typo must produce
 a readable in-game screen naming the file, the JSON pointer, and the
@@ -1948,8 +1967,14 @@ data-driven game; build it in M1.
   through the palette per row.
 - An attract-mode demo: `ReplayRunner` playing `replays/attract.json` behind
   a dimmed overlay after 20 s idle. Any key returns to the title.
-- Lines: `PRESS FIRE TO BEGIN`, `1 KEYS  2 JOYSTICK`, `H HI-SCORES`,
-  `C CREDITS`, and the attribution line from §2.5 in small type.
+- Lines: `PRESS FIRE TO BEGIN`, then one per menu entry in `shell.json`, and
+  the attribution line from §2.5 in small type.
+
+  **As shipped (M8):** `K KEYS`, `A SOUND`, `H HI-SCORES`, `C CREDITS`,
+  `S STATS`. There is no `2 JOYSTICK`: `gamepad.enabled` is false (§19.1) and
+  there is no gamepad code, so offering it would be a lie. The two key layouts
+  §19.1 does define are chosen on the `KEY_CONFIG` page, by digit, and the
+  choice is written to `settings.json`.
 
 ### 17.3 The panel (256×40, in the lower border)
 
@@ -2284,9 +2309,11 @@ macOS     : ~/Library/Application Support/WulfQuest
 Windows   : %APPDATA%\WulfQuest
 ```
 
-Resolved by `data/UserDataDir.java`. Overridable with `--data-dir <path>`
-for tests. Tests must **never** write to the real user dir — they use a
-JUnit `@TempDir`.
+Resolved by `wulf/data/UserDataDir.java`. Overridable with **`--user-dir
+<path>`** — not `--data-dir`, which this file already gives to the content
+database root (§3.1); an earlier draft of this section used the same flag for
+both, and the content root won. Tests must **never** write to the real user
+dir — they use a JUnit `@TempDir`.
 
 ### 21.2 `highscores.json`
 
@@ -3026,18 +3053,94 @@ quicker. Measured over 26 ticks of holding, the blade reads
 into the next — and Vale walked 171 px through it. Neither replay moved: the
 forge bots tap fire for a single tick, and the level is what changed.
 
-### M8 — Shell and polish (3 days)
-
-- Title, credits, hi-scores, entry screen, pause, game over, attract mode,
-  stats, settings, audio (all sfx + 3 tunes), border flashes, key config.
+### M8 — Shell and polish — **COMPLETE (2026-09-19)**
 
 **Accept when:** the game is playable start to finish with no keyboard
 shortcut knowledge, from a double-clickable jar.
 
+**Accepted:** the title screen names every key it has (`PRESS FIRE TO BEGIN`,
+and one line per page), Escape always goes one step back — jungle to title,
+title to quit — and a finished run walks itself to the hi-score table and back
+without a prompt you have to know. `mvn -q package` produces one 4 MB jar with
+the two dependencies, the whole content database and the attract demo inside it:
+`java -jar wulfquest-0.1.0-SNAPSHOT.jar` from any directory, with no `data/`
+beside it, boots to the same content hash.
+
+What landed:
+
+- **The state machine.** `ui/Shell` — headless, clock-free, driven by input
+  alone, so `ShellTest` walks every state with no window. `ui/ShellPainter`
+  draws whichever screen it is on and decides nothing; `ui/GamePainter` gathers
+  the jungle's own frame into one place, so playing it, pausing it, dying in it
+  and watching the demo all draw the same picture. `Boot.runGame` is now the
+  wiring and nothing else.
+- **The screens:** title (wordmark at 2× the 8×8 font with its colour cycling
+  down the rows), credits carrying §2.5 verbatim, the hi-score table, the
+  three-letter entry selector, the keys page, the sound page, the ledger, and
+  `GAME OVER` over a frozen jungle. Pause drops the playfield to the non-bright
+  palette (§17.4) with `Framebuffer.dim`.
+- **Attract mode** (§17.2): `replays/attract.json` — 3 000 ticks cut out of the
+  full run by `AttractForge` — replayed behind a dimmed, striped playfield after
+  20 s idle. A missing replay means no demo, not a broken title screen.
+- **The player database** (§20.8, §21): `PlayerDb` with atomic writes, an fsync,
+  a rolling `.bak`, a single-threaded writer that coalesces, and a flush on game
+  over, on a win, and in a shutdown hook. A file that will not parse or will not
+  validate is renamed `*.corrupt-<epoch>`, never deleted, and the title screen
+  says so once. `highscores.json` seeds from `config/default_highscores.json`,
+  `settings.json` from `config/settings_defaults.json`; settings override
+  `game.json` (§21.3).
+- **The jar** (maven-shade): the content database and `replays/attract.json`
+  ship as classpath resources, and `JsonDb` and `Replay` both prefer the working
+  tree and fall back to the jar — so a developer's `data/` edits still win, and a
+  shipped copy still has everything.
+- **The 8×8 font**, forged by `tools/art/font_forge.py`: 53 glyphs authored on a
+  6×7 grid inside an 8×8 cell, so the gutters are part of the cell.
+- **Audio** (§18), all of it: `audio/BeeperSynth` — hard-edged squares and a
+  16-bit LFSR for noise, with glide, vibrato and a 32-sample fade so a step does
+  not click — and `audio/Mixer`, one line, two channels, addition and clipping.
+  Music shares those two channels: an effect steals the one the tune is on and
+  the tune keeps running underneath, which is what a one-bit speaker did.
+  `tools/audio/music_forge.py` writes the three tunes from phrases of note
+  tokens: 24 bars of jungle menace that loops, 8 bars of fanfare, 4 bars
+  descending. No sound card at all means the mixer runs silent and the game
+  never notices.
+- **How the sim makes a noise:** `sim/SoundSink`, declared in `wulf.sim` and
+  naming nothing from `javax.sound`, so §22.4's purity test still holds. It is
+  write-only and defaults to `NONE`, which is why every test and every replay
+  runs in silence and is unaffected by sound.
+- **The ledger's raw material:** the simulation now counts kills by species,
+  deaths by cause and orchids by colour. Bookkeeping, deliberately outside
+  `stateHash()` — counting is not simulating.
+- **Tests:** 403 runs, from 314 — `ShellTest`, `ShellPainterTest`,
+  `HiScoreEntryTest`, `PlayerDbTest`, `HighScoresTest`, `UserDataDirTest`,
+  `ShellValidationTest`, `AudioValidationTest`, `BeeperSynthTest`, `MixerTest`
+  and `SoundTest`.
+
+Found along the way:
+
+- **The keys page numbered the profiles wrongly.** `InputConfig` held its
+  profiles in a `Map.copyOf`, whose iteration order is deliberately randomised
+  per JVM, so `1` was `period` and `2` was `modern` — the reverse of both
+  `input.json` and the page's own footer. Insertion order now, everywhere a map
+  of content is shown to the player.
+- **A tune that had finished started again.** The mixer cleared the samples but
+  left the request standing, so the next block began the fanfare afresh, for
+  ever. The request is cleared with the samples.
+- **`--data-dir` could not mean two things.** §21.1 gave it to the player
+  database and §3.1 to the content database; the content root won and the player
+  database got `--user-dir`. §21.1 now says so.
+- **The proof that sound changes nothing** is `SoundTest`: the attract replay run
+  twice side by side, one with a sink that records every noise and one with
+  none, asserting equal state hashes every tick of the 3 000.
+
+Deferred to M9, deliberately: golden frames, the slow full-run test, and the CRT
+toggles of §5.4, which are still default-off and still unimplemented.
+
 ### M9 — Hardening (2 days)
 
 - Golden frames, all replays, the slow full-run test, README and controls
-  documentation, `mvn package` producing a runnable fat jar.
+  documentation. (`mvn package` already produces the runnable fat jar — it
+  landed in M8, where the acceptance criterion needed it.)
 
 **Accept when:** `mvn -q verify` is green from a clean clone on a machine
 with no display (headless profile skips the window tests).

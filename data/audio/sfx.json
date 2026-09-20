@@ -1,0 +1,317 @@
+{
+  "schemaVersion": 1,
+  "sampleRateHz": 44100,
+  "channels": 2,
+  "bufferFrames": 2048,
+  "cadence": {
+    "footstepEveryTicks": 9
+  },
+  "sfx": {
+    "footstep": {
+      "priority": 0,
+      "loop": false,
+      "steps": [
+        {
+          "shape": "noise",
+          "hz": 900,
+          "ms": 12,
+          "volPerMille": 180,
+          "slideToHz": 0,
+          "vibratoHz": 0,
+          "vibratoDepthPerMille": 0
+        }
+      ]
+    },
+    "sabre_swing": {
+      "priority": 2,
+      "loop": false,
+      "steps": [
+        {
+          "shape": "noise",
+          "hz": 2600,
+          "ms": 40,
+          "volPerMille": 300,
+          "slideToHz": 1200,
+          "vibratoHz": 0,
+          "vibratoDepthPerMille": 0
+        }
+      ]
+    },
+    "creature_die": {
+      "priority": 3,
+      "loop": false,
+      "steps": [
+        {
+          "shape": "square",
+          "hz": 420,
+          "ms": 60,
+          "volPerMille": 450,
+          "slideToHz": 90,
+          "vibratoHz": 0,
+          "vibratoDepthPerMille": 0
+        }
+      ]
+    },
+    "spear_throw": {
+      "priority": 1,
+      "loop": false,
+      "steps": [
+        {
+          "shape": "square",
+          "hz": 1500,
+          "ms": 30,
+          "volPerMille": 250,
+          "slideToHz": 700,
+          "vibratoHz": 0,
+          "vibratoDepthPerMille": 0
+        }
+      ]
+    },
+    "orchid_pick": {
+      "priority": 4,
+      "loop": false,
+      "steps": [
+        {
+          "shape": "square",
+          "hz": 523,
+          "ms": 40,
+          "volPerMille": 400,
+          "slideToHz": 0,
+          "vibratoHz": 0,
+          "vibratoDepthPerMille": 0
+        },
+        {
+          "shape": "square",
+          "hz": 659,
+          "ms": 40,
+          "volPerMille": 400,
+          "slideToHz": 0,
+          "vibratoHz": 0,
+          "vibratoDepthPerMille": 0
+        },
+        {
+          "shape": "square",
+          "hz": 784,
+          "ms": 60,
+          "volPerMille": 400,
+          "slideToHz": 0,
+          "vibratoHz": 0,
+          "vibratoDepthPerMille": 0
+        }
+      ]
+    },
+    "amulet_piece": {
+      "priority": 7,
+      "loop": false,
+      "steps": [
+        {
+          "shape": "square",
+          "hz": 523,
+          "ms": 70,
+          "volPerMille": 500,
+          "slideToHz": 0,
+          "vibratoHz": 0,
+          "vibratoDepthPerMille": 0
+        },
+        {
+          "shape": "square",
+          "hz": 659,
+          "ms": 70,
+          "volPerMille": 500,
+          "slideToHz": 0,
+          "vibratoHz": 0,
+          "vibratoDepthPerMille": 0
+        },
+        {
+          "shape": "square",
+          "hz": 784,
+          "ms": 70,
+          "volPerMille": 500,
+          "slideToHz": 0,
+          "vibratoHz": 0,
+          "vibratoDepthPerMille": 0
+        },
+        {
+          "shape": "square",
+          "hz": 1047,
+          "ms": 70,
+          "volPerMille": 500,
+          "slideToHz": 0,
+          "vibratoHz": 0,
+          "vibratoDepthPerMille": 0
+        },
+        {
+          "shape": "square",
+          "hz": 1319,
+          "ms": 160,
+          "volPerMille": 550,
+          "slideToHz": 0,
+          "vibratoHz": 0,
+          "vibratoDepthPerMille": 0
+        }
+      ]
+    },
+    "wulf_howl": {
+      "priority": 9,
+      "loop": false,
+      "steps": [
+        {
+          "shape": "square",
+          "hz": 180,
+          "ms": 700,
+          "volPerMille": 500,
+          "slideToHz": 520,
+          "vibratoHz": 7,
+          "vibratoDepthPerMille": 100
+        }
+      ]
+    },
+    "wulf_growl": {
+      "priority": 5,
+      "loop": true,
+      "steps": [
+        {
+          "shape": "noise",
+          "hz": 130,
+          "ms": 250,
+          "volPerMille": 350,
+          "slideToHz": 0,
+          "vibratoHz": 0,
+          "vibratoDepthPerMille": 0
+        }
+      ]
+    },
+    "wulf_parry": {
+      "priority": 6,
+      "loop": false,
+      "steps": [
+        {
+          "shape": "noise",
+          "hz": 4000,
+          "ms": 25,
+          "volPerMille": 500,
+          "slideToHz": 2000,
+          "vibratoHz": 0,
+          "vibratoDepthPerMille": 0
+        }
+      ]
+    },
+    "player_die": {
+      "priority": 8,
+      "loop": false,
+      "steps": [
+        {
+          "shape": "square",
+          "hz": 700,
+          "ms": 500,
+          "volPerMille": 500,
+          "slideToHz": 60,
+          "vibratoHz": 0,
+          "vibratoDepthPerMille": 0
+        }
+      ]
+    },
+    "extra_life": {
+      "priority": 7,
+      "loop": false,
+      "steps": [
+        {
+          "shape": "square",
+          "hz": 784,
+          "ms": 60,
+          "volPerMille": 500,
+          "slideToHz": 0,
+          "vibratoHz": 0,
+          "vibratoDepthPerMille": 0
+        },
+        {
+          "shape": "square",
+          "hz": 988,
+          "ms": 60,
+          "volPerMille": 500,
+          "slideToHz": 0,
+          "vibratoHz": 0,
+          "vibratoDepthPerMille": 0
+        },
+        {
+          "shape": "square",
+          "hz": 1319,
+          "ms": 120,
+          "volPerMille": 500,
+          "slideToHz": 0,
+          "vibratoHz": 0,
+          "vibratoDepthPerMille": 0
+        }
+      ]
+    },
+    "room_flip": {
+      "priority": 1,
+      "loop": false,
+      "steps": [
+        {
+          "shape": "noise",
+          "hz": 1600,
+          "ms": 18,
+          "volPerMille": 120,
+          "slideToHz": 0,
+          "vibratoHz": 0,
+          "vibratoDepthPerMille": 0
+        }
+      ]
+    },
+    "keeper_moves": {
+      "priority": 4,
+      "loop": false,
+      "steps": [
+        {
+          "shape": "square",
+          "hz": 110,
+          "ms": 400,
+          "volPerMille": 450,
+          "slideToHz": 220,
+          "vibratoHz": 0,
+          "vibratoDepthPerMille": 0
+        }
+      ]
+    },
+    "menu_move": {
+      "priority": 2,
+      "loop": false,
+      "steps": [
+        {
+          "shape": "square",
+          "hz": 880,
+          "ms": 18,
+          "volPerMille": 250,
+          "slideToHz": 0,
+          "vibratoHz": 0,
+          "vibratoDepthPerMille": 0
+        }
+      ]
+    },
+    "menu_pick": {
+      "priority": 3,
+      "loop": false,
+      "steps": [
+        {
+          "shape": "square",
+          "hz": 660,
+          "ms": 30,
+          "volPerMille": 350,
+          "slideToHz": 0,
+          "vibratoHz": 0,
+          "vibratoDepthPerMille": 0
+        },
+        {
+          "shape": "square",
+          "hz": 990,
+          "ms": 50,
+          "volPerMille": 350,
+          "slideToHz": 0,
+          "vibratoHz": 0,
+          "vibratoDepthPerMille": 0
+        }
+      ]
+    }
+  }
+}

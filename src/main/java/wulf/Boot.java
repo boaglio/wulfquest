@@ -14,35 +14,36 @@ import wulf.data.DisplayConfig;
 import wulf.data.FontData;
 import wulf.data.JsonDb;
 import wulf.data.Palette;
-import wulf.engine.Fixed;
 import wulf.engine.GameLoop;
 import wulf.input.InputMap;
 import wulf.input.InputState;
 import wulf.input.KeyboardInput;
-import wulf.render.CreaturePainter;
 import wulf.render.Fonts;
 import wulf.render.Framebuffer;
 import wulf.render.PanelPainter;
-import wulf.render.PlayerPainter;
 import wulf.render.RoomPainter;
 import wulf.render.Scaler;
 import wulf.render.SpriteBank;
 import wulf.render.Window;
 import wulf.sim.Ecosystem;
-import wulf.sim.Player;
 import wulf.sim.Simulation;
+import wulf.audio.Mixer;
+import wulf.data.PlayerDb;
+import wulf.data.UserDataDir;
+import wulf.engine.Replay;
+import wulf.input.MenuInput;
+import wulf.input.RecordedInput;
 import wulf.ui.DataErrorScreen;
+import wulf.ui.GameSession;
+import wulf.ui.Jukebox;
+import wulf.ui.Shell;
+import wulf.ui.ShellPainter;
 import wulf.world.Room;
 import wulf.world.RoomAddress;
 import wulf.world.WorldGrid;
 import wulf.engine.ReplayRecorder;
 import java.util.List;
-import wulf.render.QuestPainter;
-import wulf.sim.Quest;
-import wulf.ui.TallyScreen;
 import java.util.Locale;
-import wulf.data.OrchidValidator;
-import wulf.render.OrchidPainter;
 
 /**
  * Entry point. See AGENTS.md §3 for the argument list and §24 for what each
@@ -74,14 +75,14 @@ public final class Boot {
         }
         JsonDb db = new JsonDb(parsed.dataDir());
         try {
-            new Boot().run(Content.load(db), parsed);
+            new Boot().run(Content.load(db), parsed, db);
         } catch (DataException e) {
             reportDataError(db, parsed, e);
         }
     }
 
-    private void run(Content c, Args parsed) {
-        System.out.println("Wulf Quest — M4");
+    private void run(Content c, Args parsed, JsonDb db) {
+        System.out.println("Wulf Quest — M8");
         System.out.println("  content hash : " + c.db().contentHash());
         System.out.println("  files loaded : " + c.db().loaded().size());
         System.out.println("  map          : " + c.map().gridW() + "x" + c.map().gridH()
@@ -103,7 +104,7 @@ public final class Boot {
         if (parsed.browse()) {
             runBrowser(c, parsed);
         } else {
-            runGame(c, parsed);
+            runGame(c, parsed, db);
         }
     }
 
@@ -124,55 +125,76 @@ public final class Boot {
 
     // ------------------------------------------------------------------ play
 
-    private void runGame(Content c, Args parsed) {
-        DisplayConfig display = c.display();
-        Palette palette = c.palette();
-        Screen screen = openScreen(c, parsed, "Wulf Quest");
-        SpriteBank sprites = new SpriteBank(c.sprites());
-        PanelPainter panel = new PanelPainter(display, new Fonts("art/font/font.json", c.font()), palette,
-                sprites.get(c.landmarks().amulet().sprite()), QuestPainter.framesBySlot(c.landmarks()));
-        QuestPainter quest = new QuestPainter(display, sprites, c.landmarks(), palette.indexOf("black"));
-        if (parsed.debugEffect() != null && c.orchids().indexOfEffect(parsed.debugEffect()) < 0) {
+    private void runGame(Content base, Args parsed, JsonDb db) {
+        if (parsed.debugEffect() != null && base.orchids().indexOfEffect(parsed.debugEffect()) < 0) {
             System.err.println("wulfquest: --debug-effect " + parsed.debugEffect() + " is not one of the orchids'"
                     + " effects; see data/entities/orchids.json");
             return;
         }
-        OrchidPainter flowers = new OrchidPainter(display, sprites, c.orchids());
-        int[] effectColours = new int[c.orchids().orchids().size()];
-        for (int i = 0; i < effectColours.length; i++) {
-            effectColours[i] = palette.indexOf(OrchidValidator.bright(c.orchids().orchids().get(i).colour()));
+        PlayerDb player = new PlayerDb(parsed.userDir(), db, base.defaultScores(), base.defaultSettings());
+        Content c = base.withSettings(player.settings());
+        for (String notice : player.notices()) {
+            System.out.println("  player db    : " + notice);
         }
-        TallyScreen tally = new TallyScreen(new Fonts("art/font/font.json", c.font()).small(), palette);
-        RoomPainter rooms = new RoomPainter(display, sprites, c.scenery(), palette.indexOf("black"));
-        PlayerPainter vale = new PlayerPainter(display, sprites, c.player(), palette);
-        int border = palette.indexOf(display.border().idleColour());
-        int alarm = palette.indexOf("brightRed");
-        int parry = palette.indexOf("brightWhite");
-        int maskColour = palette.indexOf("brightRed");
+        Runtime.getRuntime().addShutdownHook(new Thread(player::flush, "wulf-playerdb-flush"));
+
+        // --no-audio silences this run only; what the player chose on the sound page stands.
+        Mixer mixer = new Mixer(c.sfx(), c.music(), !parsed.noAudio() && player.settings().audio().enabled(),
+                player.settings().audio().volumePercent());
+        mixer.warmUp();
+        mixer.start();
+
+        Screen screen = openScreen(c, parsed, "Wulf Quest");
+        Fonts fonts = new Fonts("art/font/font.json", c.font());
+        ShellPainter painter = new ShellPainter(c, c.shell(), player, fonts);
 
         WorldGrid world = new WorldGrid(c.rooms());
         RoomAddress start = parsed.room() != null ? parsed.room() : c.map().startRoom();
         KeyboardInput keys = new KeyboardInput(new InputMap(c.input()));
         screen.window().canvas().addKeyListener(keys);
         screen.window().canvas().addFocusListener(keys);
-        CreaturePainter beasts = new CreaturePainter(display, sprites, c.creatures(), palette);
         Ecosystem eco = c.ecosystem();
         // The run seed decides every room's creatures (§6.3). Game n of a session uses seed + n.
         long firstSeed = parsed.seeded() ? parsed.seed() : System.nanoTime();
         AtomicLong nextSeed = new AtomicLong(firstSeed);
-        GameSession session = new GameSession(() -> {
+        Supplier<Simulation> newGame = () -> {
             Simulation fresh = Simulation.startingIn(c.player(), world, c.game().transition().freezeTicks(), start, eco,
                     nextSeed.getAndIncrement());
             if (parsed.debugEffect() != null) {
                 fresh.giveEffect(parsed.debugEffect());   // --debug-effect: every game starts under it
             }
+            fresh.sounds(mixer, c.sfx().cadence().footstepEveryTicks());
             return fresh;
+        };
+        Shell shell = new Shell(c.shell(), player, List.copyOf(c.input().profiles().keySet()), newGame,
+                demoSource(c, world, eco), Boot::today);
+        shell.jukebox(new Jukebox() {
+            @Override
+            public void tune(String id) {
+                mixer.tune(id);
+            }
+
+            @Override
+            public void sfx(String id) {
+                mixer.play(id);
+            }
+
+            @Override
+            public void settings(boolean on, int volumePercent) {
+                mixer.setEnabled(on && !parsed.noAudio());
+                mixer.setVolumePercent(volumePercent);
+            }
         });
+
         ReplayRecorder recorder = parsed.record() == null ? null
                 : new ReplayRecorder(nameOf(parsed.record()), c.db().contentHash(), firstSeed, start, parsed.dev());
         System.out.println("  run seed     : " + firstSeed + (parsed.seeded() ? "" : "   (replay with --seed " + firstSeed + ")"));
-
-        System.out.println("  controls     : arrows or WASD walk, Space or Z swing, P pause, Esc quit"
+        System.out.println("  player db    : " + player.dir());
+        System.out.println("  audio        : " + (mixer.enabled()
+                ? c.sfx().sfx().size() + " sounds, " + c.music().tunes().size() + " tunes, "
+                        + player.settings().audio().volumePercent() + "% volume"
+                : parsed.noAudio() ? "off (--no-audio)" : "off (settings.json)"));
+        System.out.println("  controls     : arrows or WASD walk, Space or Z swing, P pause, Esc leaves the jungle"
                 + (parsed.dev() ? "   [dev: K kill, M collision mask, H summon the Wulf]" : ""));
 
         GameLoop loop = new GameLoop(c.game().tickHz(), c.game().maxCatchupTicks());
@@ -180,177 +202,69 @@ public final class Boot {
             @Override
             public void tick() {
                 InputState in = keys.sample();
-                Simulation playing = session.sim();
-                long before = playing.tick();
-                session.tick(in, parsed.dev());
-                if (recorder != null && session.sim() == playing && playing.tick() != before) {
-                    recorder.record(in, playing);   // the first game only: a restart is a new run
+                MenuInput menu = keys.drainMenu();
+                GameSession playing = shell.session();
+                long before = playing == null ? 0 : playing.sim().tick();
+                shell.tick(in, menu, parsed.dev());
+                if (recorder != null && playing != null && shell.session() == playing
+                        && playing.sim().tick() != before) {
+                    recorder.record(in, playing.sim());   // the first game only: a restart is a new run
                 }
             }
 
             @Override
             public void render() {
-                Simulation sim = session.sim();
-                Room room = c.rooms().room(sim.room());
-                Framebuffer fb = screen.fb();
-                fb.clear(!display.border().flashOnEvent() ? border : switch (sim.borderFlash()) {
-                    case ALARM -> alarm;
-                    case PARRY, PICKUP -> parry;   // bright white for a parry (§13.5) and a quarter taken (§14.6)
-                    case NONE -> border;
-                });
-                rooms.paint(fb, room);
-                if (session.showMask()) {
-                    rooms.paintMask(fb, room, maskColour);
-                }
-                if (sim.player().mode() == Player.Mode.WON) {
-                    tally.paint(fb, sim.quest(), sim.score(), session.best(), sim.player().modeTick() + session.sinceWon());
-                    screen.window().present(screen.scaler().render(fb));
-                    return;
-                }
-                flowers.paint(fb, sim);
-                quest.paintLoot(fb, sim);
-                beasts.paint(fb, sim);
-                vale.paint(fb, sim);
-                quest.paintEscape(fb, sim);
-                boolean under = sim.effect().active();
-                panel.paint(fb, sim.score(), session.best(), sim.player().lives(), sim.quest().slotMask(),
-                        under ? effectColours[sim.effect().orchid()] : -1,
-                        under ? sim.effect().remainingPerMille() : 0, session.message(parsed.dev()));
-                quest.paintFlight(fb, sim, panel);
-                screen.window().present(screen.scaler().render(fb));
+                painter.paint(screen.fb(), shell, parsed.dev());
+                screen.window().present(screen.scaler().render(screen.fb()));
             }
 
             @Override
             public boolean running() {
-                return !session.quit() && screen.window().open();
+                return !shell.quit() && screen.window().open();
             }
         });
         screen.window().close();
+        mixer.close();
+        player.close();
         if (recorder != null) {
             recorder.write(parsed.record());
             System.out.println("  recorded     : " + recorder.ticks() + " ticks to " + parsed.record());
         }
     }
 
+    /**
+     * Attract mode's demo (§17.2): the recorded run replayed into a fresh
+     * simulation. A missing or unreadable replay simply means no demo — the
+     * title screen waits instead, and the game is still playable.
+     */
+    private static Supplier<Shell.Demo> demoSource(Content c, WorldGrid world, Ecosystem eco) {
+        String file = c.shell().attract().replay();
+        if (!Replay.findable(file)) {
+            System.out.println("  attract      : no " + file + "; the title screen will wait instead");
+            return null;
+        }
+        return () -> {
+            try {
+                Replay replay = Replay.readAnywhere(file);
+                Simulation sim = Simulation.startingIn(c.player(), world, c.game().transition().freezeTicks(),
+                        replay.start(), eco, replay.seed());
+                RecordedInput input = replay.recorded();
+                return new Shell.Demo(sim, input.cursor(), input.ticks(), replay.dev());
+            } catch (RuntimeException e) {
+                System.err.println("wulfquest: cannot play " + file + " as the attract demo: " + e.getMessage());
+                return null;
+            }
+        };
+    }
+
+    /** The date a hi-score row is stamped with (§21.2). Outside the simulation, so a clock is fine here. */
+    private static String today() {
+        return java.time.LocalDate.now().toString();
+    }
+
     private static String nameOf(Path file) {
         String name = file.getFileName().toString();
         return name.endsWith(".json") ? name.substring(0, name.length() - 5) : name;
-    }
-
-    /**
-     * The loop-thread state around one {@link Simulation}: pause, game over,
-     * restart and the dev toggles. Headless and testable; the AWT thread never
-     * touches it.
-     */
-    static final class GameSession {
-
-        /** Plumbing, not a game number: how long the tally ignores fire, so it cannot be skipped by accident. */
-        private static final int TALLY_HOLD_TICKS = 100;
-
-        private final Supplier<Simulation> newGame;
-        private Simulation sim;
-        private int sinceWon;
-        private long best;
-        private boolean paused;
-        private boolean showMask;
-        private boolean quit;
-
-        GameSession(Supplier<Simulation> newGame) {
-            this.newGame = newGame;
-            this.sim = newGame.get();
-        }
-
-        void tick(InputState in, boolean dev) {
-            if (in.quitPressed()) {
-                quit = true;
-                return;
-            }
-            if (dev && in.devMaskPressed()) {
-                showMask = !showMask;
-            }
-            Player.Mode mode = sim.player().mode();
-            if (mode == Player.Mode.GAME_OVER || mode == Player.Mode.WON) {
-                if (mode == Player.Mode.WON) {
-                    sinceWon++;
-                }
-                // A beat before fire counts, so the press that won the game cannot skip the tally.
-                if (in.firePressed() && (mode == Player.Mode.GAME_OVER || sinceWon > TALLY_HOLD_TICKS)) {
-                    sim = newGame.get();
-                    paused = false;
-                    sinceWon = 0;
-                }
-                return;
-            }
-            if (in.pausePressed()) {
-                paused = !paused;
-            }
-            if (paused) {
-                return;
-            }
-            sim.play(in, dev);
-            best = Math.max(best, sim.score());
-        }
-
-        /** The best score this session, shown as the hi score until M8 keeps a table. */
-        long best() {
-            return best;
-        }
-
-        /** Ticks the tally has been showing. */
-        int sinceWon() {
-            return sinceWon;
-        }
-
-        /** The panel line: game over, pause, a shrine's hint, or in dev mode where you are. Null for none. */
-        String message(boolean dev) {
-            if (sim.player().mode() == Player.Mode.GAME_OVER) {
-                return "GAME OVER - PRESS FIRE";
-            }
-            if (paused) {
-                return "PAUSED";
-            }
-            if (sim.quest().hintTicks() > 0) {
-                return hint(sim.quest());
-            }
-            if (dev) {
-                Player p = sim.player();
-                int x = Fixed.px(p.xFp()) - sim.room().col() * Simulation.ROOM_W_PX;
-                int y = Fixed.px(p.yFp()) - sim.room().row() * Simulation.ROOM_H_PX;
-                return "ROOM " + sim.room() + "  X" + x + " Y" + y + (showMask ? "  MASK" : "");
-            }
-            return null;
-        }
-
-        Simulation sim() {
-            return sim;
-        }
-
-        /** §14.5: {@code AMULET STIRS TO THE NORTH-WEST}, or the way to the arch once it is whole. */
-        static String hint(Quest quest) {
-            String way = switch (quest.hintDirection()) {
-                case N -> "NORTH";
-                case NE -> "NORTH-EAST";
-                case E -> "EAST";
-                case SE -> "SOUTH-EAST";
-                case S -> "SOUTH";
-                case SW -> "SOUTH-WEST";
-                case W -> "WEST";
-                case NW -> "NORTH-WEST";
-            };
-            return (quest.hintToExit() ? "THE ARCH CALLS FROM THE " : "AMULET STIRS TO THE ") + way;
-        }
-
-        boolean paused() {
-            return paused;
-        }
-
-        boolean showMask() {
-            return showMask;
-        }
-
-        boolean quit() {
-            return quit;
-        }
     }
 
     // ------------------------------------------------------------------ room browser (M2)
@@ -500,11 +414,13 @@ public final class Boot {
      * Command-line arguments (AGENTS.md §3.1). A malformed argument never throws:
      * it comes back as {@link #error()}, which {@link #main} reports and exits 64.
      */
-    record Args(Path dataDir, int scale, RoomAddress room, long seed, boolean seeded, Path record, String debugEffect,
-                boolean headless, boolean browse, boolean dev, boolean help, String error) {
+    record Args(Path dataDir, Path userDir, int scale, RoomAddress room, long seed, boolean seeded, Path record,
+                String debugEffect, boolean headless, boolean browse, boolean dev, boolean noAudio, boolean help,
+                String error) {
 
         static Args parse(String[] argv) {
             Path dataDir = defaultDataDir();
+            Path userDir = UserDataDir.resolve();
             int scale = 0;
             RoomAddress room = null;
             long seed = 0;
@@ -514,6 +430,7 @@ public final class Boot {
             boolean headless = false;
             boolean browse = false;
             boolean dev = false;
+            boolean noAudio = false;
             boolean help = false;
             try {
                 for (int i = 0; i < argv.length; i++) {
@@ -521,6 +438,7 @@ public final class Boot {
                         case "--dev" -> dev = true;
                         case "--headless", "--no-window" -> headless = true;
                         case "--browse" -> browse = true;
+                        case "--no-audio" -> noAudio = true;
                         case "--help", "-h" -> help = true;
                         case "--scale" -> scale = number(argv, ++i, "--scale");
                         case "--room" -> room = roomArg(argv, ++i);
@@ -531,14 +449,16 @@ public final class Boot {
                             seeded = true;
                         }
                         case "--data-dir" -> dataDir = Path.of(value(argv, ++i, "--data-dir"));
+                        case "--user-dir" -> userDir = Path.of(value(argv, ++i, "--user-dir"));
                         default -> throw new IllegalArgumentException("unknown option: " + argv[i]);
                     }
                 }
             } catch (IllegalArgumentException e) {
-                return new Args(dataDir, scale, room, seed, seeded, record, debugEffect, headless, browse, dev, help,
-                        e.getMessage());
+                return new Args(dataDir, userDir, scale, room, seed, seeded, record, debugEffect, headless, browse,
+                        dev, noAudio, help, e.getMessage());
             }
-            return new Args(dataDir, scale, room, seed, seeded, record, debugEffect, headless, browse, dev, help, null);
+            return new Args(dataDir, userDir, scale, room, seed, seeded, record, debugEffect, headless, browse, dev,
+                    noAudio, help, null);
         }
 
         private static String value(String[] argv, int i, String option) {
@@ -595,12 +515,15 @@ public final class Boot {
                       --browse         the room browser instead of the game
                       --scale N        window scale (1..6)
                       --data-dir PATH  content database root (default: ./data, else the jar)
+                      --user-dir PATH  player database: hi-scores, settings, stats (§21.1)
+                      --no-audio       silence for this run; settings.json is not changed
                       --headless       load and validate the data, then exit
                       --dev            developer mode: K kills, M shows collision, room and
                                        position on the panel
                       --help           this message
 
-                    Controls: arrows or WASD walk, Space or Z swing, P pause, Esc quit.
+                    Controls: arrows or WASD walk, Space or Z swing, P pause, Esc leaves the
+                    jungle for the title screen, and quits from there.
                     """);
         }
     }

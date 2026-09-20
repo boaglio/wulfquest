@@ -65,11 +65,47 @@ public record Replay(
     }
 
     public static Replay read(Path file) {
-        Replay r;
+        return read(file, readText(file));
+    }
+
+    /**
+     * The same replay from wherever it actually is: the working tree first, and
+     * the jar second, so a game that ships as one file still has its attract-mode
+     * demo (AGENTS.md §17.2).
+     */
+    public static Replay readAnywhere(String name) {
+        Path file = Path.of(name);
+        if (Files.isRegularFile(file)) {
+            return read(file);
+        }
+        try (java.io.InputStream in = Replay.class.getClassLoader().getResourceAsStream(name)) {
+            if (in == null) {
+                throw new java.io.FileNotFoundException(name + " is neither a file nor on the classpath");
+            }
+            return read(file, new String(in.readAllBytes(), StandardCharsets.UTF_8));
+        } catch (IOException e) {
+            throw new UncheckedIOException("cannot read replay " + name, e);
+        }
+    }
+
+    /** Whether {@link #readAnywhere} would find something to read. */
+    public static boolean findable(String name) {
+        return Files.isRegularFile(Path.of(name))
+                || Replay.class.getClassLoader().getResource(name) != null;
+    }
+
+    private static String readText(Path file) {
         try {
-            r = MAPPER.readValue(Files.readString(file, StandardCharsets.UTF_8), Replay.class);
+            return Files.readString(file, StandardCharsets.UTF_8);
         } catch (IOException e) {
             throw new UncheckedIOException("cannot read replay " + file, e);
+        }
+    }
+
+    private static Replay read(Path file, String text) {
+        Replay r;
+        try {
+            r = MAPPER.readValue(text, Replay.class);
         } catch (JacksonException e) {
             throw new IllegalArgumentException("replay " + file + " is malformed: " + e.getOriginalMessage(), e);
         }

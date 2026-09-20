@@ -1,0 +1,1218 @@
+{
+  "schemaVersion": 1,
+  "tunes": {
+    "title": {
+      "bpm": 132,
+      "loop": true,
+      "notes": [
+        {
+          "note": "A",
+          "octave": 2,
+          "ms": 228
+        },
+        {
+          "note": "A",
+          "octave": 2,
+          "ms": 228
+        },
+        {
+          "note": "C",
+          "octave": 3,
+          "ms": 228
+        },
+        {
+          "note": "A",
+          "octave": 2,
+          "ms": 228
+        },
+        {
+          "note": "D",
+          "octave": 3,
+          "ms": 228
+        },
+        {
+          "note": "D",
+          "octave": 3,
+          "ms": 228
+        },
+        {
+          "note": "C",
+          "octave": 3,
+          "ms": 228
+        },
+        {
+          "note": "A",
+          "octave": 2,
+          "ms": 228
+        },
+        {
+          "note": "A",
+          "octave": 2,
+          "ms": 228
+        },
+        {
+          "note": "A",
+          "octave": 2,
+          "ms": 228
+        },
+        {
+          "note": "C",
+          "octave": 3,
+          "ms": 228
+        },
+        {
+          "note": "E",
+          "octave": 3,
+          "ms": 228
+        },
+        {
+          "note": "G",
+          "octave": 2,
+          "ms": 228
+        },
+        {
+          "note": "A",
+          "octave": 2,
+          "ms": 228
+        },
+        {
+          "note": "R",
+          "octave": 0,
+          "ms": 456
+        },
+        {
+          "note": "A",
+          "octave": 2,
+          "ms": 228
+        },
+        {
+          "note": "A",
+          "octave": 2,
+          "ms": 228
+        },
+        {
+          "note": "C",
+          "octave": 3,
+          "ms": 228
+        },
+        {
+          "note": "A",
+          "octave": 2,
+          "ms": 228
+        },
+        {
+          "note": "D",
+          "octave": 3,
+          "ms": 228
+        },
+        {
+          "note": "D",
+          "octave": 3,
+          "ms": 228
+        },
+        {
+          "note": "C",
+          "octave": 3,
+          "ms": 228
+        },
+        {
+          "note": "A",
+          "octave": 2,
+          "ms": 228
+        },
+        {
+          "note": "A",
+          "octave": 2,
+          "ms": 228
+        },
+        {
+          "note": "A",
+          "octave": 2,
+          "ms": 228
+        },
+        {
+          "note": "C",
+          "octave": 3,
+          "ms": 228
+        },
+        {
+          "note": "E",
+          "octave": 3,
+          "ms": 228
+        },
+        {
+          "note": "G",
+          "octave": 2,
+          "ms": 228
+        },
+        {
+          "note": "A",
+          "octave": 2,
+          "ms": 228
+        },
+        {
+          "note": "R",
+          "octave": 0,
+          "ms": 456
+        },
+        {
+          "note": "A",
+          "octave": 2,
+          "ms": 228
+        },
+        {
+          "note": "A",
+          "octave": 2,
+          "ms": 228
+        },
+        {
+          "note": "C",
+          "octave": 3,
+          "ms": 228
+        },
+        {
+          "note": "A",
+          "octave": 2,
+          "ms": 228
+        },
+        {
+          "note": "F",
+          "octave": 3,
+          "ms": 228
+        },
+        {
+          "note": "F",
+          "octave": 3,
+          "ms": 228
+        },
+        {
+          "note": "E",
+          "octave": 3,
+          "ms": 228
+        },
+        {
+          "note": "C",
+          "octave": 3,
+          "ms": 228
+        },
+        {
+          "note": "D",
+          "octave": 3,
+          "ms": 228
+        },
+        {
+          "note": "D",
+          "octave": 3,
+          "ms": 228
+        },
+        {
+          "note": "C",
+          "octave": 3,
+          "ms": 228
+        },
+        {
+          "note": "A",
+          "octave": 2,
+          "ms": 228
+        },
+        {
+          "note": "E",
+          "octave": 3,
+          "ms": 228
+        },
+        {
+          "note": "R",
+          "octave": 0,
+          "ms": 228
+        },
+        {
+          "note": "A",
+          "octave": 2,
+          "ms": 228
+        },
+        {
+          "note": "R",
+          "octave": 0,
+          "ms": 228
+        },
+        {
+          "note": "A",
+          "octave": 2,
+          "ms": 228
+        },
+        {
+          "note": "A",
+          "octave": 2,
+          "ms": 228
+        },
+        {
+          "note": "C",
+          "octave": 3,
+          "ms": 228
+        },
+        {
+          "note": "A",
+          "octave": 2,
+          "ms": 228
+        },
+        {
+          "note": "D",
+          "octave": 3,
+          "ms": 228
+        },
+        {
+          "note": "D",
+          "octave": 3,
+          "ms": 228
+        },
+        {
+          "note": "C",
+          "octave": 3,
+          "ms": 228
+        },
+        {
+          "note": "A",
+          "octave": 2,
+          "ms": 228
+        },
+        {
+          "note": "A",
+          "octave": 2,
+          "ms": 228
+        },
+        {
+          "note": "A",
+          "octave": 2,
+          "ms": 228
+        },
+        {
+          "note": "C",
+          "octave": 3,
+          "ms": 228
+        },
+        {
+          "note": "E",
+          "octave": 3,
+          "ms": 228
+        },
+        {
+          "note": "G",
+          "octave": 2,
+          "ms": 228
+        },
+        {
+          "note": "A",
+          "octave": 2,
+          "ms": 228
+        },
+        {
+          "note": "R",
+          "octave": 0,
+          "ms": 456
+        },
+        {
+          "note": "A",
+          "octave": 3,
+          "ms": 228
+        },
+        {
+          "note": "G",
+          "octave": 3,
+          "ms": 228
+        },
+        {
+          "note": "E",
+          "octave": 3,
+          "ms": 228
+        },
+        {
+          "note": "D",
+          "octave": 3,
+          "ms": 228
+        },
+        {
+          "note": "C",
+          "octave": 3,
+          "ms": 228
+        },
+        {
+          "note": "D",
+          "octave": 3,
+          "ms": 228
+        },
+        {
+          "note": "E",
+          "octave": 3,
+          "ms": 228
+        },
+        {
+          "note": "G",
+          "octave": 3,
+          "ms": 228
+        },
+        {
+          "note": "A",
+          "octave": 3,
+          "ms": 228
+        },
+        {
+          "note": "G",
+          "octave": 3,
+          "ms": 228
+        },
+        {
+          "note": "E",
+          "octave": 3,
+          "ms": 228
+        },
+        {
+          "note": "C",
+          "octave": 3,
+          "ms": 228
+        },
+        {
+          "note": "D",
+          "octave": 3,
+          "ms": 228
+        },
+        {
+          "note": "E",
+          "octave": 3,
+          "ms": 228
+        },
+        {
+          "note": "A",
+          "octave": 3,
+          "ms": 456
+        },
+        {
+          "note": "A",
+          "octave": 3,
+          "ms": 228
+        },
+        {
+          "note": "G",
+          "octave": 3,
+          "ms": 228
+        },
+        {
+          "note": "E",
+          "octave": 3,
+          "ms": 228
+        },
+        {
+          "note": "D",
+          "octave": 3,
+          "ms": 228
+        },
+        {
+          "note": "C",
+          "octave": 3,
+          "ms": 228
+        },
+        {
+          "note": "D",
+          "octave": 3,
+          "ms": 228
+        },
+        {
+          "note": "E",
+          "octave": 3,
+          "ms": 228
+        },
+        {
+          "note": "G",
+          "octave": 3,
+          "ms": 228
+        },
+        {
+          "note": "A",
+          "octave": 3,
+          "ms": 228
+        },
+        {
+          "note": "G",
+          "octave": 3,
+          "ms": 228
+        },
+        {
+          "note": "E",
+          "octave": 3,
+          "ms": 228
+        },
+        {
+          "note": "C",
+          "octave": 3,
+          "ms": 228
+        },
+        {
+          "note": "D",
+          "octave": 3,
+          "ms": 228
+        },
+        {
+          "note": "E",
+          "octave": 3,
+          "ms": 228
+        },
+        {
+          "note": "A",
+          "octave": 3,
+          "ms": 456
+        },
+        {
+          "note": "A",
+          "octave": 2,
+          "ms": 228
+        },
+        {
+          "note": "C",
+          "octave": 3,
+          "ms": 228
+        },
+        {
+          "note": "E",
+          "octave": 3,
+          "ms": 228
+        },
+        {
+          "note": "A",
+          "octave": 3,
+          "ms": 228
+        },
+        {
+          "note": "G",
+          "octave": 3,
+          "ms": 228
+        },
+        {
+          "note": "E",
+          "octave": 3,
+          "ms": 228
+        },
+        {
+          "note": "C",
+          "octave": 3,
+          "ms": 228
+        },
+        {
+          "note": "A",
+          "octave": 2,
+          "ms": 228
+        },
+        {
+          "note": "F",
+          "octave": 2,
+          "ms": 228
+        },
+        {
+          "note": "A",
+          "octave": 2,
+          "ms": 228
+        },
+        {
+          "note": "C",
+          "octave": 3,
+          "ms": 228
+        },
+        {
+          "note": "F",
+          "octave": 3,
+          "ms": 228
+        },
+        {
+          "note": "E",
+          "octave": 3,
+          "ms": 228
+        },
+        {
+          "note": "C",
+          "octave": 3,
+          "ms": 228
+        },
+        {
+          "note": "A",
+          "octave": 2,
+          "ms": 456
+        },
+        {
+          "note": "A",
+          "octave": 2,
+          "ms": 228
+        },
+        {
+          "note": "A",
+          "octave": 2,
+          "ms": 228
+        },
+        {
+          "note": "C",
+          "octave": 3,
+          "ms": 228
+        },
+        {
+          "note": "A",
+          "octave": 2,
+          "ms": 228
+        },
+        {
+          "note": "F",
+          "octave": 3,
+          "ms": 228
+        },
+        {
+          "note": "F",
+          "octave": 3,
+          "ms": 228
+        },
+        {
+          "note": "E",
+          "octave": 3,
+          "ms": 228
+        },
+        {
+          "note": "C",
+          "octave": 3,
+          "ms": 228
+        },
+        {
+          "note": "D",
+          "octave": 3,
+          "ms": 228
+        },
+        {
+          "note": "D",
+          "octave": 3,
+          "ms": 228
+        },
+        {
+          "note": "C",
+          "octave": 3,
+          "ms": 228
+        },
+        {
+          "note": "A",
+          "octave": 2,
+          "ms": 228
+        },
+        {
+          "note": "E",
+          "octave": 3,
+          "ms": 228
+        },
+        {
+          "note": "R",
+          "octave": 0,
+          "ms": 228
+        },
+        {
+          "note": "A",
+          "octave": 2,
+          "ms": 228
+        },
+        {
+          "note": "R",
+          "octave": 0,
+          "ms": 228
+        },
+        {
+          "note": "A",
+          "octave": 2,
+          "ms": 228
+        },
+        {
+          "note": "A",
+          "octave": 2,
+          "ms": 228
+        },
+        {
+          "note": "C",
+          "octave": 3,
+          "ms": 228
+        },
+        {
+          "note": "A",
+          "octave": 2,
+          "ms": 228
+        },
+        {
+          "note": "D",
+          "octave": 3,
+          "ms": 228
+        },
+        {
+          "note": "D",
+          "octave": 3,
+          "ms": 228
+        },
+        {
+          "note": "C",
+          "octave": 3,
+          "ms": 228
+        },
+        {
+          "note": "A",
+          "octave": 2,
+          "ms": 228
+        },
+        {
+          "note": "A",
+          "octave": 2,
+          "ms": 228
+        },
+        {
+          "note": "A",
+          "octave": 2,
+          "ms": 228
+        },
+        {
+          "note": "C",
+          "octave": 3,
+          "ms": 228
+        },
+        {
+          "note": "E",
+          "octave": 3,
+          "ms": 228
+        },
+        {
+          "note": "G",
+          "octave": 2,
+          "ms": 228
+        },
+        {
+          "note": "A",
+          "octave": 2,
+          "ms": 228
+        },
+        {
+          "note": "R",
+          "octave": 0,
+          "ms": 456
+        },
+        {
+          "note": "A",
+          "octave": 3,
+          "ms": 228
+        },
+        {
+          "note": "G",
+          "octave": 3,
+          "ms": 228
+        },
+        {
+          "note": "E",
+          "octave": 3,
+          "ms": 228
+        },
+        {
+          "note": "D",
+          "octave": 3,
+          "ms": 228
+        },
+        {
+          "note": "C",
+          "octave": 3,
+          "ms": 228
+        },
+        {
+          "note": "D",
+          "octave": 3,
+          "ms": 228
+        },
+        {
+          "note": "E",
+          "octave": 3,
+          "ms": 228
+        },
+        {
+          "note": "G",
+          "octave": 3,
+          "ms": 228
+        },
+        {
+          "note": "A",
+          "octave": 3,
+          "ms": 228
+        },
+        {
+          "note": "G",
+          "octave": 3,
+          "ms": 228
+        },
+        {
+          "note": "E",
+          "octave": 3,
+          "ms": 228
+        },
+        {
+          "note": "C",
+          "octave": 3,
+          "ms": 228
+        },
+        {
+          "note": "D",
+          "octave": 3,
+          "ms": 228
+        },
+        {
+          "note": "E",
+          "octave": 3,
+          "ms": 228
+        },
+        {
+          "note": "A",
+          "octave": 3,
+          "ms": 456
+        },
+        {
+          "note": "A",
+          "octave": 2,
+          "ms": 228
+        },
+        {
+          "note": "C",
+          "octave": 3,
+          "ms": 228
+        },
+        {
+          "note": "E",
+          "octave": 3,
+          "ms": 228
+        },
+        {
+          "note": "A",
+          "octave": 3,
+          "ms": 228
+        },
+        {
+          "note": "G",
+          "octave": 3,
+          "ms": 228
+        },
+        {
+          "note": "E",
+          "octave": 3,
+          "ms": 228
+        },
+        {
+          "note": "C",
+          "octave": 3,
+          "ms": 228
+        },
+        {
+          "note": "A",
+          "octave": 2,
+          "ms": 228
+        },
+        {
+          "note": "F",
+          "octave": 2,
+          "ms": 228
+        },
+        {
+          "note": "A",
+          "octave": 2,
+          "ms": 228
+        },
+        {
+          "note": "C",
+          "octave": 3,
+          "ms": 228
+        },
+        {
+          "note": "F",
+          "octave": 3,
+          "ms": 228
+        },
+        {
+          "note": "E",
+          "octave": 3,
+          "ms": 228
+        },
+        {
+          "note": "C",
+          "octave": 3,
+          "ms": 228
+        },
+        {
+          "note": "A",
+          "octave": 2,
+          "ms": 456
+        },
+        {
+          "note": "A",
+          "octave": 2,
+          "ms": 228
+        },
+        {
+          "note": "A",
+          "octave": 2,
+          "ms": 228
+        },
+        {
+          "note": "C",
+          "octave": 3,
+          "ms": 228
+        },
+        {
+          "note": "A",
+          "octave": 2,
+          "ms": 228
+        },
+        {
+          "note": "F",
+          "octave": 3,
+          "ms": 228
+        },
+        {
+          "note": "F",
+          "octave": 3,
+          "ms": 228
+        },
+        {
+          "note": "E",
+          "octave": 3,
+          "ms": 228
+        },
+        {
+          "note": "C",
+          "octave": 3,
+          "ms": 228
+        },
+        {
+          "note": "D",
+          "octave": 3,
+          "ms": 228
+        },
+        {
+          "note": "D",
+          "octave": 3,
+          "ms": 228
+        },
+        {
+          "note": "C",
+          "octave": 3,
+          "ms": 228
+        },
+        {
+          "note": "A",
+          "octave": 2,
+          "ms": 228
+        },
+        {
+          "note": "E",
+          "octave": 3,
+          "ms": 228
+        },
+        {
+          "note": "R",
+          "octave": 0,
+          "ms": 228
+        },
+        {
+          "note": "A",
+          "octave": 2,
+          "ms": 228
+        },
+        {
+          "note": "R",
+          "octave": 0,
+          "ms": 228
+        }
+      ]
+    },
+    "win": {
+      "bpm": 144,
+      "loop": false,
+      "notes": [
+        {
+          "note": "A",
+          "octave": 3,
+          "ms": 208
+        },
+        {
+          "note": "C#",
+          "octave": 4,
+          "ms": 208
+        },
+        {
+          "note": "E",
+          "octave": 4,
+          "ms": 208
+        },
+        {
+          "note": "A",
+          "octave": 4,
+          "ms": 208
+        },
+        {
+          "note": "G#",
+          "octave": 4,
+          "ms": 208
+        },
+        {
+          "note": "E",
+          "octave": 4,
+          "ms": 208
+        },
+        {
+          "note": "F#",
+          "octave": 4,
+          "ms": 208
+        },
+        {
+          "note": "G#",
+          "octave": 4,
+          "ms": 208
+        },
+        {
+          "note": "A",
+          "octave": 4,
+          "ms": 416
+        },
+        {
+          "note": "E",
+          "octave": 4,
+          "ms": 416
+        },
+        {
+          "note": "A",
+          "octave": 4,
+          "ms": 832
+        },
+        {
+          "note": "F#",
+          "octave": 4,
+          "ms": 208
+        },
+        {
+          "note": "G#",
+          "octave": 4,
+          "ms": 208
+        },
+        {
+          "note": "A",
+          "octave": 4,
+          "ms": 208
+        },
+        {
+          "note": "B",
+          "octave": 4,
+          "ms": 208
+        },
+        {
+          "note": "C#",
+          "octave": 5,
+          "ms": 416
+        },
+        {
+          "note": "B",
+          "octave": 4,
+          "ms": 416
+        },
+        {
+          "note": "A",
+          "octave": 4,
+          "ms": 208
+        },
+        {
+          "note": "C#",
+          "octave": 5,
+          "ms": 208
+        },
+        {
+          "note": "E",
+          "octave": 5,
+          "ms": 208
+        },
+        {
+          "note": "A",
+          "octave": 5,
+          "ms": 208
+        },
+        {
+          "note": "A",
+          "octave": 5,
+          "ms": 832
+        },
+        {
+          "note": "E",
+          "octave": 4,
+          "ms": 208
+        },
+        {
+          "note": "F#",
+          "octave": 4,
+          "ms": 208
+        },
+        {
+          "note": "G#",
+          "octave": 4,
+          "ms": 208
+        },
+        {
+          "note": "A",
+          "octave": 4,
+          "ms": 208
+        },
+        {
+          "note": "B",
+          "octave": 4,
+          "ms": 208
+        },
+        {
+          "note": "C#",
+          "octave": 5,
+          "ms": 208
+        },
+        {
+          "note": "D",
+          "octave": 5,
+          "ms": 208
+        },
+        {
+          "note": "E",
+          "octave": 5,
+          "ms": 208
+        },
+        {
+          "note": "C#",
+          "octave": 5,
+          "ms": 416
+        },
+        {
+          "note": "A",
+          "octave": 4,
+          "ms": 416
+        },
+        {
+          "note": "E",
+          "octave": 5,
+          "ms": 832
+        },
+        {
+          "note": "A",
+          "octave": 4,
+          "ms": 208
+        },
+        {
+          "note": "E",
+          "octave": 5,
+          "ms": 208
+        },
+        {
+          "note": "C#",
+          "octave": 5,
+          "ms": 208
+        },
+        {
+          "note": "A",
+          "octave": 4,
+          "ms": 208
+        },
+        {
+          "note": "B",
+          "octave": 4,
+          "ms": 208
+        },
+        {
+          "note": "G#",
+          "octave": 4,
+          "ms": 208
+        },
+        {
+          "note": "E",
+          "octave": 4,
+          "ms": 208
+        },
+        {
+          "note": "B",
+          "octave": 4,
+          "ms": 208
+        },
+        {
+          "note": "A",
+          "octave": 4,
+          "ms": 832
+        },
+        {
+          "note": "A",
+          "octave": 5,
+          "ms": 832
+        }
+      ]
+    },
+    "game_over": {
+      "bpm": 92,
+      "loop": false,
+      "notes": [
+        {
+          "note": "A",
+          "octave": 3,
+          "ms": 652
+        },
+        {
+          "note": "G",
+          "octave": 3,
+          "ms": 652
+        },
+        {
+          "note": "F",
+          "octave": 3,
+          "ms": 652
+        },
+        {
+          "note": "E",
+          "octave": 3,
+          "ms": 652
+        },
+        {
+          "note": "D",
+          "octave": 3,
+          "ms": 652
+        },
+        {
+          "note": "C",
+          "octave": 3,
+          "ms": 652
+        },
+        {
+          "note": "B",
+          "octave": 2,
+          "ms": 652
+        },
+        {
+          "note": "A",
+          "octave": 2,
+          "ms": 652
+        },
+        {
+          "note": "F",
+          "octave": 2,
+          "ms": 652
+        },
+        {
+          "note": "E",
+          "octave": 2,
+          "ms": 652
+        },
+        {
+          "note": "D",
+          "octave": 2,
+          "ms": 1304
+        },
+        {
+          "note": "A",
+          "octave": 2,
+          "ms": 1304
+        },
+        {
+          "note": "A",
+          "octave": 1,
+          "ms": 1304
+        }
+      ]
+    }
+  }
+}

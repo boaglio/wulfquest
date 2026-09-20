@@ -103,4 +103,42 @@ class FontTest {
         }
         return false;
     }
+
+    @Test
+    void theDisplayFontHasTheExpectedMetrics() {
+        FontSet f = fonts.get("big");
+        assertThat(f.name()).isEqualTo("display-8x8");
+        assertThat(f.glyphW()).isEqualTo(8);
+        assertThat(f.glyphH()).isEqualTo(8);
+        assertThat(f.advance()).isEqualTo(8);
+        assertThat(f.widthOf("WULF QUEST")).isEqualTo(80);
+    }
+
+    @Test
+    void theDisplayFontCoversEverythingTheShellShows() {
+        FontSet f = fonts.get("big");
+        Framebuffer fb = new Framebuffer(16, 16);
+        String needed = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 .,:!?'-/()";
+        for (char c : needed.toCharArray()) {
+            fb.clear(0);
+            f.draw(fb, String.valueOf(c), 0, 0, 1);
+            assertThat(anyLit(fb)).as("glyph '%c' is drawn", c).isNotEqualTo(c == ' ');
+        }
+    }
+
+    @Test
+    void displayGlyphsStayInsideTheirCell() {
+        FontSet f = fonts.get("big");
+        Framebuffer fb = new Framebuffer(16, 16);
+        for (char c = 'A'; c <= 'Z'; c++) {
+            fb.clear(0);
+            f.draw(fb, String.valueOf(c), 0, 0, 1);
+            for (int y = 0; y < 8; y++) {
+                assertThat(fb.get(7, y)).as("'%c' right gutter at row %d", c, y).isZero();
+            }
+            for (int x = 0; x < 8; x++) {
+                assertThat(fb.get(x, 7)).as("'%c' bottom gutter at column %d", c, x).isZero();
+            }
+        }
+    }
 }

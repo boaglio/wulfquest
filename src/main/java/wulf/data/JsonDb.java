@@ -102,6 +102,31 @@ public final class JsonDb {
     }
 
     /**
+     * Binds text that did not come from the content database — a player-DB file
+     * (AGENTS.md §21) — through exactly the same gate: parse, schema-validate,
+     * version-check, bind. Nothing is cached and the content hash is untouched,
+     * so what the player accumulates can never change a replay's provenance.
+     */
+    public <T> T bindExternal(String source, String text, String schemaName, Class<T> type) {
+        JsonNode node = parse(text, source);
+        validateAgainstSchema(schemaName, node, source);
+        checkSchemaVersion(schemaName, node, source);
+        try {
+            return mapper.treeToValue(node, type);
+        } catch (JacksonException e) {
+            throw new DataException(source, "/",
+                    "does not match " + type.getSimpleName() + " — " + rootCause(e), e);
+        }
+    }
+
+    /** Pretty JSON with sorted keys and a trailing newline, for everything we write (§20.9). */
+    public String toPrettyJson(Object value) {
+        return mapper.writerWithDefaultPrettyPrinter()
+                .with(tools.jackson.databind.SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS)
+                .writeValueAsString(value) + "\n";
+    }
+
+    /**
      * SHA-256 over every file loaded so far, in load order. Part of the
      * determinism contract (AGENTS.md §6.4): a replay is only comparable
      * against the same content hash.

@@ -110,6 +110,43 @@ public final class FontSet {
         }
     }
 
+    /**
+     * The same glyphs with every pixel blown up {@code scale} times — how the
+     * wordmark gets to be bigger than the font without a second set of art
+     * (AGENTS.md §17.2).
+     */
+    public void drawScaled(Framebuffer fb, String text, int x, int y, int paletteIndex, int scale) {
+        if (scale <= 1) {
+            draw(fb, text, x, y, paletteIndex);
+            return;
+        }
+        int penX = x;
+        for (int i = 0; i < text.length(); i++) {
+            char c = Character.toUpperCase(text.charAt(i));
+            boolean[] mask = masks.get(c);
+            if (mask == null) {
+                mask = masks.get(fallback);
+            }
+            for (int gy = 0; gy < glyphH; gy++) {
+                for (int gx = 0; gx < glyphW; gx++) {
+                    if (mask[gy * glyphW + gx]) {
+                        fb.fillRect(penX + gx * scale, y + gy * scale, scale, scale, paletteIndex);
+                    }
+                }
+            }
+            penX += advance * scale;
+        }
+    }
+
+    public int widthOf(String text, int scale) {
+        return widthOf(text) * Math.max(1, scale);
+    }
+
+    /** Draws scaled text centred horizontally within {@code [x, x + w)}. */
+    public void drawScaledCentred(Framebuffer fb, String text, int x, int w, int y, int paletteIndex, int scale) {
+        drawScaled(fb, text, x + (w - widthOf(text, scale)) / 2, y, paletteIndex, scale);
+    }
+
     /** Draws text centred horizontally within {@code [x, x + w)}. */
     public void drawCentred(Framebuffer fb, String text, int x, int w, int y, int paletteIndex) {
         draw(fb, text, x + (w - widthOf(text)) / 2, y, paletteIndex);

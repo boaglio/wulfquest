@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wulfquest.invalid/schema/stats.schema.json",
+  "title": "stats.json — AGENTS.md §21.5 (lifetime counters, local only, never transmitted)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "gamesPlayed", "escapes", "deaths", "roomsVisited", "amuletPieces",
+               "wulfEncounters", "wulfEvaded", "bestScore", "bestEscapeTicks",
+               "killsBySpecies", "deathsByCause", "orchidsByColour"],
+  "properties": {
+    "schemaVersion": { "type": "integer", "minimum": 1 },
+    "gamesPlayed": { "type": "integer", "minimum": 0 },
+    "escapes": { "type": "integer", "minimum": 0 },
+    "deaths": { "type": "integer", "minimum": 0 },
+    "roomsVisited": { "type": "integer", "minimum": 0 },
+    "amuletPieces": { "type": "integer", "minimum": 0 },
+    "wulfEncounters": { "type": "integer", "minimum": 0 },
+    "wulfEvaded": { "type": "integer", "minimum": 0 },
+    "bestScore": { "type": "integer", "minimum": 0 },
+    "bestEscapeTicks": { "type": "integer", "minimum": 0 },
+    "killsBySpecies": { "type": "object", "additionalProperties": { "type": "integer", "minimum": 0 } },
+    "deathsByCause": { "type": "object", "additionalProperties": { "type": "integer", "minimum": 0 } },
+    "orchidsByColour": { "type": "object", "additionalProperties": { "type": "integer", "minimum": 0 } }
+  }
+}

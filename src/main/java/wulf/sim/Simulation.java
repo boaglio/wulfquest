@@ -2,7 +2,9 @@ package wulf.sim;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import wulf.data.CreatureData;
 import wulf.data.LandmarksData;
 import wulf.data.PlayerData;
@@ -45,6 +47,25 @@ public final class Simulation {
     /** What the border shows this tick (§5.4, §11.7, §13.3, §13.5). */
     public enum BorderFlash { NONE, ALARM, PARRY, PICKUP }
 
+    /** Ledger names for the two deaths no species owns (§21.5). */
+    private static final String SPEAR_CAUSE = "spear";
+    private static final String DEV_CAUSE = "dev";
+
+    /** The names in {@code sfx.json} the simulation announces (§18.2). */
+    private static final String SFX_FOOTSTEP = "footstep";
+    private static final String SFX_SABRE_SWING = "sabre_swing";
+    private static final String SFX_CREATURE_DIE = "creature_die";
+    private static final String SFX_SPEAR_THROW = "spear_throw";
+    private static final String SFX_ORCHID_PICK = "orchid_pick";
+    private static final String SFX_AMULET_PIECE = "amulet_piece";
+    private static final String SFX_WULF_HOWL = "wulf_howl";
+    private static final String SFX_WULF_GROWL = "wulf_growl";
+    private static final String SFX_WULF_PARRY = "wulf_parry";
+    private static final String SFX_PLAYER_DIE = "player_die";
+    private static final String SFX_EXTRA_LIFE = "extra_life";
+    private static final String SFX_ROOM_FLIP = "room_flip";
+    private static final String SFX_KEEPER_MOVES = "keeper_moves";
+
     private final PlayerData rules;
     private final CollisionWorld world;
     private final int transitionFreezeTicks;
@@ -84,6 +105,22 @@ public final class Simulation {
     private int nextEntityId;
     private long score;
     private int kills;
+    /**
+     * Bookkeeping for the lifetime ledger (§21.5), not game state: what died on the
+     * blade, what killed Vale, and which flowers were picked. Never mixed into
+     * {@link #stateHash()} — counting is not simulating, and a replay must not care.
+     */
+    private final Map<String, Integer> killsBySpecies = new LinkedHashMap<>();
+    private final Map<String, Integer> deathsByCause = new LinkedHashMap<>();
+    private final Map<String, Integer> orchidsByColour = new LinkedHashMap<>();
+    private int deaths;
+    /**
+     * Where noises are announced (§18.1). Silent unless the game hands one in, so
+     * every test and every replay runs without sound and is unaffected by it.
+     */
+    private SoundSink sounds = SoundSink.NONE;
+    private int footstepTicks;
+    private int footstepEveryTicks = Integer.MAX_VALUE;
     private int extraLivesAwarded;
 
     private Simulation(PlayerData rules, CollisionWorld world, int transitionFreezeTicks, Ecosystem eco, long runSeed,
@@ -218,9 +255,18 @@ public final class Simulation {
      * @return whether the hit landed
      */
     public boolean kill() {
+        return kill(DEV_CAUSE);
+    }
+
+    /** The same death, with what did it, for the ledger (§21.5). */
+    public boolean kill(String cause) {
         if (player.mode != Player.Mode.ALIVE || player.invulnTicks > 0) {
             return false;
         }
+        deaths++;
+        deathsByCause.merge(cause, 1, Integer::sum);
+        sounds.play(SFX_PLAYER_DIE);
+        sounds.loop(SFX_WULF_GROWL, false);
         effect.clear();   // §15.2: whatever was in the blood dies with you
         player.lives--;
         player.mode = Player.Mode.DYING;
@@ -251,6 +297,7 @@ public final class Simulation {
         if (player.swingTick < 0 && player.cooldown == 0 && in.fire()) {
             player.swingTick = 0;
             swingSerial++;   // each swing may hit each creature once
+            sounds.play(SFX_SABRE_SWING);
         }
     }
 
@@ -313,6 +360,13 @@ public final class Simulation {
                 dy * speedY, false);
         boolean moved = player.xFp != oldX || player.yFp != oldY;
         player.walkTicks = moved ? player.walkTicks + 1 : 0;
+        // A step every few ticks while the feet are actually going somewhere (§18.2).
+        if (!moved) {
+            footstepTicks = 0;
+        } else if (++footstepTicks >= footstepEveryTicks) {
+            footstepTicks = 0;
+            sounds.play(SFX_FOOTSTEP);
+        }
     }
 
     // ---------------------------------------------------------------- rooms
@@ -330,6 +384,7 @@ public final class Simulation {
         room = new RoomAddress(col, row);
         freeze = transitionFreezeTicks;
         roomsEntered++;
+        sounds.play(SFX_ROOM_FLIP);
         player.entryXFp = player.xFp;
         player.entryYFp = player.yFp;
         enterRoom(true);
@@ -482,6 +537,8 @@ public final class Simulation {
                         c.mode = Creature.Mode.DYING;   // a harmless puff (§12.2)
                         c.modeTick = 0;
                         kills++;
+                        killsBySpecies.merge(c.species().id(), 1, Integer::sum);
+                        sounds.play(SFX_CREATURE_DIE);
                         addScore(c.species().score());
                     } else {
                         c.hurtTicks = roster.hurtFlashTicks();
@@ -515,7 +572,7 @@ public final class Simulation {
             Creature g = quest.guardian;
             CreatureData.Box gb = g.species().collisionBox();
             if (overlaps(px, py, pb.w(), pb.h(), Fixed.px(g.xFp) + gb.x(), Fixed.px(g.yFp) + gb.y(), gb.w(), gb.h())) {
-                kill();   // unkillable, and lethal to touch (§14.3)
+                kill(g.species().id());   // unkillable, and lethal to touch (§14.3)
                 return;
             }
         }
@@ -530,7 +587,7 @@ public final class Simulation {
                     player.yFp = Collision.resolve(world, pb.x(), pb.y(), pb.w(), pb.h(), player.xFp, player.yFp,
                             Fixed.fp(eco.quest().nudgePx()), false);
                 } else {
-                    kill();
+                    kill(k.species().id());
                     return;
                 }
             }
@@ -539,7 +596,7 @@ public final class Simulation {
             CreatureData.Box wb = wulf.body.species().collisionBox();
             if (overlaps(px, py, pb.w(), pb.h(), Fixed.px(wulf.body.xFp) + wb.x(), Fixed.px(wulf.body.yFp) + wb.y(),
                     wb.w(), wb.h())) {
-                kill();
+                kill(wulf.body.species().id());
                 return;
             }
         }
@@ -548,7 +605,7 @@ public final class Simulation {
             CreatureData.Box b = c.species().collisionBox();
             if (c.mode == Creature.Mode.ALIVE
                     && overlaps(px, py, pb.w(), pb.h(), Fixed.px(c.xFp) + b.x(), Fixed.px(c.yFp) + b.y(), b.w(), b.h())) {
-                kill();
+                kill(c.species().id());
                 return;
             }
         }
@@ -559,7 +616,7 @@ public final class Simulation {
                 if (s.alive && overlaps(px, py, pb.w(), pb.h(), Fixed.px(s.xFp) + b.x(), Fixed.px(s.yFp) + b.y(), b.w(), b.h())) {
                     s.alive = false;
                     if (!immune) {
-                        kill();
+                        kill(SPEAR_CAUSE);
                         return;
                     }
                 }
@@ -623,6 +680,8 @@ public final class Simulation {
             int which = orchids.orchidAt(runSeed, room, i, start);
             effect.take(which, data.orchid(which));
             addScore(data.orchid(which).score());
+            orchidsByColour.merge(data.orchid(which).colour(), 1, Integer::sum);
+            sounds.play(SFX_ORCHID_PICK);
             orchidCycleStart[orchidBase + i] = tick;   // picked: straight back to seed (§15.1)
         }
     }
@@ -693,6 +752,7 @@ public final class Simulation {
         if (q.keeperState == Quest.Keeper.STEPPING_ASIDE) {
             if (++q.keeperTick >= rules.stepAsideTicks()) {
                 q.keeperState = Quest.Keeper.ASIDE;
+                sounds.play(SFX_KEEPER_MOVES);
             }
             if (q.keeperHere) {
                 seatKeeper();
@@ -741,6 +801,7 @@ public final class Simulation {
         q.piecesHeld++;
         q.slotMask |= 1 << lair.piece().slot();
         q.pickupFlash = amulet.pickupFlashTicks();
+        sounds.play(SFX_AMULET_PIECE);
         q.flyTicks = amulet.flyToPanelTicks();
         q.flySlot = lair.piece().slot();
         q.flyFromXPx = centreXPx;
@@ -971,6 +1032,8 @@ public final class Simulation {
                 w.quietRooms = 0;
                 w.followedFlips = 0;
                 w.appearances++;
+                sounds.play(SFX_WULF_HOWL);         // §13.6: the warning you get
+                sounds.loop(SFX_WULF_GROWL, true);  // and the growl that stays until it is gone
                 Creature body = w.body;
                 body.timer(0);
                 body.aux(0);
@@ -1143,6 +1206,7 @@ public final class Simulation {
             return;
         }
         body.lastHitSwing = swingSerial;
+        sounds.play(SFX_WULF_PARRY);
         PlayerData.Sabre s = rules.sabre();
         Direction8 f = player.facing;
         int push = Fixed.fp(s.repelWulfPx());
@@ -1160,6 +1224,7 @@ public final class Simulation {
         wulf.state = Wulf.State.ABSENT;
         wulf.stateTick = 0;
         wulf.ticksSinceGone = 0;
+        sounds.loop(SFX_WULF_GROWL, false);
     }
 
     private void evaded() {
@@ -1179,6 +1244,7 @@ public final class Simulation {
             extraLivesAwarded++;
             if (player.lives < rules.lives().max()) {
                 player.lives++;
+                sounds.play(SFX_EXTRA_LIFE);
             }
         }
     }
@@ -1284,6 +1350,7 @@ public final class Simulation {
                 return;
             }
             spears.add(new Spear(nextEntityId++, Fixed.fp(from.centreXPx()), Fixed.fp(from.centreYPx()), dx, dy));
+            sounds.play(SFX_SPEAR_THROW);
         }
     }
 
@@ -1393,6 +1460,26 @@ public final class Simulation {
         return kills;
     }
 
+    /** How many times Vale has gone down this run (§21.5). */
+    public int deaths() {
+        return deaths;
+    }
+
+    /** What died on the blade, by species id. Ledger bookkeeping, outside the state hash. */
+    public Map<String, Integer> killsBySpecies() {
+        return Collections.unmodifiableMap(new LinkedHashMap<>(killsBySpecies));
+    }
+
+    /** What killed Vale, by species id, or {@code spear} / {@code dev}. */
+    public Map<String, Integer> deathsByCause() {
+        return Collections.unmodifiableMap(new LinkedHashMap<>(deathsByCause));
+    }
+
+    /** Which flowers were picked, by colour name. */
+    public Map<String, Integer> orchidsByColour() {
+        return Collections.unmodifiableMap(new LinkedHashMap<>(orchidsByColour));
+    }
+
     public int visits(RoomAddress address) {
         return visits[address.index()];
     }
@@ -1475,6 +1562,17 @@ public final class Simulation {
      */
     public long orchidStagesRead() {
         return orchidStagesRead;
+    }
+
+    /**
+     * Hands the simulation somewhere to announce noises (§18.1). Sound never
+     * changes what happens: the sink is write-only, and the default is silence.
+     *
+     * @param everyTicks how often walking makes a footstep
+     */
+    public void sounds(SoundSink sink, int everyTicks) {
+        this.sounds = sink == null ? SoundSink.NONE : sink;
+        this.footstepEveryTicks = Math.max(1, everyTicks);
     }
 
     /** Puts the player under an effect outright: {@code --debug-effect}, and the tests. */

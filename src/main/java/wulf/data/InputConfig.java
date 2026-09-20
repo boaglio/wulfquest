@@ -7,7 +7,9 @@ import java.util.Map;
 public record InputConfig(int schemaVersion, String active, Map<String, Profile> profiles, Gamepad gamepad) {
 
     public InputConfig {
-        profiles = Map.copyOf(profiles);
+        // Insertion order, not Map.copyOf's: the keys page numbers the profiles as
+        // input.json lists them, so "1" must always be the first one in the file (§19.1).
+        profiles = java.util.Collections.unmodifiableMap(new java.util.LinkedHashMap<>(profiles));
     }
 
     /** Key names per action. */
@@ -35,6 +37,11 @@ public record InputConfig(int schemaVersion, String active, Map<String, Profile>
             devMask = List.copyOf(devMask);
             devWulf = List.copyOf(devWulf);
         }
+    }
+
+    /** The same profiles with a different one chosen — what the keys page does (§19.1). */
+    public InputConfig withActive(String profile) {
+        return profiles.containsKey(profile) ? new InputConfig(schemaVersion, profile, profiles, gamepad) : this;
     }
 
     /** Integer percent, not a fraction: nothing that reaches the game is a float (§6.2). */

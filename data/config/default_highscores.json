@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "entries": [
+    { "name": "VAL", "score": 52400, "pieces": 4, "ticks": 196300, "date": "2026-01-04" },
+    { "name": "RSK", "score": 44150, "pieces": 4, "ticks": 231800, "date": "2026-01-11" },
+    { "name": "MAB", "score": 38700, "pieces": 3, "ticks": 178200, "date": "2026-02-02" },
+    { "name": "TOR", "score": 31250, "pieces": 3, "ticks": 154900, "date": "2026-02-19" },
+    { "name": "ELK", "score": 26800, "pieces": 2, "ticks": 133400, "date": "2026-03-07" },
+    { "name": "JUN", "score": 21900, "pieces": 2, "ticks": 118600, "date": "2026-03-22" },
+    { "name": "HAW", "score": 17350, "pieces": 1, "ticks": 96100, "date": "2026-04-05" },
+    { "name": "IVY", "score": 13400, "pieces": 1, "ticks": 81700, "date": "2026-04-18" },
+    { "name": "ASH", "score": 9250, "pieces": 0, "ticks": 64200, "date": "2026-05-02" },
+    { "name": "FEN", "score": 5600, "pieces": 0, "ticks": 42800, "date": "2026-05-16" }
+  ]
+}

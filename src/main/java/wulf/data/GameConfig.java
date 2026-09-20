@@ -29,6 +29,24 @@ public record GameConfig(
     public record Exit(int keeperNudgeZonePx, int keeperStepAsideTicks, int keeperNudgePx) {
     }
 
+    /**
+     * This config with the player's feature choices laid over it (§21.3). Only
+     * flags this build knows are taken: a stale name in settings is ignored
+     * rather than fatal, because the player DB outlives any one build.
+     */
+    public GameConfig withFeatures(Map<String, Boolean> overrides) {
+        if (overrides.isEmpty()) {
+            return this;
+        }
+        Map<String, Boolean> merged = new java.util.LinkedHashMap<>(features);
+        for (Map.Entry<String, Boolean> e : overrides.entrySet()) {
+            if (merged.containsKey(e.getKey())) {
+                merged.put(e.getKey(), e.getValue());
+            }
+        }
+        return new GameConfig(schemaVersion, tickHz, maxCatchupTicks, transition, difficulty, exit, merged);
+    }
+
     /** A feature flag (AGENTS.md §1.1); unknown names are a programmer error. */
     public boolean feature(String name) {
         Boolean b = features.get(name);

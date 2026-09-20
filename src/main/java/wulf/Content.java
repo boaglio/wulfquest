@@ -41,6 +41,13 @@ import wulf.sim.QuestRules;
 import wulf.sim.RoomPopulator;
 import wulf.data.OrchidData;
 import wulf.data.OrchidValidator;
+import wulf.data.HighScores;
+import wulf.data.Settings;
+import wulf.data.MusicData;
+import wulf.data.SfxData;
+import wulf.data.ShellConfig;
+import wulf.data.ShellValidator;
+import wulf.data.AudioValidator;
 
 /**
  * Everything loaded from the content database, validated and cross-checked,
@@ -66,7 +73,12 @@ public record Content(
         WulfData wulf,
         GuardianData guardians,
         LandmarksData landmarks,
-        OrchidData orchids) {
+        OrchidData orchids,
+        ShellConfig shell,
+        SfxData sfx,
+        MusicData music,
+        HighScores defaultScores,
+        Settings defaultSettings) {
 
     public static Content load(Path dataDir) {
         return load(new JsonDb(dataDir));
@@ -79,6 +91,14 @@ public record Content(
         Palette palette = db.load("art/palette", Palette.class);
         FontData font = db.load("art/font/font", FontData.class);
         InputConfig input = db.load("config/input", InputConfig.class);
+        ShellConfig shell = db.load("config/shell", ShellConfig.class);
+        ShellValidator.check(shell, palette, input);
+        SfxData sfx = db.load("audio/sfx", SfxData.class);
+        MusicData music = db.load("audio/music", MusicData.class);
+        AudioValidator.check(sfx, music);
+        // The shipped halves of the player database (§21.2, §21.3): defaults for a first run.
+        HighScores defaultScores = db.load("config/default_highscores", HighScores.class, "highscores");
+        Settings defaultSettings = db.load("config/settings_defaults", Settings.class, "settings");
         OriginalMapRepository map = new OriginalMapRepository(db.load("world/original_map", OriginalMap.class));
         SpriteRepository sprites = new SpriteRepository(db);
         SceneryCatalog scenery = new SceneryCatalog(db.load("world/scenery", SceneryData.class), sprites.all());
@@ -104,7 +124,20 @@ public record Content(
                 CreatureSpriteValidator.framesBySprite(sprites), solidity(rooms));
 
         return new Content(db, game, display, palette, font, input, map, sprites, scenery, rooms, player,
-                creatures, roomEntities, loot, biomes, wulf, guardians, landmarks, orchids);
+                creatures, roomEntities, loot, biomes, wulf, guardians, landmarks, orchids, shell, sfx, music,
+                defaultScores, defaultSettings);
+    }
+
+    /**
+     * The same content, with the player's own choices laid over it (§21.3): the
+     * input profile they picked and any feature flag they turned on or off.
+     * {@code game.json} ships the defaults; settings are the player's answer.
+     */
+    public Content withSettings(Settings settings) {
+        return new Content(db, game.withFeatures(settings.features()), display, palette, font,
+                input.withActive(settings.inputProfile()), map, sprites, scenery, rooms, player, creatures,
+                roomEntities, loot, biomes, wulf, guardians, landmarks, orchids, shell, sfx, music, defaultScores,
+                defaultSettings);
     }
 
     /** The living jungle: creatures, how rooms are populated, what exploring scores, the Wulf, and the quest. */
