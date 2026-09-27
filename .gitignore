@@ -36,3 +36,20 @@ save/
 # rightly fails on these; never commit them, never allowlist them.
 __pycache__/
 *.pyc
+
+# Empty placeholders the Claude Code sandbox mounts into the working tree:
+# shell and git dotfiles, editor and agent config. Nothing here is project
+# content. If a real .claude/ or editor config is ever wanted in the repo,
+# un-ignore that one path.
+.bash_profile
+.bashrc
+.profile
+.zprofile
+.zshrc
+.gitconfig
+.gitmodules
+.ripgreprc
+.mcp.json
+.claude/
+.idea
+.vscode
