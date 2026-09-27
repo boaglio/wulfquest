@@ -12,7 +12,12 @@ engine.
 
 ## Status
 
-**Milestone M8 complete** — and now it is a game you can sit down to. It opens
+**Milestone M9 complete — the game is done.** M9 was the hardening pass:
+golden-frame tests that hash what the renderer draws, every recorded replay
+run on every build, the lair replay that had been missing since M6, and a
+build that is green on a machine with no display.
+
+M8 is what made it a game you can sit down to. It opens
 on a title screen with its own wordmark, waits twenty seconds and then plays
 itself behind a dimmed jungle until you touch a key. Escape always goes one step
 back: out of the jungle to the title, off the title to the desktop. A run that
@@ -24,8 +29,8 @@ howl when the Wulf arrives and a growl that stays until it is gone. There are
 three tunes, none of which plays in the jungle, where there is only the jungle.
 
 Everything before it is still in: the whole quest, the Wulf, thirteen kinds of
-creature, and six colours of orchid. `mvn -q package` now gives you one jar you
-can double-click, with the game, its data and its demo inside it. The full plan
+creature, and six colours of orchid. `mvn -q package` gives you one jar you can
+double-click, with the game, its data and its demo inside it. The full plan
 lives in [AGENTS.md](AGENTS.md) §24.
 
 ```bash
@@ -57,8 +62,9 @@ Needs a JDK 21+ and Maven.
 `run.sh` is a convenience wrapper; Maven is the build:
 
 ```bash
-mvn -q verify          # compile, test, validate all data, run the CI gates
-mvn -q exec:java       # run
+mvn -q verify            # compile, test, validate all data, run the CI gates
+mvn -q -Pheadless verify # the same on a machine with no display
+mvn -q exec:java         # run
 mvn -q package && java -jar target/wulfquest-0.1.0-SNAPSHOT.jar
 ```
 
@@ -102,6 +108,32 @@ on macOS, `%APPDATA%\WulfQuest` on Windows — never into the game's own files.
   noise, generated at runtime, in the spirit of a one-bit speaker. Two channels,
   mixed by addition and clipped. The tunes share those channels: a sound effect
   steals the one the music is on, and the music keeps going underneath.
+
+## How it is checked
+
+`mvn -q verify` runs 408 tests and every gate the project has:
+
+- **The data validates itself.** Every JSON file is schema-checked at load,
+  and the semantic validators go further — a palette colour that does not
+  exist, a sprite frame an animation needs and has not got, a lair on a solid
+  cell, a hotkey bound twice. A typo is a readable in-game DATA ERROR screen
+  naming the file and the JSON pointer, never a stack trace.
+- **Golden frames.** The framebuffer is hashed at four ticks of a fixed run
+  and once per menu screen, so a sprite that moves by a pixel or a panel that
+  loses a digit fails the build. Regenerate them deliberately with
+  `mvn -q verify -Dgolden.update=true`, and say in the commit why they moved.
+- **Replays.** `replays/*.json` are recorded runs with the simulation's state
+  hash every 50 ticks; every one of them is re-executed on every build. A
+  divergence means determinism broke, and is never fixed by updating the hash.
+  Three of them also assert what they were recorded to show: a Wulf chase
+  survived across four rooms, the north-west quarter fetched and carried out,
+  and the whole game won without a death.
+- **Architecture.** The simulation is scanned for any reference to AWT, Swing,
+  sound, `java.util.Random`, the wall clock, or a `float` in a signature. It
+  has none, which is why a run is reproducible from its seed and why the sound
+  added in M8 cannot change what happens.
+- **No binaries.** The build fails if any image or audio file appears in the
+  repository. All the art is JSON; all the audio is synthesised at runtime.
 
 ## Repository layout
 

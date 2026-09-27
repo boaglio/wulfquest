@@ -63,4 +63,63 @@ class MapAuditTest {
                         report.medianWalk(), report.footprintMedianWalk())
                 .isLessThanOrEqualTo(6);
     }
+
+    // ------------------------------------------------------------------ the edge of the map
+
+    /**
+     * Until 2026-09-22 reachability was counted over the 196 interior rooms only — the 60 on the
+     * border were skipped outright, so the audit had never looked at the edge of the map. It is
+     * the edge a player notices first.
+     */
+    @Test
+    void everyRoomIsReachable_includingTheOnesOnTheBorder() {
+        assertThat(report.unreachableAnywhere()).isEmpty();
+        assertThat(report.allReached()).isEqualTo(256);
+        assertThat(report.allRooms()).isEqualTo(256);
+    }
+
+    /** A way through that nothing can walk to is worse than a wall: it is visible and it lies. */
+    @Test
+    void noWayThroughIsWalledOffFromTheRoomItBelongsTo() {
+        assertThat(report.stranded()).isEmpty();
+    }
+
+    @Test
+    void everySeamIsCountedOnce() {
+        assertThat(report.seams()).hasSize(240 + 240);
+        assertThat(report.seams()).allSatisfy(seam ->
+                assertThat(seam.reachable()).isLessThanOrEqualTo(seam.crossings()));
+    }
+
+    /**
+     * <b>A known defect, pinned so it cannot get worse.</b>
+     *
+     * <p>Every one of the 256 rooms has its top two cell-rows empty, because the extracted
+     * placements start at y=2 in a 24-row playfield (§8, §25 Q14). That leaves a two-cell corridor
+     * running along the top of the whole map — which is the only reason no east-west edge is
+     * blocked — while the content piles up against the bottom and blocks 107 of the 240
+     * north-south edges. A maze blocks both directions; this blocks one.
+     *
+     * <p>These numbers are recorded, not blessed. When Q14 is settled they should both come down
+     * and the asymmetry with them.
+     */
+    @Test
+    void theNorthSouthBlockageIsNoWorseThanTheDayItWasFound() {
+        assertThat(report.blockedEastWest()).as("east-west edges blocked").isZero();
+        assertThat(report.blockedNorthSouth()).as("north-south edges blocked — §25 Q14")
+                .isLessThanOrEqualTo(107);
+        assertThat(report.asymmetry()).as("a maze blocks both ways; this blocks one — §25 Q14")
+                .isLessThanOrEqualTo(107);
+    }
+
+    /**
+     * <b>A known defect, pinned.</b> A walkable cell on the outermost cell-line is open ground the
+     * player can stand in with the world's edge in front of them (§7.5). 937 of them across 62 of
+     * the 64 border rooms is why the map reads as unfinished. Same cause as above, same fix.
+     */
+    @Test
+    void theMapsOwnEdgeIsNoMoreOpenThanTheDayItWasFound() {
+        assertThat(report.borderOpenCells()).as("open cells against the world edge — §25 Q14")
+                .isLessThanOrEqualTo(937);
+    }
 }

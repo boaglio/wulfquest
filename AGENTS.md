@@ -176,6 +176,9 @@ Agents must use exactly these. Do not invent ad-hoc `javac` invocations.
 
 ```bash
 mvn -q verify                  # compile + unit tests + all data validators + CI gates
+mvn -q -Pheadless verify       # the same on a machine with no display
+mvn -q -Pfast verify           # skip anything tagged slow
+mvn -q verify -Dgolden.update=true   # rewrite the golden frames (§22.5), deliberately
 mvn -q test                    # unit tests only
 mvn -q exec:java                                      # run the game
 mvn -q exec:java -Dexec.args="--dev"                  # run with hot-reload + debug overlay
@@ -190,6 +193,12 @@ mvn -q exec:java -Dexec.mainClass=wulf.tools.ReplayRunner -Dexec.args="replays/f
 
 On a display-less machine, `HeadlessSim` is the only way to exercise the
 game; it must never touch AWT (§22.4).
+
+Which tests run is one property, `excludedGroups`, read by the Surefire
+plugin — not a literal in its configuration, or the profiles that set it
+would do nothing, as they did until M9. Nothing carries the `slow` or `gui`
+tag today: the whole suite is a few seconds, and no test opens a window. The
+tags and their profiles are there for the first test that needs one.
 
 ### 3.2 `./run.sh` — the convenience wrapper
 
@@ -291,7 +300,7 @@ wulfquest/
                                 GameSession, and one class per screen
     tools/                      MapAudit, SpriteForgeCli, HeadlessSim, ReplayRunner
   src/test/java/wulf/           mirrors the above
-  src/test/resources/golden/    golden framebuffer hashes, §22.5
+  src/test/resources/golden/    play.hash and shell.hash — framebuffer hashes, §22.5
   replays/                      recorded input streams for regression, §22.6
 ```
 
@@ -2390,6 +2399,24 @@ code in this project.
 
 ### 22.3 `MapAudit` (tool + test)
 
+Since 2026-09-22 it also answers the three questions it used to skip, after a
+player walked into the edge of the map and found it open and impassable:
+
+- **every room, not only the interior** — reachability was counted over the
+  196 interior rooms and the 60 on the border were skipped outright, so the
+  audit had never once looked at the edge of the map;
+- **can each room edge be crossed** — being *reached* says nothing about
+  whether the way between two neighbours exists or whether the player can get
+  to it from inside the room (`Seam`, and `stranded()` for a gap that is
+  walled off from its own room, which is a wall that lies);
+- **does the border lie** — walkable cells on the outermost cell-line, which
+  are open ground with the world's edge in front of them (§7.5).
+
+The last two currently report a known defect rather than failing the build:
+107 north-south edges blocked against 0 east-west, and 937 open cells on the
+world's edge. Both are Q14 in §25, both are pinned by `MapAuditTest` so they
+cannot get worse, and neither is blessed.
+
 Runs over the whole baked world and reports/asserts:
 
 1. **Room connectivity** — all 256 masks are stitched into one 512×384 cell
@@ -2436,16 +2463,39 @@ For a fixed seed and a fixed input script, hash the framebuffer
 message**. This catches accidental rendering and layout drift better than
 any screenshot review.
 
+`GoldenFrameTest` (M9) holds two files:
+
+- `golden/play.hash` — the jungle at those four ticks, the whole canvas
+  including the panel, drawn through `ui/GamePainter`, exactly what the game
+  draws.
+- `golden/shell.hash` — one frame per shell screen (§17), plus the title a
+  colour-cycle step later, so the wordmark's animation is pinned too.
+
+Both also assert that the frames differ from one another, because a renderer
+that has quietly started drawing nothing would otherwise match itself
+forever. A hash that moved for a reason nobody can name is a bug, not a
+golden file that needs updating.
+
 ### 22.6 Replay regression
 
 `replays/*.json` hold recorded per-tick input plus the expected sim-state
 hash at every 50th tick. `ReplayRunner` re-executes them. Ship at least:
 
-- `replays/attract.json` — the title-screen demo (doubles as a test). (M8)
-- `replays/lair_nw.json` — start → NW lair → piece → back. (M6)
+- `replays/attract.json` — the title-screen demo (doubles as a test).
+  (**M8, shipped**)
+- `replays/lair_nw.json` — start → NW lair → piece → back. Slipped in M6 and
+  forged in M9 with
+  `-Dforge.lairs=0 -Dforge.pieces=1 … FullRunForge replays/lair_nw.json`:
+  the same bot, sent to one lair, finishing when the quarter is carried back
+  out instead of waiting for a win. (**M9, shipped**)
 - `replays/wulf_escape.json` — a Wulf pursuit survived across 4 rooms. (**M5, shipped**)
 - `replays/full_run.json` — a complete 4-piece win, forged by `FullRunForge`
-  (**M6**).
+  (**M6, shipped**).
+
+`ReplayTest.everyShippedReplayStillMatchesItsHashes` runs **every** file in
+`replays/`, so one added later is covered the moment it lands; the four above
+also have a test each that checks the replay still *shows* what it was
+recorded to show.
 
 A replay divergence means determinism broke (§6.4). It is never "just update
 the hash" — find the cause first. The exception is a deliberate change to the
@@ -3136,14 +3186,53 @@ Found along the way:
 Deferred to M9, deliberately: golden frames, the slow full-run test, and the CRT
 toggles of §5.4, which are still default-off and still unimplemented.
 
-### M9 — Hardening (2 days)
-
-- Golden frames, all replays, the slow full-run test, README and controls
-  documentation. (`mvn package` already produces the runnable fat jar — it
-  landed in M8, where the acceptance criterion needed it.)
+### M9 — Hardening — **COMPLETE (2026-09-20)**
 
 **Accept when:** `mvn -q verify` is green from a clean clone on a machine
 with no display (headless profile skips the window tests).
+
+**Accepted:** `env -u DISPLAY mvn -Pheadless -Djava.awt.headless=true clean
+verify` is green in six seconds — 408 tests, every data validator, the
+no-binaries gate, and the shaded jar built at the end of it.
+
+What landed:
+
+- **Golden frames** (§22.5): `GoldenFrameTest` with `golden/play.hash` and
+  `golden/shell.hash`. Proved to bite by moving a hash by hand and watching
+  it fail with the message that says how to regenerate it on purpose.
+- **Every replay** is run by `ReplayTest.everyShippedReplayStillMatchesItsHashes`,
+  which lists `replays/` rather than naming files, so the next one is covered
+  for free. `attract.json` had shipped in M8 with no test at all.
+- **`replays/lair_nw.json`**, which §22.6 has asked for since M6: the
+  north-west quarter fetched and carried back out, 6 323 ticks, no death.
+  `FullRunForge` grew two properties to make it — `forge.lairs` chooses which
+  lairs and in what order, `forge.pieces` finishes once they are out of the
+  lair instead of waiting for a win — so it is the same bot and the same
+  search, asked a smaller question. It found one on the first seed.
+- **The test profiles work now.** Surefire had `slow` written into its
+  configuration as a literal while the `headless` profile set a *property* of
+  the same name, so the profile had never had any effect on anything. The
+  plugin reads the property, the default is empty (§22: verify runs
+  everything), `headless` excludes `gui` and `fast` excludes `slow`.
+- **Docs**: §3.1's command list, §22.5, §22.6, and the README's own
+  hardening section.
+
+Found along the way:
+
+- **Nothing in this suite is slow.** The M9 line item was "the slow full-run
+  test", but the full run replays in well under a second and the whole suite
+  is under four. Nothing is tagged `slow`, and nothing is tagged `gui`
+  either, because no test opens a window — `Scaler` only needs
+  `BufferedImage`, which is happy headless. The tags and their profiles are
+  plumbing for the first test that needs them, and §3.1 now says so rather
+  than implying a slow suite that does not exist.
+- **The golden frames caught nothing**, which is the point: they are a
+  tripwire for the next change, not a bug report about this one.
+
+Deferred, deliberately: the CRT toggles of §5.4 (`scanlines`, `glow`,
+`attributeClash`) are still `[NEW]`, still default-off, and still
+unimplemented — `Framebuffer.dim` and `stripe` from M8 are most of what
+scanlines would need.
 
 ---
 
@@ -3175,6 +3264,8 @@ the source wins.
 | Q11 | Sabre swing duration, reach, and whether movement was locked | 12 ticks, 14 px, movement free | `player.json → sabre` |
 | Q12 | Whether creature spawns were fixed per room or random | authored-with-fallback | `room_entities.json` |
 | Q13 | How the original resolved scenery collision — per pixel, per cell, or per object rectangle — and so which rule reproduces its routes | **Design decided 2026-09-12:** art-derived collision (cell solid at ≥ 25 % painted), with art redrawn to fill its footprint — interior median 45 % walkable against the footprint maze's 39 %, gap locked at ≤ 6 points (§7.3). How the original actually resolved collision is still unverified; if a source shows per-rectangle collision, revisit. | `world/scenery.json → solidCoveragePercent`, per-object `collisionCells` |
+
+| Q14 | The playfield's true height, and whether a top border strip is missing | **Open, and it shows.** Every placement in `original_map.json` has `y` between 2 and 20, so in our 24-row playfield rows 0 and 1 of all 256 rooms are empty: a two-cell corridor along the top of the entire map, 937 walkable cells pressed against the world's edge across 62 border rooms, and content crowded into the bottom, blocking 107 of 240 north-south room edges while blocking 0 of 240 east-west ones. A maze blocks both ways. Rebuilding the maze from the raw placements with whole rectangles solid gives identical numbers, so it is not the art or the ≥25% rule (Q13) — it is the geometry or the adapter. Two obvious corrections were measured and both make it worse: shifting content up two rows leaves 83 north-south blocked, and also cutting the playfield to 22 rows blocks 154 east-west and 168 north-south. Leading hypothesis, unverified: the original screen has a foliage border and the extraction captured its left, right and bottom but not its top. Needs a primary source, as every entry here does. | `original_map.json`, `display.json → playfield`, §5.1, §8.3 |
 
 Two facts are **already closed** and must not be re-litigated: the 16×16 /
 256-room grid and the start room at `(8, 10)` are `[CANON]`, extracted

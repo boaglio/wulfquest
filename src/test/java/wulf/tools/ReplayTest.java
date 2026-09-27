@@ -66,6 +66,51 @@ class ReplayTest {
     }
 
     /**
+     * §22.6: every replay in the folder, not just the ones named in a test. A replay added later
+     * is covered the moment it lands, and one that quietly stops matching cannot hide behind the
+     * two acceptance runs below.
+     */
+    @Test
+    void everyShippedReplayStillMatchesItsHashes() throws Exception {
+        List<Path> files;
+        try (java.util.stream.Stream<Path> found = Files.list(Path.of("replays"))) {
+            files = found.filter(file -> file.toString().endsWith(".json")).sorted().toList();
+        }
+        assertThat(files).as("the replays §22.6 requires are shipped")
+                .extracting(file -> file.getFileName().toString())
+                .contains("attract.json", "lair_nw.json", "wulf_escape.json", "full_run.json");
+
+        for (Path file : files) {
+            Replay replay = Replay.read(file);
+            ReplayRunner.Result result = ReplayRunner.run(content, replay);
+            assertThat(result.passed()).as("%s diverged at tick %d: expected %s, got %s",
+                    file.getFileName(), result.divergedAtTick(), result.expected(), result.actual()).isTrue();
+            assertThat(result.checkpoints()).as("%s has checkpoints to check", file.getFileName()).isPositive();
+        }
+    }
+
+    /** The attract demo is the title screen's own content: it has to still be worth watching. */
+    @Test
+    void theAttractReplayShowsSomebodyPlaying() {
+        Replay replay = Replay.read(Path.of("replays/attract.json"));
+        Simulation sim = ReplayRunner.start(content, replay);
+        wulf.input.RecordedInput.Cursor in = replay.recorded().cursor();
+        java.util.Set<String> rooms = new java.util.TreeSet<>();
+        int deaths = 0;
+        while (in.hasNext()) {
+            wulf.sim.Player.Mode before = sim.player().mode();
+            sim.play(in.next(), replay.dev());
+            rooms.add(sim.room().toString());
+            if (before == wulf.sim.Player.Mode.ALIVE && sim.player().mode() == wulf.sim.Player.Mode.DYING) {
+                deaths++;
+            }
+        }
+        assertThat(rooms).as("it goes somewhere").hasSizeGreaterThanOrEqualTo(3);
+        assertThat(deaths).as("nobody wants a demo that dies").isZero();
+        assertThat(sim.player().mode()).isEqualTo(wulf.sim.Player.Mode.ALIVE);
+    }
+
+    /**
      * M5's acceptance replay: a Wulf chase survived across four rooms. Beyond matching
      * every hash, it must still show what it was recorded to show.
      */
@@ -113,6 +158,37 @@ class ReplayTest {
         }
         assertThat(deaths).as("survived").isZero();
         assertThat(longestEscape).as("rooms in the longest chase that ended in an escape").isGreaterThanOrEqualTo(4);
+    }
+
+    /**
+     * §22.6's lair replay: the north-west quarter fetched and carried back out. Beyond matching
+     * its hashes it has to still show that, or a change to the guardians has quietly broken the
+     * one puzzle the game repeats four times.
+     */
+    @Test
+    void theLairReplayFetchesTheNorthWestQuarter() {
+        Replay r = Replay.read(Path.of("replays/lair_nw.json"));
+        ReplayRunner.Result result = ReplayRunner.run(content, r);
+        assertThat(result.passed()).as("lair_nw diverged at tick %d: expected %s, got %s",
+                result.divergedAtTick(), result.expected(), result.actual()).isTrue();
+
+        Simulation sim = ReplayRunner.start(content, r);
+        wulf.input.RecordedInput.Cursor in = r.recorded().cursor();
+        int deaths = 0;
+        boolean sawTheLair = false;
+        while (in.hasNext()) {
+            wulf.sim.Player.Mode before = sim.player().mode();
+            sim.play(in.next(), r.dev());
+            sawTheLair |= sim.quest().inLair();
+            if (before == wulf.sim.Player.Mode.ALIVE && sim.player().mode() == wulf.sim.Player.Mode.DYING) {
+                deaths++;
+            }
+        }
+        assertThat(sawTheLair).as("it went into a lair").isTrue();
+        assertThat(sim.quest().piecesHeld()).isEqualTo(1);
+        assertThat(sim.quest().slotMask()).as("the north-west quarter, slot 0").isEqualTo(0b0001);
+        assertThat(sim.quest().inLair()).as("and carried it back out").isFalse();
+        assertThat(deaths).as("forged clean").isZero();
     }
 
     /**

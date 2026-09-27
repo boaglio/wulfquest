@@ -28,9 +28,18 @@
     <junit.version>5.12.2</junit.version>
     <assertj.version>3.27.7</assertj.version>
 
+    <!--
+      Which JUnit tags to leave out. Empty by default: AGENTS.md §22 says verify runs
+      everything. The profiles below narrow it, and because the plugin reads this property
+      rather than a literal, they actually take effect.
+    -->
+    <excludedGroups></excludedGroups>
+
     <mainClass>wulf.Boot</mainClass>
     <!-- -Dexec.mainClass=wulf.tools.X runs a tool; the exec plugin reads this, defaulting to the game. -->
     <exec.mainClass>${mainClass}</exec.mainClass>
+    <!-- §22.5: -Dgolden.update=true rewrites the golden frames instead of checking them. -->
+    <golden.update>false</golden.update>
   </properties>
 
   <dependencies>
@@ -102,9 +111,12 @@
         <artifactId>maven-surefire-plugin</artifactId>
         <version>3.5.6</version>
         <configuration>
-          <!-- M9 runs the slow replays; day-to-day verify skips them. -->
-          <excludedGroups>slow</excludedGroups>
+          <excludedGroups>${excludedGroups}</excludedGroups>
           <failIfNoSpecifiedTests>false</failIfNoSpecifiedTests>
+          <systemPropertyVariables>
+            <!-- §22.5: the golden frames are rewritten only when you ask for it. -->
+            <golden.update>${golden.update}</golden.update>
+          </systemPropertyVariables>
         </configuration>
       </plugin>
 
@@ -183,11 +195,19 @@
   </build>
 
   <profiles>
-    <!-- CI / display-less machines: skip anything that needs a window. -->
+    <!-- CI and display-less machines: skip anything that needs a window (§24 M9). -->
     <profile>
       <id>headless</id>
       <properties>
-        <excludedGroups>slow,gui</excludedGroups>
+        <excludedGroups>gui</excludedGroups>
+      </properties>
+    </profile>
+
+    <!-- Day to day, when the long replays are not what you are changing. -->
+    <profile>
+      <id>fast</id>
+      <properties>
+        <excludedGroups>slow</excludedGroups>
       </properties>
     </profile>
   </profiles>

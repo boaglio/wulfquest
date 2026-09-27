@@ -40,13 +40,27 @@ import wulf.world.WorldGrid;
  * failures repeat. What it records is an ordinary input stream through the real game,
  * with no death in it: proof the game can be won, not a demonstration of good play.
  *
- * <pre>java -cp target/test-classes:target/classes:&lt;deps&gt; wulf.tools.FullRunForge [out.json]</pre>
+ * <p>It also forges the shorter acceptance replays §22.6 asks for. {@code -Dforge.lairs=0} sends
+ * the bot to one named lair instead of all four, and {@code -Dforge.pieces=1} finishes the moment
+ * that quarter is carried back out of the lair rather than waiting for a win — which is how
+ * {@code replays/lair_nw.json} is made.
+ *
+ * <pre>
+ * java -cp target/test-classes:target/classes:&lt;deps&gt; wulf.tools.FullRunForge [out.json]
+ * java -Dforge.lairs=0 -Dforge.pieces=1 ... wulf.tools.FullRunForge replays/lair_nw.json
+ * </pre>
  */
 public final class FullRunForge {
 
     /** Lair visiting orders to try, by index into landmarks.lairs(): nearest first, two ways round. */
     private static final int[][] ORDERS = {{3, 2, 0, 1}, {3, 1, 0, 2}};
     private static int[] LAIR_ORDER = ORDERS[0];
+    /** Which lairs to fetch from, in order, when {@code -Dforge.lairs} names them. Null means the usual two routes. */
+    private static final int[] CHOSEN_LAIRS = lairsFromProperty();
+    /** How many quarters end the run. Four means play on and win; fewer stops once they are out of the lair. */
+    private static final int STOP_AFTER_PIECES = Integer.getInteger("forge.pieces", 4);
+    /** What the recording calls itself: the output file's own name. */
+    private static String replayName = "full_run";
     private static final int GIVE_WAY_TICKS = 40;
     private static final int CHASER_STAND_PX = 48;
     /** Behaviours that come for the player: better met on the blade than walked away from. */
@@ -80,8 +94,11 @@ public final class FullRunForge {
         int bestGoal = 0;
         long first = Long.getLong("forge.seed", 1L);
         long last = Long.getLong("forge.lastSeed", first + 39);
+        String name = nameOf(out);
+        replayName = name;
         for (long seed = first; seed <= last; seed++) {
-            LAIR_ORDER = ORDERS[Integer.getInteger("forge.order", (int) (seed % ORDERS.length))];
+            LAIR_ORDER = CHOSEN_LAIRS != null ? CHOSEN_LAIRS
+                    : ORDERS[Integer.getInteger("forge.order", (int) (seed % ORDERS.length))];
             Attempt a = attempt(c, grid, seed);
             java.util.regex.Matcher m = java.util.regex.Pattern.compile("at goal (\\d)").matcher(a.story());
             if (m.find()) {
@@ -92,7 +109,7 @@ public final class FullRunForge {
             System.err.println("  seed " + seed + ": " + a.story());
             if (a.won()) {
                 a.recorder().note("Forged by FullRunForge: " + a.story() + " Replayed by ReplayTest.").write(out);
-                System.out.println("full run: seed " + seed + " — " + a.story());
+                System.out.println(name + ": seed " + seed + " — " + a.story());
                 System.out.println("wrote " + out + " (" + a.recorder().ticks() + " ticks)");
                 return;
             }
@@ -107,6 +124,37 @@ public final class FullRunForge {
     private static Simulation fresh(Content c, WorldGrid grid, long seed) {
         return Simulation.startingIn(c.player(), grid, c.game().transition().freezeTicks(), c.map().startRoom(),
                 c.ecosystem(), seed);
+    }
+
+    /** {@code -Dforge.lairs=0} or {@code -Dforge.lairs=0,2}: the lairs to fetch from, in that order. */
+    private static int[] lairsFromProperty() {
+        String value = System.getProperty("forge.lairs");
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+        String[] parts = value.split(",");
+        int[] lairs = new int[parts.length];
+        for (int i = 0; i < parts.length; i++) {
+            lairs[i] = Integer.parseInt(parts[i].strip());
+        }
+        return lairs;
+    }
+
+    private static String nameOf(Path file) {
+        String name = file.getFileName().toString();
+        return name.endsWith(".json") ? name.substring(0, name.length() - 5) : name;
+    }
+
+    /** Replays the inputs into a fresh simulation to build the recording, hashes and all. */
+    private static ReplayRecorder recordingOf(Content c, WorldGrid grid, long seed, String name,
+            List<InputState> inputs) {
+        ReplayRecorder rec = new ReplayRecorder(name, c.db().contentHash(), seed, c.map().startRoom(), false);
+        Simulation check = fresh(c, grid, seed);
+        for (InputState in : inputs) {
+            check.play(in, false);
+            rec.record(in, check);
+        }
+        return rec;
     }
 
     private static Attempt attempt(Content c, WorldGrid grid, long seed) {
@@ -133,15 +181,18 @@ public final class FullRunForge {
         while (inputs.size() < MAX_TICKS) {
             Player.Mode mode = sim.player().mode();
             if (mode == Player.Mode.WON) {
-                ReplayRecorder rec = new ReplayRecorder("full_run", c.db().contentHash(), seed, c.map().startRoom(), false);
-                Simulation check = fresh(c, grid, seed);
-                for (InputState in : inputs) {
-                    check.play(in, false);
-                    rec.record(in, check);
-                }
+                ReplayRecorder rec = recordingOf(c, grid, seed, replayName, inputs);
                 return new Attempt(true, rec, "all four quarters (lairs in order " + Arrays.toString(LAIR_ORDER)
                         + ") and out through the arch in " + inputs.size() + " ticks without a death, score "
-                        + check.score() + "; found after " + rewinds + " rewinds.");
+                        + sim.score() + "; found after " + rewinds + " rewinds.");
+            }
+            // A shorter acceptance replay: stop once the quarters asked for are out of their lairs (§22.6).
+            if (STOP_AFTER_PIECES < 4 && piecesSeen >= STOP_AFTER_PIECES && !sim.quest().inLair()) {
+                ReplayRecorder rec = recordingOf(c, grid, seed, replayName, inputs);
+                return new Attempt(true, rec, "lair" + (STOP_AFTER_PIECES == 1 ? " " : "s ")
+                        + Arrays.toString(LAIR_ORDER) + ": " + piecesSeen + " quarter(s) carried back out in "
+                        + inputs.size() + " ticks without a death, score " + sim.score()
+                        + "; found after " + rewinds + " rewinds.");
             }
             boolean failed = mode != Player.Mode.ALIVE && mode != Player.Mode.ESCAPING || sinceProgress > 2000
                     || waiting > GIVE_UP_WAITING_TICKS;
