@@ -29,6 +29,17 @@ public record DisplayConfig(
     public record Border(String idleColour, boolean flashOnEvent) {
     }
 
-    public record Crt(boolean scanlines, boolean glow, boolean attributeClash) {
+    /**
+     * The §5.4 retro toggles. {@code scanlineLuminancePercent} is what every odd
+     * output row keeps of its brightness when scanlines are on.
+     */
+    public record Crt(boolean scanlines, int scanlineLuminancePercent, boolean glow, boolean attributeClash) {
+    }
+
+    /** The player's CRT choices (§21.3) over the shipped ones; the shipped scanline depth stays. */
+    public DisplayConfig withCrt(Settings.Crt chosen) {
+        return new DisplayConfig(schemaVersion, canvas, playfield, panel, scale, border,
+                new Crt(chosen.scanlines(), crt.scanlineLuminancePercent(), chosen.glow(), chosen.attributeClash()),
+                spriteFlicker);
     }
 }

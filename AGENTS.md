@@ -353,7 +353,7 @@ Constants live in `display.json`:
   "panel":     { "x": 32, "y": 208, "w": 256, "h": 40 },
   "scale":     { "default": 4, "min": 1, "max": 6, "integerOnly": true },
   "border":    { "idleColour": "black", "flashOnEvent": true },
-  "crt":       { "scanlines": false, "glow": false, "attributeClash": false },
+  "crt":       { "scanlines": false, "scanlineLuminancePercent": 82, "glow": false, "attributeClash": false },
   "spriteFlicker": false
 }
 ```
@@ -422,13 +422,27 @@ Hard rules:
 
 ### 5.4 Optional retro toggles (`[NEW]`, all default off)
 
-- `crt.scanlines` — every odd output row multiplied by 0.82 luminance, after
-  upscale.
+The player turns the `crt` ones on in `settings.json` (§21.3), which
+overrides `display.json`'s shipped `false`; the scanline depth is always the
+shipped one. `spriteFlicker` lives only in `display.json`. None of them
+touches the simulation, and with all of them off the golden frames (§22.5)
+are unchanged. `RetroTogglesTest` covers each.
+
+- `crt.scanlines` — every odd output row multiplied by
+  `crt.scanlineLuminancePercent` (82) per channel, after upscale, so the lines
+  are one output pixel tall at any scale. `Scaler.setScanlines`.
 - `crt.attributeClash` — quantise the playfield to one ink + one paper per
   8×8 cell, resolving conflicts by the last sprite drawn. Faithful, ugly,
-  fun. Never on by default.
+  fun. Never on by default. Paper is black (either brightness); the
+  framebuffer remembers the last non-paper colour written into each cell
+  (`Framebuffer.trackInk`) and `AttributeClash` repaints every non-paper
+  pixel of the cell in it. Playfield only; the panel and border never clash,
+  and the `--dev` collision mask switches it off.
+- `crt.glow` — **reserved, unimplemented.** The flag exists in both schemas
+  but nothing here says what it should look like; spec it before building it.
 - `spriteFlicker` — when 3+ sprites overlap one cell, alternate which draws
-  on odd/even ticks.
+  on odd/even ticks. Creatures only (`CreaturePainter`): Vale, the Wulf and
+  the guardians always draw.
 - `border.flashOnEvent` — the border strobes on pickup/death/wulf-spawn (red) and
   flashes white on a parry (§13.5),
   Ultimate style. **This one defaults on** — it is part of the feel.
@@ -3233,6 +3247,13 @@ Deferred, deliberately: the CRT toggles of §5.4 (`scanlines`, `glow`,
 `attributeClash`) are still `[NEW]`, still default-off, and still
 unimplemented — `Framebuffer.dim` and `stripe` from M8 are most of what
 scanlines would need.
+
+**Landed after M9 (2026-09-26):** `scanlines`, `attributeClash` and
+`spriteFlicker`, as §5.4 now describes, still `[NEW]` and default off.
+Scanlines went in the `Scaler` rather than through `stripe`, because the spec
+says *after upscale* and a framebuffer stripe would be a whole source row
+tall. `glow` is still unbuilt: §5.4 never said what it is. There is no menu
+page for any of them yet — they are edited in `settings.json`.
 
 ---
 

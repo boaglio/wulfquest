@@ -1,6 +1,7 @@
 package wulf.render;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import wulf.data.CreatureData;
@@ -21,6 +22,10 @@ import wulf.sim.Quest;
  * spears as a shaft with a bright point. Then the Wulf, over the creatures and under
  * the player (§5.3): galloping, or howling at the edge while it warns. Clipped to the
  * playfield.
+ *
+ * <p>With {@code spriteFlicker} on (§5.4, {@code [NEW]}, default off), creatures
+ * crowding one cell three or more deep take turns: half of them draw on even ticks,
+ * the other half on odd ones, the way a Spectrum ran out of time to draw them all.
  */
 public final class CreaturePainter {
 
@@ -37,6 +42,8 @@ public final class CreaturePainter {
     private final int shaft;
     private final int point;
     private final List<Creature> order = new ArrayList<>();
+    private final boolean flicker;
+    private final int[] crowd;
     private boolean stilled;
 
     public CreaturePainter(DisplayConfig display, SpriteBank sprites, CreatureData roster, Palette palette) {
@@ -48,6 +55,8 @@ public final class CreaturePainter {
         this.thread = palette.indexOf("white");
         this.shaft = palette.indexOf("white");
         this.point = palette.indexOf("brightCyan");
+        this.flicker = display.spriteFlicker();
+        this.crowd = new int[field.cols() * field.rows()];
     }
 
     public void paint(Framebuffer fb, Simulation sim) {
@@ -59,8 +68,11 @@ public final class CreaturePainter {
         order.sort(BACK_TO_FRONT);
         fb.setClip(field.x(), field.y(), field.w(), field.h());
         try {
+            boolean[] resting = flicker ? resting(sim.tick(), ox, oy) : null;
             for (int i = 0; i < order.size(); i++) {
-                paintCreature(fb, order.get(i), sim.tick(), ox, oy);
+                if (resting == null || !resting[i]) {
+                    paintCreature(fb, order.get(i), sim.tick(), ox, oy);
+                }
             }
             Quest quest = sim.quest();
             if (quest.inLair()) {
@@ -82,6 +94,59 @@ public final class CreaturePainter {
         } finally {
             fb.clearClip();
         }
+    }
+
+    /**
+     * Which creatures sit this tick out: of those touching a cell that three or more
+     * share, alternate ones by draw order, swapping every tick. Rendering only — the
+     * simulation never knows.
+     */
+    private boolean[] resting(long tick, int ox, int oy) {
+        Arrays.fill(crowd, 0);
+        int[] box = new int[4];
+        for (Creature c : order) {
+            if (cells(c, ox, oy, box)) {
+                for (int cy = box[1]; cy <= box[3]; cy++) {
+                    for (int cx = box[0]; cx <= box[2]; cx++) {
+                        crowd[cy * field.cols() + cx]++;
+                    }
+                }
+            }
+        }
+        boolean[] resting = new boolean[order.size()];
+        int crowded = 0;
+        for (int i = 0; i < order.size(); i++) {
+            if (!cells(order.get(i), ox, oy, box)) {
+                continue;
+            }
+            boolean inCrowd = false;
+            for (int cy = box[1]; cy <= box[3] && !inCrowd; cy++) {
+                for (int cx = box[0]; cx <= box[2]; cx++) {
+                    if (crowd[cy * field.cols() + cx] >= 3) {
+                        inCrowd = true;
+                        break;
+                    }
+                }
+            }
+            if (inCrowd) {
+                resting[i] = (crowded + tick) % 2 == 1;
+                crowded++;
+            }
+        }
+        return resting;
+    }
+
+    /** The playfield cells a creature's sprite covers, as {x0, y0, x1, y1}; false if none. */
+    private boolean cells(Creature c, int ox, int oy, int[] box) {
+        Sprite sprite = c.alive() ? sprites.get(c.species().sprite()) : puff;
+        int left = Fixed.px(c.xFp()) + ox - sprite.originX() - field.x();
+        int top = Fixed.px(c.yFp()) + oy - sprite.originY() - field.y();
+        int cell = field.cell();
+        box[0] = Math.max(0, Math.floorDiv(left, cell));
+        box[1] = Math.max(0, Math.floorDiv(top, cell));
+        box[2] = Math.min(field.cols() - 1, Math.floorDiv(left + sprite.w() - 1, cell));
+        box[3] = Math.min(field.rows() - 1, Math.floorDiv(top + sprite.h() - 1, cell));
+        return box[0] <= box[2] && box[1] <= box[3];
     }
 
     private void paintCreature(Framebuffer fb, Creature c, long tick, int ox, int oy) {

@@ -5,6 +5,6 @@
   "panel": { "x": 32, "y": 208, "w": 256, "h": 40 },
   "scale": { "defaultScale": 4, "min": 1, "max": 6, "integerOnly": true },
   "border": { "idleColour": "black", "flashOnEvent": true },
-  "crt": { "scanlines": false, "glow": false, "attributeClash": false },
+  "crt": { "scanlines": false, "scanlineLuminancePercent": 82, "glow": false, "attributeClash": false },
   "spriteFlicker": false
 }

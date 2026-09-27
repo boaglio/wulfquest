@@ -56,9 +56,10 @@
     "crt": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["scanlines", "glow", "attributeClash"],
+      "required": ["scanlines", "scanlineLuminancePercent", "glow", "attributeClash"],
       "properties": {
         "scanlines": { "type": "boolean" },
+        "scanlineLuminancePercent": { "type": "integer", "minimum": 0, "maximum": 100 },
         "glow": { "type": "boolean" },
         "attributeClash": { "type": "boolean" }
       }

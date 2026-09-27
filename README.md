@@ -92,6 +92,14 @@ Hi-scores, settings and stats are written to your own user directory —
 `~/.local/share/wulfquest` on Linux, `~/Library/Application Support/WulfQuest`
 on macOS, `%APPDATA%\WulfQuest` on Windows — never into the game's own files.
 
+For the nostalgic, `settings.json` there has two switches, both off by default
+and not yet on any menu, in
+`"crt": { "scanlines": false, "glow": false, "attributeClash": false }`:
+`scanlines` darkens every other line of the picture, and `attributeClash`
+gives each 8×8 cell of the jungle one colour, so Vale turns the undergrowth
+his colour as he pushes through it — faithful, ugly, fun. (`glow` does
+nothing yet.)
+
 ## How it is built
 
 - **Java 21, Java2D, no engine.** A 320×256 indexed-colour framebuffer

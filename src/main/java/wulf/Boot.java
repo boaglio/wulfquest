@@ -117,6 +117,7 @@ public final class Boot {
         int scale = d.scale().clamp(parsed.scale() > 0 ? parsed.scale() : d.scale().defaultScale());
         Framebuffer fb = new Framebuffer(d.canvas().w(), d.canvas().h());
         Scaler scaler = new Scaler(c.palette().toArgb(), fb.width(), fb.height(), scale);
+        scaler.setScanlines(d.crt().scanlines(), d.crt().scanlineLuminancePercent());
         int border = c.palette().indexOf(d.border().idleColour());
         Window window = new Window(title, fb.width() * scale, fb.height() * scale,
                 new Color(c.palette().toArgb()[border]));

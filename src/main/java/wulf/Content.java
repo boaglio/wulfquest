@@ -134,7 +134,7 @@ public record Content(
      * {@code game.json} ships the defaults; settings are the player's answer.
      */
     public Content withSettings(Settings settings) {
-        return new Content(db, game.withFeatures(settings.features()), display, palette, font,
+        return new Content(db, game.withFeatures(settings.features()), display.withCrt(settings.crt()), palette, font,
                 input.withActive(settings.inputProfile()), map, sprites, scenery, rooms, player, creatures,
                 roomEntities, loot, biomes, wulf, guardians, landmarks, orchids, shell, sfx, music, defaultScores,
                 defaultSettings);

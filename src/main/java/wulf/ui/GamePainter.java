@@ -4,6 +4,7 @@ import wulf.Content;
 import wulf.data.DisplayConfig;
 import wulf.data.OrchidValidator;
 import wulf.data.Palette;
+import wulf.render.AttributeClash;
 import wulf.render.CreaturePainter;
 import wulf.render.Fonts;
 import wulf.render.Framebuffer;
@@ -39,6 +40,8 @@ public final class GamePainter {
     private final int alarm;
     private final int parry;
     private final int maskColour;
+    private final int paper;
+    private final AttributeClash clash;
 
     public GamePainter(Content c, Fonts fonts) {
         Palette palette = c.palette();
@@ -60,6 +63,8 @@ public final class GamePainter {
         this.alarm = palette.indexOf("brightRed");
         this.parry = palette.indexOf("brightWhite");
         this.maskColour = palette.indexOf("brightRed");
+        this.paper = palette.indexOf("black");
+        this.clash = display.crt().attributeClash() ? new AttributeClash(display.playfield()) : null;
     }
 
     public PanelPainter panel() {
@@ -68,6 +73,9 @@ public final class GamePainter {
 
     /** The playfield alone — no panel — which is what the attract demo shows. */
     public void paintWorld(Framebuffer fb, Simulation sim, boolean showMask) {
+        if (clash != null && !fb.tracksInk()) {
+            fb.trackInk(paper);   // first frame: start remembering what each cell was last drawn in
+        }
         fb.clear(!display.border().flashOnEvent() ? border : switch (sim.borderFlash()) {
             case ALARM -> alarm;
             case PARRY, PICKUP -> parry;   // bright white for a parry (§13.5) and a quarter taken (§14.6)
@@ -82,6 +90,9 @@ public final class GamePainter {
         beasts.paint(fb, sim);
         vale.paint(fb, sim);
         quest.paintEscape(fb, sim);
+        if (clash != null && !showMask) {
+            clash.apply(fb);   // §5.4; the debug mask would only be repainted in someone else's ink
+        }
     }
 
     /** The whole screen: the jungle and the panel under it. */
