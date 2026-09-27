@@ -1232,14 +1232,25 @@ contact with any hostile while not invulnerable and not immune
   ──► 20 ticks of black/frozen
   ──► if lives > 0: respawn in the SAME room, at the room's safe-spawn point
         (nearest non-solid cell to the entry point used last, breadth-first,
-        with the whole sprite inside the room — spawn.insideRoomPx — because an
-        entry point straddles the edge, where the flip-screen clip cuts the
-        sprite in half),
+        that the player can WALK TO from that entry point, with the whole
+        sprite inside the room — spawn.insideRoomPx — because an entry point
+        straddles the edge, where the flip-screen clip cuts the sprite in half;
+        if no walkable spot keeps that margin, the margin gives way, never
+        the wall),
         with 100 ticks of invulnerability (blink 2 on / 2 off)
         the room's creatures are re-rolled from scratch
   ──► if lives == 0: GAME_OVER
 ```
 
+- **A respawn is never walled off from the way in** (found in a playtest,
+  2026-09-26). The search used to count cells alone, so it would step through
+  scenery: the empty top strip every room has (§25 Q14) is 16 px deep, less
+  than `insideRoomPx.top` (24), so dying there put Vale in whichever pocket lay
+  nearest below it — 1 069 of 7 816 ways into rooms did this, some into
+  pockets with no exit at all. `SpawnFinder` now floods the walkable feet
+  positions from the entry point first; `SpawnFinderTest` checks every way
+  into every room. The creature placement of §12.6 starts from the same
+  point, so it was placing creatures around the wrong pocket too.
 - **The amulet is kept on death** (`keepAmulet: true`). Losing pieces would
   make a 256-room map miserable. This is the one place we choose kindness;
   it is in JSON if a purist wants it flipped.
@@ -3218,7 +3229,8 @@ What landed:
   which lists `replays/` rather than naming files, so the next one is covered
   for free. `attract.json` had shipped in M8 with no test at all.
 - **`replays/lair_nw.json`**, which §22.6 has asked for since M6: the
-  north-west quarter fetched and carried back out, 6 323 ticks, no death.
+  north-west quarter fetched and carried back out, 6 845 ticks, no death
+  (re-forged 2026-09-26 for the respawn fix of §11.7; it was 6 323).
   `FullRunForge` grew two properties to make it — `forge.lairs` chooses which
   lairs and in what order, `forge.pieces` finishes once they are out of the
   lair instead of waiting for a win — so it is the same bot and the same
