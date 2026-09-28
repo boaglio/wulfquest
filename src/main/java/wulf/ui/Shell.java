@@ -229,7 +229,7 @@ public final class Shell {
     // ---------------------------------------------------------------- transitions
 
     private void startGame() {
-        session = new GameSession(newGame.get());
+        session = new GameSession(newGame.get(), config.amuletReveal());
         go(State.PLAYING);
     }
 

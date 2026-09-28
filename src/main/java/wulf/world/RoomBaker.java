@@ -48,7 +48,7 @@ public final class RoomBaker {
             if (p.x() + piece.w() > CollisionMask.COLS || p.y() + piece.h() > CollisionMask.ROWS) {
                 throw new DataException(MAP_SOURCE, at,
                         "places " + p.graphic() + " (" + piece.w() + "x" + piece.h() + " cells) at " + p.x() + ","
-                                + p.y() + ", which overflows the 32x24 playfield");
+                                + p.y() + ", which overflows the " + CollisionMask.COLS + "x" + CollisionMask.ROWS + " playfield");
             }
         }
     }

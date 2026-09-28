@@ -44,11 +44,11 @@ class MapAuditTest {
 
     @Test
     void theFootprintBaselineIsTheExtractedMazeItself() {
-        // Measured from original_map.json alone, before any art existed (M2).
-        // walkablePercent() rounds DOWN, so the widest room (52.6%) reads 52.
-        assertThat(report.footprintMinWalk()).isEqualTo(25);
-        assertThat(report.footprintMaxWalk()).isEqualTo(52);
-        assertThat(report.footprintMedianWalk()).isEqualTo(39);
+        // Measured from original_map.json alone: first in M2, again on 2026-09-27 once the grid was
+        // the game's own and the rooms lost the two banner rows that were never playfield (§25 Q14).
+        assertThat(report.footprintMinWalk()).isEqualTo(24);
+        assertThat(report.footprintMaxWalk()).isEqualTo(48);
+        assertThat(report.footprintMedianWalk()).isEqualTo(28);
     }
 
     /**
@@ -78,10 +78,16 @@ class MapAuditTest {
         assertThat(report.allRooms()).isEqualTo(256);
     }
 
-    /** A way through that nothing can walk to is worse than a wall: it is visible and it lies. */
+    /**
+     * A way through that nothing can walk to. These used to be ruled out as a defect; on the true
+     * map they are the original's own dead ends. Emulating the original's collision and room flips
+     * over its own layout (§25 Q14) finds exactly these: 29 east-west, none north-south.
+     */
     @Test
-    void noWayThroughIsWalledOffFromTheRoomItBelongsTo() {
-        assertThat(report.stranded()).isEmpty();
+    void theWaysThroughNobodyCanReachAreTheOriginalsOwn() {
+        long eastWest = report.stranded().stream().filter(seam -> seam.from().row() == seam.to().row()).count();
+        assertThat(eastWest).as("east-west").isEqualTo(29);
+        assertThat(report.stranded().size() - eastWest).as("north-south").isZero();
     }
 
     @Test
@@ -92,34 +98,30 @@ class MapAuditTest {
     }
 
     /**
-     * <b>A known defect, pinned so it cannot get worse.</b>
+     * The room edges the original lets you through (§25 Q14). An emulation of the game's own
+     * collision test ($B873) and room flips over its own layout table finds 154 east-west and 160
+     * north-south edges with a way through; this map, drawn from the same templates with our
+     * collision, has exactly those. East-west "blocked" counts the 29 dead ends above as well.
      *
-     * <p>Every one of the 256 rooms has its top two cell-rows empty, because the extracted
-     * placements start at y=2 in a 24-row playfield (§8, §25 Q14). That leaves a two-cell corridor
-     * running along the top of the whole map — which is the only reason no east-west edge is
-     * blocked — while the content piles up against the bottom and blocks 107 of the 240
-     * north-south edges. A maze blocks both directions; this blocks one.
-     *
-     * <p>These numbers are recorded, not blessed. When Q14 is settled they should both come down
-     * and the asymmetry with them.
+     * <p>Before the grid was corrected this read 0 and 107: a two-cell corridor along the top of
+     * every room let anything through east-west, and nothing else connected north-south.
      */
     @Test
-    void theNorthSouthBlockageIsNoWorseThanTheDayItWasFound() {
-        assertThat(report.blockedEastWest()).as("east-west edges blocked").isZero();
-        assertThat(report.blockedNorthSouth()).as("north-south edges blocked — §25 Q14")
-                .isLessThanOrEqualTo(107);
-        assertThat(report.asymmetry()).as("a maze blocks both ways; this blocks one — §25 Q14")
-                .isLessThanOrEqualTo(107);
+    void theRoomEdgesAreTheOriginals() {
+        assertThat(report.blockedEastWest()).as("east-west edges blocked").isEqualTo(86 + 29);
+        assertThat(report.blockedNorthSouth()).as("north-south edges blocked").isEqualTo(80);
     }
 
     /**
      * <b>A known defect, pinned.</b> A walkable cell on the outermost cell-line is open ground the
-     * player can stand in with the world's edge in front of them (§7.5). 937 of them across 62 of
-     * the 64 border rooms is why the map reads as unfinished. Same cause as above, same fix.
+     * player can stand in with the world's edge in front of them (§7.5). With the corrected grid
+     * the original's footprints leave 6 such cells; art-derived collision (§7.3) opens 769 across
+     * 48 border rooms, where a sprite does not paint a quarter of an edge cell. It was 937 across
+     * 62 rooms before the grid was corrected.
      */
     @Test
     void theMapsOwnEdgeIsNoMoreOpenThanTheDayItWasFound() {
         assertThat(report.borderOpenCells()).as("open cells against the world edge — §25 Q14")
-                .isLessThanOrEqualTo(937);
+                .isLessThanOrEqualTo(769);
     }
 }

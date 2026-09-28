@@ -104,7 +104,7 @@ class OrchidTest {
                     for (int cy = y - 16; cy < y; cy += 4) {
                         for (int cx = x - 8; cx < x + 8; cx += 4) {
                             assertThat(grid.isSolid(Math.floorDiv(room.col() * 256 + cx, 8),
-                                    Math.floorDiv(room.row() * 192 + cy, 8))).as("%s bloom clear", room).isFalse();
+                                    Math.floorDiv(room.row() * Simulation.ROOM_H_PX + cy, 8))).as("%s bloom clear", room).isFalse();
                         }
                     }
                     for (int j = 0; j < i; j++) {
@@ -226,12 +226,12 @@ class OrchidTest {
             }
         }, 0, WulfRules.NONE, QuestRules.NONE, bare());
         Simulation bare = Simulation.at(SimFixtures.RULES, OPEN, 0, Fixed.fp(room.col() * 256 + 128),
-                Fixed.fp(room.row() * 192 + 100), eco, 5L);
+                Fixed.fp(room.row() * Simulation.ROOM_H_PX + 100), eco, 5L);
         SimFixtures.run(bare, STILL, 60);
         assertThat(bare.player().mode()).as("without it, a touch kills").isNotEqualTo(Player.Mode.ALIVE);
 
         Simulation immune = Simulation.at(SimFixtures.RULES, OPEN, 0, Fixed.fp(room.col() * 256 + 128),
-                Fixed.fp(room.row() * 192 + 100), eco, 5L);
+                Fixed.fp(room.row() * Simulation.ROOM_H_PX + 100), eco, 5L);
         assertThat(immune.giveEffect("IMMUNITY")).isTrue();
         int ticks = data.orchid(data.indexOfEffect("IMMUNITY")).ticks();
         SimFixtures.run(immune, STILL, ticks - 1);
@@ -254,7 +254,7 @@ class OrchidTest {
         Ecosystem eco = new Ecosystem(EcoFixtures.CREATURES, one, 0,
                 WulfRules.of(wulfData, 12, 250, java.util.Set.of()), QuestRules.NONE, bare());
         Simulation s = Simulation.at(SimFixtures.RULES, OPEN, 0, Fixed.fp(room.col() * 256 + 40),
-                Fixed.fp(room.row() * 192 + 150), eco, 5L);
+                Fixed.fp(room.row() * Simulation.ROOM_H_PX + 150), eco, 5L);
         assertThat(s.summonWulf()).isTrue();
         SimFixtures.run(s, STILL, wulfData.appearance().warningTicks() + 5);
         assertThat(s.giveEffect("STILLNESS")).isTrue();
@@ -309,8 +309,8 @@ class OrchidTest {
         assertThat(exit.orchidAnchors()).isEmpty();
 
         List<Integer> counts = new ArrayList<>();
-        for (String mouth : content.landmarks().caveMouths()) {
-            Simulation s = Simulation.startingIn(content.player(), grid, 6, LandmarksData.room(mouth), eco, 9L);
+        for (String ordinary : List.of("7,10", "8,11", "6,6", "10,5")) {
+            Simulation s = Simulation.startingIn(content.player(), grid, 6, LandmarksData.room(ordinary), eco, 9L);
             counts.add(s.orchidAnchors().length / 2);
         }
         assertThat(counts).as("ordinary rooms do flower").anyMatch(n -> n > 0);

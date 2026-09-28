@@ -45,7 +45,16 @@ class PopulationTest {
                 }
             }
         }
-        throw new AssertionError("no interior room in biome " + biome);
+        // On the true map (§25 Q14) mountain rooms stand only on the boundary ring.
+        for (int row = 0; row < 16; row++) {
+            for (int col = 0; col < 16; col++) {
+                RoomAddress r = new RoomAddress(col, row);
+                if (!r.equals(content.map().startRoom()) && content.biomes().biomeOf(r).equals(biome)) {
+                    return r;
+                }
+            }
+        }
+        throw new AssertionError("no room in biome " + biome);
     }
 
     private static Simulation sim(RoomAddress room, long seed) {
@@ -104,7 +113,7 @@ class PopulationTest {
     private static boolean[][] walkable(Simulation s, RoomAddress room) {
         wulf.data.PlayerData p = content.player();
         int x0 = room.col() * 32;
-        int y0 = room.row() * 24;
+        int y0 = room.row() * wulf.world.CollisionMask.ROWS;
         wulf.world.CollisionWorld walled = (gx, gy) ->
                 gx < x0 || gy < y0 || gx >= x0 + 32 || gy >= y0 + 24 || grid.isSolid(gx, gy);
         int[] start = SpawnFinder.nearestFree(grid, p.collisionBox(), p.spawn().insideRoomPx(), room,
@@ -112,7 +121,7 @@ class PopulationTest {
         boolean[][] seen = new boolean[257][193];
         java.util.ArrayDeque<int[]> todo = new java.util.ArrayDeque<>();
         int sx = Fixed.px(start[0]) - room.col() * 256;
-        int sy = Fixed.px(start[1]) - room.row() * 192;
+        int sy = Fixed.px(start[1]) - room.row() * Simulation.ROOM_H_PX;
         seen[sx][sy] = true;
         todo.add(new int[] {sx, sy});
         while (!todo.isEmpty()) {
@@ -120,9 +129,9 @@ class PopulationTest {
             for (int[] d : new int[][] {{1, 0}, {-1, 0}, {0, 1}, {0, -1}}) {
                 int x = at[0] + d[0];
                 int y = at[1] + d[1];
-                if (x >= 0 && y >= 0 && x <= 256 && y <= 192 && !seen[x][y]
+                if (x >= 0 && y >= 0 && x <= 256 && y <= Simulation.ROOM_H_PX && !seen[x][y]
                         && !Collision.boxBlocked(walled, p.collisionBox(),
-                                Fixed.fp(room.col() * 256 + x), Fixed.fp(room.row() * 192 + y))) {
+                                Fixed.fp(room.col() * 256 + x), Fixed.fp(room.row() * Simulation.ROOM_H_PX + y))) {
                     seen[x][y] = true;
                     todo.add(new int[] {x, y});
                 }
@@ -149,9 +158,9 @@ class PopulationTest {
                         continue;
                     }
                     int lx = Fixed.px(c.xFp()) - room.col() * 256;
-                    int ly = Fixed.px(c.yFp()) - room.row() * 192;
+                    int ly = Fixed.px(c.yFp()) - room.row() * Simulation.ROOM_H_PX;
                     boolean near = false;
-                    for (int y = Math.max(0, ly - Simulation.REACH_SLACK_PX); y <= Math.min(192, ly + Simulation.REACH_SLACK_PX) && !near; y++) {
+                    for (int y = Math.max(0, ly - Simulation.REACH_SLACK_PX); y <= Math.min(Simulation.ROOM_H_PX, ly + Simulation.REACH_SLACK_PX) && !near; y++) {
                         for (int x = Math.max(0, lx - Simulation.REACH_SLACK_PX); x <= Math.min(256, lx + Simulation.REACH_SLACK_PX) && !near; x++) {
                             near = walk[x][y];
                         }
@@ -184,8 +193,8 @@ class PopulationTest {
                     assertThat(dx * dx + dy * dy).as("%s distance", what).isGreaterThanOrEqualTo((long) minDistance * minDistance);
                     assertThat(x + b.x()).as("%s left", what).isGreaterThanOrEqualTo(room.col() * 256);
                     assertThat(x + b.x() + b.w()).as("%s right", what).isLessThanOrEqualTo((room.col() + 1) * 256);
-                    assertThat(y + b.y()).as("%s top", what).isGreaterThanOrEqualTo(room.row() * 192);
-                    assertThat(y + b.y() + b.h()).as("%s bottom", what).isLessThanOrEqualTo((room.row() + 1) * 192);
+                    assertThat(y + b.y()).as("%s top", what).isGreaterThanOrEqualTo(room.row() * Simulation.ROOM_H_PX);
+                    assertThat(y + b.y() + b.h()).as("%s bottom", what).isLessThanOrEqualTo((room.row() + 1) * Simulation.ROOM_H_PX);
                     if (!c.species().ignoresScenery()) {
                         assertThat(Collision.blocked(grid, b.x(), b.y(), b.w(), b.h(), c.xFp(), c.yFp()))
                                 .as("%s inside scenery", what).isFalse();

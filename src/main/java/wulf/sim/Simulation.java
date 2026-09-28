@@ -38,7 +38,7 @@ public final class Simulation {
 
     public static final int CELL_PX = 8;
     public static final int ROOM_W_PX = 256;
-    public static final int ROOM_H_PX = 192;
+    public static final int ROOM_H_PX = 176;
     /** How close to reachable feet a ground creature must start (§12.6): one cell. */
     static final int REACH_SLACK_PX = 8;
     /** Counters stop here instead of wrapping: "a very long time ago" is all they need to say. */
@@ -1482,6 +1482,17 @@ public final class Simulation {
 
     public int visits(RoomAddress address) {
         return visits[address.index()];
+    }
+
+    /** How many different rooms this run has been in, the one it started in included. */
+    public int roomsVisited() {
+        int n = 0;
+        for (int v : visits) {
+            if (v != 0) {
+                n++;
+            }
+        }
+        return n;
     }
 
     public Ecosystem ecosystem() {

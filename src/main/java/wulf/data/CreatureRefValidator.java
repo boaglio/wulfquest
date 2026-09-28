@@ -75,9 +75,9 @@ public final class CreatureRefValidator {
             for (int i = 0; i < placed.size(); i++) {
                 RoomEntitiesData.Placed p = placed.get(i);
                 requireCreature(creatures, p.id(), at + "/creatures/" + i + "/id");
-                if (p.x() < 0 || p.x() > 256 || p.y() < 0 || p.y() > 192) {
+                if (p.x() < 0 || p.x() > 256 || p.y() < 0 || p.y() > 176) {
                     throw new DataException(ROOMS, at + "/creatures/" + i,
-                            "places " + p.id() + " at " + p.x() + "," + p.y() + ", outside the 256x192 room");
+                            "places " + p.id() + " at " + p.x() + "," + p.y() + ", outside the 256x176 room");
                 }
             }
         }

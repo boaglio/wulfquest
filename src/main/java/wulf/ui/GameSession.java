@@ -1,5 +1,6 @@
 package wulf.ui;
 
+import wulf.data.ShellConfig;
 import wulf.engine.Fixed;
 import wulf.input.InputState;
 import wulf.sim.Player;
@@ -17,11 +18,21 @@ import wulf.sim.Simulation;
 public final class GameSession {
 
     private final Simulation sim;
+    private final ShellConfig.AmuletReveal reveal;
     private boolean paused;
     private boolean showMask;
+    private int piecesSeen;
+    /** Ticks into the amulet reveal (§14.6); negative when none is showing. */
+    private int revealTick = -1;
 
     public GameSession(Simulation sim) {
+        this(sim, ShellConfig.AmuletReveal.NONE);
+    }
+
+    public GameSession(Simulation sim, ShellConfig.AmuletReveal reveal) {
         this.sim = sim;
+        this.reveal = reveal;
+        this.piecesSeen = sim.quest().piecesHeld();
     }
 
     public void tick(InputState in, boolean dev) {
@@ -31,6 +42,16 @@ public final class GameSession {
         if (over() || won()) {
             return;
         }
+        if (revealing()) {
+            // The game stands still under the reveal, as the original's did: no sim tick, so
+            // nothing is recorded and a replay never knows it was there (§22.6).
+            revealTick++;
+            boolean skipped = revealTick >= reveal.skipAfterTicks() && in.firePressed();
+            if (skipped || revealTick >= reveal.holdTicks()) {
+                revealTick = -1;
+            }
+            return;
+        }
         if (in.pausePressed()) {
             paused = !paused;
         }
@@ -38,6 +59,23 @@ public final class GameSession {
             return;
         }
         sim.play(in, dev);
+        int held = sim.quest().piecesHeld();
+        if (held > piecesSeen) {
+            piecesSeen = held;
+            if (reveal.holdTicks() > 0) {
+                revealTick = 0;
+            }
+        }
+    }
+
+    /** Whether the amulet reveal of §14.6 is up. */
+    public boolean revealing() {
+        return revealTick >= 0;
+    }
+
+    /** The verse for the quarters now held; empty when no reveal is showing. */
+    public java.util.List<String> verse() {
+        return revealing() ? reveal.verses().get(piecesSeen - 1) : java.util.List.of();
     }
 
     public boolean over() {

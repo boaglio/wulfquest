@@ -58,7 +58,7 @@ class CreaturePainterTest {
                 spawner.spawn(id, x, y, Herd.NONE, new Rng(3));
             }
         };
-        return Simulation.at(RULES, OPEN, 0, Fixed.fp(ROOM.col() * 256 + playerX), Fixed.fp(ROOM.row() * 192 + playerY),
+        return Simulation.at(RULES, OPEN, 0, Fixed.fp(ROOM.col() * 256 + playerX), Fixed.fp(ROOM.row() * Simulation.ROOM_H_PX + playerY),
                 new Ecosystem(roster, one, 0), 5L);
     }
 
@@ -69,7 +69,7 @@ class CreaturePainterTest {
 
     @Test
     void aStillCreatureShowsItsFirstFrameFacingItsWay() {
-        Simulation s = with(still("tribesman"), 20, 180, "tribesman", 128, 96);
+        Simulation s = with(still("tribesman"), 20, 164, "tribesman", 128, 96);
         Creature c = only(s);
         c.direction(1, 0);
         assertThat(CreaturePainter.frameFor(c, 0, TPF)).isEqualTo("walk0");
@@ -79,7 +79,7 @@ class CreaturePainterTest {
 
     @Test
     void aWalkingCreatureAlternatesItsTwoFrames() {
-        Simulation s = with(CREATURES, 20, 180, "tribesman", 128, 96);
+        Simulation s = with(CREATURES, 20, 164, "tribesman", 128, 96);
         Creature c = only(s);
         List<String> frames = new ArrayList<>();
         for (int t = 0; t < 4 * TPF; t++) {
@@ -92,7 +92,7 @@ class CreaturePainterTest {
 
     @Test
     void fliersFlapEvenWhenStill() {
-        Simulation s = with(still("bat"), 20, 180, "bat", 128, 96);
+        Simulation s = with(still("bat"), 20, 164, "bat", 128, 96);
         Creature c = only(s);
         assertThat(CreaturePainter.frameFor(c, 0, TPF)).startsWith("walk0");
         assertThat(CreaturePainter.frameFor(c, TPF, TPF)).startsWith("walk1");
@@ -131,7 +131,7 @@ class CreaturePainterTest {
     @Test
     void theWulfHowlsWhileItWarnsThenRunsAndIsDrawn() {
         Ecosystem eco = new Ecosystem(CREATURES, RoomPopulator.NONE, 0, WulfRules.of(WULF, 12, 250, Set.of()));
-        Simulation s = Simulation.at(RULES, OPEN, 0, Fixed.fp(ROOM.col() * 256 + 40), Fixed.fp(ROOM.row() * 192 + 100), eco, 3L);
+        Simulation s = Simulation.at(RULES, OPEN, 0, Fixed.fp(ROOM.col() * 256 + 40), Fixed.fp(ROOM.row() * Simulation.ROOM_H_PX + 100), eco, 3L);
         assertThat(s.summonWulf()).isTrue();
         assertThat(CreaturePainter.wulfFrame(s.wulf(), s.tick(), TPF)).isIn("howl", "howl_l");
 
@@ -163,7 +163,7 @@ class CreaturePainterTest {
         CreaturePainter painter = new CreaturePainter(display, new SpriteBank(new SpriteRepository(DB)), CREATURES, palette);
         DisplayConfig.Playfield f = display.playfield();
         // A hippo against the room's west edge: its sprite overhangs the box it collides with.
-        Simulation s = with(still("hippo"), 200, 180, "hippo", 14, 100);
+        Simulation s = with(still("hippo"), 200, 164, "hippo", 14, 100);
         Framebuffer fb = new Framebuffer(display.canvas().w(), display.canvas().h());
         fb.clear(3);
         painter.paint(fb, s);

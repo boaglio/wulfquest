@@ -23,7 +23,7 @@ class SpawnFinderTest {
 
     private static final int SLACK = 8;
     private static final int W = 256 + 2 * SLACK + 1;
-    private static final int H = 192 + 2 * SLACK + 1;
+    private static final int H = Simulation.ROOM_H_PX + 2 * SLACK + 1;
 
     @Test
     void everyWayIntoEveryRoomRespawnsSomewhereConnectedToIt() {
@@ -37,16 +37,16 @@ class SpawnFinderTest {
             for (int col = 0; col < RoomAddress.GRID_W; col++) {
                 RoomAddress room = new RoomAddress(col, row);
                 int ox = col * 256 - SLACK;
-                int oy = row * 192 - SLACK;
+                int oy = row * Simulation.ROOM_H_PX - SLACK;
                 int[] region = regions(world, box, ox, oy);
                 for (int[] e : entries()) {
                     int ex = col * 256 + e[0];
-                    int ey = row * 192 + e[1];
+                    int ey = row * Simulation.ROOM_H_PX + e[1];
                     int bx = ex + e[2];
                     int by = ey + e[3];
                     boolean crossing = Simulation.roomColOf(box, Fixed.fp(ex)) == col
                             && Simulation.roomRowOf(box, Fixed.fp(ey)) == row
-                            && bx >= 0 && by >= 0 && bx < 16 * 256 && by < 16 * 192
+                            && bx >= 0 && by >= 0 && bx < 16 * 256 && by < 16 * Simulation.ROOM_H_PX
                             && (Simulation.roomColOf(box, Fixed.fp(bx)) != col
                                 || Simulation.roomRowOf(box, Fixed.fp(by)) != row)
                             && !blocked(world, box, ex, ey) && !blocked(world, box, bx, by);
@@ -73,9 +73,9 @@ class SpawnFinderTest {
         List<int[]> es = new ArrayList<>();
         for (int x = 8; x < 248; x += 2) {
             es.add(new int[] {x, 5, 0, -6});
-            es.add(new int[] {x, 195, 0, 6});
+            es.add(new int[] {x, Simulation.ROOM_H_PX + 3, 0, 6});
         }
-        for (int y = 12; y < 190; y += 2) {
+        for (int y = 12; y < Simulation.ROOM_H_PX - 2; y += 2) {
             es.add(new int[] {1, y, -6, 0});
             es.add(new int[] {254, y, 6, 0});
         }

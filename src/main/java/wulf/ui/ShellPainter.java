@@ -29,6 +29,7 @@ public final class ShellPainter {
     private final SoundScreen sound;
     private final GameOverScreen gameOver;
     private final TallyScreen tally;
+    private final AmuletRevealScreen reveal;
     private final Content content;
     private final int tickHz;
 
@@ -49,6 +50,9 @@ public final class ShellPainter {
         this.sound = new SoundScreen(chrome, config.sound());
         this.gameOver = new GameOverScreen(chrome, config.gameOver());
         this.tally = new TallyScreen(fonts.small(), content.palette());
+        this.reveal = new AmuletRevealScreen(chrome, display,
+                new wulf.render.SpriteBank(content.sprites()).get(content.landmarks().amulet().sprite()),
+                wulf.render.QuestPainter.framesBySlot(content.landmarks()), config.amuletReveal());
     }
 
     public GamePainter game() {
@@ -67,7 +71,10 @@ public final class ShellPainter {
             case PLAYING -> playing(fb, shell, dev);
             case GAME_OVER -> {
                 playing(fb, shell, dev);
-                gameOver.paint(fb, display.playfield().y(), display.playfield().h());
+                Simulation sim = shell.session().sim();
+                gameOver.paint(fb, display.playfield().y(), display.playfield().h(),
+                        GameOverScreen.percentDone(sim.roomsVisited(), sim.quest().piecesHeld(),
+                                content.map().roomCount(), content.landmarks().lairs().size()));
             }
             case TALLY -> {
                 Simulation sim = shell.session().sim();
@@ -85,6 +92,10 @@ public final class ShellPainter {
     private void playing(Framebuffer fb, Shell shell, boolean dev) {
         GameSession session = shell.session();
         game.paint(fb, session.sim(), db.scores().best(), session.message(dev), session.showMask());
+        if (session.revealing()) {
+            reveal.paint(fb, session.sim().quest().slotMask(), session.verse());
+            return;
+        }
         if (session.paused()) {
             // §17.4: the jungle stays visible, dropped to the non-bright palette.
             DisplayConfig.Playfield f = display.playfield();

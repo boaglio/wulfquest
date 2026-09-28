@@ -93,6 +93,7 @@ public record Content(
         InputConfig input = db.load("config/input", InputConfig.class);
         ShellConfig shell = db.load("config/shell", ShellConfig.class);
         ShellValidator.check(shell, palette, input);
+        ShellValidator.checkGameOver(shell, display, font);
         SfxData sfx = db.load("audio/sfx", SfxData.class);
         MusicData music = db.load("audio/music", MusicData.class);
         AudioValidator.check(sfx, music);
@@ -120,6 +121,7 @@ public record Content(
         OrchidData orchids = db.load("entities/orchids", OrchidData.class);
         OrchidValidator.check(orchids, palette, sprites);
         LandmarksData landmarks = db.load("world/landmarks", LandmarksData.class);
+        ShellValidator.checkAmuletReveal(shell, landmarks, display, font);
         LandmarkValidator.check(landmarks, guardians, creatures, map, scenery.ids(),
                 CreatureSpriteValidator.framesBySprite(sprites), solidity(rooms));
 

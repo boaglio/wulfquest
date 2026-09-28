@@ -13,16 +13,22 @@
   },
   "death": { "animTicks": 40, "freezeTicks": 20, "keepAmulet": true },
   "sabre": {
-    "windupTicks": 3,
-    "activeTicks": 6,
-    "recoverTicks": 3,
+    "windupTicks": 0,
+    "activeTicks": 8,
+    "recoverTicks": 0,
     "cooldownTicks": 6, "holdRepeatTicks": 0,
     "reachPx": 14,
     "thicknessPx": 12,
     "diagonalOffsetPx": 4,
-    "moveSpeedScaleFp": 256,
+    "moveSpeedScaleFp": 171,
     "repelWulfPx": 24,
-    "repelWulfStunTicks": 30
+    "repelWulfStunTicks": 30,
+    "fence": {
+      "everyTicks": 4,
+      "guards": [[9, -3], [8, -5], [9, 2], [7, -1]],
+      "thrusts": [[16, 0], [16, -3], [16, 3], [15, -5]],
+      "towardViewerPercent": 50
+    }
   },
   "animations": {
     "walk_side":  { "frames": ["side_walk0", "side_walk1", "side_walk2", "side_walk3"], "ticksPerFrame": 5, "loop": true, "driver": "ticks", "gaitVariants": false },

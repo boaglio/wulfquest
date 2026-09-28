@@ -187,12 +187,13 @@ mvn -q exec:java -Dexec.args="--seed 12345"           # fixed PRNG seed
 mvn -q exec:java -Dexec.args="--scale 3 --no-audio"
 mvn -q exec:java -Dexec.mainClass=wulf.tools.MapAudit        # §22.3
 mvn -q exec:java -Dexec.mainClass=wulf.tools.SpriteForgeCli  # §10.3
-mvn -q exec:java -Dexec.mainClass=wulf.tools.HeadlessSim -Dexec.args="--ticks 100000"
 mvn -q exec:java -Dexec.mainClass=wulf.tools.ReplayRunner -Dexec.args="replays/foo.json"
 ```
 
-On a display-less machine, `HeadlessSim` is the only way to exercise the
-game; it must never touch AWT (§22.4).
+On a display-less machine, `--headless` validates the content and
+`HeadlessSimTest` plays 100 000 ticks with no window; neither may touch AWT
+(§22.4). (This section used to name a `wulf.tools.HeadlessSim` entry point; it
+never existed outside the test.)
 
 Which tests run is one property, `excludedGroups`, read by the Surefire
 plugin — not a literal in its configuration, or the profiles that set it
@@ -206,16 +207,26 @@ tags and their profiles are there for the first test that needs one.
 second build system: `pom.xml` stays the source of truth, and CI calls Maven
 directly. Never add build logic to the script that Maven does not also do.
 
+It offers every way there is to run the project, as commands (the first word
+that is not a script option; the default is `play`):
+
 ```bash
-./run.sh                 # build if stale, then play
-./run.sh --scale 3       # unrecognised options pass straight to the game
-./run.sh --headless      # load and validate the data, then exit
-./run.sh --room 7,3      # open the room browser at a room
-./run.sh --clean         # mvn clean first
-./run.sh --rebuild       # compile even if nothing looks stale
-./run.sh --no-build      # skip the build (fails if nothing is compiled)
-./run.sh --test          # full mvn verify (tests + CI gates) first
-./run.sh --help
+./run.sh                      # build if stale, then play
+./run.sh --scale 3            # unrecognised options pass straight to the game
+./run.sh --room 7,3           # play, starting in a room
+./run.sh browse --room 7,3    # the room browser, opened at a room
+./run.sh check                # load and validate the data, then exit (--headless)
+./run.sh replay [FILE...]     # ReplayRunner; every replays/*.json by default
+./run.sh audit                # MapAudit (§22.3)
+./run.sh sprites preview 7C0C # SpriteForgeCli: validate | preview | sheet | mask (§10.3)
+./run.sh jar --no-audio       # mvn package -DskipTests, then java -jar the shaded jar
+./run.sh test                 # full mvn verify (tests + CI gates)
+./run.sh menu                 # the same choices as a numbered list
+./run.sh --clean              # mvn clean first
+./run.sh --rebuild            # compile even if nothing looks stale
+./run.sh --no-build           # skip the build (fails if nothing is compiled)
+./run.sh --test replay        # full verify first, then the command
+./run.sh help                 # every command and every game option
 ```
 
 Three behaviours worth knowing:
@@ -224,12 +235,16 @@ Three behaviours worth knowing:
   `pom.xml` and `src/main` only, because the game reads `./data` from the
   working tree first (§20.1). Content edits are picked up on the next run with
   no compile at all — a cold run is ~4.5 s, a warm one ~0.4 s.
+- It reads the Java version from the line that carries it, not the first
+  line: with `JAVA_TOOL_OPTIONS` set the JVM prints `Picked up ...` first, and
+  the script used to decide it had Java 0.
 - It **appends** to `MAVEN_OPTS` rather than replacing it, so a developer's
   own heap or locale settings survive. It adds only
   `--sun-misc-unsafe-memory-access=allow`, which silences a deprecation banner
   Maven 3.9's bundled Guava emits on modern JDKs.
 - It `exec`s the JVM, so the game's exit code is the script's: **0** clean,
-  **2** data error (§17.1), **64** bad command-line option. A malformed
+  **1** a replay diverged or the audit failed, **2** data error (§17.1),
+  **64** bad command-line option. A malformed
   argument is reported in one line — which option, and why — never as a stack
   trace.
 
@@ -321,18 +336,30 @@ Rules:
 ### 5.1 Geometry **[CANON]** for the playfield, **[RECON]** for the border
 
 The original is a 256×192 pixel screen of 32×24 character cells of 8×8
-pixels, wrapped in a coloured border. Object placements in
-`original_map.json` prove the playfield is the **full 32×24 cells** — the
-status panel therefore lives *in the border*, exactly as Ultimate did it.
+pixels, wrapped in a coloured border. **The top two character rows are the
+score banner; the jungle is the 32×22 cells below it** (256×176 px). The
+disassembly shows it (§25 Q14): the play area is cleared and drawn from
+screen address `$4040`, which is row 2; lives are printed on row 0 and the
+scores on row 1; and a placement's `y` is used unchanged as a screen row, so
+the lowest `y` in `original_map.json`, 2, is the first row under the banner.
+`OriginalMapRepository.SCREEN_TOP_ROW` takes those two rows off every
+placement, so a room's own row 0 is its top.
+
+Until 2026-09-27 this section claimed the placements proved a full 32×24
+playfield. They prove the opposite, and the two empty rows that claim put at
+the top of every room were a corridor the original never had.
+
+Our panel stays below the playfield, in the border (`[RECON]`): where the
+banner sits is presentation, and the rooms are the same either way.
 
 ```
 virtual canvas: 320 x 256
 +--------------------------------------------------+  y=0
-|                border (16 px)                    |
-|   +------------------------------------------+   |  y=16
+|                border (32 px)                    |
+|   +------------------------------------------+   |  y=32
 |   |                                          |   |
-|   |   PLAYFIELD  256 x 192  = 32 x 24 cells  |   |
-|   |   room origin at (32,16)                 |   |
+|   |   PLAYFIELD  256 x 176  = 32 x 22 cells  |   |
+|   |   room origin at (32,32)                 |   |
 |   |                                          |   |
 |   +------------------------------------------+   |  y=208
 |   |   PANEL  256 x 40   (score, lives,       |   |
@@ -349,7 +376,7 @@ Constants live in `display.json`:
 {
   "schemaVersion": 1,
   "canvas":    { "w": 320, "h": 256 },
-  "playfield": { "x": 32, "y": 16, "w": 256, "h": 192, "cell": 8, "cols": 32, "rows": 24 },
+  "playfield": { "x": 32, "y": 32, "w": 256, "h": 176, "cell": 8, "cols": 32, "rows": 22 },
   "panel":     { "x": 32, "y": 208, "w": 256, "h": 40 },
   "scale":     { "default": 4, "min": 1, "max": 6, "integerOnly": true },
   "border":    { "idleColour": "black", "flashOnEvent": true },
@@ -541,8 +568,8 @@ Ids are assigned from a monotonic counter that is part of sim state.
 |------|------|-------|
 | pixel | 1 | virtual pixel |
 | cell | 8×8 px | the collision and layout grid |
-| room | 32×24 cells = 256×192 px | one flip-screen |
-| map | 16×16 rooms = 256 rooms = 4096×3072 px | **[CANON]** |
+| room | 32×22 cells = 256×176 px | one flip-screen; the screen less its 2-row banner (§5.1) |
+| map | 16×16 rooms = 256 rooms = 4096×2816 px | **[CANON]** |
 
 Room addressing is `(col, row)` with `col` 0..15 left→right and `row` 0..15
 **top→bottom** (row 0 is north). Canonical id string is `"c,r"`, e.g.
@@ -552,17 +579,19 @@ Room addressing is `(col, row)` with `col` 0..15 left→right and `row` 0..15
 
 A room is not a tilemap. It is a **list of placed scenery objects** —
 exactly as the original stored it. Each placement is `{ object, x, y }` with
-`x,y` in **cells**, origin top-left of the playfield.
+`x,y` in **cells**, origin top-left of the playfield. (In the JSON `y` counts
+from the top of the original's *screen*; the repository subtracts the two
+banner rows — §5.1.)
 
 At load time each room is baked into a `CollisionMask`: a
-`32 × 24` bitset, one bit per cell, `true` = impassable.
+`32 × 22` bitset, one bit per cell, `true` = impassable.
 
 ```
 Room load:
   1. roomType = original_map.json.roomTypeGrid[row][col]
   2. placements = original_map.json.templates[roomType]
   3. for each placement: OR the object's collisionCells into the mask,
-     offset by (x, y); clip to the 32x24 bounds
+     offset by (x, y); clip to the 32x22 bounds
   4. apply rooms.json overrides for this specific room id (added/removed props)
   5. cache the mask (immutable, shared by all rooms of the same type
      unless overridden)
@@ -659,7 +688,7 @@ overrides to close a gap: fix the art (§9).
 Triggered when the player's **feet box centre** crosses a playfield edge.
 
 ```
-positions live in WORLD pixels (0..4096 x 0..3072), never room-local
+positions live in WORLD pixels (0..4096 x 0..2816), never room-local
 centre   = the feet-box centre
 room     = (floor(centre.x / 256), floor(centre.y / 192))
 a change of room is the transition; the position itself does not change
@@ -707,13 +736,19 @@ enter room ──► look up room_entities.json["c,r"]
 ## 8. The authentic map data **[CANON]**
 
 `data/world/original_map.json` is extracted, verified data. Treat it as
-read-only reference. Its shape:
+read-only reference. Both halves are now checked against the game itself
+(§25 Q14, 2026-09-27): the 48 templates are byte for byte the game's
+`Room_00`–`Room_2F` in order, and `roomTypeGrid` is the game's layout table at
+`$6066`. The grid used to be a consistently relabelled copy of that table
+while the templates kept the game's numbering, so every room was drawn with
+the wrong template; it was replaced, and nothing else in the file changed.
+Its shape:
 
 ```json
 {
   "gridW": 16, "gridH": 16,
   "startCol": 8, "startRow": 10,
-  "roomTypeGrid": [[33,32,...], ... 16 rows of 16 ...],
+  "roomTypeGrid": [[0,20,20,...], ... 16 rows of 16 ...],
   "numTemplates": 48,
   "templates": { "0": [ { "graphic": "7C0C", "x": 0, "y": 2 }, ... ], ... "47": [...] }
 }
@@ -726,12 +761,14 @@ Verified facts — assert all of these in `MapDataTest`:
 | Grid | 16 × 16 = **256 rooms** |
 | Start room | **col 8, row 10** |
 | Templates defined | **48** (ids 0..47) |
-| Templates actually used on the grid | **45** (ids **1..45**; **0, 46, 47 are unused**) |
+| Templates actually used on the grid | **45** (all but **1, 19 and 36**) |
 | Distinct scenery objects | **41** |
 | Object placements across templates | **919** |
-| Object placements across all 256 rooms | **5105** |
+| Object placements across all 256 rooms | **4920** |
 | Objects per template | 13 (template 18) to 26 (templates 15, 16) |
-| Max extent of any placement | right edge exactly **32** cells, bottom edge exactly **24** cells |
+| Max extent of any placement | right edge exactly **32** cells, bottom edge exactly **24** screen rows (22 room rows) |
+| Smallest `y` | **2**: the first screen row under the banner (§5.1) |
+| md5 | `5a01a207a4786a261830bdb26c742083` (was `daf8a2b6…` before the grid fix) |
 
 The placement coordinate space is **cells**, and the graphics' pixel sizes
 are exactly `4 × (cells × 8)` — the source PNGs were 4× upscales. The
@@ -743,58 +780,64 @@ Row 0 is north. This is the map. Do not "improve" it.
 
 ```
       c0  c1  c2  c3  c4  c5  c6  c7  c8  c9 c10 c11 c12 c13 c14 c15
- r0   33  32  32  31  34  32  32  34  32  31  43  32  31  32  34  42
- r1   45  16  11  10   5  14  22   8  11   8  11  16   5  13  12  40
- r2   27   6   6  22  12  14   9  21   6   5   8  21  21   9   5  41
- r3   27  21   5  14  19   9   6   7  10  15   5  12  12  29   5  40
- r4   28  10   6   9   1  21   6  22  13  13  10  21   6   1   5  41
- r5   28  16  19   5  13  10   5  14   9   9  22   8  21  22  12  40
- r6   28   8   5  12  13  14   5  39  12   5  14   6   5  13   8  41
- r7   27   5   8   1   9  22  12  38  36  38  14   5   8  22   8  44
- r8   30  12  12  13  29   9   6  37  35  37   9   6   7  13  10  24
- r9   27  19  21  11  12   8   5   3   2   3   4   5  14   9  11  40
- r10  27   7  10  15   6  21   6   9   1   9   5   8   9   6   7  41
- r11  30  16  11  13  10   1   7   8  11  10   6  12   8  12  13  44
- r12  28  12  29   9  11  13  16   5  10  22   8   1  21  21  11  44
- r13  27  21  19  19   7  16   7  12  13  14   5  13  10   6  21  24
- r14  26   1  15   6   9   7  16  15  11  16   6  11  13  10   6  24
- r15  25  18  20  17  17  18  17  18  17  17  17  17  18  18  17  23
+ r0     0  20  20  26  22  20  20  22  20  26  27  20  26  20  22   2
+ r1    38  33  29  28  17  12  13  23  29  23  29  33  17  31  11   3
+ r2    37  21  21  13  11  12  18  24  21  17  23  24  24  18  17  30
+ r3    37  24  17  12   5  18  21  32  28  25  17  11  11  45  17   3
+ r4    39  28  21  18   8  24  21  13  31  31  28  24  21   8  17  30
+ r5    39  33   5  17  31  28  17  12  18  18  13  23  24  13  11   3
+ r6    39  23  17  11  31  12  17  46  11  17  12  21  17  31  23  30
+ r7    37  17  23   8  18  13  11  10  15  10  12  17  23  13  23  34
+ r8    40  11  11  31  45  18  21  16   7  16  18  21  32  31  28  35
+ r9    37   5  24  29  11  23  17  14   6  14  47  17  12  18  29   3
+ r10   37  32  28  25  21  24  21  18   8  18  17  23  18  21  32  30
+ r11   40  33  29  31  28   8  32  23  29  28  21  11  23  11  31  34
+ r12   39  11  45  18  29  31  33  17  28  13  23   8  24  24  29  34
+ r13   37  24   5   5  32  33  32  11  31  12  17  31  28  21  24  35
+ r14   41   8  25  21  18  32  33  25  29  33  21  29  31  28  21  35
+ r15    4  42  44  43  43  42  43  42  43  43  43  43  42  42  43   9
 ```
 
 ### 8.2 Region structure (derived, `[CANON]` observations)
 
-- **Boundary ring** — types **17–20, 23–34, 40–45** appear only on row 0,
-  row 15, col 0, col 15. These are the river/mountain edge: impassable
-  outward, walkable inward.
-- **Interior** — types **1–16, 19, 21, 22, 29** plus the central-landmark
-  types **35–39** fill rows 1–14, cols 1–14: the 196 playable jungle rooms.
-  The interior and boundary type sets are disjoint — the ring has its own
-  vocabulary of templates — and `MapDataTest` locks both sets exactly.
-- **Central landmark** — a mirrored structure around col 8, rows 6–9, built
-  from otherwise-unique types:
+Re-derived 2026-09-27 from the corrected grid (§8, §25 Q14). The earlier
+version of this section described the relabelled grid: a central lake, 21
+hut villages and 8 arch rooms, none of which the game has.
+
+- **Boundary ring** — types **0, 2–4, 9, 20, 22, 26, 27, 30, 34, 35, 37–44**
+  appear only on row 0, row 15, col 0, col 15. These are the river/mountain
+  edge: impassable outward, walkable inward. Emulating the original's
+  collision over this grid finds no way off the edge of the world (§25 Q14).
+- **Interior** — types **5–8, 10–18, 21, 23–25, 28, 29, 31–33, 45–47** fill rows
+  1–14, cols 1–14: the 196 playable jungle rooms. The interior and boundary
+  type sets are disjoint — the ring has its own vocabulary of templates —
+  and `MapDataTest` locks both sets exactly.
+- **The temple** — a mirrored structure around col 8, rows 6–9, built from
+  otherwise-unique types:
   ```
         c7  c8  c9  c10
-   r6   39  12   5        <- 39 unique
-   r7   38  36  38        <- 36 unique, 38 mirrored pair
-   r8   37  35  37        <- 35 unique, 37 mirrored pair
-   r9    3   2   3    4   <- 2 and 4 unique, 3 mirrored pair
+   r6   46  11  17        <- 46 unique
+   r7   10  15  10        <- 15 unique, 10 mirrored pair
+   r8   16   7  16        <- 7 unique, 16 mirrored pair
+   r9   14   6  14   47   <- 6 unique, 14 mirrored pair
   ```
-  Types 36 and 39 contain the water object `93C4` — this is the **central
-  lake**. The start room `(8,10)` sits directly south of it. Name it
-  **the Still Water** in `landmarks.json`. Its mirror symmetry is the
-  player's primary navigation anchor; preserve it exactly.
-- **Rocky rooms** — templates 6, 7, 10, 14, 15, 16 mix the yellow rock
-  objects (`847C`, `872A`, `8558`, `8B80`, `8D3C`, `8C5C`, `8CCC`, `83D2`,
-  `8427`, `86DA`, `8702`) and the two bone-strewn walls (`8806`, `89C3`).
-  Treat these as the **Bonefields** biome (§12.6).
+  Its templates — 6, 7, 10, 14, 15, 16 — are exactly the rocky ones: yellow
+  rock (`847C`, `872A`, `8558`, `8B80`, `8D3C`, `8C5C`, `8CCC`, `83D2`,
+  `8427`, `86DA`, `8702`) and the two bone-strewn walls (`8806`, `89C3`), the
+  **Bonefields** biome (§12.6). At its heart, `(8,8)`, stands the map's only
+  stone arch. The start room `(8,10)` is two rooms south — and, on foot, 132
+  room crossings away. Its mirror symmetry is the player's primary
+  navigation anchor; preserve it exactly.
+- **Water** — the water object `93C4` is scattered through 27 rooms of five
+  templates (24, 25, 39, 42, 47), mostly near the edges; there is no lake.
+  `landmarks.json → stillWater` still names the temple's rooms under the old
+  name; nothing reads it but the validator.
 - **Hut rooms** — template 5 contains the single hut object `8E18` and is
-  used in **21 rooms**: `(4,1) (12,1) (9,2) (14,2) (2,3) (10,3) (14,3)
-  (14,4) (3,5) (6,5) (2,6) (6,6) (9,6) (12,6) (1,7) (11,7) (6,9) (11,9)
-  (10,10) (7,12) (10,13)`. These are the tribesmen's villages: they get a
-  guaranteed elevated tribesman spawn (§12.6).
-- **Arch rooms** — template 7 contains the stone arch `85C8`, used in 8
-  rooms: `(7,3) (12,8) (1,10) (14,10) (6,11) (4,13) (6,13) (5,14)`. These
-  are the **cave mouths** (§14.5).
+  used in **5 rooms**: `(4,3) (2,5) (1,9) (2,13) (3,13)`. These are the
+  tribesmen's villages: they get a guaranteed elevated tribesman spawn (§12.6).
+- **The arch** — template 7 contains the stone arch `85C8`, used in exactly
+  one room, `(8,8)`: the way out (§14.2). There are no other arch rooms, so
+  no cave mouths (§14.5).
 
 ### 8.3 Adapter rule
 
@@ -826,47 +869,47 @@ must read as a mountain or the map stops being legible. Draw *our* mountain.
 
 | id | cells (w×h) | pixels | uses (tmpl) | uses (rooms) | subject to draw (original art, same footprint) | palette |
 |----|-------------|--------|-------------|--------------|-----------------------------------------------|---------|
-| `7298` | 2×5 | 16×40 | 104 | **583** | single narrow tall fern, one slim stem | greens |
-| `78F2` | 3×3 | 24×24 | 76 | **483** | small palm, banded trunk | green + red |
-| `7947` | 2×3 | 16×24 | 62 | **456** | squat leafy plant with one fruit | green + yellow |
-| `7462` | 3×7 | 24×56 | 37 | 298 | tall spike plant topped with a bloom | green + magenta |
-| `71B3` | 5×5 | 40×40 | 67 | 294 | palm cluster, two crossing trunks | greens + red + cyan |
-| `72F6` | 8×5 | 64×40 | 50 | 247 | wide broad-leaf bank, hanging fruit | green + red + yellow |
-| `7523` | 8×7 | 64×56 | 46 | 247 | palm grove, dense, small ground detail | greens + red |
-| `7981` | 4×11 | 32×88 | 34 | 239 | very tall narrow conifer/cypress, crowned top | green + yellow |
-| `771F` | 5×7 | 40×56 | 29 | 207 | fern with a gourd at its base | green + yellow |
-| `70BC` | 9×3 | 72×24 | 33 | 204 | long low leafy bank with flowers | green + red + magenta |
-| `8F2A` | 6×7 | 48×56 | 42 | 194 | reed cluster, vertical stems | green + red |
-| `872A` | 4×6 | 32×48 | 24 | 176 | tall rock wall slab, vertical strata | yellow |
-| `785E` | 4×4 | 32×32 | 23 | 171 | spiky agave fan, radial blades | bright green |
-| `95CD` | 6×3 | 48×24 | 47 | 151 | low shrub row with one red plant and a fruit | green + red + yellow |
-| `955D` | 4×3 | 32×24 | 42 | 126 | dense blocky hedge | bright green |
-| `8702` | 4×1 | 32×8 | 18 | 120 | low rock ledge strip (variant A) | yellow |
-| `847C` | 8×3 | 64×24 | 11 | 112 | wide horizontal rock strata shelf | yellow |
-| `90A8` | 8×11 | 64×88 | 23 | 94 | the big one: mixed palm/banana grove, gourd at base | greens + red + yellow |
-| `7C0C` | 7×3 | 56×24 | 23 | 71 | distant mountain range, snow caps | magenta + white |
-| `7E4B` | 8×7 | 64×56 | 18 | 68 | large mountain massif, heavy snow | magenta + white |
-| `86DA` | 4×1 | 32×8 | 6 | 56 | low rock ledge strip (variant B, pebbles) | yellow |
-| `7BB7` | 3×3 | 24×24 | 13 | 52 | single snowy peak | magenta + white |
-| `7CCD` | 7×6 | 56×48 | 13 | 38 | scattered peaks, two tiers | magenta + white |
-| `8047` | 7×6 | 56×48 | 13 | 38 | mountain range with cloud gaps | magenta + white |
-| `81C5` | 7×7 | 56×56 | 13 | 38 | twin peaks, deep valley between | magenta + white |
-| `8558` | 4×3 | 32×24 | 2 | 36 | short rock column | yellow |
-| `7B11` | 6×3 | 48×24 | 12 | 34 | low mountain ridgeline | magenta + white |
-| `9673` | 1×3 | 8×24 | 8 | 32 | single thin grass tuft (the filler piece) | green |
-| `8B80` | 4×6 | 32×48 | 4 | 32 | rock wall slab, smoother face | yellow |
-| `8D3C` | 4×6 | 32×48 | 4 | 32 | rock pillar, cracked | yellow |
-| `83D2` | 3×3 | 24×24 | 2 | 26 | small rock chunk (variant A) | yellow |
-| `8427` | 3×3 | 24×24 | 2 | 26 | small rock chunk (variant B) | yellow |
-| `8E18` | 6×5 | 48×40 | 1 | 21 | **the hut**: thatched dome roof on stilts | yellow + red |
-| `8806` | 7×7 | 56×56 | 2 | 20 | rock wall with a bleached skeleton half-buried | yellow + white |
-| `89C3` | 7×7 | 56×56 | 2 | 20 | rock wall with scattered bones | yellow + white |
-| `8C5C` | 4×3 | 32×24 | 2 | 16 | cracked rock face (variant A) | yellow |
-| `8CCC` | 4×3 | 32×24 | 2 | 16 | cracked rock face (variant B) | yellow |
-| `83AA` | 1×4 | 8×32 | 1 | 15 | thin rock spur / stalagmite | magenta |
-| `85C8` | 6×5 | 48×40 | 1 | 8 | **the stone arch**: free-standing cave mouth | white/grey |
-| `93C4` | 9×5 | 72×40 | 6 | 7 | **water**: pool with ripple lines, walkable-look but solid | bright blue |
+| `7298` | 2×5 | 16×40 | 104 | **609** | single narrow tall fern, one slim stem | greens |
+| `78F2` | 3×3 | 24×24 | 76 | **530** | small palm, banded trunk | green + red |
+| `7947` | 2×3 | 16×24 | 62 | **418** | squat leafy plant with one fruit | green + yellow |
+| `8F2A` | 6×7 | 48×56 | 42 | 365 | reed cluster, vertical stems | green + red |
+| `71B3` | 5×5 | 40×40 | 67 | 342 | palm cluster, two crossing trunks | greens + red + cyan |
+| `7523` | 8×7 | 64×56 | 46 | 276 | palm grove, dense, small ground detail | greens + red |
+| `72F6` | 8×5 | 64×40 | 50 | 275 | wide broad-leaf bank, hanging fruit | green + red + yellow |
+| `955D` | 4×3 | 32×24 | 42 | 275 | dense blocky hedge | bright green |
+| `95CD` | 6×3 | 48×24 | 47 | 267 | low shrub row with one red plant and a fruit | green + red + yellow |
+| `7981` | 4×11 | 32×88 | 34 | 255 | very tall narrow conifer/cypress, crowned top | green + yellow |
+| `70BC` | 9×3 | 72×24 | 33 | 202 | long low leafy bank with flowers | green + red + magenta |
+| `7462` | 3×7 | 24×56 | 37 | 196 | tall spike plant topped with a bloom | green + magenta |
+| `90A8` | 8×11 | 64×88 | 23 | 144 | the big one: mixed palm/banana grove, gourd at base | greens + red + yellow |
+| `785E` | 4×4 | 32×32 | 23 | 135 | spiky agave fan, radial blades | bright green |
+| `771F` | 5×7 | 40×56 | 29 | 111 | fern with a gourd at its base | green + yellow |
+| `9673` | 1×3 | 8×24 | 8 | 78 | single thin grass tuft (the filler piece) | green |
+| `7C0C` | 7×3 | 56×24 | 23 | 62 | distant mountain range, snow caps | magenta + white |
+| `7E4B` | 8×7 | 64×56 | 18 | 62 | large mountain massif, heavy snow | magenta + white |
+| `872A` | 4×6 | 32×48 | 24 | 36 | tall rock wall slab, vertical strata | yellow |
+| `7BB7` | 3×3 | 24×24 | 13 | 34 | single snowy peak | magenta + white |
+| `7B11` | 6×3 | 48×24 | 12 | 32 | low mountain ridgeline | magenta + white |
+| `7CCD` | 7×6 | 56×48 | 13 | 32 | scattered peaks, two tiers | magenta + white |
+| `8047` | 7×6 | 56×48 | 13 | 32 | mountain range with cloud gaps | magenta + white |
+| `81C5` | 7×7 | 56×56 | 13 | 32 | twin peaks, deep valley between | magenta + white |
+| `93C4` | 9×5 | 72×40 | 6 | 27 | **water**: pool with ripple lines, walkable-look but solid | bright blue |
+| `8702` | 4×1 | 32×8 | 18 | 26 | low rock ledge strip (variant A) | yellow |
+| `847C` | 8×3 | 64×24 | 11 | 17 | wide horizontal rock strata shelf | yellow |
+| `86DA` | 4×1 | 32×8 | 6 | 10 | low rock ledge strip (variant B, pebbles) | yellow |
+| `8B80` | 4×6 | 32×48 | 4 | 6 | rock wall slab, smoother face | yellow |
+| `8D3C` | 4×6 | 32×48 | 4 | 6 | rock pillar, cracked | yellow |
+| `8E18` | 6×5 | 48×40 | 1 | 5 | **the hut**: thatched dome roof on stilts | yellow + red |
+| `83D2` | 3×3 | 24×24 | 2 | 3 | small rock chunk (variant A) | yellow |
+| `8427` | 3×3 | 24×24 | 2 | 3 | small rock chunk (variant B) | yellow |
+| `8806` | 7×7 | 56×56 | 2 | 3 | rock wall with a bleached skeleton half-buried | yellow + white |
+| `89C3` | 7×7 | 56×56 | 2 | 3 | rock wall with scattered bones | yellow + white |
+| `8C5C` | 4×3 | 32×24 | 2 | 3 | cracked rock face (variant A) | yellow |
+| `8CCC` | 4×3 | 32×24 | 2 | 3 | cracked rock face (variant B) | yellow |
+| `8558` | 4×3 | 32×24 | 2 | 2 | short rock column | yellow |
 | `8382` | 1×4 | 8×32 | 1 | 1 | thin rock spur, lone (used once, at room `(10,9)`) | magenta |
+| `83AA` | 1×4 | 8×32 | 1 | 1 | thin rock spur / stalagmite | magenta |
+| `85C8` | 6×5 | 48×40 | 1 | 1 | **the stone arch**: free-standing cave mouth | white/grey |
 
 Art direction for scenery:
 
@@ -1174,33 +1217,61 @@ vy = (down  ? +1 : 0) + (up   ? -1 : 0)
   `7` px of distance travelled instead, so the gait stays locked to the
   ground at every speed.
 
-### 11.6 The sabre swing
+### 11.6 The sabre — fighting **[CANON]** shape, from the disassembly
 
-State machine, 12 ticks total, non-interruptible once started:
+Rewritten 2026-09-27 after a playtest said fighting moved differently from the
+original, and the disassembly agreed (§25 Q11). The original has two player
+handlers: walking, and fighting while fire is held (`Player Movement` `$ADD0`,
+entered through `$ADBF`). Fighting:
+
+- **The blade is out the whole time the key is down.** One constant hit box
+  (`$AB0E`), no windup and no recovery. Ours: `windupTicks` 0, `activeTicks`
+  8, `recoverTicks` 0, `holdRepeatTicks` 0, so held strokes chain with the
+  blade never dark; a tap is one 8-tick stroke, then `cooldownTicks` (6).
+- **It fences.** Every fourth frame (`FRAMES & 3`) the sprite changes to one
+  of its fighting poses picked by `Rand8` (`$AE4B`). Ours is fencing, the
+  whole body: each stroke is **on guard** for `fence.everyTicks` (4) — knees
+  bent, sword hand at the chest, the free arm raised behind the head — then
+  **lunges** for the next 4 — front leg thrown out, back leg straight, body
+  sunk and leaning in, sword arm fully extended (`side_swing0` and
+  `side_swing1`, drawn by `character_forge.py`; `side_swing2` is the
+  recovery). The blade comes out of each frame's `hand` anchor, drawn back
+  short on guard and at full reach in the lunge, its angle picked at random
+  from `fence.guards` / `fence.thrusts` by a hash of the tick. Two earlier
+  versions failed the playtest: a blade swinging through eight angles from a
+  frozen body read as flailing, and the same blade pumping in and out still
+  did not look like someone using a weapon — the body has to move. Drawing
+  only: the hitbox never follows the pose, and the original's did not either.
+  Up and down fence too (`up_swing*`, `down_swing*`): feet apart and the body
+  sunk on guard, the free arm raised; in the lunge the legs spread wide and
+  the sword arm drives down at the viewer, or up and away over the pack.
+  Pointing into or out of the screen the blade is foreshortened, drawn
+  `fence.towardViewerPercent` (50) of its length — a full-length line straight
+  down over the legs was the "weird" of the third playtest.
+- **Vale moves steadily and slower.** Fighting moves a fixed 2 px a frame in
+  the held direction, against walking's top speed of 3 (`$AFC1`):
+  `moveSpeedScaleFp` 171 (⅔). The original's walking also has momentum —
+  it speeds up over ~8 frames and glides to a stop — which §11.3 does not
+  model yet; the playtest asked for the fighting changes only.
+
+State machine (the pose follows it: `driver: "sabrePhase"`, §10.2 — with no
+windup or recovery it is the strike pose throughout):
 
 ```
-tick 0..2    WINDUP   blade not drawn, no hitbox
-tick 3..8    ACTIVE   blade drawn, hitbox live, kills on first overlap per creature
-tick 9..11   RECOVER  blade retracting, no hitbox
-then         COOLDOWN 6 ticks before another swing is allowed
+tick 0..3    ACTIVE   on guard, blade drawn back, hitbox live
+tick 4..7    ACTIVE   the lunge, blade out, hitbox live; kills on first overlap per creature per stroke
+then         COOLDOWN 6 ticks before another stroke, unless fire is still held
 ```
 
-- The player **can still move** during the swing at full speed
-  (`moveSpeedScaleFp = 256` = ×1.0). The original let you walk and slash;
-  keep it.
-- **The pose follows the phases exactly** (`driver: "sabrePhase"`, §10.2):
-  windup pose during WINDUP, strike pose during ACTIVE, recover pose during
-  RECOVER. The strike pose is on screen precisely while the blade can hit.
-- **A swing on the move keeps walking**: while moving, the same pose is drawn on
-  the current gait's legs (`gaitVariants`, §10.2). Fixed-leg swing frames at
-  full speed make Vale skate.
+- **A stroke on the move keeps walking**: while moving, the strike pose is drawn on
+  the current gait's legs (`gaitVariants`, §10.2).
 - **The blade is drawn from the hand, the hitbox lies on the ground.** The
   hitbox is projected from the feet box, on the ground plane where creatures'
   feet are; that is what collides. The visible blade comes out of the strike
-  frame's `hand` anchor with the hitbox's exact reach and timing — horizontal
-  for side views, tilting by `diagonalOffsetPx` for diagonals, vertical for up
-  and down. Drawing it from the hitbox itself put the blade at knee height, and
-  between the legs or through the pack facing down or up (found in M3).
+  frame's `hand` anchor, at the current fencing pose rotated into the
+  facing, a guard shorter than `reachPx` and a thrust its full length. Drawing it from the hitbox itself put the blade at knee
+  height, and between the legs or through the pack facing down or up (found
+  in M3).
 - Hitbox: a rectangle `reachPx` (14) long and `thicknessPx` (12) wide,
   projected from the player's collision-box centre along `facing`. For
   diagonals, project along the dominant axis and offset by 4 px on the
@@ -1208,18 +1279,13 @@ then         COOLDOWN 6 ticks before another swing is allowed
 - One creature may be hit **once per swing** (keep a per-swing hit set).
 - The hitbox is **not** blocked by scenery. The blade sweeps over the
   foliage line.
-- **Holding the fire key keeps the sabre working.** While it is held, the next
-  swing begins as soon as the last one ends — `holdRepeatTicks` (0) is the gap.
-  Let go and the full `cooldownTicks` (6) applies before the next swing, so
-  tapping is never quicker than holding. The swing itself is still
-  non-interruptible, and the blade is still live only during ACTIVE, so holding
-  gives a repeated slash rather than a permanently extended blade.
-  *Corrected in M7*: this was built edge-triggered — one swing per key-down, on
-  the reasoning that it was a skill-expression choice — and the user, who has
-  played the original, reported that holding the key there keeps the weapon
-  going. Canon beats our reasoning (§27.7). The X11 auto-repeat handling in
-  §19.2 still matters: `firePressed` drives menus, where a repeat would skip
-  screens.
+- **Holding the fire key keeps the sabre working.** While it is held the next
+  stroke begins as the last ends (`holdRepeatTicks` 0), and with no windup or
+  recovery the blade is never dark. Let go and the full `cooldownTicks` (6)
+  applies, so tapping is never quicker than holding. *Corrected in M7* (it had
+  been edge-triggered, against the user's memory of the original), and again
+  on 2026-09-27: M7 kept a windup and a recovery in every stroke, so held fire
+  read as a repeated slash; the original's blade stays out.
 
 ### 11.7 Death and respawn
 
@@ -1664,20 +1730,20 @@ pass the Keeper of the Arch and escape. That is the whole game.
   "fidelity": "recon",
   "startFacing": "N",
   "exit": {
-    "room": "6,11", "arch": "85C8",
-    "zone": { "x": 108, "y": 104, "w": 40, "h": 24 },
-    "keeper": { "x": 128, "y": 120 },
+    "room": "8,8", "arch": "85C8",
+    "zone": { "x": 108, "y": 88, "w": 40, "h": 24 },
+    "keeper": { "x": 128, "y": 104 },
     "requiresPieces": 4, "escapeWalkTicks": 40
   },
   "lairs": [
-    { "id": "lair_nw", "room": "2,7",  "guardian": "guardian_hippo",      "piece": { "id": "amulet_nw", "frame": "nw", "slot": 0 }, "pedestal": { "x": 128, "y": 88 } },
-    { "id": "lair_ne", "room": "12,7", "guardian": "guardian_rhino",      "piece": { "id": "amulet_ne", "frame": "ne", "slot": 1 }, "pedestal": { "x": 128, "y": 88 } },
-    { "id": "lair_sw", "room": "6,14", "guardian": "guardian_boar",       "piece": { "id": "amulet_sw", "frame": "sw", "slot": 2 }, "pedestal": { "x": 128, "y": 88 } },
-    { "id": "lair_se", "room": "8,14", "guardian": "guardian_wildebeest", "piece": { "id": "amulet_se", "frame": "se", "slot": 3 }, "pedestal": { "x": 128, "y": 88 } }
+    { "id": "lair_nw", "room": "5,3",  "guardian": "guardian_hippo",      "piece": { "id": "amulet_nw", "frame": "nw", "slot": 0 }, "pedestal": { "x": 102, "y": 84 } },
+    { "id": "lair_ne", "room": "13,4", "guardian": "guardian_rhino",      "piece": { "id": "amulet_ne", "frame": "ne", "slot": 1 }, "pedestal": { "x": 94, "y": 84 } },
+    { "id": "lair_sw", "room": "3,12", "guardian": "guardian_boar",       "piece": { "id": "amulet_sw", "frame": "sw", "slot": 2 }, "pedestal": { "x": 102, "y": 84 } },
+    { "id": "lair_se", "room": "9,10", "guardian": "guardian_wildebeest", "piece": { "id": "amulet_se", "frame": "se", "slot": 3 }, "pedestal": { "x": 102, "y": 84 } }
   ],
   "amulet": { "sprite": "amulet_piece", "size": { "w": 16, "h": 16 }, "collisionBox": { "x": -8, "y": -16, "w": 16, "h": 16 },
               "pickupFlashTicks": 8, "flyToPanelTicks": 24 },
-  "caveMouths": ["7,3", "12,8", "1,10", "14,10", "4,13", "6,13", "5,14"],
+  "caveMouths": [],
   "hint": { "messageTicks": 90, "oncePerLife": true },
   "stillWater": { "name": "The Still Water", "rooms": ["7,6", "…"] }
 }
@@ -1686,26 +1752,35 @@ pass the Keeper of the Arch and escape. That is the whole game.
 The start room is **not** here: it is extracted canon (§8), and duplicating it
 would let the two disagree. Only the direction Vale faces at the start is.
 
-**Chosen against the real map, and measured, in M6:**
+**Re-chosen on the true map, 2026-09-27** (§25 Q14). M6 chose rooms 2,7,
+12,7, 6,14 and 8,14 and the exit 6,11 on the relabelled grid; none of that
+survives:
 
-- **The lairs are balanced, not deepest.** One per quadrant, each with a clear
-  80 px square at its centre for a pedestal and an orbit. The deepest rooms of
-  each quadrant lie 22, 22, 10 and 8 rooms from the start — the start room is a
-  southern one, so "the deepest room of each quadrant" is wildly unfair. These
-  four are 11, 11, 10 and 8 rooms away: a spread of 3, inside the ±4 this
-  section asks for, checked by `LandmarkBalanceTest` through
-  `MapAudit.roomDistances` (a 0-1 flood: free within a room, one per crossing).
-- **Pedestals sit at (128, 88)**, that clear centre. The (128, 96) of this
-  section's first draft is solid scenery in every room it named.
-- **The way out is a real arch.** The start room has no arch in the extracted
-  map, and its largest clear space is 32 px — nowhere to put one without
-  inventing scenery over canon. The exit is therefore `6,11`, the arch room
-  nearest the start (3 rooms), which keeps this section's intent: the player
-  meets the way out early and finds it barred.
+- **The lairs are rooms the original hid the amulet in.** The game has no
+  fixed lairs: `Place Amulet Pieces` (`$A255`) picks one of **eight preset
+  sets** of four rooms from `$A29D` at random and lays each quarter at its
+  room type's object slot 1 (`$DC6C`). Our fixed guardian lairs stay
+  `[RECON]`, but their rooms are the game's **set 3**, `$35 $C3 $4D $A9`:
+  `(5,3) (3,12) (13,4) (9,10)`, one per quadrant and the only set whose four
+  rooms all have room for a guardian's orbit.
+- **The ±4 balance is gone.** It was a design wish measured on the wrong map.
+  The true map is one long maze, and every one of the game's eight sets
+  spreads by 50 rooms or more; set 3's lairs lie 76, 105, 25 and 11 room
+  crossings from the start. `LandmarkBalanceTest` now checks that the lairs
+  are set 3 and that they, and the way out, can be reached.
+- **Pedestals** are the nearest spot to the game's own piece position where
+  the quarter rests, the guardian fits, and its 32 px orbit clears the
+  scenery all the way round — (102, 84) in three rooms, (94, 84) in `13,4`.
+  The game's own spots lie against walls, fine for a quarter lying on the
+  ground and no good for a guardian circling it.
+- **The way out is the map's only arch**, `(8,8)`, at the heart of the temple
+  two rooms north of the start — and 132 crossings away on foot, so the
+  player meets it late, having walked the whole maze. Whether this is the
+  original's exit is still Q3; it is the only arch there is.
+
 - **The arch's own cells are solid**, so nobody can stand under it. The exit is
   the `zone` in front of it — where the Keeper stands, and where a shrine is
-  touched. Every arch room places its arch identically, at cells (13, 8), so one
-  rectangle serves all of them.
+  touched. The arch stands at cells (13, 6) of the room, the zone below it.
 - `LandmarkValidator` checks the lot at load: the rooms exist and hold an arch,
   one lair per quadrant, ids and slots unique, and that the guardian, the
   quarter, the Keeper and its step aside all fit where they are put.
@@ -1718,10 +1793,10 @@ family and the scale at once:
 
 | id | based on | colour | lair |
 |----|----------|--------|------|
-| `guardian_hippo` | `hippo` | bright green | NW `2,7` |
-| `guardian_rhino` | `rhino` | bright blue | NE `12,7` |
-| `guardian_boar` | `boar` | bright red | SW `6,14` |
-| `guardian_wildebeest` | `wildebeest` | bright yellow | SE `8,14` |
+| `guardian_hippo` | `hippo` | bright green | NW `5,3` |
+| `guardian_rhino` | `rhino` | bright blue | NE `13,4` |
+| `guardian_boar` | `boar` | bright red | SW `3,12` |
+| `guardian_wildebeest` | `wildebeest` | bright yellow | SE `9,10` |
 
 All four are **32x28** (§12.3's roster line), drawn by `creature_forge.py` as
 their sibling's silhouette grown into that box: "1.4x" in the first draft of
@@ -1759,6 +1834,11 @@ this section was prose, the roster's numbers are the contract.
 
 ### 14.5 Cave mouths **[RECON]**
 
+**No rooms at present.** The true map has one arch and the Keeper has it
+(§8.2), so `caveMouths` is empty and the hints below never fire. The mechanism
+stays, tested on a shrine of `QuestTest`'s own, until a shrine is chosen —
+which would be `[NEW]`, not canon, and is the user's call.
+
 The arch rooms of §8.2 are shrines: touch the spot in front of the arch — the
 same rectangle as the way out's, since every arch room is laid out alike — and
 the panel names the way to the nearest quarter still out there for
@@ -1779,6 +1859,20 @@ player who has no inlay map.
 - The panel shows the amulet assembling: four slots, held quarters drawn from
   the sprite at half size, missing ones as silhouettes in `white` (§17.3).
 - **Kept on death** (`player.json → death.keepAmulet`): a quarter taken is taken.
+- **The reveal** **[CANON]** concept, our own words and art (added 2026-09-27,
+  after a playtest remembered it). The original clears the play area on a
+  pickup, draws the amulet with only the quarters held (`$A207`, table
+  `$C374`), prints a four-line verse chosen by how many are held — one for
+  each count (`Display Poem` `$A01B`) — plays a tune and pauses (`$A234`),
+  then redraws the room. Ours: `shell.json → amuletReveal`, four verses of our
+  own (never the original's), the amulet sprite drawn ×`scale` as the panel
+  lays it out, held quarters only. `GameSession` holds the game still while it
+  shows, so no tick passes, nothing is recorded, and replays are untouched; it
+  ends after `holdTicks` (300), or on fire once `skipAfterTicks` (50) have
+  passed. `ShellValidator.checkAmuletReveal` checks a verse per quarter and
+  that every line and the amulet fit. **No tune yet**: the pickup's own sound
+  plays, and a tune here would be music in `PLAYING` (§27.8) — the user's
+  call.
 
 ### 14.7 The win sequence
 
@@ -2051,6 +2145,17 @@ are not shipping a competitive game.
 `GAME OVER` in the 8×8 font over the frozen playfield, 150 ticks, then
 hi-score entry if qualified, then title.
 
+Under it, **how much of the adventure was done** **[CANON]** sum, our words
+(added 2026-09-27 from a playtest). The original's `Print Rooms Visited`
+(`$9CC6`) counts every room visited — a bit per room, set on every room flip
+and for the start room (`Visit Room`, `$9D23`) — plus every amulet quarter
+held, out of 256 + 4, and prints the whole percent rounded down (its
+fixed-point step `$6276` is exactly 100/260). Ours:
+`GameOverScreen.percentDone`, the same sum from `Simulation.roomsVisited()`
+and the quarters held, on the line `shell.json → gameOver.progress`
+(`{percent}% OF THE QUEST DONE`; the original's own wording is not used). The
+big font gained a `%` for it.
+
 ---
 
 ## 18. Audio — procedural 1-bit beeper
@@ -2283,7 +2388,7 @@ Run at boot and in `mvn verify`. Each is a named check with a clear message:
 | `SpriteSizeValidator` | every sprite's `rows` match its `size`; every legend char resolves to a palette index in 0..15 or -1 |
 | `SceneryFootprintValidator` | every object in `scenery.json` has a sprite whose pixel size is `cells * 8`; every `collisionCells` bitmap is `h` rows of `w` chars |
 | `MapReferenceValidator` | every `graphic` id in `original_map.json` exists in `scenery.json`; every room type on the grid exists in `templates` |
-| `PlacementBoundsValidator` | every placement + footprint fits within 32×24 cells |
+| `PlacementBoundsValidator` | every placement + footprint fits within 32×22 cells, below the banner |
 | `LandmarkValidator` | start/exit/lair rooms are valid addresses; pedestals and spawn points are on non-solid cells |
 | `CreatureRefValidator` | every creature id in `room_entities.json` and `biomes` weights exists; every sprite and sfx reference resolves |
 | `AnimationValidator` | every animation frame name exists in its sprite; `ticksPerFrame >= 0` |
@@ -2507,18 +2612,23 @@ golden file that needs updating.
 hash at every 50th tick. `ReplayRunner` re-executes them. Ship at least:
 
 - `replays/attract.json` — the title-screen demo (doubles as a test).
-  (**M8, shipped**)
+  (**M8, shipped**; since M10 cut by `AttractForge` from `lair_nw.json`)
 - `replays/lair_nw.json` — start → NW lair → piece → back. Slipped in M6 and
   forged in M9 with
   `-Dforge.lairs=0 -Dforge.pieces=1 … FullRunForge replays/lair_nw.json`:
   the same bot, sent to one lair, finishing when the quarter is carried back
-  out instead of waiting for a win. (**M9, shipped**)
+  out instead of waiting for a win. (**M9, shipped**; re-forged in M10 on the
+  true map: seed 217, 60 571 ticks, no death)
 - `replays/wulf_escape.json` — a Wulf pursuit survived across 4 rooms. (**M5, shipped**)
 - `replays/full_run.json` — a complete 4-piece win, forged by `FullRunForge`
-  (**M6, shipped**).
+  (**M6, shipped; missing since M10**). The true map (§25 Q14) is one long
+  maze and `FullRunForge` has not yet found a win through it: across ~70
+  seeds it reaches one or two quarters and gives up or runs out of time
+  (`forge.maxTicks`, now 500 000). `ReplayTest.theFullRunReplayWinsTheGame` is
+  `@Disabled` with that reason until it is re-forged.
 
 `ReplayTest.everyShippedReplayStillMatchesItsHashes` runs **every** file in
-`replays/`, so one added later is covered the moment it lands; the four above
+`replays/`, so one added later is covered the moment it lands; the ones above
 also have a test each that checks the replay still *shows* what it was
 recorded to show.
 
@@ -3269,6 +3379,40 @@ page for any of them yet — they are edited in `settings.json`.
 
 ---
 
+### M10 — The true map — **COMPLETE (2026-09-27), one replay slipped**
+
+Not planned as a milestone: it grew out of researching Q14 and a round of
+playtests. Everything below is sourced from the SkoolKit disassembly (§25).
+
+What landed:
+
+- **The map is the original's.** `roomTypeGrid` was a relabelled copy of the
+  game's layout table; it is now the table itself, and the rooms lost the two
+  banner rows they never had (32×22, §5.1, §7, §8). An emulation of the
+  original's collision and room flips agrees with ours edge for edge (§25
+  Q14). `MapAudit`, `MapDataTest`, `BiomeResolverTest` and friends re-pinned
+  to the true map; the audit no longer fails on the original's own 29
+  dead-end crossings.
+- **Landmarks re-chosen on it** (§14.2): the way out at the only arch, `8,8`;
+  lairs at the game's own amulet set 3; the ±4 lair balance dropped; no cave
+  mouths (§14.5).
+- **The amulet reveal** on every quarter (§14.6), **fencing** in place of the
+  old swing — the blade live while fire is held, ⅔ speed, guard-and-lunge
+  frames in every view (§11.6) — and **how much of the adventure was done**
+  on the game-over screen (§17.5), each from the disassembly and a playtest.
+- `run.sh` offers every way to run the project (§3.2); `FullRunForge` got a
+  configurable tick cap and learned to press the other way under the reversal
+  flower.
+- `replays/wulf_escape.json`, `lair_nw.json` and `attract.json` re-forged;
+  golden frames regenerated.
+
+Slipped: **`replays/full_run.json`** (§22.6) — no winning run found yet on the
+true map; its test is disabled with the reason. Also open: walking momentum
+(the original has it, §11.6), a tune for the reveal (§27.8), shrine rooms for
+the cave hints, and the stale "Still Water" name.
+
+---
+
 ## 25. Open canon questions (research backlog)
 
 These are the known gaps between this spec and the original. Each is a
@@ -3285,8 +3429,8 @@ the source wins.
 | # | Question | Currently | Where it lives |
 |---|----------|-----------|----------------|
 | Q1 | The exact creature roster and per-room creature assignment table | 13 invented species, biome-weighted | `creatures.json`, `room_entities.json` |
-| Q2 | The four guardians' species, colours, and lair rooms | hippo/rhino/boar/wildebeest at `2,2 13,2 2,13 13,13` | `landmarks.json`, `guardians.json` |
-| Q3 | The exit's actual location and its guard condition | start room `8,10`, needs 4 pieces | `landmarks.json` |
+| Q2 | The four guardians' species, colours, and lair rooms | **Rooms partly answered 2026-09-27:** the original has no fixed lairs — it picks one of eight preset four-room sets at random (`$A29D`, `Place Amulet Pieces` `$A255`) and lays each quarter at its room type's object slot 1 (`$DC6C`). Our lairs are fixed (`[RECON]`) at the game's set 3, `5,3 13,4 3,12 9,10`. Guardians' species and colours still open; the game's immortals table (`$AC77`) lists rhinos, spear men, fire, the wolf, a hippo and "guardian" as sprites to look at next. | `landmarks.json`, `guardians.json` |
+| Q3 | The exit's actual location and its guard condition | **Lead 2026-09-27:** the true map has exactly one stone arch, `(8,8)`, the heart of the mirrored temple two rooms north of the start. The exit is placed there; the guard condition is unverified. | `landmarks.json` |
 | Q4 | The orchid colour→effect mapping and durations | 6 colours per §15.2 | `orchids.json` |
 | Q5 | Exact player speed in px/frame, and whether it was frame-quantised | 1.5 / 1.0 px/tick | `player.json` |
 | Q6 | Starting lives and extra-life thresholds | 5 lives, extras at 15k/40k/75k/120k | `player.json` |
@@ -3294,11 +3438,11 @@ the source wins.
 | Q8 | Score values per creature and per piece | 100–500, 5000 | `creatures.json`, `loot.json` |
 | Q9 | The Wulf's appearance rules and whether the sabre affected it | 12% on entry + bonuses; repel only | `wulf.json` |
 | Q10 | Whether anything besides orchids and the amulet was collectable | nothing | `loot.json` |
-| Q11 | Sabre swing duration, reach, and whether movement was locked | 12 ticks, 14 px, movement free | `player.json → sabre` |
+| Q11 | Sabre swing duration, reach, and whether movement was locked | **Shape answered 2026-09-27** (§11.6): no windup or recovery, live while fire is held (`$AB0E`), a random one of eight poses every 4th frame (`$AE4B`, `Rand8`), movement at 2 px/frame against walking's 3 (`$ADD0`, `$AFC1`). Reach still `[RECON]` 14 px; converting the original's px/frame needs its frame rate, still unmeasured. | `player.json → sabre` |
 | Q12 | Whether creature spawns were fixed per room or random | authored-with-fallback | `room_entities.json` |
-| Q13 | How the original resolved scenery collision — per pixel, per cell, or per object rectangle — and so which rule reproduces its routes | **Design decided 2026-09-12:** art-derived collision (cell solid at ≥ 25 % painted), with art redrawn to fill its footprint — interior median 45 % walkable against the footprint maze's 39 %, gap locked at ≤ 6 points (§7.3). How the original actually resolved collision is still unverified; if a source shows per-rectangle collision, revisit. | `world/scenery.json → solidCoveragePercent`, per-object `collisionCells` |
+| Q13 | How the original resolved scenery collision — per pixel, per cell, or per object rectangle — and so which rule reproduces its routes | **Answered 2026-09-27: per object rectangle.** `$B873`, called by the player's movement through `$B81C` with `BC=$160E`, tests the player's box (15 px wide at x..x+14, 23 px tall ending at the feet y) against every placement's whole graphic rectangle (header: height in pixel rows, width in bytes ×8), then retries on one axis for a slide. Our art-derived collision (≥25 % painted) is kept as `[RECON]`: over the corrected map it gives exactly the original's room-to-room topology (below), so the routes are the original's. | `world/scenery.json → solidCoveragePercent`, per-object `collisionCells` |
 
-| Q14 | The playfield's true height, and whether a top border strip is missing | **Open, and it shows.** Every placement in `original_map.json` has `y` between 2 and 20, so in our 24-row playfield rows 0 and 1 of all 256 rooms are empty: a two-cell corridor along the top of the entire map, 937 walkable cells pressed against the world's edge across 62 border rooms, and content crowded into the bottom, blocking 107 of 240 north-south room edges while blocking 0 of 240 east-west ones. A maze blocks both ways. Rebuilding the maze from the raw placements with whole rectangles solid gives identical numbers, so it is not the art or the ≥25% rule (Q13) — it is the geometry or the adapter. Two obvious corrections were measured and both make it worse: shifting content up two rows leaves 83 north-south blocked, and also cutting the playfield to 22 rows blocks 154 east-west and 168 north-south. Leading hypothesis, unverified: the original screen has a foliage border and the extraction captured its left, right and bottom but not its top. Needs a primary source, as every entry here does. | `original_map.json`, `display.json → playfield`, §5.1, §8.3 |
+| Q14 | The playfield's true height, and whether a top border strip is missing | **Closed 2026-09-27.** Source: the SkoolKit disassembly of the Spectrum game, <https://skoolkit.arcadegeek.co.uk/ultimate/sabrewulf/> (source <https://github.com/pobtastic/ultimate/tree/main/sources/sabrewulf/>), corroborated by <https://www.icemark.com/dataformats/sabrewulf/>. (1) **The banner is rows 0–1.** `Clear Play Area` `$BB5C` clears from `$4040` (row 2) "only from below the banner… the banner takes up two"; lives print at `$4008`/`$4016` (row 0), scores at `$4021`/`$402D`/`$4039` (row 1); `Draw Room` `$BBF7` passes a placement's x/y straight to the screen-address routine, so `y=2` is the first row under the banner. The feet run y 40..191 (`$AFE8`, `$B027`): the play area is rows 2–23, 32×22 cells. (2) **The grid was wrong.** The 48 templates match the game's `Room_00`–`Room_2F` byte for byte, but `roomTypeGrid` was a consistently relabelled copy of the layout table `$6066` (a bijection over all 256 rooms), so every room drew the wrong template. With the game's own table, an emulation of the original's collision (`$B873`) and flips (`$AFE8` → `$B12F`/`$B19F`/`$B187`/`$B1AB`; going south puts you at a per-type x from `$6036`, which the emulation reproduces for all 45 types) connects all 256 rooms, opens 154 east-west and 160 north-south edges, 29 east-west ones only from pockets, and leaves no way off the world; the old grid connected 2 rooms. Both fixed: the grid replaced, the adapter takes the banner off `y`, rooms are 32×22. Our map now has exactly those edges. The raw pages and the emulation are not kept here (§2.1). | `original_map.json → roomTypeGrid`, `OriginalMapRepository.SCREEN_TOP_ROW`, `CollisionMask.ROWS`, `display.json → playfield` |
 
 Two facts are **already closed** and must not be re-litigated: the 16×16 /
 256-room grid and the start room at `(8, 10)` are `[CANON]`, extracted
@@ -3311,8 +3455,8 @@ directly into `original_map.json` and locked by `MapDataTest`.
 | term | meaning |
 |------|---------|
 | **cell** | an 8×8 pixel unit; the collision and layout grid |
-| **room** | one flip-screen, 32×24 cells, 256×192 px |
-| **playfield** | the 256×192 area where rooms are drawn |
+| **room** | one flip-screen, 32×22 cells, 256×176 px |
+| **playfield** | the 256×176 area where rooms are drawn; the original screen less its banner |
 | **panel** | the 256×40 HUD strip drawn in the lower border |
 | **tick** | one simulation step, 1/50 s |
 | **fp / 8.8** | fixed-point integer where 256 == 1 pixel |

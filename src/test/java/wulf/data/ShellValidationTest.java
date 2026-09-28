@@ -23,7 +23,7 @@ class ShellValidationTest {
     private static ShellConfig withTitle(ShellConfig.Title title) {
         ShellConfig s = c.shell();
         return new ShellConfig(s.schemaVersion(), s.screenHoldTicks(), title, s.attract(), s.gameOver(), s.tally(),
-                s.hiScores(), s.keyConfig(), s.sound(), s.stats(), s.credits());
+                s.hiScores(), s.keyConfig(), s.sound(), s.stats(), s.amuletReveal(), s.credits());
     }
 
     private static ShellConfig.Title titleWith(List<String> colours, List<ShellConfig.MenuItem> menu) {
@@ -76,10 +76,41 @@ class ShellValidationTest {
                 s.gameOver(), s.tally(),
                 new ShellConfig.HiScores(h.heading(), h.entryHeading(), h.entryPrompt(), h.size(), h.nameLength(),
                         "AABC", h.cursorBlinkTicks(), h.repeatDelayTicks(), h.repeatEveryTicks()),
-                s.keyConfig(), s.sound(), s.stats(), s.credits());
+                s.keyConfig(), s.sound(), s.stats(), s.amuletReveal(), s.credits());
         DataException e = error(broken);
         assertThat(e).isNotNull();
         assertThat(e.pointer()).isEqualTo("/hiScores/alphabet");
+    }
+
+    private static ShellConfig withReveal(ShellConfig.AmuletReveal reveal) {
+        ShellConfig s = c.shell();
+        return new ShellConfig(s.schemaVersion(), s.screenHoldTicks(), s.title(), s.attract(), s.gameOver(), s.tally(),
+                s.hiScores(), s.keyConfig(), s.sound(), s.stats(), reveal, s.credits());
+    }
+
+    private static DataException revealError(ShellConfig.AmuletReveal reveal) {
+        return catchThrowableOfType(DataException.class,
+                () -> ShellValidator.checkAmuletReveal(withReveal(reveal), c.landmarks(), c.display(), c.font()));
+    }
+
+    @Test
+    void theAmuletRevealNeedsAVerseForEveryCountOfQuarters() {
+        ShellConfig.AmuletReveal r = c.shell().amuletReveal();
+        ShellValidator.checkAmuletReveal(c.shell(), c.landmarks(), c.display(), c.font());
+        DataException e = revealError(new ShellConfig.AmuletReveal(r.holdTicks(), r.skipAfterTicks(), r.scale(),
+                r.verses().subList(0, 3)));
+        assertThat(e.pointer()).isEqualTo("/amuletReveal/verses");
+    }
+
+    @Test
+    void anAmuletRevealLineWiderThanThePlayfieldIsReported() {
+        ShellConfig.AmuletReveal r = c.shell().amuletReveal();
+        List<List<String>> verses = new java.util.ArrayList<>(r.verses());
+        verses.set(2, List.of("A LINE FAR TOO LONG FOR THIS SCREEN TO HOLD"));
+        DataException e = revealError(new ShellConfig.AmuletReveal(r.holdTicks(), r.skipAfterTicks(), r.scale(), verses));
+        assertThat(e.pointer()).isEqualTo("/amuletReveal/verses/2/0");
+        assertThat(revealError(new ShellConfig.AmuletReveal(r.holdTicks(), r.skipAfterTicks(), 8, r.verses())).pointer())
+                .isEqualTo("/amuletReveal/scale");
     }
 
     @Test

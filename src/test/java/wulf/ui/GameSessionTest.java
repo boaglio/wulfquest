@@ -100,7 +100,7 @@ class GameSessionTest {
     void thePanelLineReflectsTheSession() {
         GameSession s = session();
         assertThat(s.message(false)).isNull();
-        assertThat(s.message(true)).isEqualTo("ROOM 3,5  X232 Y40");
+        assertThat(s.message(true)).isEqualTo("ROOM 3,5  X232 Y120");
         s.tick(pressed(false, true, false, false, false), false);
         assertThat(s.message(true)).isEqualTo("PAUSED");
     }

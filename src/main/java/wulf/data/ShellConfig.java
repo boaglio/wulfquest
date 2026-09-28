@@ -21,6 +21,7 @@ public record ShellConfig(
         KeyConfig keyConfig,
         Sound sound,
         Stats stats,
+        AmuletReveal amuletReveal,
         Credits credits) {
 
     public record Title(String wordmark, String tagline, String prompt, Cycle cycle, List<MenuItem> menu,
@@ -43,7 +44,26 @@ public record ShellConfig(
     public record Attract(int idleTicks, String replay, String banner, boolean dimEveryOtherRow) {
     }
 
-    public record GameOver(String text, int holdTicks) {
+    /** @param progress the line under it, {@code {percent}} standing for how much of the adventure is done (§17.5) */
+    public record GameOver(String text, String progress, int holdTicks) {
+    }
+
+    /**
+     * The screen a quarter brings up (§14.6): the amulet so far, drawn large on a
+     * cleared playfield, over the verse for how many quarters are held — the first
+     * verse for one, the fourth for all four. The game stands still underneath.
+     */
+    public record AmuletReveal(int holdTicks, int skipAfterTicks, int scale, List<List<String>> verses) {
+        public AmuletReveal {
+            List<List<String>> copies = new java.util.ArrayList<>();
+            for (List<String> verse : verses) {
+                copies.add(List.copyOf(verse));
+            }
+            verses = List.copyOf(copies);
+        }
+
+        /** No reveal at all: what a bare {@code GameSession} in a test gets. */
+        public static final AmuletReveal NONE = new AmuletReveal(0, 0, 1, List.of());
     }
 
     public record Tally(int holdTicks) {

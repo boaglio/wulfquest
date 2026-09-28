@@ -8,7 +8,7 @@ Nothing is traced from any image. Deterministic: no randomness at all.
 
 Frames match the animations in data/entities/player.json:
   side_walk0-3, up_walk0-3, down_walk0-3        4-frame gaits (§11.5)
-  side_swing0-2, up_swing0-2, down_swing0-2     windup, strike, recover, standing (§11.6)
+  side_swing0-2, up_swing0-2, down_swing0-2     guard, lunge, recover: fencing (§11.6)
   <view>_swing<p>_walk<g>                       the same three poses on each walking
                                                 gait, so a swing on the move never glides
   die0-3                                        the death sequence (§11.7)
@@ -85,11 +85,26 @@ SIDE_STANCE = (11, 4, None, 0)
 # Front and back gait: left leg lift, right leg lift, left hand y, right hand y.
 FRONT_GAIT = [(0, 0, 13, 13), (1, 0, 14, 12), (0, 0, 13, 13), (0, 1, 12, 14)]
 FRONT_STANCE = (0, 0, 13, 13)
-# The sword hand through windup, strike, recover.
-SIDE_SWING_HAND = [(4, 4), (15, 9), (13, 13)]            # behind the hat, level forward, low
-FRONT_SWING_HAND = {
-    "down": [(13, 2), (11, 19), (12, 15)],               # overhead, then down toward the viewer
-    "up":   [(13, 15), (12, 1), (13, 6)],                # low, then up and away
+# Fencing, side view (§11.6): guard, lunge, recover. Each pose is the whole body, not an arm:
+# front foot x, back foot x, how far the body sinks, how far it leans forward, the sword hand
+# (relative to the sinking body), and the free hand — raised behind the head on guard, as a
+# fencer holds it, swept back and down in the lunge.
+SIDE_FENCE = [
+    (11, 3, 1, 0, (12, 10), (3, 5)),     # guard: feet apart, knees bent, blade hand at the chest
+    (13, 0, 2, 1, (15, 9), (1, 12)),     # lunge: front leg out, back leg straight, arm extended
+    (11, 2, 1, 0, (13, 11), (2, 8)),     # recover: back on guard, the blade coming home
+]
+# Fencing seen from the front (down) and from behind (up), §11.6: guard, lunge, recover.
+# Left foot x, right foot x, how far the body sinks, the sword hand (relative to the sinking
+# body) and the free hand. Facing the viewer the lunge drives the blade down at them; from
+# behind it drives up and away, over the pack.
+FRONT_FENCE = {
+    "down": [(4, 10, 1, (11, 12), (2, 5)),     # guard: feet apart, hand at the chest, free arm up
+             (2, 12, 2, (10, 17), (0, 12)),    # lunge: legs wide, body low, arm thrust out and down
+             (3, 11, 1, (11, 14), (1, 8))],    # recover
+    "up":   [(4, 10, 1, (12, 11), (2, 6)),     # guard: hand at the shoulder, free arm up
+             (2, 12, 2, (11, 3), (0, 12)),     # lunge: legs wide, body low, arm thrust up and away
+             (3, 11, 1, (12, 7), (1, 9))],     # recover
 }
 
 
@@ -105,17 +120,25 @@ def arm(cv, shoulder, hand):
     cv.set(hand[0], hand[1], "W")
 
 
-def upper(cv, view, bob=0, hat_dy=0):
-    stamp(cv, TORSO[view], 5 if view == "side" else 4, 8 + bob)
-    stamp(cv, HEAD[view], 5, 4 + bob)
-    stamp(cv, HAT, 2, bob + hat_dy)
+def upper(cv, view, bob=0, hat_dy=0, dx=0):
+    stamp(cv, TORSO[view], (5 if view == "side" else 4) + dx, 8 + bob)
+    stamp(cv, HEAD[view], 5 + dx, 4 + bob)
+    stamp(cv, HAT, 2 + dx, bob + hat_dy)
 
 
-def leg_side(cv, foot_x, lift=0):
+def leg_side(cv, foot_x, lift=0, hip_x=7, hip_y=15):
     """A stride leg from the hip, 2 px wide, with a boot whose toe points forward (right)."""
     for off in (0, 1):
-        cv.stroke(7 + off, 15, foot_x + off, 21 - lift, "w")
+        cv.stroke(hip_x + off, hip_y, foot_x + off, 21 - lift, "w")
     cv.rect(foot_x - 1, 22 - lift, foot_x + 3, 24 - lift, "r")
+
+
+def legs_spread(cv, left_x, right_x, sink):
+    """Front or back view, feet apart: each leg from its hip, lowered with the body, out to its foot."""
+    for hip_x, foot_x in ((6, left_x), (9, right_x)):
+        for off in (0, 1):
+            cv.stroke(hip_x + off, 15 + sink, foot_x + off, 21, "w")
+        cv.rect(foot_x, 22, foot_x + 3, 24, "r")
 
 
 def legs_front(cv, left_lift=0, right_lift=0):
@@ -154,26 +177,49 @@ def front_walk(view, g):
 
 
 def side_swing(phase, gait=None):
-    """A swing pose; with a gait, on that gait's legs and body bob."""
-    front, back, _, bob = SIDE_STANCE if gait is None else SIDE_GAIT[gait]
+    """A fencing pose (§11.6); with a gait, the same upper body on that gait's legs."""
+    front, back, sink, lean, hand, free = SIDE_FENCE[phase]
     cv = Canvas(W, H)
-    leg_side(cv, back)
-    leg_side(cv, front)
-    upper(cv, "side", bob)
-    hx, hy = SIDE_SWING_HAND[phase]
-    hy += bob
-    arm(cv, (8, 9 + bob), (hx, hy))
+    if gait is None:
+        # The stance itself: the legs spread from a hip lowered with the body.
+        leg_side(cv, back, hip_y=15 + sink)
+        leg_side(cv, front, hip_x=7 + lean, hip_y=15 + sink)
+        bob = sink
+    else:
+        # Moving while fencing: small steps on the walking legs, the body still sunk into it.
+        g_front, g_back, _, g_bob = SIDE_GAIT[gait]
+        leg_side(cv, g_back)
+        leg_side(cv, g_front)
+        bob = g_bob + min(sink, 1)
+    # The free arm first, so the torso covers its shoulder.
+    arm(cv, (6 + lean, 9 + bob), (free[0], free[1] + bob))
+    upper(cv, "side", bob, dx=lean)
+    hx, hy = hand[0], hand[1] + bob
+    arm(cv, (8 + lean, 9 + bob), (hx, hy))
     return finish(cv), {"hand": {"x": hx, "y": hy}}
 
 
 def front_swing(view, phase, gait=None):
-    left_lift, right_lift, left_hand_y, _ = FRONT_STANCE if gait is None else FRONT_GAIT[gait]
+    """A fencing pose from the front or behind (§11.6); with a gait, the upper body on walking legs."""
+    left_x, right_x, sink, hand, free = FRONT_FENCE[view][phase]
     cv = Canvas(W, H)
-    legs_front(cv, left_lift, right_lift)
-    upper(cv, view)
-    arm(cv, (4, 9), (3, left_hand_y))
-    hx, hy = FRONT_SWING_HAND[view][phase]
-    arm(cv, (11, 9), (hx, hy))
+    if gait is None:
+        legs_spread(cv, left_x, right_x, sink)
+        bob = sink
+    else:
+        left_lift, right_lift, _, _ = FRONT_GAIT[gait]
+        legs_front(cv, left_lift, right_lift)
+        bob = min(sink, 1)
+    if view == "up":
+        # From behind, the arms are drawn before the back so the pack covers the shoulders.
+        arm(cv, (4, 9 + bob), (free[0], free[1] + bob))
+        arm(cv, (11, 9 + bob), (hand[0], hand[1] + bob))
+        upper(cv, view, bob)
+    else:
+        upper(cv, view, bob)
+        arm(cv, (4, 9 + bob), (free[0], free[1] + bob))
+        arm(cv, (11, 9 + bob), (hand[0], hand[1] + bob))
+    hx, hy = hand[0], hand[1] + bob
     return finish(cv), {"hand": {"x": hx, "y": hy}}
 
 

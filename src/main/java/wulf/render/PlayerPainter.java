@@ -1,5 +1,6 @@
 package wulf.render;
 
+import java.util.List;
 import wulf.data.AnimationValidator;
 import wulf.data.DisplayConfig;
 import wulf.data.Palette;
@@ -44,6 +45,7 @@ public final class PlayerPainter {
         int feetX = Fixed.px(p.xFp()) + field.x() - sim.room().col() * Simulation.ROOM_W_PX;
         int feetY = Fixed.px(p.yFp()) + field.y() - sim.room().row() * Simulation.ROOM_H_PX;
         String frame = frameFor(p, rules);
+        boolean fighting = !sim.sabre().isEmpty();
         // A player straddling a room edge is cut at the playfield: flip-screen, not scrolling.
         fb.setClip(field.x(), field.y(), field.w(), field.h());
         try {
@@ -55,8 +57,8 @@ public final class PlayerPainter {
             } else {
                 sprite.blit(fb, frame, feetX, feetY);
             }
-            if (!sim.sabre().isEmpty()) {
-                paintBlade(fb, p.facing(), sprite.anchor(frame, AnimationValidator.HAND), feetX, feetY);
+            if (fighting) {
+                paintBlade(fb, p.facing(), sprite.anchor(frame, AnimationValidator.HAND), feetX, feetY, p.swingTick(), sim.tick());
             }
         } finally {
             fb.clearClip();
@@ -95,12 +97,20 @@ public final class PlayerPainter {
         return walk.frames().get(gaitIndex(walk, p.walkTicks())) + mirror;
     }
 
-    /** 0 windup, 1 strike, 2 recover — exactly the sabre's phases (§11.6). */
+    /**
+     * The pose for a swing tick (§11.6): 0 guard, 1 lunge, 2 recover. While the blade is live
+     * it fences — on guard, then the lunge, a window of {@code fence.everyTicks} each — and any
+     * windup or recovery ticks hold the guard and the recovery.
+     */
     static int phaseOf(int swingTick, PlayerData.Sabre sabre) {
         if (swingTick < sabre.windupTicks()) {
             return 0;
         }
-        return swingTick < sabre.windupTicks() + sabre.activeTicks() ? 1 : 2;
+        int intoBlade = swingTick - sabre.windupTicks();
+        if (intoBlade >= sabre.activeTicks()) {
+            return 2;
+        }
+        return sabre.fence().thrusting(intoBlade) ? 1 : 0;
     }
 
     private static int gaitIndex(PlayerData.Animation walk, int walkTicks) {
@@ -133,24 +143,51 @@ public final class PlayerPainter {
         return p.invulnTicks() % period < (period + 1) / 2;
     }
 
-    /** The blade: out of the hand along the facing, as long as the hitbox reaches, 2 px thick. */
-    private void paintBlade(Framebuffer fb, Direction8 d, SpriteData.Point hand, int feetX, int feetY) {
+    /**
+     * The blade fences (§11.6): out of the hand of the guard or lunge frame, drawn back
+     * short on guard and out at full reach in the lunge, its angle picked at random from
+     * the pose lists as the original picks its fighting poses. The pick is a hash of the
+     * tick, so it is the same on every run and the simulation never sees it; the hitbox
+     * stays where §11.6 puts it.
+     */
+    private void paintBlade(Framebuffer fb, Direction8 d, SpriteData.Point hand, int feetX, int feetY, int swingTick,
+                            long tick) {
         int hx = feetX - sprite.originX() + hand.x();
         int hy = feetY - sprite.originY() + hand.y();
         PlayerData.Sabre s = rules.sabre();
-        int reach = s.reachPx();
-        if (d.dx() != 0) {
-            for (int i = 1; i <= reach; i++) {
-                // Diagonals tilt toward their vertical by the same offset the hitbox is shifted.
-                int y = hy + (d.diagonal() ? d.dy() * (i * s.diagonalOffsetPx() / reach) : 0);
-                fb.fillRect(hx + d.dx() * i, y, 1, 2, blade);
-            }
-            fb.fillRect(hx + d.dx(), hy - 2, 1, 6, hilt);       // crossguard just past the hand
-        } else {
-            for (int i = 1; i <= reach; i++) {
-                fb.fillRect(hx, hy + d.dy() * i, 2, 1, blade);
-            }
-            fb.fillRect(hx - 2, hy + d.dy(), 6, 1, hilt);
+        List<Integer> pose = pose(s.fence(), swingTick - s.windupTicks(), tick);
+        // Forward is the way Vale faces; side is a quarter-turn clockwise of it.
+        int fx = d.dx();
+        int fy = d.dy();
+        int vx = fx * pose.get(0) - fy * pose.get(1);
+        int vy = fy * pose.get(0) + fx * pose.get(1);
+        // Straight up or down the blade points into or out of the screen: foreshortened.
+        int reach = d.dx() == 0 ? s.reachPx() * s.fence().towardViewerPercent() / 100 : s.reachPx();
+        boolean flat = Math.abs(vx) >= Math.abs(vy);
+        for (int i = 1; i <= reach; i++) {
+            int x = hx + Math.floorDiv(vx * i, 16);
+            int y = hy + Math.floorDiv(vy * i, 16);
+            fb.fillRect(x, y, flat ? 1 : 2, flat ? 2 : 1, blade);
         }
+        // The crossguard, across the blade just past the hand.
+        int gx = hx + Math.floorDiv(vx, 16);
+        int gy = hy + Math.floorDiv(vy, 16);
+        if (flat) {
+            fb.fillRect(gx, gy - 2, 1, 6, hilt);
+        } else {
+            fb.fillRect(gx - 2, gy, 6, 1, hilt);
+        }
+    }
+
+    /**
+     * The blade's pose: a guard or a thrust by where the stroke is, as the body's frame is;
+     * which one of those, by a hash of the game tick's window, fixed within it.
+     */
+    static List<Integer> pose(PlayerData.Fence fence, int intoBlade, long tick) {
+        long window = tick / fence.everyTicks();
+        long h = (window + 1) * 0x9E3779B97F4A7C15L;
+        h ^= h >>> 29;
+        List<List<Integer>> poses = fence.thrusting(intoBlade) ? fence.thrusts() : fence.guards();
+        return poses.get((int) Math.floorMod(h, (long) poses.size()));
     }
 }

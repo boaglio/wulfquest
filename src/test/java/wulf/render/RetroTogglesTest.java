@@ -211,7 +211,7 @@ class RetroTogglesTest {
                 }
             }
         };
-        return Simulation.at(RULES, OPEN, 0, Fixed.fp(ROOM.col() * 256 + 20), Fixed.fp(ROOM.row() * 192 + 180),
+        return Simulation.at(RULES, OPEN, 0, Fixed.fp(ROOM.col() * 256 + 20), Fixed.fp(ROOM.row() * Simulation.ROOM_H_PX + 164),
                 new Ecosystem(CREATURES, stack, 0), 5L);
     }
 

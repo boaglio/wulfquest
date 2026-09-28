@@ -58,10 +58,43 @@ public record PlayerData(
             int diagonalOffsetPx,
             int moveSpeedScaleFp,
             int repelWulfPx,
-            int repelWulfStunTicks) {
+            int repelWulfStunTicks,
+            Fence fence) {
 
         public int totalTicks() {
             return windupTicks + activeTicks + recoverTicks;
+        }
+    }
+
+    /**
+     * How Vale fences while the blade is live (§11.6): each stroke is on guard for
+     * {@code everyTicks}, then lunges for {@code everyTicks} — the body in the sprite's
+     * guard and lunge frames, the blade drawn back short in one of {@code guards} or out
+     * at full reach in one of {@code thrusts}, picked at random as the original picks
+     * its fighting poses ($AE4B, Rand8). A pose is {forward, side} in sixteenths of the
+     * reach, relative to where Vale faces; side is clockwise, so facing east a negative
+     * side is up. Facing straight up or down the blade points into or out of the screen,
+     * so it is drawn {@code towardViewerPercent} of its length: foreshortened. Drawing
+     * only: the hitbox never follows the pose, nor did the original's.
+     */
+    public record Fence(int everyTicks, List<List<Integer>> guards, List<List<Integer>> thrusts,
+                        int towardViewerPercent) {
+        public Fence {
+            guards = copy(guards);
+            thrusts = copy(thrusts);
+        }
+
+        private static List<List<Integer>> copy(List<List<Integer>> poses) {
+            List<List<Integer>> copies = new java.util.ArrayList<>();
+            for (List<Integer> pose : poses) {
+                copies.add(List.copyOf(pose));
+            }
+            return List.copyOf(copies);
+        }
+
+        /** On guard for the first window of a stroke, lunging for the next: the fencer's in and out. */
+        public boolean thrusting(int intoBlade) {
+            return (intoBlade / everyTicks) % 2 == 1;
         }
     }
 

@@ -54,7 +54,7 @@ class BehaviourTest {
 
     @Test
     void linearBounceNeverLeavesTheRoom() {
-        Simulation s = with(FENCED, 20, 180, CREATURES, new Spot("tribesman", 128, 60), new Spot("hippo", 60, 60));
+        Simulation s = with(FENCED, 20, 164, CREATURES, new Spot("tribesman", 128, 60), new Spot("hippo", 60, 60));
         for (int t = 0; t < 3000; t++) {
             s.tick(InputState.NONE);
             s.creatures().forEach(BehaviourTest::assertInsideTheRoom);
@@ -78,7 +78,7 @@ class BehaviourTest {
 
     @Test
     void chaseDirectTurnsOneStepAtATimeWithACooldown() {
-        Simulation s = with(OPEN, 60, 180, CREATURES, new Spot("rhino", 60, 40));
+        Simulation s = with(OPEN, 60, 164, CREATURES, new Spot("rhino", 60, 40));
         Creature c = only(s);
         c.direction(1, 0);
         c.timer(0);
@@ -120,7 +120,7 @@ class BehaviourTest {
             boolean playerPen = cx >= 2 && cx <= 6 && cy >= 20 && cy <= 23;
             return inRoom && !rhinoPocket && !playerPen;
         };
-        Simulation s = with(pocket, 32, 180, snug, new Spot("rhino", 56, 48));
+        Simulation s = with(pocket, 32, 164, snug, new Spot("rhino", 56, 48));
         Creature c = only(s);
         int stall = c.species().behaviour().param("stallTicks");
         // A sub-pixel mover may take one last legitimate fraction of a pixel before it is truly stuck.
@@ -142,7 +142,7 @@ class BehaviourTest {
 
     @Test
     void wanderErraticChangesDirectionConstantlyAndStaysInTheRoom() {
-        Simulation s = with(FENCED, 20, 180, CREATURES, new Spot("scorpion", 128, 100));
+        Simulation s = with(FENCED, 20, 164, CREATURES, new Spot("scorpion", 128, 100));
         Creature c = only(s);
         int changes = 0;
         int lastX = c.dirX();
@@ -163,7 +163,7 @@ class BehaviourTest {
 
     @Test
     void wallFollowRunsAlongAWall() {
-        Simulation s = with(EcoFixtures.either(walls(new int[] {16, 2, 16, 20}), FENCED), 20, 180, CREATURES,
+        Simulation s = with(EcoFixtures.either(walls(new int[] {16, 2, 16, 20}), FENCED), 20, 164, CREATURES,
                 new Spot("snake", 119, 140));
         Creature c = only(s);
         c.direction(0, -1);
@@ -176,7 +176,7 @@ class BehaviourTest {
 
     @Test
     void wallFollowWrapsRoundACorner() {
-        Simulation s = with(EcoFixtures.either(walls(new int[] {16, 2, 16, 20}), FENCED), 20, 180, CREATURES,
+        Simulation s = with(EcoFixtures.either(walls(new int[] {16, 2, 16, 20}), FENCED), 20, 164, CREATURES,
                 new Spot("snake", 119, 140));
         Creature c = only(s);
         c.direction(0, -1);
@@ -201,7 +201,7 @@ class BehaviourTest {
 
     @Test
     void dropThreadDropsPausesAndClimbsBack() {
-        Simulation s = with(OPEN, 104, 186, CREATURES, new Spot("spider", 100, 13));
+        Simulation s = with(OPEN, 104, 170, CREATURES, new Spot("spider", 100, 13));
         Creature c = only(s);
         int anchor = ly(c);
         List<Integer> ys = new ArrayList<>();
@@ -224,7 +224,7 @@ class BehaviourTest {
 
     @Test
     void dropThreadIgnoresAPlayerWhoIsNotBeneath() {
-        Simulation s = with(OPEN, 200, 186, CREATURES, new Spot("spider", 100, 13));
+        Simulation s = with(OPEN, 200, 170, CREATURES, new Spot("spider", 100, 13));
         Creature c = only(s);
         int y = c.yFp();
         run(s, 50);
@@ -245,7 +245,7 @@ class BehaviourTest {
             boolean inRoom = cx >= 0 && cx < 32 && cy >= 0 && cy < 24;
             return inRoom && !(cx <= 5 && cy >= 19);
         };
-        Simulation s = with(solidRoom, 20, 180, CREATURES, new Spot("bat", 128, 90));
+        Simulation s = with(solidRoom, 20, 164, CREATURES, new Spot("bat", 128, 90));
         Creature c = only(s);
         int minY = Integer.MAX_VALUE;
         int maxY = Integer.MIN_VALUE;
@@ -269,7 +269,7 @@ class BehaviourTest {
     @Test
     void hopMovesInBurstsOfEightAfterRestsOfTwenty() {
         CreatureData slowFrog = tuned("frog", Map.of("towardPlayerPer10k", 0), new CreatureData.Speed(128, 128));
-        Simulation s = with(FENCED, 20, 180, slowFrog, new Spot("frog", 128, 100));
+        Simulation s = with(FENCED, 20, 164, slowFrog, new Spot("frog", 128, 100));
         Creature c = only(s);
         List<Boolean> moved = new ArrayList<>();
         for (int t = 0; t < 300; t++) {
@@ -311,7 +311,7 @@ class BehaviourTest {
 
     @Test
     void ambushBurstWaitsWhileAWallBlocksTheLine() {
-        Simulation s = with(walls(new int[] {12, 0, 12, 23}), 130, 100, CREATURES, new Spot("boar", 60, 100));
+        Simulation s = with(walls(new int[] {12, 0, 12, 21}), 130, 100, CREATURES, new Spot("boar", 60, 100));
         Creature c = only(s);
         int x = c.xFp();
         run(s, 50);
@@ -344,7 +344,7 @@ class BehaviourTest {
     @Test
     void aHerdReflectsAsOne() {
         CreatureData calm = tuned("wildebeest", Map.of("reverseChancePer10k", 0));
-        Simulation s = with(FENCED, 20, 180, calm,
+        Simulation s = with(FENCED, 20, 164, calm,
                 new Spot("wildebeest", 200, 60), new Spot("wildebeest", 180, 90), new Spot("wildebeest", 220, 90));
         List<Creature> herd = new ArrayList<>(s.creatures());
         assertThat(herd).hasSize(3);
@@ -387,7 +387,7 @@ class BehaviourTest {
     @Test
     void creaturesStartMovingOnlyAfterTheirRoomIsCurrent() {
         // Sanity for the fixtures: hand-placed creatures appear in the test room at the given spot.
-        Simulation s = with(OPEN, 20, 180, CREATURES, new Spot("tribesman", 128, 60));
+        Simulation s = with(OPEN, 20, 164, CREATURES, new Spot("tribesman", 128, 60));
         Creature c = only(s);
         assertThat(Fixed.px(c.xFp())).isEqualTo(ROOM_X + 128);
         assertThat(Fixed.px(c.yFp())).isEqualTo(ROOM_Y + 60);

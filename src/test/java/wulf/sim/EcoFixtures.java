@@ -25,12 +25,12 @@ final class EcoFixtures {
     static final int ROOM_X = ROOM.col() * Simulation.ROOM_W_PX;
     static final int ROOM_Y = ROOM.row() * Simulation.ROOM_H_PX;
     static final int CELL_X = ROOM.col() * 32;
-    static final int CELL_Y = ROOM.row() * 24;
+    static final int CELL_Y = ROOM.row() * wulf.world.CollisionMask.ROWS;
 
     static final CreatureData.Speed STILL = new CreatureData.Speed(0, 0);
 
-    /** A pen of cells round a player standing at room-local (20, 180): nothing outside can reach in. */
-    static final CollisionWorld FENCED = fenced(1, 20, 4, 23);
+    /** A pen of cells round a player standing at room-local (20, 164): nothing outside can reach in. */
+    static final CollisionWorld FENCED = fenced(1, 18, 4, 21);
 
     record Spot(String id, int x, int y) {
     }

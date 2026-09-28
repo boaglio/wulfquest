@@ -26,16 +26,16 @@ class RoomBakerTest {
     @Test
     void bakesTheStartRoom() {
         Room room = content.rooms().room(new RoomAddress(8, 10));
-        assertThat(room.type()).isEqualTo(1);
+        assertThat(room.type()).isEqualTo(8);   // the game's layout table, $6066 (§8, §25 Q14)
         assertThat(room.placements()).isNotEmpty();
         assertThat(room.mask().walkablePercent()).isBetween(12, 99);
     }
 
     @Test
     void roomsOfOneTemplateShareOneMask() {
-        // Template 5 (the hut) is used by 21 rooms.
-        Room a = content.rooms().room(new RoomAddress(4, 1));
-        Room b = content.rooms().room(new RoomAddress(10, 13));
+        // Template 5 (the hut) is used by 5 rooms.
+        Room a = content.rooms().room(new RoomAddress(2, 5));
+        Room b = content.rooms().room(new RoomAddress(3, 13));
         assertThat(a.type()).isEqualTo(5).isEqualTo(b.type());
         assertThat(a.mask()).isSameAs(b.mask());
     }
@@ -93,6 +93,6 @@ class RoomBakerTest {
         assertThat(grid.isSolid(WorldGrid.COLS, 0)).isTrue();
         assertThat(grid.isSolid(0, WorldGrid.ROWS)).isTrue();
         assertThat(WorldGrid.COLS).isEqualTo(512);
-        assertThat(WorldGrid.ROWS).isEqualTo(384);
+        assertThat(WorldGrid.ROWS).isEqualTo(352);   // 16 rooms of 22 rows
     }
 }

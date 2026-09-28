@@ -70,7 +70,9 @@ class HeadlessSimTest {
         assertThat(millis).as("100k ticks in under 10 s").isLessThan(10_000L);
         assertThat(maxCreatures).as("bounded population").isLessThanOrEqualTo(20);
         assertThat(maxSpears).as("bounded spears").isLessThanOrEqualTo(20);
-        assertThat(rooms.size()).as("it went places").isGreaterThan(5);
+        // The true map's start room opens only through a two-cell gap to the north (§25 Q14), which a
+        // random walker seldom threads; before the grid was corrected this asked for more than five.
+        assertThat(rooms.size()).as("it went places").isGreaterThanOrEqualTo(3);
         assertThat(deaths).as("creatures are dangerous").isPositive();
         assertThat(species.size()).as("met a variety of creatures").isGreaterThanOrEqualTo(6);
         assertThat(wulfAppearances).as("the Wulf came").isPositive();

@@ -79,7 +79,7 @@ public final class SpriteForgeCli {
     private static void validate(Content c) {
         System.out.println("sprites          : " + c.sprites().all().size() + " loaded through the index");
         System.out.println("scenery objects  : " + c.scenery().ids().size());
-        System.out.println("map references   : every graphic resolves; every placement fits 32x24");
+        System.out.println("map references   : every graphic resolves; every placement fits 32x22");
         System.out.println("room masks       : " + c.map().templateCount() + " templates baked");
         System.out.println();
         System.out.println("id    cells  solid/total  collision");

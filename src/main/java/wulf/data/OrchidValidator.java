@@ -57,7 +57,7 @@ public final class OrchidValidator {
             }
         }
         OrchidData.Anchors a = orchids.anchors();
-        if (a.perRoom() > 0 && a.insetPx() * 2 >= 192) {
+        if (a.perRoom() > 0 && a.insetPx() * 2 >= 176) {
             throw new DataException(FILE, "/anchors/insetPx", "is " + a.insetPx() + ", which leaves no room to grow in");
         }
     }

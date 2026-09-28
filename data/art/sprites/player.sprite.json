@@ -373,76 +373,77 @@
     {
       "id": "side_swing0",
       "rows": [
+        "......KKKK......",
         ".....KYYYYK.....",
         "....KYYYYYYK....",
         "..KKKyyyyyyKKK..",
         ".KYYYYYYYYYYYYK.",
-        "..KKWWWWWWKKKK..",
-        "...KCCWWKWK.....",
-        "....KCCWWWWK....",
-        ".....KCWWWK.....",
-        ".....KCCCCK.....",
-        "....KCCCCCCK....",
-        "....KCCCCCcK....",
-        "....KCCCCCcK....",
+        "..KKKWWWWWKKKK..",
+        "..KWKWWWKWK.....",
+        "..KCCWWWWWWK....",
+        "...KCKWWWWK.....",
+        "....KCCCCCKK....",
+        "....KCCCCCCCK...",
+        "....KCCCCCcKWK..",
+        "....KCCCCCcKK...",
         "....KCCCCCcK....",
         ".....KCCCCK.....",
         ".....KyyyyK.....",
         ".....KwwwK......",
-        ".....KwwwwK.....",
         "....KwwwwwK.....",
-        "....KwwKKwwK....",
-        "...KwwwKKwwwK...",
-        "...KwwK..KwwK...",
-        "...KwwK...KwwK..",
-        "..KrrrrK.KrrrrK.",
-        "..KrrrrK.KrrrrK."
+        "....KwwKwwwK....",
+        "...KwwK.KwwK....",
+        "..KwwK...KwwK...",
+        "..KwwK....KwwK..",
+        ".KrrrrK..KrrrrK.",
+        ".KrrrrK..KrrrrK."
       ],
       "anchors": {
         "hand": {
-          "x": 4,
-          "y": 4
+          "x": 12,
+          "y": 11
         }
       }
     },
     {
       "id": "side_swing1",
       "rows": [
-        ".....KYYYYK.....",
-        "....KYYYYYYK....",
-        "..KKKyyyyyyKKK..",
-        ".KYYYYYYYYYYYYK.",
-        "..KKKWWWWWKKKK..",
-        "....KWWWKWK.....",
-        "....KWWWWWWK....",
-        ".....KWWWWK.....",
-        ".....KCCCCKKKKKK",
-        "....KCCCCCCCCCCW",
-        "....KCCCCCcKKKKK",
-        "....KCCCCCcK....",
-        "....KCCCCCcK....",
-        ".....KCCCCK.....",
-        ".....KyyyyK.....",
-        ".....KwwwK......",
-        ".....KwwwwK.....",
-        "....KwwwwwK.....",
-        "....KwwKKwwK....",
-        "...KwwwKKwwwK...",
-        "...KwwK..KwwK...",
-        "...KwwK...KwwK..",
-        "..KrrrrK.KrrrrK.",
-        "..KrrrrK.KrrrrK."
+        "................",
+        ".......KKKK.....",
+        "......KYYYYK....",
+        ".....KYYYYYYK...",
+        "...KKKyyyyyyKKK.",
+        "..KYYYYYYYYYYYYK",
+        "...KKKWWWWWKKKK.",
+        ".....KWWWKWK....",
+        ".....KWWWWWWK...",
+        "......KWWWWK....",
+        ".....KKCCCCKKKKK",
+        "...KKCCCCCCCCCCW",
+        ".KKCCCCCCCCcKKKK",
+        "KCCCKKCCCCCcK...",
+        "KWKK.KCCCCCcK...",
+        ".K....KCCCCK....",
+        ".....KKyyyyK....",
+        "....KwwwwwwK....",
+        "..KKwwwKKwwwK...",
+        "KKwwwKK..KwwwK..",
+        "wwwKK.....KKwwK.",
+        "wwK.........KwwK",
+        "rrrK.......Krrrr",
+        "rrrK.......Krrrr"
       ],
       "anchors": {
         "hand": {
           "x": 15,
-          "y": 9
+          "y": 11
         }
       }
     },
     {
       "id": "side_swing2",
       "rows": [
+        "......KKKK......",
         ".....KYYYYK.....",
         "....KYYYYYYK....",
         "..KKKyyyyyyKKK..",
@@ -450,174 +451,175 @@
         "..KKKWWWWWKKKK..",
         "....KWWWKWK.....",
         "....KWWWWWWK....",
-        ".....KWWWWK.....",
+        "..KKKKWWWWK.....",
+        ".KWCCCCCCCK.....",
+        "..KKKCCCCCCKK...",
+        "....KCCCCCCCCK..",
+        "....KCCCCCcKKWK.",
+        "....KCCCCCcK.K..",
         ".....KCCCCK.....",
-        "....KCCCCCCK....",
-        "....KCCCCCCK....",
-        "....KCCCCCCCK...",
-        "....KCCCCCcKCK..",
-        ".....KCCCCK.KWK.",
-        ".....KyyyyK..K..",
+        ".....KyyyyK.....",
         ".....KwwwK......",
-        ".....KwwwwK.....",
         "....KwwwwwK.....",
-        "....KwwKKwwK....",
-        "...KwwwKKwwwK...",
-        "...KwwK..KwwK...",
-        "...KwwK...KwwK..",
-        "..KrrrrK.KrrrrK.",
-        "..KrrrrK.KrrrrK."
+        "...KwwwKwwwK....",
+        "..KwwwK.KwwK....",
+        ".KwwwK...KwwK...",
+        ".KwwK.....KwwK..",
+        "KrrrrK...KrrrrK.",
+        "KrrrrK...KrrrrK."
       ],
       "anchors": {
         "hand": {
           "x": 13,
-          "y": 13
+          "y": 12
         }
       }
     },
     {
       "id": "up_swing0",
       "rows": [
+        "......KKKK......",
         ".....KYYYYK.....",
         "....KYYYYYYK....",
         "..KKKyyyyyyKKK..",
         ".KYYYYYYYYYYYYK.",
         "..KKKyyyyyyKKK..",
+        "..K.KyyyyyyK....",
+        ".KWKKWyyyyWK....",
+        ".KCCKKWWWWK.....",
+        "..KCKCCCCCCK....",
+        "...KCrrrrrrCK...",
+        "...KCrRRRRrCK...",
+        "...KCrrrrrrCWK..",
+        "...KCrrrrrrCK...",
+        "....KCCCCCCK....",
         "....KyyyyyyK....",
-        "....KWyyyyWK....",
-        ".....KWWWWK.....",
-        "...KKCCCCCCK....",
-        "..KCCrrrrrrCK...",
-        "..KCCrRRRRrCK...",
-        "..KCCrrrrrrCK...",
-        "..KCCrrrrrrCCK..",
-        "..KWKCCCCCCKCK..",
-        "...KKyyyyyyKCK..",
-        "....KwwKKwwKKWK.",
-        "....KwwKKwwK.K..",
+        "....KwwwKwwK....",
         "....KwwKKwwK....",
         "....KwwKKwwK....",
-        "....KwwKKwwK....",
-        "....KwwKKwwK....",
-        "....KwwKKwwK....",
-        "....KrrKKrrK....",
-        "....KrrKKrrK...."
+        "...KwwK.KwwK....",
+        "...KwwK.KwwK....",
+        "...KwwK..KwwK...",
+        "...KrrrK.KrrrK..",
+        "...KrrrK.KrrrK.."
       ],
       "anchors": {
         "hand": {
-          "x": 13,
-          "y": 15
+          "x": 12,
+          "y": 12
         }
       }
     },
     {
       "id": "up_swing1",
       "rows": [
-        ".....KYYYYKKK...",
-        "....KYYYYYYCWK..",
-        "..KKKyyyyyyCKK..",
-        ".KYYYYYYYYYCYYK.",
+        "................",
+        "......KKKK......",
+        ".....KYYYYK.....",
+        "....KYYYYYYK....",
+        "..KKKyyyyyyKKK..",
+        ".KYYYYYYYYYYYYK.",
         "..KKKyyyyyyCKK..",
         "....KyyyyyyCK...",
         "....KWyyyyWCK...",
         ".....KWWWWKCK...",
         "...KKCCCCCCCK...",
-        "..KCCrrrrrrCK...",
-        "..KCCrRRRRrCK...",
-        "..KCCrrrrrrCK...",
-        "..KCCrrrrrrCK...",
-        "..KWKCCCCCCK....",
-        "...KKyyyyyyK....",
-        "....KwwKKwwK....",
-        "....KwwKKwwK....",
-        "....KwwKKwwK....",
-        "....KwwKKwwK....",
-        "....KwwKKwwK....",
-        "....KwwKKwwK....",
-        "....KwwKKwwK....",
-        "....KrrKKrrK....",
-        "....KrrKKrrK...."
+        ".KKCCrrrrrrCK...",
+        "KCCKCrRRRRrCK...",
+        "CCKKCrrrrrrCK...",
+        "WK.KCrrrrrrCK...",
+        "K...KCCCCCCK....",
+        "....KyyyyyyK....",
+        "....KwwwKwwK....",
+        "...KwwwKKwwwK...",
+        "..KwwwK..KwwK...",
+        ".KwwwK....KwwK..",
+        ".KwwK......KwwK.",
+        ".KrrrK.....KrrrK",
+        ".KrrrK.....KrrrK"
       ],
       "anchors": {
         "hand": {
-          "x": 12,
-          "y": 1
+          "x": 11,
+          "y": 5
         }
       }
     },
     {
       "id": "up_swing2",
       "rows": [
+        "......KKKK......",
         ".....KYYYYK.....",
         "....KYYYYYYK....",
         "..KKKyyyyyyKKK..",
         ".KYYYYYYYYYYYYK.",
         "..KKKyyyyyyKKK..",
-        "....KyyyyyyKKK..",
-        "....KWyyyyWKCWK.",
-        ".....KWWWWKKCK..",
-        "...KKCCCCCCCK...",
-        "..KCCrrrrrrCK...",
-        "..KCCrRRRRrCK...",
-        "..KCCrrrrrrCK...",
-        "..KCCrrrrrrCK...",
-        "..KWKCCCCCCK....",
-        "...KKyyyyyyK....",
+        "....KyyyyyyK....",
+        "....KWyyyyWKK...",
+        ".....KWWWWKCWK..",
+        ".KKKKCCCCCCCK...",
+        "KWCCCrrrrrrCK...",
+        ".KKKCrRRRRrCK...",
+        "...KCrrrrrrCK...",
+        "...KCrrrrrrCK...",
+        "....KCCCCCCK....",
+        "....KyyyyyyK....",
+        "....KwwwKwwK....",
         "....KwwKKwwK....",
-        "....KwwKKwwK....",
-        "....KwwKKwwK....",
-        "....KwwKKwwK....",
-        "....KwwKKwwK....",
-        "....KwwKKwwK....",
-        "....KwwKKwwK....",
-        "....KrrKKrrK....",
-        "....KrrKKrrK...."
+        "...KwwK.KwwwK...",
+        "..KwwwK..KwwK...",
+        "..KwwK...KwwK...",
+        "..KwwK....KwwK..",
+        "..KrrrK...KrrrK.",
+        "..KrrrK...KrrrK."
       ],
       "anchors": {
         "hand": {
-          "x": 13,
-          "y": 6
+          "x": 12,
+          "y": 8
         }
       }
     },
     {
       "id": "down_swing0",
       "rows": [
+        "......KKKK......",
         ".....KYYYYK.....",
-        "....KYYYYYYKKK..",
-        "..KKKyyyyyyKCWK.",
-        ".KYYYYYYYYYYCYK.",
-        "..KKKWWWWWWKCK..",
-        "....KWKWWKWKCK..",
-        "....KWWWWWWCK...",
-        ".....KWWWWKCK...",
-        "...KKCCCCCCCK...",
-        "..KCCCCCCCCCK...",
-        "..KCCCCcCCCCK...",
-        "..KCCCCCCCCCK...",
-        "..KCCCCCCCCCK...",
-        "..KWKCCCCCCK....",
-        "...KKyyyyyyK....",
+        "....KYYYYYYK....",
+        "..KKKyyyyyyKKK..",
+        ".KYYYYYYYYYYYYK.",
+        "..KKKWWWWWWKKK..",
+        ".KWKKWKWWKWK....",
+        ".KCKKWWWWWWK....",
+        "..KCKKWWWWK.....",
+        "..KCKCCCCCCK....",
+        "...KCCCCCCCCK...",
+        "...KCCCcCCCCK...",
+        "...KCCCCCCCCK...",
+        "...KCCCCCCCWK...",
+        "....KCCCCCCK....",
+        "....KyyyyyyK....",
+        "....KwwwKwwK....",
         "....KwwKKwwK....",
         "....KwwKKwwK....",
-        "....KwwKKwwK....",
-        "....KwwKKwwK....",
-        "....KwwKKwwK....",
-        "....KwwKKwwK....",
-        "....KwwKKwwK....",
-        "....KrrKKrrK....",
-        "....KrrKKrrK...."
+        "...KwwK.KwwK....",
+        "...KwwK.KwwK....",
+        "...KwwK..KwwK...",
+        "...KrrrK.KrrrK..",
+        "...KrrrK.KrrrK.."
       ],
       "anchors": {
         "hand": {
-          "x": 13,
-          "y": 2
+          "x": 11,
+          "y": 13
         }
       }
     },
     {
       "id": "down_swing1",
       "rows": [
+        "................",
+        "......KKKK......",
         ".....KYYYYK.....",
         "....KYYYYYYK....",
         "..KKKyyyyyyKKK..",
@@ -627,25 +629,23 @@
         "....KWWWWWWK....",
         ".....KWWWWK.....",
         "...KKCCCCCCK....",
-        "..KCCCCCCCCCK...",
-        "..KCCCCcCCCCK...",
-        "..KCCCCCCCCCK...",
-        "..KCCCCCCCCCK...",
-        "..KWKCCCCCCCK...",
-        "...KKyyyyyyCK...",
-        "....KwwKKwwCK...",
-        "....KwwKKwwCK...",
-        "....KwwKKwwCK...",
-        "....KwwKKwwCK...",
-        "....KwwKKwwWK...",
-        "....KwwKKwwK....",
-        "....KwwKKwwK....",
-        "....KrrKKrrK....",
-        "....KrrKKrrK...."
+        ".KKCCCCCCCCCK...",
+        "KCCKCCCcCCCCK...",
+        "CCKKCCCCCCCCK...",
+        "WK.KCCCCCCCCK...",
+        "K...KCCCCCCK....",
+        "....KyyyyyCK....",
+        "....KwwwKwCK....",
+        "...KwwwKKwCwK...",
+        "..KwwwK..KWwK...",
+        ".KwwwK....KwwK..",
+        ".KwwK......KwwK.",
+        ".KrrrK.....KrrrK",
+        ".KrrrK.....KrrrK"
       ],
       "anchors": {
         "hand": {
-          "x": 11,
+          "x": 10,
           "y": 19
         }
       }
@@ -653,6 +653,7 @@
     {
       "id": "down_swing2",
       "rows": [
+        "......KKKK......",
         ".....KYYYYK.....",
         "....KYYYYYYK....",
         "..KKKyyyyyyKKK..",
@@ -660,27 +661,26 @@
         "..KKKWWWWWWKKK..",
         "....KWKWWKWK....",
         "....KWWWWWWK....",
-        ".....KWWWWK.....",
-        "...KKCCCCCCK....",
-        "..KCCCCCCCCCK...",
-        "..KCCCCcCCCCK...",
-        "..KCCCCCCCCCK...",
-        "..KCCCCCCCCCK...",
-        "..KWKCCCCCCCK...",
-        "...KKyyyyyyCK...",
-        "....KwwKKwwKWK..",
-        "....KwwKKwwKK...",
+        ".KKK.KWWWWK.....",
+        "KWCCKCCCCCCK....",
+        ".KKKCCCCCCCCK...",
+        "...KCCCcCCCCK...",
+        "...KCCCCCCCCK...",
+        "...KCCCCCCCCK...",
+        "....KCCCCCCCK...",
+        "....KyyyyyyWK...",
+        "....KwwwKwwK....",
         "....KwwKKwwK....",
-        "....KwwKKwwK....",
-        "....KwwKKwwK....",
-        "....KwwKKwwK....",
-        "....KwwKKwwK....",
-        "....KrrKKrrK....",
-        "....KrrKKrrK...."
+        "...KwwK.KwwwK...",
+        "..KwwwK..KwwK...",
+        "..KwwK...KwwK...",
+        "..KwwK....KwwK..",
+        "..KrrrK...KrrrK.",
+        "..KrrrK...KrrrK."
       ],
       "anchors": {
         "hand": {
-          "x": 12,
+          "x": 11,
           "y": 15
         }
       }
@@ -688,22 +688,22 @@
     {
       "id": "side_swing0_walk0",
       "rows": [
+        "......KKKK......",
         ".....KYYYYK.....",
         "....KYYYYYYK....",
         "..KKKyyyyyyKKK..",
         ".KYYYYYYYYYYYYK.",
-        "..KKWWWWWWKKKK..",
-        "...KCCWWKWK.....",
-        "....KCCWWWWK....",
-        ".....KCWWWK.....",
-        ".....KCCCCK.....",
-        "....KCCCCCCK....",
-        "....KCCCCCcK....",
-        "....KCCCCCcK....",
+        "..KKKWWWWWKKKK..",
+        "..KWKWWWKWK.....",
+        "..KCCWWWWWWK....",
+        "...KCKWWWWK.....",
+        "....KCCCCCKK....",
+        "....KCCCCCCCK...",
+        "....KCCCCCcKWK..",
+        "....KCCCCCcKK...",
         "....KCCCCCcK....",
         ".....KCCCCK.....",
         ".....KyyyyK.....",
-        ".....KwwwK......",
         ".....KwwwwK.....",
         "....KwwwwwK.....",
         "....KwwKKwwK....",
@@ -715,29 +715,29 @@
       ],
       "anchors": {
         "hand": {
-          "x": 4,
-          "y": 4
+          "x": 12,
+          "y": 11
         }
       }
     },
     {
       "id": "side_swing0_walk1",
       "rows": [
+        ".....KYYYYK.....",
         "....KYYYYYYK....",
         "..KKKyyyyyyKKK..",
         ".KYYYYYYYYYYYYK.",
-        "..KKWWWWWWKKKK..",
-        "...KCCWWKWK.....",
-        "....KCCWWWWK....",
-        ".....KCWWWK.....",
-        ".....KCCCCK.....",
-        "....KCCCCCCK....",
-        "....KCCCCCcK....",
-        "....KCCCCCcK....",
+        "..KKKWWWWWKKKK..",
+        "..KWKWWWKWK.....",
+        "..KCCWWWWWWK....",
+        "...KCKWWWWK.....",
+        "....KCCCCCKK....",
+        "....KCCCCCCCK...",
+        "....KCCCCCcKWK..",
+        "....KCCCCCcKK...",
         "....KCCCCCcK....",
         ".....KCCCCK.....",
         ".....KyyyyK.....",
-        "......KKKK......",
         "......KwwK......",
         "......KwwK......",
         "......KwwK......",
@@ -750,30 +750,30 @@
       ],
       "anchors": {
         "hand": {
-          "x": 4,
-          "y": 3
+          "x": 12,
+          "y": 10
         }
       }
     },
     {
       "id": "side_swing0_walk2",
       "rows": [
+        "......KKKK......",
         ".....KYYYYK.....",
         "....KYYYYYYK....",
         "..KKKyyyyyyKKK..",
         ".KYYYYYYYYYYYYK.",
-        "..KKWWWWWWKKKK..",
-        "...KCCWWKWK.....",
-        "....KCCWWWWK....",
-        ".....KCWWWK.....",
-        ".....KCCCCK.....",
-        "....KCCCCCCK....",
-        "....KCCCCCcK....",
-        "....KCCCCCcK....",
+        "..KKKWWWWWKKKK..",
+        "..KWKWWWKWK.....",
+        "..KCCWWWWWWK....",
+        "...KCKWWWWK.....",
+        "....KCCCCCKK....",
+        "....KCCCCCCCK...",
+        "....KCCCCCcKWK..",
+        "....KCCCCCcKK...",
         "....KCCCCCcK....",
         ".....KCCCCK.....",
         ".....KyyyyK.....",
-        ".....KwwwK......",
         ".....KwwwwK.....",
         "....KwwwwwK.....",
         "....KwwKKwwK....",
@@ -785,29 +785,29 @@
       ],
       "anchors": {
         "hand": {
-          "x": 4,
-          "y": 4
+          "x": 12,
+          "y": 11
         }
       }
     },
     {
       "id": "side_swing0_walk3",
       "rows": [
+        ".....KYYYYK.....",
         "....KYYYYYYK....",
         "..KKKyyyyyyKKK..",
         ".KYYYYYYYYYYYYK.",
-        "..KKWWWWWWKKKK..",
-        "...KCCWWKWK.....",
-        "....KCCWWWWK....",
-        ".....KCWWWK.....",
-        ".....KCCCCK.....",
-        "....KCCCCCCK....",
-        "....KCCCCCcK....",
-        "....KCCCCCcK....",
+        "..KKKWWWWWKKKK..",
+        "..KWKWWWKWK.....",
+        "..KCCWWWWWWK....",
+        "...KCKWWWWK.....",
+        "....KCCCCCKK....",
+        "....KCCCCCCCK...",
+        "....KCCCCCcKWK..",
+        "....KCCCCCcKK...",
         "....KCCCCCcK....",
         ".....KCCCCK.....",
         ".....KyyyyK.....",
-        "......KKKK......",
         "......KwwK......",
         "......KwwK......",
         "......KwwK......",
@@ -820,30 +820,30 @@
       ],
       "anchors": {
         "hand": {
-          "x": 4,
-          "y": 3
+          "x": 12,
+          "y": 10
         }
       }
     },
     {
       "id": "side_swing1_walk0",
       "rows": [
-        ".....KYYYYK.....",
-        "....KYYYYYYK....",
-        "..KKKyyyyyyKKK..",
-        ".KYYYYYYYYYYYYK.",
-        "..KKKWWWWWKKKK..",
-        "....KWWWKWK.....",
-        "....KWWWWWWK....",
-        ".....KWWWWK.....",
-        ".....KCCCCKKKKKK",
-        "....KCCCCCCCCCCW",
-        "....KCCCCCcKKKKK",
-        "....KCCCCCcK....",
-        "....KCCCCCcK....",
-        ".....KCCCCK.....",
-        ".....KyyyyK.....",
-        ".....KwwwK......",
+        ".......KKKK.....",
+        "......KYYYYK....",
+        ".....KYYYYYYK...",
+        "...KKKyyyyyyKKK.",
+        "..KYYYYYYYYYYYYK",
+        "...KKKWWWWWKKKK.",
+        ".....KWWWKWK....",
+        ".....KWWWWWWK...",
+        "......KWWWWK....",
+        ".....KKCCCCKKKKK",
+        "...KKCCCCCCCCCCW",
+        ".KKCCCCCCCCcKKKK",
+        "KCCCKKCCCCCcK...",
+        "KWKK.KCCCCCcK...",
+        ".K....KCCCCK....",
+        ".....KwyyyyK....",
         ".....KwwwwK.....",
         "....KwwwwwK.....",
         "....KwwKKwwK....",
@@ -856,29 +856,29 @@
       "anchors": {
         "hand": {
           "x": 15,
-          "y": 9
+          "y": 10
         }
       }
     },
     {
       "id": "side_swing1_walk1",
       "rows": [
-        "....KYYYYYYK....",
-        "..KKKyyyyyyKKK..",
-        ".KYYYYYYYYYYYYK.",
-        "..KKKWWWWWKKKK..",
-        "....KWWWKWK.....",
-        "....KWWWWWWK....",
-        ".....KWWWWK.....",
-        ".....KCCCCKKKKKK",
-        "....KCCCCCCCCCCW",
-        "....KCCCCCcKKKKK",
-        "....KCCCCCcK....",
-        "....KCCCCCcK....",
-        ".....KCCCCK.....",
-        ".....KyyyyK.....",
-        "......KKKK......",
-        "......KwwK......",
+        "......KYYYYK....",
+        ".....KYYYYYYK...",
+        "...KKKyyyyyyKKK.",
+        "..KYYYYYYYYYYYYK",
+        "...KKKWWWWWKKKK.",
+        ".....KWWWKWK....",
+        ".....KWWWWWWK...",
+        "......KWWWWK....",
+        ".....KKCCCCKKKKK",
+        "...KKCCCCCCCCCCW",
+        ".KKCCCCCCCCcKKKK",
+        "KCCCKKCCCCCcK...",
+        "KWKK.KCCCCCcK...",
+        ".K....KCCCCK....",
+        "......KyyyyK....",
+        "......KwwKK.....",
         "......KwwK......",
         "......KwwK......",
         "......KwwK......",
@@ -887,41 +887,6 @@
         "......KwwwK.....",
         ".....KrrrrrK....",
         ".....KrrrrrK...."
-      ],
-      "anchors": {
-        "hand": {
-          "x": 15,
-          "y": 8
-        }
-      }
-    },
-    {
-      "id": "side_swing1_walk2",
-      "rows": [
-        ".....KYYYYK.....",
-        "....KYYYYYYK....",
-        "..KKKyyyyyyKKK..",
-        ".KYYYYYYYYYYYYK.",
-        "..KKKWWWWWKKKK..",
-        "....KWWWKWK.....",
-        "....KWWWWWWK....",
-        ".....KWWWWK.....",
-        ".....KCCCCKKKKKK",
-        "....KCCCCCCCCCCW",
-        "....KCCCCCcKKKKK",
-        "....KCCCCCcK....",
-        "....KCCCCCcK....",
-        ".....KCCCCK.....",
-        ".....KyyyyK.....",
-        ".....KwwwK......",
-        ".....KwwwwK.....",
-        "....KwwwwwK.....",
-        "....KwwKKwwK....",
-        "...KwwwKKwwwK...",
-        "...KwwK..KwwK...",
-        "...KwwK...KwwK..",
-        "..KrrrrK.KrrrrK.",
-        "..KrrrrK.KrrrrK."
       ],
       "anchors": {
         "hand": {
@@ -931,24 +896,59 @@
       }
     },
     {
+      "id": "side_swing1_walk2",
+      "rows": [
+        ".......KKKK.....",
+        "......KYYYYK....",
+        ".....KYYYYYYK...",
+        "...KKKyyyyyyKKK.",
+        "..KYYYYYYYYYYYYK",
+        "...KKKWWWWWKKKK.",
+        ".....KWWWKWK....",
+        ".....KWWWWWWK...",
+        "......KWWWWK....",
+        ".....KKCCCCKKKKK",
+        "...KKCCCCCCCCCCW",
+        ".KKCCCCCCCCcKKKK",
+        "KCCCKKCCCCCcK...",
+        "KWKK.KCCCCCcK...",
+        ".K....KCCCCK....",
+        ".....KwyyyyK....",
+        ".....KwwwwK.....",
+        "....KwwwwwK.....",
+        "....KwwKKwwK....",
+        "...KwwwKKwwwK...",
+        "...KwwK..KwwK...",
+        "...KwwK...KwwK..",
+        "..KrrrrK.KrrrrK.",
+        "..KrrrrK.KrrrrK."
+      ],
+      "anchors": {
+        "hand": {
+          "x": 15,
+          "y": 10
+        }
+      }
+    },
+    {
       "id": "side_swing1_walk3",
       "rows": [
-        "....KYYYYYYK....",
-        "..KKKyyyyyyKKK..",
-        ".KYYYYYYYYYYYYK.",
-        "..KKKWWWWWKKKK..",
-        "....KWWWKWK.....",
-        "....KWWWWWWK....",
-        ".....KWWWWK.....",
-        ".....KCCCCKKKKKK",
-        "....KCCCCCCCCCCW",
-        "....KCCCCCcKKKKK",
-        "....KCCCCCcK....",
-        "....KCCCCCcK....",
-        ".....KCCCCK.....",
-        ".....KyyyyK.....",
-        "......KKKK......",
-        "......KwwK......",
+        "......KYYYYK....",
+        ".....KYYYYYYK...",
+        "...KKKyyyyyyKKK.",
+        "..KYYYYYYYYYYYYK",
+        "...KKKWWWWWKKKK.",
+        ".....KWWWKWK....",
+        ".....KWWWWWWK...",
+        "......KWWWWK....",
+        ".....KKCCCCKKKKK",
+        "...KKCCCCCCCCCCW",
+        ".KKCCCCCCCCcKKKK",
+        "KCCCKKCCCCCcK...",
+        "KWKK.KCCCCCcK...",
+        ".K....KCCCCK....",
+        "......KyyyyK....",
+        "......KwwKK.....",
         "......KwwK......",
         "......KwwK......",
         "......KwwK......",
@@ -961,13 +961,14 @@
       "anchors": {
         "hand": {
           "x": 15,
-          "y": 8
+          "y": 9
         }
       }
     },
     {
       "id": "side_swing2_walk0",
       "rows": [
+        "......KKKK......",
         ".....KYYYYK.....",
         "....KYYYYYYK....",
         "..KKKyyyyyyKKK..",
@@ -975,15 +976,14 @@
         "..KKKWWWWWKKKK..",
         "....KWWWKWK.....",
         "....KWWWWWWK....",
-        ".....KWWWWK.....",
+        "..KKKKWWWWK.....",
+        ".KWCCCCCCCK.....",
+        "..KKKCCCCCCKK...",
+        "....KCCCCCCCCK..",
+        "....KCCCCCcKKWK.",
+        "....KCCCCCcK.K..",
         ".....KCCCCK.....",
-        "....KCCCCCCK....",
-        "....KCCCCCCK....",
-        "....KCCCCCCCK...",
-        "....KCCCCCcKCK..",
-        ".....KCCCCK.KWK.",
-        ".....KyyyyK..K..",
-        ".....KwwwK......",
+        ".....KyyyyK.....",
         ".....KwwwwK.....",
         "....KwwwwwK.....",
         "....KwwKKwwK....",
@@ -996,28 +996,28 @@
       "anchors": {
         "hand": {
           "x": 13,
-          "y": 13
+          "y": 12
         }
       }
     },
     {
       "id": "side_swing2_walk1",
       "rows": [
+        ".....KYYYYK.....",
         "....KYYYYYYK....",
         "..KKKyyyyyyKKK..",
         ".KYYYYYYYYYYYYK.",
         "..KKKWWWWWKKKK..",
         "....KWWWKWK.....",
         "....KWWWWWWK....",
-        ".....KWWWWK.....",
+        "..KKKKWWWWK.....",
+        ".KWCCCCCCCK.....",
+        "..KKKCCCCCCKK...",
+        "....KCCCCCCCCK..",
+        "....KCCCCCcKKWK.",
+        "....KCCCCCcK.K..",
         ".....KCCCCK.....",
-        "....KCCCCCCK....",
-        "....KCCCCCCK....",
-        "....KCCCCCCCK...",
-        "....KCCCCCcKCK..",
-        ".....KCCCCK.KWK.",
-        ".....KyyyyK..K..",
-        "......KKKK......",
+        ".....KyyyyK.....",
         "......KwwK......",
         "......KwwK......",
         "......KwwK......",
@@ -1031,13 +1031,14 @@
       "anchors": {
         "hand": {
           "x": 13,
-          "y": 12
+          "y": 11
         }
       }
     },
     {
       "id": "side_swing2_walk2",
       "rows": [
+        "......KKKK......",
         ".....KYYYYK.....",
         "....KYYYYYYK....",
         "..KKKyyyyyyKKK..",
@@ -1045,15 +1046,14 @@
         "..KKKWWWWWKKKK..",
         "....KWWWKWK.....",
         "....KWWWWWWK....",
-        ".....KWWWWK.....",
+        "..KKKKWWWWK.....",
+        ".KWCCCCCCCK.....",
+        "..KKKCCCCCCKK...",
+        "....KCCCCCCCCK..",
+        "....KCCCCCcKKWK.",
+        "....KCCCCCcK.K..",
         ".....KCCCCK.....",
-        "....KCCCCCCK....",
-        "....KCCCCCCK....",
-        "....KCCCCCCCK...",
-        "....KCCCCCcKCK..",
-        ".....KCCCCK.KWK.",
-        ".....KyyyyK..K..",
-        ".....KwwwK......",
+        ".....KyyyyK.....",
         ".....KwwwwK.....",
         "....KwwwwwK.....",
         "....KwwKKwwK....",
@@ -1066,28 +1066,28 @@
       "anchors": {
         "hand": {
           "x": 13,
-          "y": 13
+          "y": 12
         }
       }
     },
     {
       "id": "side_swing2_walk3",
       "rows": [
+        ".....KYYYYK.....",
         "....KYYYYYYK....",
         "..KKKyyyyyyKKK..",
         ".KYYYYYYYYYYYYK.",
         "..KKKWWWWWKKKK..",
         "....KWWWKWK.....",
         "....KWWWWWWK....",
-        ".....KWWWWK.....",
+        "..KKKKWWWWK.....",
+        ".KWCCCCCCCK.....",
+        "..KKKCCCCCCKK...",
+        "....KCCCCCCCCK..",
+        "....KCCCCCcKKWK.",
+        "....KCCCCCcK.K..",
         ".....KCCCCK.....",
-        "....KCCCCCCK....",
-        "....KCCCCCCK....",
-        "....KCCCCCCCK...",
-        "....KCCCCCcKCK..",
-        ".....KCCCCK.KWK.",
-        ".....KyyyyK..K..",
-        "......KKKK......",
+        ".....KyyyyK.....",
         "......KwwK......",
         "......KwwK......",
         "......KwwK......",
@@ -1101,30 +1101,30 @@
       "anchors": {
         "hand": {
           "x": 13,
-          "y": 12
+          "y": 11
         }
       }
     },
     {
       "id": "up_swing0_walk0",
       "rows": [
+        "......KKKK......",
         ".....KYYYYK.....",
         "....KYYYYYYK....",
         "..KKKyyyyyyKKK..",
         ".KYYYYYYYYYYYYK.",
         "..KKKyyyyyyKKK..",
+        "..K.KyyyyyyK....",
+        ".KWKKWyyyyWK....",
+        ".KCCKKWWWWK.....",
+        "..KCKCCCCCCK....",
+        "...KCrrrrrrCK...",
+        "...KCrRRRRrCK...",
+        "...KCrrrrrrCWK..",
+        "...KCrrrrrrCK...",
+        "....KCCCCCCK....",
         "....KyyyyyyK....",
-        "....KWyyyyWK....",
-        ".....KWWWWK.....",
-        "...KKCCCCCCK....",
-        "..KCCrrrrrrCK...",
-        "..KCCrRRRRrCK...",
-        "..KCCrrrrrrCK...",
-        "..KCCrrrrrrCCK..",
-        "..KWKCCCCCCKCK..",
-        "...KKyyyyyyKCK..",
-        "....KwwKKwwKKWK.",
-        "....KwwKKwwK.K..",
+        "....KwwKKwwK....",
         "....KwwKKwwK....",
         "....KwwKKwwK....",
         "....KwwKKwwK....",
@@ -1135,31 +1135,31 @@
       ],
       "anchors": {
         "hand": {
-          "x": 13,
-          "y": 15
+          "x": 12,
+          "y": 12
         }
       }
     },
     {
       "id": "up_swing0_walk1",
       "rows": [
+        "......KKKK......",
         ".....KYYYYK.....",
         "....KYYYYYYK....",
         "..KKKyyyyyyKKK..",
         ".KYYYYYYYYYYYYK.",
         "..KKKyyyyyyKKK..",
+        "..K.KyyyyyyK....",
+        ".KWKKWyyyyWK....",
+        ".KCCKKWWWWK.....",
+        "..KCKCCCCCCK....",
+        "...KCrrrrrrCK...",
+        "...KCrRRRRrCK...",
+        "...KCrrrrrrCWK..",
+        "...KCrrrrrrCK...",
+        "....KCCCCCCK....",
         "....KyyyyyyK....",
-        "....KWyyyyWK....",
-        ".....KWWWWK.....",
-        "...KKCCCCCCK....",
-        "..KCCrrrrrrCK...",
-        "..KCCrRRRRrCK...",
-        "..KCCrrrrrrCK...",
-        "..KCCrrrrrrCCK..",
-        "..KCKCCCCCCKCK..",
-        "..KWKyyyyyyKCK..",
-        "...KKwwKKwwKKWK.",
-        "....KwwKKwwK.K..",
+        "....KwwKKwwK....",
         "....KwwKKwwK....",
         "....KwwKKwwK....",
         "....KwwKKwwK....",
@@ -1170,31 +1170,31 @@
       ],
       "anchors": {
         "hand": {
-          "x": 13,
-          "y": 15
+          "x": 12,
+          "y": 12
         }
       }
     },
     {
       "id": "up_swing0_walk2",
       "rows": [
+        "......KKKK......",
         ".....KYYYYK.....",
         "....KYYYYYYK....",
         "..KKKyyyyyyKKK..",
         ".KYYYYYYYYYYYYK.",
         "..KKKyyyyyyKKK..",
+        "..K.KyyyyyyK....",
+        ".KWKKWyyyyWK....",
+        ".KCCKKWWWWK.....",
+        "..KCKCCCCCCK....",
+        "...KCrrrrrrCK...",
+        "...KCrRRRRrCK...",
+        "...KCrrrrrrCWK..",
+        "...KCrrrrrrCK...",
+        "....KCCCCCCK....",
         "....KyyyyyyK....",
-        "....KWyyyyWK....",
-        ".....KWWWWK.....",
-        "...KKCCCCCCK....",
-        "..KCCrrrrrrCK...",
-        "..KCCrRRRRrCK...",
-        "..KCCrrrrrrCK...",
-        "..KCCrrrrrrCCK..",
-        "..KWKCCCCCCKCK..",
-        "...KKyyyyyyKCK..",
-        "....KwwKKwwKKWK.",
-        "....KwwKKwwK.K..",
+        "....KwwKKwwK....",
         "....KwwKKwwK....",
         "....KwwKKwwK....",
         "....KwwKKwwK....",
@@ -1205,31 +1205,31 @@
       ],
       "anchors": {
         "hand": {
-          "x": 13,
-          "y": 15
+          "x": 12,
+          "y": 12
         }
       }
     },
     {
       "id": "up_swing0_walk3",
       "rows": [
+        "......KKKK......",
         ".....KYYYYK.....",
         "....KYYYYYYK....",
         "..KKKyyyyyyKKK..",
         ".KYYYYYYYYYYYYK.",
         "..KKKyyyyyyKKK..",
+        "..K.KyyyyyyK....",
+        ".KWKKWyyyyWK....",
+        ".KCCKKWWWWK.....",
+        "..KCKCCCCCCK....",
+        "...KCrrrrrrCK...",
+        "...KCrRRRRrCK...",
+        "...KCrrrrrrCWK..",
+        "...KCrrrrrrCK...",
+        "....KCCCCCCK....",
         "....KyyyyyyK....",
-        "....KWyyyyWK....",
-        ".....KWWWWK.....",
-        "...KKCCCCCCK....",
-        "..KCCrrrrrrCK...",
-        "..KCCrRRRRrCK...",
-        "..KCCrrrrrrCK...",
-        "..KWCrrrrrrCCK..",
-        "...KKCCCCCCKCK..",
-        "....KyyyyyyKCK..",
-        "....KwwKKwwKKWK.",
-        "....KwwKKwwK.K..",
+        "....KwwKKwwK....",
         "....KwwKKwwK....",
         "....KwwKKwwK....",
         "....KwwKKwwK....",
@@ -1240,30 +1240,30 @@
       ],
       "anchors": {
         "hand": {
-          "x": 13,
-          "y": 15
+          "x": 12,
+          "y": 12
         }
       }
     },
     {
       "id": "up_swing1_walk0",
       "rows": [
-        ".....KYYYYKKK...",
-        "....KYYYYYYCWK..",
-        "..KKKyyyyyyCKK..",
-        ".KYYYYYYYYYCYYK.",
+        "......KKKK......",
+        ".....KYYYYK.....",
+        "....KYYYYYYK....",
+        "..KKKyyyyyyKKK..",
+        ".KYYYYYYYYYYYYK.",
         "..KKKyyyyyyCKK..",
         "....KyyyyyyCK...",
         "....KWyyyyWCK...",
         ".....KWWWWKCK...",
         "...KKCCCCCCCK...",
-        "..KCCrrrrrrCK...",
-        "..KCCrRRRRrCK...",
-        "..KCCrrrrrrCK...",
-        "..KCCrrrrrrCK...",
-        "..KWKCCCCCCK....",
-        "...KKyyyyyyK....",
-        "....KwwKKwwK....",
+        ".KKCCrrrrrrCK...",
+        "KCCKCrRRRRrCK...",
+        "CCKKCrrrrrrCK...",
+        "WK.KCrrrrrrCK...",
+        "K...KCCCCCCK....",
+        "....KyyyyyyK....",
         "....KwwKKwwK....",
         "....KwwKKwwK....",
         "....KwwKKwwK....",
@@ -1275,30 +1275,30 @@
       ],
       "anchors": {
         "hand": {
-          "x": 12,
-          "y": 1
+          "x": 11,
+          "y": 4
         }
       }
     },
     {
       "id": "up_swing1_walk1",
       "rows": [
-        ".....KYYYYKKK...",
-        "....KYYYYYYCWK..",
-        "..KKKyyyyyyCKK..",
-        ".KYYYYYYYYYCYYK.",
+        "......KKKK......",
+        ".....KYYYYK.....",
+        "....KYYYYYYK....",
+        "..KKKyyyyyyKKK..",
+        ".KYYYYYYYYYYYYK.",
         "..KKKyyyyyyCKK..",
         "....KyyyyyyCK...",
         "....KWyyyyWCK...",
         ".....KWWWWKCK...",
         "...KKCCCCCCCK...",
-        "..KCCrrrrrrCK...",
-        "..KCCrRRRRrCK...",
-        "..KCCrrrrrrCK...",
-        "..KCCrrrrrrCK...",
-        "..KCKCCCCCCK....",
-        "..KWKyyyyyyK....",
-        "...KKwwKKwwK....",
+        ".KKCCrrrrrrCK...",
+        "KCCKCrRRRRrCK...",
+        "CCKKCrrrrrrCK...",
+        "WK.KCrrrrrrCK...",
+        "K...KCCCCCCK....",
+        "....KyyyyyyK....",
         "....KwwKKwwK....",
         "....KwwKKwwK....",
         "....KwwKKwwK....",
@@ -1310,30 +1310,30 @@
       ],
       "anchors": {
         "hand": {
-          "x": 12,
-          "y": 1
+          "x": 11,
+          "y": 4
         }
       }
     },
     {
       "id": "up_swing1_walk2",
       "rows": [
-        ".....KYYYYKKK...",
-        "....KYYYYYYCWK..",
-        "..KKKyyyyyyCKK..",
-        ".KYYYYYYYYYCYYK.",
+        "......KKKK......",
+        ".....KYYYYK.....",
+        "....KYYYYYYK....",
+        "..KKKyyyyyyKKK..",
+        ".KYYYYYYYYYYYYK.",
         "..KKKyyyyyyCKK..",
         "....KyyyyyyCK...",
         "....KWyyyyWCK...",
         ".....KWWWWKCK...",
         "...KKCCCCCCCK...",
-        "..KCCrrrrrrCK...",
-        "..KCCrRRRRrCK...",
-        "..KCCrrrrrrCK...",
-        "..KCCrrrrrrCK...",
-        "..KWKCCCCCCK....",
-        "...KKyyyyyyK....",
-        "....KwwKKwwK....",
+        ".KKCCrrrrrrCK...",
+        "KCCKCrRRRRrCK...",
+        "CCKKCrrrrrrCK...",
+        "WK.KCrrrrrrCK...",
+        "K...KCCCCCCK....",
+        "....KyyyyyyK....",
         "....KwwKKwwK....",
         "....KwwKKwwK....",
         "....KwwKKwwK....",
@@ -1345,30 +1345,30 @@
       ],
       "anchors": {
         "hand": {
-          "x": 12,
-          "y": 1
+          "x": 11,
+          "y": 4
         }
       }
     },
     {
       "id": "up_swing1_walk3",
       "rows": [
-        ".....KYYYYKKK...",
-        "....KYYYYYYCWK..",
-        "..KKKyyyyyyCKK..",
-        ".KYYYYYYYYYCYYK.",
+        "......KKKK......",
+        ".....KYYYYK.....",
+        "....KYYYYYYK....",
+        "..KKKyyyyyyKKK..",
+        ".KYYYYYYYYYYYYK.",
         "..KKKyyyyyyCKK..",
         "....KyyyyyyCK...",
         "....KWyyyyWCK...",
         ".....KWWWWKCK...",
         "...KKCCCCCCCK...",
-        "..KCCrrrrrrCK...",
-        "..KCCrRRRRrCK...",
-        "..KCCrrrrrrCK...",
-        "..KWCrrrrrrCK...",
-        "...KKCCCCCCK....",
+        ".KKCCrrrrrrCK...",
+        "KCCKCrRRRRrCK...",
+        "CCKKCrrrrrrCK...",
+        "WK.KCrrrrrrCK...",
+        "K...KCCCCCCK....",
         "....KyyyyyyK....",
-        "....KwwKKwwK....",
         "....KwwKKwwK....",
         "....KwwKKwwK....",
         "....KwwKKwwK....",
@@ -1380,451 +1380,31 @@
       ],
       "anchors": {
         "hand": {
-          "x": 12,
-          "y": 1
+          "x": 11,
+          "y": 4
         }
       }
     },
     {
       "id": "up_swing2_walk0",
       "rows": [
+        "......KKKK......",
         ".....KYYYYK.....",
         "....KYYYYYYK....",
         "..KKKyyyyyyKKK..",
         ".KYYYYYYYYYYYYK.",
         "..KKKyyyyyyKKK..",
-        "....KyyyyyyKKK..",
-        "....KWyyyyWKCWK.",
-        ".....KWWWWKKCK..",
-        "...KKCCCCCCCK...",
-        "..KCCrrrrrrCK...",
-        "..KCCrRRRRrCK...",
-        "..KCCrrrrrrCK...",
-        "..KCCrrrrrrCK...",
-        "..KWKCCCCCCK....",
-        "...KKyyyyyyK....",
-        "....KwwKKwwK....",
-        "....KwwKKwwK....",
-        "....KwwKKwwK....",
-        "....KwwKKwwK....",
-        "....KwwKKwwK....",
-        "....KwwKKwwK....",
-        "....KwwKKwwK....",
-        "....KrrKKrrK....",
-        "....KrrKKrrK...."
-      ],
-      "anchors": {
-        "hand": {
-          "x": 13,
-          "y": 6
-        }
-      }
-    },
-    {
-      "id": "up_swing2_walk1",
-      "rows": [
-        ".....KYYYYK.....",
-        "....KYYYYYYK....",
-        "..KKKyyyyyyKKK..",
-        ".KYYYYYYYYYYYYK.",
-        "..KKKyyyyyyKKK..",
-        "....KyyyyyyKKK..",
-        "....KWyyyyWKCWK.",
-        ".....KWWWWKKCK..",
-        "...KKCCCCCCCK...",
-        "..KCCrrrrrrCK...",
-        "..KCCrRRRRrCK...",
-        "..KCCrrrrrrCK...",
-        "..KCCrrrrrrCK...",
-        "..KCKCCCCCCK....",
-        "..KWKyyyyyyK....",
-        "...KKwwKKwwK....",
-        "....KwwKKwwK....",
-        "....KwwKKwwK....",
-        "....KwwKKwwK....",
-        "....KwwKKwwK....",
-        "....KwwKKwwK....",
-        "....KrrKKwwK....",
-        "....KrrKKrrK....",
-        ".....KK.KrrK...."
-      ],
-      "anchors": {
-        "hand": {
-          "x": 13,
-          "y": 6
-        }
-      }
-    },
-    {
-      "id": "up_swing2_walk2",
-      "rows": [
-        ".....KYYYYK.....",
-        "....KYYYYYYK....",
-        "..KKKyyyyyyKKK..",
-        ".KYYYYYYYYYYYYK.",
-        "..KKKyyyyyyKKK..",
-        "....KyyyyyyKKK..",
-        "....KWyyyyWKCWK.",
-        ".....KWWWWKKCK..",
-        "...KKCCCCCCCK...",
-        "..KCCrrrrrrCK...",
-        "..KCCrRRRRrCK...",
-        "..KCCrrrrrrCK...",
-        "..KCCrrrrrrCK...",
-        "..KWKCCCCCCK....",
-        "...KKyyyyyyK....",
-        "....KwwKKwwK....",
-        "....KwwKKwwK....",
-        "....KwwKKwwK....",
-        "....KwwKKwwK....",
-        "....KwwKKwwK....",
-        "....KwwKKwwK....",
-        "....KwwKKwwK....",
-        "....KrrKKrrK....",
-        "....KrrKKrrK...."
-      ],
-      "anchors": {
-        "hand": {
-          "x": 13,
-          "y": 6
-        }
-      }
-    },
-    {
-      "id": "up_swing2_walk3",
-      "rows": [
-        ".....KYYYYK.....",
-        "....KYYYYYYK....",
-        "..KKKyyyyyyKKK..",
-        ".KYYYYYYYYYYYYK.",
-        "..KKKyyyyyyKKK..",
-        "....KyyyyyyKKK..",
-        "....KWyyyyWKCWK.",
-        ".....KWWWWKKCK..",
-        "...KKCCCCCCCK...",
-        "..KCCrrrrrrCK...",
-        "..KCCrRRRRrCK...",
-        "..KCCrrrrrrCK...",
-        "..KWCrrrrrrCK...",
-        "...KKCCCCCCK....",
+        "....KyyyyyyK....",
+        "....KWyyyyWKK...",
+        ".....KWWWWKCWK..",
+        ".KKKKCCCCCCCK...",
+        "KWCCCrrrrrrCK...",
+        ".KKKCrRRRRrCK...",
+        "...KCrrrrrrCK...",
+        "...KCrrrrrrCK...",
+        "....KCCCCCCK....",
         "....KyyyyyyK....",
         "....KwwKKwwK....",
-        "....KwwKKwwK....",
-        "....KwwKKwwK....",
-        "....KwwKKwwK....",
-        "....KwwKKwwK....",
-        "....KwwKKwwK....",
-        "....KwwKKrrK....",
-        "....KrrKKrrK....",
-        "....KrrK.KK....."
-      ],
-      "anchors": {
-        "hand": {
-          "x": 13,
-          "y": 6
-        }
-      }
-    },
-    {
-      "id": "down_swing0_walk0",
-      "rows": [
-        ".....KYYYYK.....",
-        "....KYYYYYYKKK..",
-        "..KKKyyyyyyKCWK.",
-        ".KYYYYYYYYYYCYK.",
-        "..KKKWWWWWWKCK..",
-        "....KWKWWKWKCK..",
-        "....KWWWWWWCK...",
-        ".....KWWWWKCK...",
-        "...KKCCCCCCCK...",
-        "..KCCCCCCCCCK...",
-        "..KCCCCcCCCCK...",
-        "..KCCCCCCCCCK...",
-        "..KCCCCCCCCCK...",
-        "..KWKCCCCCCK....",
-        "...KKyyyyyyK....",
-        "....KwwKKwwK....",
-        "....KwwKKwwK....",
-        "....KwwKKwwK....",
-        "....KwwKKwwK....",
-        "....KwwKKwwK....",
-        "....KwwKKwwK....",
-        "....KwwKKwwK....",
-        "....KrrKKrrK....",
-        "....KrrKKrrK...."
-      ],
-      "anchors": {
-        "hand": {
-          "x": 13,
-          "y": 2
-        }
-      }
-    },
-    {
-      "id": "down_swing0_walk1",
-      "rows": [
-        ".....KYYYYK.....",
-        "....KYYYYYYKKK..",
-        "..KKKyyyyyyKCWK.",
-        ".KYYYYYYYYYYCYK.",
-        "..KKKWWWWWWKCK..",
-        "....KWKWWKWKCK..",
-        "....KWWWWWWCK...",
-        ".....KWWWWKCK...",
-        "...KKCCCCCCCK...",
-        "..KCCCCCCCCCK...",
-        "..KCCCCcCCCCK...",
-        "..KCCCCCCCCCK...",
-        "..KCCCCCCCCCK...",
-        "..KCKCCCCCCK....",
-        "..KWKyyyyyyK....",
-        "...KKwwKKwwK....",
-        "....KwwKKwwK....",
-        "....KwwKKwwK....",
-        "....KwwKKwwK....",
-        "....KwwKKwwK....",
-        "....KwwKKwwK....",
-        "....KrrKKwwK....",
-        "....KrrKKrrK....",
-        ".....KK.KrrK...."
-      ],
-      "anchors": {
-        "hand": {
-          "x": 13,
-          "y": 2
-        }
-      }
-    },
-    {
-      "id": "down_swing0_walk2",
-      "rows": [
-        ".....KYYYYK.....",
-        "....KYYYYYYKKK..",
-        "..KKKyyyyyyKCWK.",
-        ".KYYYYYYYYYYCYK.",
-        "..KKKWWWWWWKCK..",
-        "....KWKWWKWKCK..",
-        "....KWWWWWWCK...",
-        ".....KWWWWKCK...",
-        "...KKCCCCCCCK...",
-        "..KCCCCCCCCCK...",
-        "..KCCCCcCCCCK...",
-        "..KCCCCCCCCCK...",
-        "..KCCCCCCCCCK...",
-        "..KWKCCCCCCK....",
-        "...KKyyyyyyK....",
-        "....KwwKKwwK....",
-        "....KwwKKwwK....",
-        "....KwwKKwwK....",
-        "....KwwKKwwK....",
-        "....KwwKKwwK....",
-        "....KwwKKwwK....",
-        "....KwwKKwwK....",
-        "....KrrKKrrK....",
-        "....KrrKKrrK...."
-      ],
-      "anchors": {
-        "hand": {
-          "x": 13,
-          "y": 2
-        }
-      }
-    },
-    {
-      "id": "down_swing0_walk3",
-      "rows": [
-        ".....KYYYYK.....",
-        "....KYYYYYYKKK..",
-        "..KKKyyyyyyKCWK.",
-        ".KYYYYYYYYYYCYK.",
-        "..KKKWWWWWWKCK..",
-        "....KWKWWKWKCK..",
-        "....KWWWWWWCK...",
-        ".....KWWWWKCK...",
-        "...KKCCCCCCCK...",
-        "..KCCCCCCCCCK...",
-        "..KCCCCcCCCCK...",
-        "..KCCCCCCCCCK...",
-        "..KWCCCCCCCCK...",
-        "...KKCCCCCCK....",
-        "....KyyyyyyK....",
-        "....KwwKKwwK....",
-        "....KwwKKwwK....",
-        "....KwwKKwwK....",
-        "....KwwKKwwK....",
-        "....KwwKKwwK....",
-        "....KwwKKwwK....",
-        "....KwwKKrrK....",
-        "....KrrKKrrK....",
-        "....KrrK.KK....."
-      ],
-      "anchors": {
-        "hand": {
-          "x": 13,
-          "y": 2
-        }
-      }
-    },
-    {
-      "id": "down_swing1_walk0",
-      "rows": [
-        ".....KYYYYK.....",
-        "....KYYYYYYK....",
-        "..KKKyyyyyyKKK..",
-        ".KYYYYYYYYYYYYK.",
-        "..KKKWWWWWWKKK..",
-        "....KWKWWKWK....",
-        "....KWWWWWWK....",
-        ".....KWWWWK.....",
-        "...KKCCCCCCK....",
-        "..KCCCCCCCCCK...",
-        "..KCCCCcCCCCK...",
-        "..KCCCCCCCCCK...",
-        "..KCCCCCCCCCK...",
-        "..KWKCCCCCCCK...",
-        "...KKyyyyyyCK...",
-        "....KwwKKwwCK...",
-        "....KwwKKwwCK...",
-        "....KwwKKwwCK...",
-        "....KwwKKwwCK...",
-        "....KwwKKwwWK...",
-        "....KwwKKwwK....",
-        "....KwwKKwwK....",
-        "....KrrKKrrK....",
-        "....KrrKKrrK...."
-      ],
-      "anchors": {
-        "hand": {
-          "x": 11,
-          "y": 19
-        }
-      }
-    },
-    {
-      "id": "down_swing1_walk1",
-      "rows": [
-        ".....KYYYYK.....",
-        "....KYYYYYYK....",
-        "..KKKyyyyyyKKK..",
-        ".KYYYYYYYYYYYYK.",
-        "..KKKWWWWWWKKK..",
-        "....KWKWWKWK....",
-        "....KWWWWWWK....",
-        ".....KWWWWK.....",
-        "...KKCCCCCCK....",
-        "..KCCCCCCCCCK...",
-        "..KCCCCcCCCCK...",
-        "..KCCCCCCCCCK...",
-        "..KCCCCCCCCCK...",
-        "..KCKCCCCCCCK...",
-        "..KWKyyyyyyCK...",
-        "...KKwwKKwwCK...",
-        "....KwwKKwwCK...",
-        "....KwwKKwwCK...",
-        "....KwwKKwwCK...",
-        "....KwwKKwwWK...",
-        "....KwwKKwwK....",
-        "....KrrKKwwK....",
-        "....KrrKKrrK....",
-        ".....KK.KrrK...."
-      ],
-      "anchors": {
-        "hand": {
-          "x": 11,
-          "y": 19
-        }
-      }
-    },
-    {
-      "id": "down_swing1_walk2",
-      "rows": [
-        ".....KYYYYK.....",
-        "....KYYYYYYK....",
-        "..KKKyyyyyyKKK..",
-        ".KYYYYYYYYYYYYK.",
-        "..KKKWWWWWWKKK..",
-        "....KWKWWKWK....",
-        "....KWWWWWWK....",
-        ".....KWWWWK.....",
-        "...KKCCCCCCK....",
-        "..KCCCCCCCCCK...",
-        "..KCCCCcCCCCK...",
-        "..KCCCCCCCCCK...",
-        "..KCCCCCCCCCK...",
-        "..KWKCCCCCCCK...",
-        "...KKyyyyyyCK...",
-        "....KwwKKwwCK...",
-        "....KwwKKwwCK...",
-        "....KwwKKwwCK...",
-        "....KwwKKwwCK...",
-        "....KwwKKwwWK...",
-        "....KwwKKwwK....",
-        "....KwwKKwwK....",
-        "....KrrKKrrK....",
-        "....KrrKKrrK...."
-      ],
-      "anchors": {
-        "hand": {
-          "x": 11,
-          "y": 19
-        }
-      }
-    },
-    {
-      "id": "down_swing1_walk3",
-      "rows": [
-        ".....KYYYYK.....",
-        "....KYYYYYYK....",
-        "..KKKyyyyyyKKK..",
-        ".KYYYYYYYYYYYYK.",
-        "..KKKWWWWWWKKK..",
-        "....KWKWWKWK....",
-        "....KWWWWWWK....",
-        ".....KWWWWK.....",
-        "...KKCCCCCCK....",
-        "..KCCCCCCCCCK...",
-        "..KCCCCcCCCCK...",
-        "..KCCCCCCCCCK...",
-        "..KWCCCCCCCCK...",
-        "...KKCCCCCCCK...",
-        "....KyyyyyyCK...",
-        "....KwwKKwwCK...",
-        "....KwwKKwwCK...",
-        "....KwwKKwwCK...",
-        "....KwwKKwwCK...",
-        "....KwwKKwwWK...",
-        "....KwwKKwwK....",
-        "....KwwKKrrK....",
-        "....KrrKKrrK....",
-        "....KrrK.KK....."
-      ],
-      "anchors": {
-        "hand": {
-          "x": 11,
-          "y": 19
-        }
-      }
-    },
-    {
-      "id": "down_swing2_walk0",
-      "rows": [
-        ".....KYYYYK.....",
-        "....KYYYYYYK....",
-        "..KKKyyyyyyKKK..",
-        ".KYYYYYYYYYYYYK.",
-        "..KKKWWWWWWKKK..",
-        "....KWKWWKWK....",
-        "....KWWWWWWK....",
-        ".....KWWWWK.....",
-        "...KKCCCCCCK....",
-        "..KCCCCCCCCCK...",
-        "..KCCCCcCCCCK...",
-        "..KCCCCCCCCCK...",
-        "..KCCCCCCCCCK...",
-        "..KWKCCCCCCCK...",
-        "...KKyyyyyyCK...",
-        "....KwwKKwwKWK..",
-        "....KwwKKwwKK...",
         "....KwwKKwwK....",
         "....KwwKKwwK....",
         "....KwwKKwwK....",
@@ -1836,6 +1416,426 @@
       "anchors": {
         "hand": {
           "x": 12,
+          "y": 8
+        }
+      }
+    },
+    {
+      "id": "up_swing2_walk1",
+      "rows": [
+        "......KKKK......",
+        ".....KYYYYK.....",
+        "....KYYYYYYK....",
+        "..KKKyyyyyyKKK..",
+        ".KYYYYYYYYYYYYK.",
+        "..KKKyyyyyyKKK..",
+        "....KyyyyyyK....",
+        "....KWyyyyWKK...",
+        ".....KWWWWKCWK..",
+        ".KKKKCCCCCCCK...",
+        "KWCCCrrrrrrCK...",
+        ".KKKCrRRRRrCK...",
+        "...KCrrrrrrCK...",
+        "...KCrrrrrrCK...",
+        "....KCCCCCCK....",
+        "....KyyyyyyK....",
+        "....KwwKKwwK....",
+        "....KwwKKwwK....",
+        "....KwwKKwwK....",
+        "....KwwKKwwK....",
+        "....KwwKKwwK....",
+        "....KrrKKwwK....",
+        "....KrrKKrrK....",
+        ".....KK.KrrK...."
+      ],
+      "anchors": {
+        "hand": {
+          "x": 12,
+          "y": 8
+        }
+      }
+    },
+    {
+      "id": "up_swing2_walk2",
+      "rows": [
+        "......KKKK......",
+        ".....KYYYYK.....",
+        "....KYYYYYYK....",
+        "..KKKyyyyyyKKK..",
+        ".KYYYYYYYYYYYYK.",
+        "..KKKyyyyyyKKK..",
+        "....KyyyyyyK....",
+        "....KWyyyyWKK...",
+        ".....KWWWWKCWK..",
+        ".KKKKCCCCCCCK...",
+        "KWCCCrrrrrrCK...",
+        ".KKKCrRRRRrCK...",
+        "...KCrrrrrrCK...",
+        "...KCrrrrrrCK...",
+        "....KCCCCCCK....",
+        "....KyyyyyyK....",
+        "....KwwKKwwK....",
+        "....KwwKKwwK....",
+        "....KwwKKwwK....",
+        "....KwwKKwwK....",
+        "....KwwKKwwK....",
+        "....KwwKKwwK....",
+        "....KrrKKrrK....",
+        "....KrrKKrrK...."
+      ],
+      "anchors": {
+        "hand": {
+          "x": 12,
+          "y": 8
+        }
+      }
+    },
+    {
+      "id": "up_swing2_walk3",
+      "rows": [
+        "......KKKK......",
+        ".....KYYYYK.....",
+        "....KYYYYYYK....",
+        "..KKKyyyyyyKKK..",
+        ".KYYYYYYYYYYYYK.",
+        "..KKKyyyyyyKKK..",
+        "....KyyyyyyK....",
+        "....KWyyyyWKK...",
+        ".....KWWWWKCWK..",
+        ".KKKKCCCCCCCK...",
+        "KWCCCrrrrrrCK...",
+        ".KKKCrRRRRrCK...",
+        "...KCrrrrrrCK...",
+        "...KCrrrrrrCK...",
+        "....KCCCCCCK....",
+        "....KyyyyyyK....",
+        "....KwwKKwwK....",
+        "....KwwKKwwK....",
+        "....KwwKKwwK....",
+        "....KwwKKwwK....",
+        "....KwwKKwwK....",
+        "....KwwKKrrK....",
+        "....KrrKKrrK....",
+        "....KrrK.KK....."
+      ],
+      "anchors": {
+        "hand": {
+          "x": 12,
+          "y": 8
+        }
+      }
+    },
+    {
+      "id": "down_swing0_walk0",
+      "rows": [
+        "......KKKK......",
+        ".....KYYYYK.....",
+        "....KYYYYYYK....",
+        "..KKKyyyyyyKKK..",
+        ".KYYYYYYYYYYYYK.",
+        "..KKKWWWWWWKKK..",
+        ".KWKKWKWWKWK....",
+        ".KCKKWWWWWWK....",
+        "..KCKKWWWWK.....",
+        "..KCKCCCCCCK....",
+        "...KCCCCCCCCK...",
+        "...KCCCcCCCCK...",
+        "...KCCCCCCCCK...",
+        "...KCCCCCCCWK...",
+        "....KCCCCCCK....",
+        "....KyyyyyyK....",
+        "....KwwKKwwK....",
+        "....KwwKKwwK....",
+        "....KwwKKwwK....",
+        "....KwwKKwwK....",
+        "....KwwKKwwK....",
+        "....KwwKKwwK....",
+        "....KrrKKrrK....",
+        "....KrrKKrrK...."
+      ],
+      "anchors": {
+        "hand": {
+          "x": 11,
+          "y": 13
+        }
+      }
+    },
+    {
+      "id": "down_swing0_walk1",
+      "rows": [
+        "......KKKK......",
+        ".....KYYYYK.....",
+        "....KYYYYYYK....",
+        "..KKKyyyyyyKKK..",
+        ".KYYYYYYYYYYYYK.",
+        "..KKKWWWWWWKKK..",
+        ".KWKKWKWWKWK....",
+        ".KCKKWWWWWWK....",
+        "..KCKKWWWWK.....",
+        "..KCKCCCCCCK....",
+        "...KCCCCCCCCK...",
+        "...KCCCcCCCCK...",
+        "...KCCCCCCCCK...",
+        "...KCCCCCCCWK...",
+        "....KCCCCCCK....",
+        "....KyyyyyyK....",
+        "....KwwKKwwK....",
+        "....KwwKKwwK....",
+        "....KwwKKwwK....",
+        "....KwwKKwwK....",
+        "....KwwKKwwK....",
+        "....KrrKKwwK....",
+        "....KrrKKrrK....",
+        ".....KK.KrrK...."
+      ],
+      "anchors": {
+        "hand": {
+          "x": 11,
+          "y": 13
+        }
+      }
+    },
+    {
+      "id": "down_swing0_walk2",
+      "rows": [
+        "......KKKK......",
+        ".....KYYYYK.....",
+        "....KYYYYYYK....",
+        "..KKKyyyyyyKKK..",
+        ".KYYYYYYYYYYYYK.",
+        "..KKKWWWWWWKKK..",
+        ".KWKKWKWWKWK....",
+        ".KCKKWWWWWWK....",
+        "..KCKKWWWWK.....",
+        "..KCKCCCCCCK....",
+        "...KCCCCCCCCK...",
+        "...KCCCcCCCCK...",
+        "...KCCCCCCCCK...",
+        "...KCCCCCCCWK...",
+        "....KCCCCCCK....",
+        "....KyyyyyyK....",
+        "....KwwKKwwK....",
+        "....KwwKKwwK....",
+        "....KwwKKwwK....",
+        "....KwwKKwwK....",
+        "....KwwKKwwK....",
+        "....KwwKKwwK....",
+        "....KrrKKrrK....",
+        "....KrrKKrrK...."
+      ],
+      "anchors": {
+        "hand": {
+          "x": 11,
+          "y": 13
+        }
+      }
+    },
+    {
+      "id": "down_swing0_walk3",
+      "rows": [
+        "......KKKK......",
+        ".....KYYYYK.....",
+        "....KYYYYYYK....",
+        "..KKKyyyyyyKKK..",
+        ".KYYYYYYYYYYYYK.",
+        "..KKKWWWWWWKKK..",
+        ".KWKKWKWWKWK....",
+        ".KCKKWWWWWWK....",
+        "..KCKKWWWWK.....",
+        "..KCKCCCCCCK....",
+        "...KCCCCCCCCK...",
+        "...KCCCcCCCCK...",
+        "...KCCCCCCCCK...",
+        "...KCCCCCCCWK...",
+        "....KCCCCCCK....",
+        "....KyyyyyyK....",
+        "....KwwKKwwK....",
+        "....KwwKKwwK....",
+        "....KwwKKwwK....",
+        "....KwwKKwwK....",
+        "....KwwKKwwK....",
+        "....KwwKKrrK....",
+        "....KrrKKrrK....",
+        "....KrrK.KK....."
+      ],
+      "anchors": {
+        "hand": {
+          "x": 11,
+          "y": 13
+        }
+      }
+    },
+    {
+      "id": "down_swing1_walk0",
+      "rows": [
+        "......KKKK......",
+        ".....KYYYYK.....",
+        "....KYYYYYYK....",
+        "..KKKyyyyyyKKK..",
+        ".KYYYYYYYYYYYYK.",
+        "..KKKWWWWWWKKK..",
+        "....KWKWWKWK....",
+        "....KWWWWWWK....",
+        ".....KWWWWK.....",
+        "...KKCCCCCCK....",
+        ".KKCCCCCCCCCK...",
+        "KCCKCCCcCCCCK...",
+        "CCKKCCCCCCCCK...",
+        "WK.KCCCCCCCCK...",
+        "K...KCCCCCCK....",
+        "....KyyyyyCK....",
+        "....KwwKKwCK....",
+        "....KwwKKwCK....",
+        "....KwwKKwWK....",
+        "....KwwKKwwK....",
+        "....KwwKKwwK....",
+        "....KwwKKwwK....",
+        "....KrrKKrrK....",
+        "....KrrKKrrK...."
+      ],
+      "anchors": {
+        "hand": {
+          "x": 10,
+          "y": 18
+        }
+      }
+    },
+    {
+      "id": "down_swing1_walk1",
+      "rows": [
+        "......KKKK......",
+        ".....KYYYYK.....",
+        "....KYYYYYYK....",
+        "..KKKyyyyyyKKK..",
+        ".KYYYYYYYYYYYYK.",
+        "..KKKWWWWWWKKK..",
+        "....KWKWWKWK....",
+        "....KWWWWWWK....",
+        ".....KWWWWK.....",
+        "...KKCCCCCCK....",
+        ".KKCCCCCCCCCK...",
+        "KCCKCCCcCCCCK...",
+        "CCKKCCCCCCCCK...",
+        "WK.KCCCCCCCCK...",
+        "K...KCCCCCCK....",
+        "....KyyyyyCK....",
+        "....KwwKKwCK....",
+        "....KwwKKwCK....",
+        "....KwwKKwWK....",
+        "....KwwKKwwK....",
+        "....KwwKKwwK....",
+        "....KrrKKwwK....",
+        "....KrrKKrrK....",
+        ".....KK.KrrK...."
+      ],
+      "anchors": {
+        "hand": {
+          "x": 10,
+          "y": 18
+        }
+      }
+    },
+    {
+      "id": "down_swing1_walk2",
+      "rows": [
+        "......KKKK......",
+        ".....KYYYYK.....",
+        "....KYYYYYYK....",
+        "..KKKyyyyyyKKK..",
+        ".KYYYYYYYYYYYYK.",
+        "..KKKWWWWWWKKK..",
+        "....KWKWWKWK....",
+        "....KWWWWWWK....",
+        ".....KWWWWK.....",
+        "...KKCCCCCCK....",
+        ".KKCCCCCCCCCK...",
+        "KCCKCCCcCCCCK...",
+        "CCKKCCCCCCCCK...",
+        "WK.KCCCCCCCCK...",
+        "K...KCCCCCCK....",
+        "....KyyyyyCK....",
+        "....KwwKKwCK....",
+        "....KwwKKwCK....",
+        "....KwwKKwWK....",
+        "....KwwKKwwK....",
+        "....KwwKKwwK....",
+        "....KwwKKwwK....",
+        "....KrrKKrrK....",
+        "....KrrKKrrK...."
+      ],
+      "anchors": {
+        "hand": {
+          "x": 10,
+          "y": 18
+        }
+      }
+    },
+    {
+      "id": "down_swing1_walk3",
+      "rows": [
+        "......KKKK......",
+        ".....KYYYYK.....",
+        "....KYYYYYYK....",
+        "..KKKyyyyyyKKK..",
+        ".KYYYYYYYYYYYYK.",
+        "..KKKWWWWWWKKK..",
+        "....KWKWWKWK....",
+        "....KWWWWWWK....",
+        ".....KWWWWK.....",
+        "...KKCCCCCCK....",
+        ".KKCCCCCCCCCK...",
+        "KCCKCCCcCCCCK...",
+        "CCKKCCCCCCCCK...",
+        "WK.KCCCCCCCCK...",
+        "K...KCCCCCCK....",
+        "....KyyyyyCK....",
+        "....KwwKKwCK....",
+        "....KwwKKwCK....",
+        "....KwwKKwWK....",
+        "....KwwKKwwK....",
+        "....KwwKKwwK....",
+        "....KwwKKrrK....",
+        "....KrrKKrrK....",
+        "....KrrK.KK....."
+      ],
+      "anchors": {
+        "hand": {
+          "x": 10,
+          "y": 18
+        }
+      }
+    },
+    {
+      "id": "down_swing2_walk0",
+      "rows": [
+        "......KKKK......",
+        ".....KYYYYK.....",
+        "....KYYYYYYK....",
+        "..KKKyyyyyyKKK..",
+        ".KYYYYYYYYYYYYK.",
+        "..KKKWWWWWWKKK..",
+        "....KWKWWKWK....",
+        "....KWWWWWWK....",
+        ".KKK.KWWWWK.....",
+        "KWCCKCCCCCCK....",
+        ".KKKCCCCCCCCK...",
+        "...KCCCcCCCCK...",
+        "...KCCCCCCCCK...",
+        "...KCCCCCCCCK...",
+        "....KCCCCCCCK...",
+        "....KyyyyyyWK...",
+        "....KwwKKwwK....",
+        "....KwwKKwwK....",
+        "....KwwKKwwK....",
+        "....KwwKKwwK....",
+        "....KwwKKwwK....",
+        "....KwwKKwwK....",
+        "....KrrKKrrK....",
+        "....KrrKKrrK...."
+      ],
+      "anchors": {
+        "hand": {
+          "x": 11,
           "y": 15
         }
       }
@@ -1843,6 +1843,7 @@
     {
       "id": "down_swing2_walk1",
       "rows": [
+        "......KKKK......",
         ".....KYYYYK.....",
         "....KYYYYYYK....",
         "..KKKyyyyyyKKK..",
@@ -1850,16 +1851,15 @@
         "..KKKWWWWWWKKK..",
         "....KWKWWKWK....",
         "....KWWWWWWK....",
-        ".....KWWWWK.....",
-        "...KKCCCCCCK....",
-        "..KCCCCCCCCCK...",
-        "..KCCCCcCCCCK...",
-        "..KCCCCCCCCCK...",
-        "..KCCCCCCCCCK...",
-        "..KCKCCCCCCCK...",
-        "..KWKyyyyyyCK...",
-        "...KKwwKKwwKWK..",
-        "....KwwKKwwKK...",
+        ".KKK.KWWWWK.....",
+        "KWCCKCCCCCCK....",
+        ".KKKCCCCCCCCK...",
+        "...KCCCcCCCCK...",
+        "...KCCCCCCCCK...",
+        "...KCCCCCCCCK...",
+        "....KCCCCCCCK...",
+        "....KyyyyyyWK...",
+        "....KwwKKwwK....",
         "....KwwKKwwK....",
         "....KwwKKwwK....",
         "....KwwKKwwK....",
@@ -1870,7 +1870,7 @@
       ],
       "anchors": {
         "hand": {
-          "x": 12,
+          "x": 11,
           "y": 15
         }
       }
@@ -1878,6 +1878,7 @@
     {
       "id": "down_swing2_walk2",
       "rows": [
+        "......KKKK......",
         ".....KYYYYK.....",
         "....KYYYYYYK....",
         "..KKKyyyyyyKKK..",
@@ -1885,16 +1886,15 @@
         "..KKKWWWWWWKKK..",
         "....KWKWWKWK....",
         "....KWWWWWWK....",
-        ".....KWWWWK.....",
-        "...KKCCCCCCK....",
-        "..KCCCCCCCCCK...",
-        "..KCCCCcCCCCK...",
-        "..KCCCCCCCCCK...",
-        "..KCCCCCCCCCK...",
-        "..KWKCCCCCCCK...",
-        "...KKyyyyyyCK...",
-        "....KwwKKwwKWK..",
-        "....KwwKKwwKK...",
+        ".KKK.KWWWWK.....",
+        "KWCCKCCCCCCK....",
+        ".KKKCCCCCCCCK...",
+        "...KCCCcCCCCK...",
+        "...KCCCCCCCCK...",
+        "...KCCCCCCCCK...",
+        "....KCCCCCCCK...",
+        "....KyyyyyyWK...",
+        "....KwwKKwwK....",
         "....KwwKKwwK....",
         "....KwwKKwwK....",
         "....KwwKKwwK....",
@@ -1905,7 +1905,7 @@
       ],
       "anchors": {
         "hand": {
-          "x": 12,
+          "x": 11,
           "y": 15
         }
       }
@@ -1913,6 +1913,7 @@
     {
       "id": "down_swing2_walk3",
       "rows": [
+        "......KKKK......",
         ".....KYYYYK.....",
         "....KYYYYYYK....",
         "..KKKyyyyyyKKK..",
@@ -1920,16 +1921,15 @@
         "..KKKWWWWWWKKK..",
         "....KWKWWKWK....",
         "....KWWWWWWK....",
-        ".....KWWWWK.....",
-        "...KKCCCCCCK....",
-        "..KCCCCCCCCCK...",
-        "..KCCCCcCCCCK...",
-        "..KCCCCCCCCCK...",
-        "..KWCCCCCCCCK...",
-        "...KKCCCCCCCK...",
-        "....KyyyyyyCK...",
-        "....KwwKKwwKWK..",
-        "....KwwKKwwKK...",
+        ".KKK.KWWWWK.....",
+        "KWCCKCCCCCCK....",
+        ".KKKCCCCCCCCK...",
+        "...KCCCcCCCCK...",
+        "...KCCCCCCCCK...",
+        "...KCCCCCCCCK...",
+        "....KCCCCCCCK...",
+        "....KyyyyyyWK...",
+        "....KwwKKwwK....",
         "....KwwKKwwK....",
         "....KwwKKwwK....",
         "....KwwKKwwK....",
@@ -1940,7 +1940,7 @@
       ],
       "anchors": {
         "hand": {
-          "x": 12,
+          "x": 11,
           "y": 15
         }
       }

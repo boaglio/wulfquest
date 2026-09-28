@@ -73,7 +73,7 @@ public final class MapAudit {
             return reachable == 0;
         }
 
-        /** A way through that nothing can reach is worse than a wall: it is visible and it lies. */
+        /** A way through that nothing can reach: a dead end. The original has 29 (§25 Q14). */
         public boolean stranded() {
             return crossings > 0 && reachable == 0;
         }
@@ -105,8 +105,9 @@ public final class MapAudit {
             int footprintMaxWalk) {
 
         public boolean passes() {
+            // Stranded ways through are not a failure: the original has 29 of its own (§25 Q14).
             return unreachable.isEmpty() && sealed.isEmpty() && belowFloor.isEmpty()
-                    && unreachableAnywhere.isEmpty() && stranded.isEmpty();
+                    && unreachableAnywhere.isEmpty();
         }
 
         /** East-west against north-south. A maze blocks both; an artefact blocks one. */

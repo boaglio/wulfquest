@@ -76,6 +76,27 @@ public final class Sprite {
         }
     }
 
+    /**
+     * Draws a frame {@code scale} times its size, top-left at ({@code left}, {@code top}):
+     * each source pixel becomes a {@code scale}x{@code scale} block of the same index.
+     * Nearest-neighbour by construction, so it stays an indexed image (§5.3).
+     */
+    public void blitScaled(Framebuffer fb, String frameId, int left, int top, int scale) {
+        byte[] px = frames.get(frameId);
+        if (px == null) {
+            throw new IllegalStateException("sprite '" + name + "' has no frame '" + frameId + "'");
+        }
+        for (int yy = 0; yy < h; yy++) {
+            int row = yy * w;
+            for (int xx = 0; xx < w; xx++) {
+                byte v = px[row + xx];
+                if (v >= 0) {
+                    fb.fillRect(left + xx * scale, top + yy * scale, scale, scale, v);
+                }
+            }
+        }
+    }
+
     /** Draws a frame's silhouette in one colour: a hit flash. */
     public void blitTinted(Framebuffer fb, String frameId, int x, int y, int paletteIndex) {
         byte[] px = frames.get(frameId);

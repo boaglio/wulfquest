@@ -103,13 +103,23 @@ class SoundTest {
     @Test
     void theWulfHowlsWhenItArrivesAndGrowlsUntilItIsGone() {
         Content c = Content.load(Path.of("data"));
-        Ear ear = new Ear();
-        Simulation s = Simulation.startingIn(c.player(), new WorldGrid(c.rooms()),
-                c.game().transition().freezeTicks(), c.map().startRoom(), c.ecosystem(), 7L);
-        s.sounds(ear, SFX.cadence().footstepEveryTicks());
-        assertThat(s.summonWulf()).isTrue();
-        assertThat(ear.count("wulf_howl")).isEqualTo(1);
-        assertThat(ear.loops).containsEntry("wulf_growl", true);
+        WorldGrid grid = new WorldGrid(c.rooms());
+        // The start room is walled in on the true map (§25 Q14): the Wulf has no edge to come in by.
+        // Any room it can come into will do; this is about what is heard.
+        for (int index = 0; index < 256; index++) {
+            wulf.world.RoomAddress room = new wulf.world.RoomAddress(index % 16, index / 16);
+            Ear ear = new Ear();
+            Simulation s = Simulation.startingIn(c.player(), grid, c.game().transition().freezeTicks(), room,
+                    c.ecosystem(), 7L);
+            s.sounds(ear, SFX.cadence().footstepEveryTicks());
+            if (!s.summonWulf()) {
+                continue;
+            }
+            assertThat(ear.count("wulf_howl")).isEqualTo(1);
+            assertThat(ear.loops).containsEntry("wulf_growl", true);
+            return;
+        }
+        throw new AssertionError("the Wulf could come into no room at all");
     }
 
     @Test
@@ -128,7 +138,7 @@ class SoundTest {
     void everyNameTheSimulationAnnouncesExistsInSfxJson() {
         Content c = Content.load(Path.of("data"));
         Ear ear = new Ear();
-        Replay replay = Replay.read(Path.of("replays/full_run.json"));
+        Replay replay = Replay.read(Path.of("replays/lair_nw.json"));
         Simulation s = Simulation.startingIn(c.player(), new WorldGrid(c.rooms()),
                 c.game().transition().freezeTicks(), replay.start(), c.ecosystem(), replay.seed());
         s.sounds(ear, SFX.cadence().footstepEveryTicks());

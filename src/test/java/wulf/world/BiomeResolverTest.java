@@ -9,7 +9,11 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import wulf.Content;
 
-/** AGENTS.md §12.6 — biome counts on the real map, measured before M4's code existed. */
+/**
+ * AGENTS.md §12.6 — biome counts on the real map. First measured before M4's code existed;
+ * re-measured 2026-09-27 on the game's own layout table (§25 Q14), which is why swamp now
+ * dominates: the reed marker is in more of the true map's rooms.
+ */
 class BiomeResolverTest {
 
     private static Content content;
@@ -35,21 +39,19 @@ class BiomeResolverTest {
     @Test
     void theInteriorBiomesMatchTheMeasuredMap() {
         assertThat(count(true)).containsExactlyInAnyOrderEntriesOf(Map.of(
-                "bonefields", 20, "hut", 21, "jungle", 72, "mountain", 16, "swamp", 65, "water", 2));
+                "bonefields", 4, "hut", 5, "jungle", 10, "swamp", 159, "water", 18));
     }
 
     @Test
     void theBoundaryBiomesMatchTheMeasuredMap() {
-        assertThat(count(false)).containsExactlyInAnyOrderEntriesOf(Map.of("jungle", 25, "swamp", 30, "water", 5));
+        assertThat(count(false)).containsExactlyInAnyOrderEntriesOf(Map.of("jungle", 49, "mountain", 2, "water", 9));
     }
 
     @Test
     void landmarksResolveAsExpected() {
         assertThat(content.biomes().biomeOf(new RoomAddress(8, 10))).isEqualTo("jungle");
-        for (String arch : new String[] {"7,3", "12,8", "1,10", "14,10", "6,11", "4,13", "6,13", "5,14"}) {
-            assertThat(content.biomes().biomeOf(RoomAddress.parse(arch))).as(arch).isEqualTo("bonefields");
-        }
-        assertThat(content.biomes().biomeOf(new RoomAddress(4, 1))).as("a hut room").isEqualTo("hut");
+        assertThat(content.biomes().biomeOf(new RoomAddress(8, 8))).as("the arch").isEqualTo("bonefields");
+        assertThat(content.biomes().biomeOf(new RoomAddress(2, 5))).as("a hut room").isEqualTo("hut");
         assertThat(content.biomes().inUse()).hasSize(6);
     }
 }

@@ -32,7 +32,7 @@ class WulfTest {
     private static final int RX = ROOM.col() * Simulation.ROOM_W_PX;
     private static final int RY = ROOM.row() * Simulation.ROOM_H_PX;
     private static final int CX = ROOM.col() * 32;
-    private static final int CY = ROOM.row() * 24;
+    private static final int CY = ROOM.row() * wulf.world.CollisionMask.ROWS;
 
     /**
      * In {@link #ROOM}, everything solid but a corridor two cells high across the room
@@ -153,7 +153,7 @@ class WulfTest {
     @Test
     void itNeverComesInByTheEdgeNearestThePlayer() {
         Object[][] spots = {
-            {12, 96, Wulf.Edge.WEST}, {244, 96, Wulf.Edge.EAST}, {128, 20, Wulf.Edge.NORTH}, {128, 190, Wulf.Edge.SOUTH},
+            {12, 96, Wulf.Edge.WEST}, {244, 96, Wulf.Edge.EAST}, {128, 20, Wulf.Edge.NORTH}, {128, 170, Wulf.Edge.SOUTH},
         };
         for (Object[] spot : spots) {
             Set<Wulf.Edge> used = EnumSet.noneOf(Wulf.Edge.class);

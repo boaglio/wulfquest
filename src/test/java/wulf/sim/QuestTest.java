@@ -162,6 +162,52 @@ class QuestTest {
         assertThat(s.player().mode()).isEqualTo(Player.Mode.ALIVE);
     }
 
+    /**
+     * §14.6, as the original did it: a quarter clears the playfield for the amulet so far and
+     * a verse, and the game stands still until the screen is done — or fire, once it has been seen.
+     */
+    @Test
+    void aQuarterBringsUpTheAmuletAndTheGameStandsStillUnderIt() {
+        wulf.data.ShellConfig.AmuletReveal reveal = content.shell().amuletReveal();
+        QuestRules pinned = pinnedGuardians(80, 0);
+        LandmarksData.Lair lair = marks.lairs().get(3);
+        Simulation s = sim(OPEN, pinned, lairRoom(3), lair.pedestal().x(), lair.pedestal().y());
+        wulf.ui.GameSession session = new wulf.ui.GameSession(s, reveal);
+        assertThat(session.revealing()).isFalse();
+
+        session.tick(STILL, false);
+        assertThat(s.quest().piecesHeld()).isEqualTo(1);
+        assertThat(session.revealing()).isTrue();
+        assertThat(session.verse()).isEqualTo(reveal.verses().get(0));
+
+        long frozenAt = s.tick();
+        InputState fire = InputState.of(0, 0, true, true);
+        for (int t = 1; t < reveal.skipAfterTicks(); t++) {
+            session.tick(fire, false);
+            assertThat(session.revealing()).as("fire cannot cut it short at tick %d", t).isTrue();
+        }
+        assertThat(s.tick()).as("nothing moved underneath").isEqualTo(frozenAt);
+        session.tick(fire, false);
+        assertThat(session.revealing()).as("once it has been seen, fire ends it").isFalse();
+        session.tick(STILL, false);
+        assertThat(s.tick()).as("and the game goes on").isEqualTo(frozenAt + 1);
+    }
+
+    @Test
+    void leftAloneTheRevealEndsAfterItsHold() {
+        wulf.data.ShellConfig.AmuletReveal reveal = content.shell().amuletReveal();
+        LandmarksData.Lair lair = marks.lairs().get(0);
+        Simulation s = sim(OPEN, pinnedGuardians(80, 0), lairRoom(0), lair.pedestal().x(), lair.pedestal().y());
+        wulf.ui.GameSession session = new wulf.ui.GameSession(s, reveal);
+        session.tick(STILL, false);
+        for (int t = 1; t < reveal.holdTicks(); t++) {
+            session.tick(STILL, false);
+        }
+        assertThat(session.revealing()).isTrue();
+        session.tick(STILL, false);
+        assertThat(session.revealing()).isFalse();
+    }
+
     @Test
     void takingAQuarterScoresFlashesAndSendsItToThePanel() {
         QuestRules pinned = pinnedGuardians(80, 0);
@@ -184,7 +230,7 @@ class QuestTest {
 
         // Out of the lair and back: it stays taken.
         walkY(s, wy(lairRoom(i), 150));
-        walkY(s, wy(lairRoom(i), 150) + 192);
+        walkY(s, wy(lairRoom(i), 150) + Simulation.ROOM_H_PX);
         walkY(s, wy(lairRoom(i), lair.pedestal().y()));
         assertThat(s.room()).isEqualTo(lairRoom(i));
         assertThat(q.piecesHeld()).isEqualTo(1);
@@ -225,16 +271,25 @@ class QuestTest {
 
     @Test
     void aShrinePointsTheWayOncePerLife() {
-        RoomAddress shrine = LandmarksData.room(marks.caveMouths().get(0));
+        // The true map has one arch, and the Keeper has it (§25 Q14), so the shipped data names no
+        // shrines. The mechanism is tested on one of our own, a room south of the start.
+        RoomAddress shrine = new RoomAddress(8, 11);
+        LandmarksData withShrine = new LandmarksData(marks.schemaVersion(), marks.fidelity(), marks.startFacing(),
+                marks.exit(), marks.lairs(), marks.amulet(), List.of(shrine.toString()), marks.hint(),
+                marks.stillWater());
+        QuestRules rules = new QuestRules(true, withShrine, real.guardianSpecies(), real.keeperSpecies(), real.orbit(),
+                real.stepAsidePx(), real.stepAsideTicks(), real.nudgeZonePx(), real.nudgePx(), real.pieceScore(),
+                real.escapeBonus(), real.timeBonusMax(), real.timeBonusTicksDivisor(), real.lifeRemainingBonus(),
+                real.caveHints());
         LandmarksData.Rect zone = marks.exit().zone();
-        Simulation s = sim(OPEN, real, shrine, zone.x() + zone.w() / 2, 160);
+        Simulation s = sim(OPEN, rules, shrine, zone.x() + zone.w() / 2, 160);
         int inZone = wy(shrine, zone.y() + zone.h() - 6);
         walkY(s, inZone);
         Quest q = s.quest();
         assertThat(q.hintTicks()).isPositive();
         assertThat(q.hintToExit()).isFalse();
-        // From 7,3 the nearest quarters are 2,7 and 12,7, nine rooms each; the first listed wins: south-west.
-        assertThat(q.hintDirection()).isEqualTo(Direction8.SW);
+        // From 8,11 the nearest quarter is 9,10, two rooms away: north-east.
+        assertThat(q.hintDirection()).isEqualTo(Direction8.NE);
 
         walkY(s, wy(shrine, 160));
         SimFixtures.run(s, STILL, marks.hint().messageTicks());

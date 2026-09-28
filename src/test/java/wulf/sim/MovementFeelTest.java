@@ -30,10 +30,10 @@ class MovementFeelTest {
     }
 
     @Test
-    void crossesARoomHeightIn192Ticks() {
+    void crossesARoomHeightIn176Ticks() {
         Simulation sim = at(OPEN, 1000, 1000);
-        run(sim, DOWN, 192);
-        assertThat(Fixed.px(sim.player().yFp()) - 1000).isBetween(191, 193);
+        run(sim, DOWN, Simulation.ROOM_H_PX);
+        assertThat(Fixed.px(sim.player().yFp()) - 1000).isBetween(175, 177);
     }
 
     @Test

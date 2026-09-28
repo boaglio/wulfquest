@@ -12,7 +12,15 @@ engine.
 
 ## Status
 
-**Milestone M9 complete — the game is done.** M9 was the hardening pass:
+**M10 — the true map.** The jungle is now the original's own layout, checked
+against publicly documented data: the room grid had been mis-numbered, and
+every room had two rows at the top it never had. Picking up a quarter of the
+amulet now shows the amulet so far and a verse; the sabre fences instead of
+swinging; and game over says how much of the adventure you got through.
+`./run.sh help` lists every way to run it. One acceptance replay, a complete
+winning run, is still to be re-recorded on the new map.
+
+**Milestone M9 complete.** M9 was the hardening pass:
 golden-frame tests that hash what the renderer draws, every recorded replay
 run on every build, the lair replay that had been missing since M6, and a
 build that is green on a machine with no display.
@@ -43,8 +51,14 @@ lives in [AGENTS.md](AGENTS.md) §24.
                                # reversal, immunity, delirium, stillness
 ./run.sh --no-audio        # silence for this run; your settings are not changed
 ./run.sh --user-dir ./save # keep hi-scores, settings and stats somewhere else
-mvn -q exec:java -Dexec.mainClass=wulf.tools.ReplayRunner -Dexec.args="replays/full_run.json"
-./run.sh --browse          # the room browser: arrows, [ ] or PgUp/PgDn, M
+./run.sh browse            # the room browser: arrows, [ ] or PgUp/PgDn, M
+./run.sh replay            # re-run every recorded replay and check it still matches
+./run.sh check             # validate every data file and exit
+./run.sh audit             # can every room still be reached?
+./run.sh sprites sheet     # every scenery object, drawn in the terminal
+./run.sh jar               # build the single runnable jar and play from it
+./run.sh menu              # all of the above as a list to pick from
+./run.sh help              # every command and option
 ```
 
 ## Build and run

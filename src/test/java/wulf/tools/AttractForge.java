@@ -26,7 +26,7 @@ public final class AttractForge {
     }
 
     public static void main(String[] args) {
-        Path source = Path.of(args.length > 0 ? args[0] : "replays/full_run.json");
+        Path source = Path.of(args.length > 0 ? args[0] : "replays/lair_nw.json");
         Path out = Path.of(args.length > 1 ? args[1] : "replays/attract.json");
         int ticks = args.length > 2 ? Integer.parseInt(args[2]) : 3000;
 

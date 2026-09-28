@@ -1,13 +1,14 @@
 package wulf.world;
 
 /**
- * One room's impassable cells: 32x24, one flag per 8x8 cell (AGENTS.md §7.2).
+ * One room's impassable cells: 32x22, one flag per 8x8 cell (AGENTS.md §7.2) —
+ * the original's play area, the screen less its two banner rows (§5.1).
  * Built by {@link RoomBaker}; read-only to everyone else.
  */
 public final class CollisionMask {
 
     public static final int COLS = 32;
-    public static final int ROWS = 24;
+    public static final int ROWS = 22;
 
     private final boolean[] solid = new boolean[COLS * ROWS];
 

@@ -31,7 +31,7 @@ class PlayerPainterTest {
     private static final InputState FIRE = InputState.of(0, 0, true, true);
 
     private static Simulation sim() {
-        return Simulation.at(RULES, OPEN, 0, Fixed.fp(3 * 256 + 128), Fixed.fp(5 * 192 + 100));
+        return Simulation.at(RULES, OPEN, 0, Fixed.fp(3 * 256 + 128), Fixed.fp(5 * Simulation.ROOM_H_PX + 100));
     }
 
     private static String frame(Simulation s) {
@@ -94,29 +94,18 @@ class PlayerPainterTest {
     }
 
     @Test
-    void theSwingPoseFollowsTheSabrePhasesExactly() {
+    void eachStrokeIsOnGuardThenLunges() {
+        // §11.6: fencing, the whole body — on guard for one window, the lunge for the next —
+        // and the blade live throughout, as the original's is while fire is held.
         Simulation s = sim();
         s.tick(RIGHT);
         s.tick(FIRE);
         PlayerData.Sabre sabre = RULES.sabre();
+        int window = sabre.fence().everyTicks();
         for (int t = 0; t < sabre.totalTicks(); t++) {
             assertThat(s.player().swingTick()).isEqualTo(t);
-            String expected = t < sabre.windupTicks() ? "side_swing0"
-                    : t < sabre.windupTicks() + sabre.activeTicks() ? "side_swing1" : "side_swing2";
-            assertThat(frame(s)).as("swing tick %d", t).isEqualTo(expected);
-            s.tick(InputState.NONE);
-        }
-    }
-
-    @Test
-    void theStrikePoseIsShownExactlyWhileTheBladeIsLive() {
-        // The M3 bug: poses changed every 4 ticks while the blade was live on ticks 3-8.
-        Simulation s = sim();
-        s.tick(RIGHT);
-        s.tick(FIRE);
-        for (int t = 0; t < RULES.sabre().totalTicks(); t++) {
-            boolean live = !s.sabre().isEmpty();
-            assertThat(frame(s).equals("side_swing1")).as("swing tick %d", t).isEqualTo(live);
+            assertThat(frame(s)).as("stroke tick %d", t).isEqualTo(t < window ? "side_swing0" : "side_swing1");
+            assertThat(s.sabre().isEmpty()).as("blade live at stroke tick %d", t).isFalse();
             s.tick(InputState.NONE);
         }
     }
@@ -145,7 +134,8 @@ class PlayerPainterTest {
         s.tick(InputState.of(1, 0, true, true));
         assertThat(frame(s)).endsWith("_walk1");
         s.tick(InputState.NONE);
-        assertThat(frame(s)).isEqualTo("side_swing0");
+        // No windup in the original's fighting (§11.6): standing still, it is the fencing pose at once.
+        assertThat(frame(s)).isIn("side_swing0", "side_swing1");
     }
 
     @Test
@@ -162,29 +152,65 @@ class PlayerPainterTest {
         run(s, InputState.NONE, RULES.sabre().windupTicks());
         assertThat(s.sabre().isEmpty()).isFalse();
         String strike = frame(s);
-        assertThat(strike).isEqualTo("side_swing1");
+        assertThat(strike).isIn("side_swing0", "side_swing1");
 
         Framebuffer fb = new Framebuffer(display.canvas().w(), display.canvas().h());
         fb.clear(0);
         painter.paint(fb, s);
 
         int feetX = Fixed.px(s.player().xFp()) + f.x() - 3 * 256;
-        int feetY = Fixed.px(s.player().yFp()) + f.y() - 5 * 192;
+        int feetY = Fixed.px(s.player().yFp()) + f.y() - 5 * Simulation.ROOM_H_PX;
         Sprite vale = bank.get("player");
         SpriteData.Point hand = vale.anchor(strike, "hand");
+        int handX = feetX - vale.originX() + hand.x();
         int handY = feetY - vale.originY() + hand.y();
+        // The sprite's own white is drawn too; the blade is what lies beyond it.
+        Framebuffer bare = new Framebuffer(display.canvas().w(), display.canvas().h());
+        bare.clear(0);
+        vale.blit(bare, strike, feetX, feetY);
         int white = palette.indexOf("brightWhite");
-        List<Integer> bladeRows = new ArrayList<>();
-        for (int x = feetX + 9; x <= feetX + 8 + RULES.sabre().reachPx(); x++) {   // right of the sprite
-            for (int y = 0; y < fb.height(); y++) {
-                if (fb.get(x, y) == white) {
-                    bladeRows.add(y);
+        int reach = RULES.sabre().reachPx();
+        int nearest = Integer.MAX_VALUE;
+        int farthest = 0;
+        for (int y = 0; y < fb.height(); y++) {
+            for (int x = 0; x < fb.width(); x++) {
+                if (fb.get(x, y) == white && bare.get(x, y) != white) {
+                    int dist = Math.max(Math.abs(x - handX), Math.abs(y - handY));
+                    nearest = Math.min(nearest, dist);
+                    farthest = Math.max(farthest, dist);
                 }
             }
         }
-        assertThat(bladeRows).as("a blade was drawn beyond the sprite").isNotEmpty();
-        assertThat(bladeRows).allSatisfy(y -> assertThat(y).isBetween(handY, handY + 1));
+        assertThat(farthest).as("a blade was drawn").isPositive();
+        assertThat(nearest).as("it starts at the hand").isLessThanOrEqualTo(2);
+        assertThat(farthest).as("and reaches no further than the sabre does").isLessThanOrEqualTo(reach + 1);
         assertThat(handY).as("at hand height, well clear of the feet").isLessThan(feetY - 8);
+    }
+
+    /**
+     * §11.6: the blade fences — drawn back to a guard, out in a thrust, back — every window a
+     * new pose, each picked from its own list, as the original picks its fighting poses.
+     */
+    @Test
+    void theBladeFencesInAndOutThroughEveryPose() {
+        PlayerData.Fence fence = RULES.sabre().fence();
+        java.util.Set<List<Integer>> seen = new java.util.HashSet<>();
+        List<Integer> last = null;
+        for (long t = 0; t < 400; t++) {
+            int intoBlade = (int) (t % (2 * fence.everyTicks()));
+            List<Integer> pose = PlayerPainter.pose(fence, intoBlade, t);
+            if (t % fence.everyTicks() != 0) {
+                assertThat(pose).as("tick %d holds its window's pose", t).isEqualTo(last);
+            }
+            boolean thrust = intoBlade >= fence.everyTicks();
+            assertThat(thrust ? fence.thrusts() : fence.guards()).as("tick %d", t).contains(pose);
+            seen.add(pose);
+            last = pose;
+        }
+        assertThat(seen).as("every pose turns up").hasSize(fence.guards().size() + fence.thrusts().size());
+        int longestGuard = fence.guards().stream().mapToInt(g -> g.get(0)).max().orElseThrow();
+        int shortestThrust = fence.thrusts().stream().mapToInt(g -> g.get(0)).min().orElseThrow();
+        assertThat(longestGuard).as("a guard is drawn back, a thrust is out").isLessThan(shortestThrust);
     }
 
     @Test
@@ -244,7 +270,7 @@ class PlayerPainterTest {
         DisplayConfig.Playfield f = display.playfield();
 
         // Feet just inside the west edge of room 8,10, facing west and mid-strike: sprite and blade both overhang.
-        Simulation s = Simulation.at(RULES, OPEN, 0, Fixed.fp(8 * 256 + 6), Fixed.fp(10 * 192 + 100));
+        Simulation s = Simulation.at(RULES, OPEN, 0, Fixed.fp(8 * 256 + 6), Fixed.fp(10 * Simulation.ROOM_H_PX + 100));
         s.tick(InputState.of(-1, 0, false, false));
         s.tick(FIRE);
         run(s, InputState.NONE, 4);

@@ -78,7 +78,8 @@ public final class FullRunForge {
     private static int ignoring;
     private static final int STAND_GROUND_PX = 56;
     private static final int GIVE_UP_WAITING_TICKS = 1500;
-    private static final int MAX_TICKS = 120_000;
+    /** How long a run may take. The true map (§25 Q14) is one long maze: one lair alone took 60 000. */
+    private static final int MAX_TICKS = Integer.getInteger("forge.maxTicks", 500_000);
 
     private record Attempt(boolean won, ReplayRecorder recorder, String story) {
     }
@@ -205,7 +206,7 @@ public final class FullRunForge {
                 if (TRACE && (sim.quest().piecesHeld() == 4 ? rewinds % 20 == 0 : rewinds % 500 == 0)) {
                     System.err.printf("    rewind %d: tick %d, %s in %s at %d,%d, pieces %d, block %d/%d, back up to %d%n",
                             rewinds, inputs.size(), why, sim.room(),
-                            Fixed.px(sim.player().xFp()) - sim.room().col() * 256, Fixed.px(sim.player().yFp()) - sim.room().row() * 192,
+                            Fixed.px(sim.player().xFp()) - sim.room().col() * 256, Fixed.px(sim.player().yFp()) - sim.room().row() * Simulation.ROOM_H_PX,
                             sim.quest().piecesHeld(), block, route.size(), furthest);
                 }
                 if (++rewinds > MAX_REWINDS) {
@@ -267,7 +268,11 @@ public final class FullRunForge {
                         waiting++;
                     } else {
                         waiting = 0;
-                        in = chosen;
+                        // Under the reversal flower (§15.2) a player presses the other way; so does the bot.
+                        // Found tracing a run that stood 190 000 ticks in a lair's corner, steering into it.
+                        in = sim.effect().kind().invertsInput()
+                                ? InputState.of(-chosen.dx(), -chosen.dy(), chosen.fire(), chosen.firePressed())
+                                : chosen;
                     }
                     while (block < route.size() && reached(sim, route.get(block))) {
                         block++;
@@ -414,7 +419,7 @@ public final class FullRunForge {
 
     private static String where(Simulation sim, int t, int deaths) {
         return " at tick " + t + ", local " + (Fixed.px(sim.player().xFp()) - sim.room().col() * 256) + ","
-                + (Fixed.px(sim.player().yFp()) - sim.room().row() * 192) + ", " + deaths + " deaths, "
+                + (Fixed.px(sim.player().yFp()) - sim.room().row() * Simulation.ROOM_H_PX) + ", " + deaths + " deaths, "
                 + sim.creatures().size() + " creatures, Wulf " + sim.wulf().state();
     }
 
@@ -430,7 +435,7 @@ public final class FullRunForge {
     private static int[] pedestalBlock(LandmarksData marks, int lair) {
         RoomAddress room = LandmarksData.room(marks.lairs().get(lair).room());
         LandmarksData.Point p = marks.lairs().get(lair).pedestal();
-        return new int[] {Math.floorDiv(room.col() * 256 + p.x() - 8, 8), Math.floorDiv(room.row() * 192 + p.y() - 13, 8)};
+        return new int[] {Math.floorDiv(room.col() * 256 + p.x() - 8, 8), Math.floorDiv(room.row() * Simulation.ROOM_H_PX + p.y() - 13, 8)};
     }
 
     /** The route block in the bottom of the exit zone: the arch's own cells above it are solid. */
@@ -438,7 +443,7 @@ public final class FullRunForge {
         RoomAddress room = marks.exitRoom();
         LandmarksData.Rect z = marks.exit().zone();
         int feetY = z.y() + z.h() - 11;
-        return new int[] {Math.floorDiv(room.col() * 256 + z.x() + z.w() / 2 - 8, 8), Math.floorDiv(room.row() * 192 + feetY - 13, 8)};
+        return new int[] {Math.floorDiv(room.col() * 256 + z.x() + z.w() / 2 - 8, 8), Math.floorDiv(room.row() * Simulation.ROOM_H_PX + feetY - 13, 8)};
     }
 
     private static boolean reached(Simulation sim, int[] block) {
@@ -580,7 +585,7 @@ public final class FullRunForge {
         for (int l = 0; l < grounds.length; l++) {
             RoomAddress room = LandmarksData.room(marks.lairs().get(l).room());
             LandmarksData.Point p = marks.lairs().get(l).pedestal();
-            grounds[l] = new int[] {room.col() * 256 + p.x(), room.row() * 192 + p.y()};
+            grounds[l] = new int[] {room.col() * 256 + p.x(), room.row() * Simulation.ROOM_H_PX + p.y()};
         }
         int cols = WorldGrid.COLS;
         int startX = Math.floorDiv(Fixed.px(sim.player().xFp()) + box.x(), Simulation.CELL_PX);

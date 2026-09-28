@@ -17,6 +17,16 @@ import wulf.world.RoomAddress;
  */
 public final class OriginalMapRepository {
 
+    /**
+     * The character rows the original's score banner takes at the top of the
+     * screen (AGENTS.md §5.1, §25 Q14). The extracted placements count rows from
+     * the top of the <em>screen</em>, so the jungle starts at row 2 of them: the
+     * game clears and draws its play area from screen address $4040, row 2, and
+     * prints lives on row 0 and the scores on row 1. Here they become rows of
+     * the room, 0 at its top.
+     */
+    public static final int SCREEN_TOP_ROW = 2;
+
     private final int gridW;
     private final int gridH;
     private final RoomAddress startRoom;
@@ -38,7 +48,11 @@ public final class OriginalMapRepository {
 
         Map<Integer, List<Placement>> byType = new LinkedHashMap<>();
         for (Map.Entry<String, List<Placement>> e : map.templates().entrySet()) {
-            byType.put(Integer.valueOf(e.getKey()), List.copyOf(e.getValue()));
+            List<Placement> inRoom = new ArrayList<>();
+            for (Placement p : e.getValue()) {
+                inRoom.add(new Placement(p.graphic(), p.x(), p.y() - SCREEN_TOP_ROW));
+            }
+            byType.put(Integer.valueOf(e.getKey()), List.copyOf(inRoom));
         }
         this.placementsByType = Collections.unmodifiableMap(byType);
     }

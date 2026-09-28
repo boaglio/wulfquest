@@ -53,6 +53,7 @@
   },
   "gameOver": {
     "text": "GAME OVER",
+    "progress": "{percent}% OF THE QUEST DONE",
     "holdTicks": 150
   },
   "tally": {
@@ -93,6 +94,17 @@
   "stats": {
     "heading": "THE LEDGER",
     "emptyLine": "NOTHING RECORDED YET"
+  },
+  "amuletReveal": {
+    "holdTicks": 300,
+    "skipAfterTicks": 50,
+    "scale": 3,
+    "verses": [
+      ["A QUARTER WAKES IN YOUR HAND,", "COLD AS RIVER STONE.", "THREE MORE SLEEP IN THE GREEN,", "AND THE WULF HAS YOUR SCENT."],
+      ["TWO HALVES OF A BROKEN MOON", "KNIT TOGETHER AT YOUR TOUCH.", "THE JUNGLE LEANS IN TO LISTEN.", "KEEP WALKING, RANGER."],
+      ["THREE PARTS NOW, AND A HUNGER", "IN THEM FOR THE FOURTH.", "BENEATH THE ARCH OF STONE", "THE KEEPER STIRS."],
+      ["THE AMULET IS WHOLE.", "ITS LIGHT RUNS IN YOUR BONES.", "GO NOW TO THE ARCH OF STONE:", "THE KEEPER WILL STEP ASIDE."]
+    ]
   },
   "credits": {
     "heading": "CREDITS",

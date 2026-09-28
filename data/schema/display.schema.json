@@ -19,7 +19,7 @@
         "h": { "type": "integer", "minimum": 1 },
         "cell": { "type": "integer", "const": 8 },
         "cols": { "type": "integer", "const": 32 },
-        "rows": { "type": "integer", "const": 24 }
+        "rows": { "type": "integer", "const": 22 }
       }
     },
     "panel": {

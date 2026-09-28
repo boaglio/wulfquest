@@ -26,7 +26,9 @@ class SabreTest {
     }
 
     @Test
-    void theHitboxIsLiveOnSwingTicksThreeToEightOnly() {
+    void theBladeIsLiveOnEveryTickOfAStroke() {
+        // The original has no windup and no recovery: while fighting, the blade is out ($AB0E's
+        // fighting box, whatever pose the sprite is in). A tapped stroke is live from its first tick.
         Simulation sim = facingEast();
         sim.tick(FIRE);
         List<Integer> live = new ArrayList<>();
@@ -38,8 +40,8 @@ class SabreTest {
             }
             sim.tick(InputState.NONE);
         }
-        assertThat(seen).startsWith(0, 1, 2, 3).contains(11);
-        assertThat(live).containsExactly(3, 4, 5, 6, 7, 8);
+        assertThat(seen).containsExactly(0, 1, 2, 3, 4, 5, 6, 7);
+        assertThat(live).containsExactly(0, 1, 2, 3, 4, 5, 6, 7);
         assertThat(sim.player().swinging()).isFalse();
     }
 
@@ -68,26 +70,16 @@ class SabreTest {
     void holdingFireKeepsTheSabreWorking() {
         // Reported by the user from the original: keep the key down and the weapon keeps going.
         Simulation sim = SimFixtures.at(SimFixtures.OPEN, 1000, 1000);
-        // Held, the swings chain with no gap, so the player is never not swinging: count the
-        // blade instead, which is live only through each swing's ACTIVE ticks.
-        int strokes = 0;
-        int liveTicks = 0;
-        boolean wasLive = false;
+        // Held, the strokes chain with no gap and each is live throughout, so the blade never
+        // goes dark: the original's fighting mode lasts exactly as long as the key is down.
+        List<Integer> dark = new ArrayList<>();
         for (int t = 0; t < 120; t++) {
             sim.tick(HOLD_FIRE);
-            boolean live = !sim.sabre().isEmpty();
-            if (live) {
-                liveTicks++;
-                if (!wasLive) {
-                    strokes++;
-                }
+            if (sim.sabre().isEmpty()) {
+                dark.add(t);
             }
-            wasLive = live;
         }
-        int perSwing = RULES.sabre().totalTicks() + RULES.sabre().holdRepeatTicks();
-        assertThat(strokes).as("a stroke every %d ticks while held", perSwing).isEqualTo(120 / perSwing);
-        assertThat(liveTicks).as("and the blade lives its full ACTIVE each time")
-                .isEqualTo(strokes * RULES.sabre().activeTicks());
+        assertThat(dark).as("ticks with no blade while fire was held").isEmpty();
     }
 
     @Test
@@ -117,13 +109,16 @@ class SabreTest {
     }
 
     @Test
-    void thePlayerMovesAtFullSpeedWhileSwinging() {
+    void fightingSlowsThePlayerToTwoThirds() {
+        // The original fights at a steady 2 px a frame ($ADD0) against a walking top speed of 3
+        // ($AFC1): 171/256.
+        assertThat(RULES.sabre().moveSpeedScaleFp()).isEqualTo(171);
         Simulation sim = facingEast();
         sim.tick(InputState.of(1, 0, true, true));
         int x = sim.player().xFp();
         sim.tick(RIGHT);
         assertThat(sim.player().swinging()).isTrue();
-        assertThat(sim.player().xFp() - x).isEqualTo(RULES.speed().xFp());
+        assertThat(sim.player().xFp() - x).isEqualTo(Fixed.mul(RULES.speed().xFp(), RULES.sabre().moveSpeedScaleFp()));
     }
 
     @Test
