@@ -201,7 +201,7 @@ public final class Boot {
                         + player.settings().audio().volumePercent() + "% volume"
                 : parsed.noAudio() ? "off (--no-audio)" : "off (settings.json)"));
         System.out.println("  controls     : arrows or WASD walk, Space or Z swing, P pause, Esc leaves the jungle"
-                + (parsed.dev() ? "   [dev: K kill, M collision mask, H summon the Wulf]" : ""));
+                + (parsed.dev() ? "   [dev: K kill, N collision mask, H summon the Wulf]" : ""));
 
         GameLoop loop = new GameLoop(c.game().tickHz(), c.game().maxCatchupTicks());
         loop.run(new GameLoop.Stepper() {
@@ -551,11 +551,11 @@ public final class Boot {
                                        (any of these three: a practice run, kept off the
                                        hi-score table and the ledger)
                       --headless       load and validate the data, then exit
-                      --dev            developer mode: K kills, M shows collision, room and
+                      --dev            developer mode: K kills, N shows collision, room and
                                        position on the panel
                       --help           this message
 
-                    Controls: arrows or WASD walk, Space or Z swing, P pause, Esc leaves the
+                    Controls: arrows or WASD walk, Space or Z swing, P pause, M the map, Esc leaves the
                     jungle for the title screen, and quits from there.
                     """);
         }

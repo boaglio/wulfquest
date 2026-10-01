@@ -1902,6 +1902,26 @@ not the start, the way out or a lair, and that the zone has standing room.
   (§18.3), starts as it opens and stops as it closes — music in `PLAYING`,
   approved by the user (§27.8).
 
+### 14.8 The map scroll and the eyes **[NEW]**
+
+Asked for by the user (2026-10-01), with the map screen of §17.7. Two kinds of
+thing lie in the jungle besides the amulet, in `landmarks.json → items`, each
+taken by touching `pickupBox` round its `spot` (room-local feet), once per
+game, scoring nothing, with the quarter's white border flash and the orchid's
+pick-up sound:
+
+- **The map scroll** (`item_map`), five rooms from the start at `6,11`: once
+  taken, the map shows every room, not only those visited.
+- **Two eyes** (`item_eye`, glancing about every `glanceTicks`): the north eye
+  at `14,6` shows the north-west and north-east quarters on the map, the south
+  eye at `11,13` the south-west and south-east — each eye two, both eyes all
+  four. A quarter stays marked until it is taken.
+
+Drawn by `tools/art/item_forge.py`. `LandmarkValidator` checks the rooms, the
+sprites, clear ground at each spot, and that the eyes name real lairs and
+between them every lair, once. What has been found is in the state hash only
+once something has been, so a game that finds nothing hashes as before.
+
 ### 14.7 The win sequence
 
 ```
@@ -2205,6 +2225,22 @@ entry, nothing added to the ledger — because a table that a god-mode run can
 top means nothing. A replay file cannot carry them, so `--record` refuses to
 combine with any of them (exit 64).
 
+### 17.7 The map **[NEW]**
+
+`M` during play (`shell.json → map.key`) opens the map over the playfield; `M`
+again closes it. The game stands still underneath, as under pause, so nothing
+is recorded and replays never know (§22.6). The panel says
+`MAP: PRESS M TO RETURN`. With `--dev`, the collision view moved from `M` to
+`N` to make room.
+
+The whole 16×16 jungle at 16×11 pixels a room — the room's open ground in
+miniature, a pixel for every 2×2 cells, walls left dark, so the ways through
+read as a maze. Rooms Vale has been in are drawn in `visited` (green); once
+the map scroll is found every other room is drawn in `revealed` (blue); the
+rest stays black. The room he is in blinks in `here` every `blinkTicks`.
+Quarters the eyes have shown sit in their rooms as half-size amulet pieces
+until taken (§14.8). `MapScreen`.
+
 ## 18. Audio — procedural 1-bit beeper
 
 ### 18.1 Approach
@@ -2291,7 +2327,7 @@ else. With two channels, a higher-priority event steals channel 0.
       "up":    ["UP", "W"],  "down":  ["DOWN", "S"],
       "left":  ["LEFT", "A"], "right": ["RIGHT", "D"],
       "fire":  ["SPACE", "Z"], "pause": ["P"], "quit": ["ESCAPE"],
-      "devKill": ["K"], "devMask": ["M"], "devWulf": ["H"]
+      "devKill": ["K"], "devMask": ["N"], "devWulf": ["H"]
     },
     "period": {
       "up": ["Q"], "down": ["A"], "left": ["O"], "right": ["P"],

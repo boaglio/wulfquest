@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "name": "item_map",
+  "size": {
+    "w": 16,
+    "h": 16
+  },
+  "origin": {
+    "x": 8,
+    "y": 16
+  },
+  "legend": {
+    ".": -1,
+    "K": 0,
+    "r": 2,
+    "y": 6,
+    "w": 7,
+    "R": 10,
+    "Y": 14
+  },
+  "frames": [
+    {
+      "id": "f0",
+      "rows": [
+        "................",
+        "................",
+        ".KKK........KKK.",
+        "KwYYKKKKKKKKYYwK",
+        "KYyYyyyyyyyyYyYK",
+        "KYyYyyyyyyyyYyYK",
+        "KYyYyryyyyyyYyYK",
+        "KYyYyyrryyyyYyYK",
+        "KYyYyyyyryyyYyYK",
+        "KYyYyyRyryyyYyYK",
+        "KYyYyRyRyrryYyYK",
+        "KYyYyyRyyyryYyYK",
+        "KYyYyyyyyyyyYyYK",
+        "KYyYyyyyyyyyYyYK",
+        "KwYYKKKKKKKKYYwK",
+        ".KKK........KKK."
+      ]
+    }
+  ],
+  "mirror": {
+    "f0_l": {
+      "from": "f0",
+      "flipX": true
+    }
+  }
+}

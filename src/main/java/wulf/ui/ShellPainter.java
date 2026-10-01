@@ -30,6 +30,7 @@ public final class ShellPainter {
     private final GameOverScreen gameOver;
     private final TallyScreen tally;
     private final AmuletRevealScreen reveal;
+    private final MapScreen map;
     private final Content content;
     private final int tickHz;
 
@@ -53,6 +54,9 @@ public final class ShellPainter {
         this.reveal = new AmuletRevealScreen(chrome, display,
                 new wulf.render.SpriteBank(content.sprites()).get(content.landmarks().amulet().sprite()),
                 wulf.render.QuestPainter.framesBySlot(content.landmarks()), config.amuletReveal());
+        this.map = new MapScreen(display, content.rooms(), content.landmarks(),
+                new wulf.render.SpriteBank(content.sprites()).get(content.landmarks().amulet().sprite()),
+                content.palette(), config.map());
     }
 
     public GamePainter game() {
@@ -91,7 +95,12 @@ public final class ShellPainter {
 
     private void playing(Framebuffer fb, Shell shell, boolean dev) {
         GameSession session = shell.session();
-        game.paint(fb, session.sim(), db.scores().best(), session.message(dev), session.showMask());
+        game.paint(fb, session.sim(), db.scores().best(),
+                session.mapOpen() ? config.map().message() : session.message(dev), session.showMask());
+        if (session.mapOpen()) {
+            map.paint(fb, session.sim(), shell.stateTick());   // §17.7
+            return;
+        }
         if (session.revealing()) {
             reveal.paint(fb, session.sim().quest().slotMask(), session.verse());
             return;

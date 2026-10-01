@@ -46,7 +46,7 @@ lives in [AGENTS.md](AGENTS.md) §24.
 ./run.sh                   # play, starting in 8,10
 ./run.sh --seed 42         # replay the same creatures in every room
 ./run.sh --room 3,4        # start somewhere else
-./run.sh --dev             # K kills Vale, M shows collision, H calls the Wulf
+./run.sh --dev             # K kills Vale, N shows collision, H calls the Wulf
 ./run.sh --record run.json # save the first game as a replay
 ./run.sh --debug-effect haste  # start under an orchid's effect: haste, torpor,
                                # reversal, immunity, delirium, stillness
@@ -101,6 +101,10 @@ rebuild — the game reads the working tree's `data/` directly.
 | Space / Z | Swing the sabre |
 | P | Pause |
 | Escape | Leave the jungle for the title; quit from the title |
+
+In the jungle, `M` opens a map of everywhere you have been; the game waits while
+it is open. Find the scroll a few rooms from the start and it shows the whole
+jungle; find the two eyes and it shows where the four quarters of the amulet lie.
 
 The title screen has the rest: `K` for the keys page, where the period layout
 (`Q`/`A`/`O`/`P` to move, `M` to swing) is one digit away and the choice sticks;

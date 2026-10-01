@@ -69,7 +69,7 @@ Game options (play, browse and jar):
   --debug-effect E            start every game under an orchid's effect:
                               haste, torpor, reversal, immunity, delirium, stillness
   --browse                    the room browser instead of the game
-  --dev                       developer mode: K kills Vale, M shows collision,
+  --dev                       developer mode: K kills Vale, N shows collision,
                               H calls the Wulf, room and position on the panel
   --scale N                   window scale, 1..6
   --data-dir PATH             content database root (default: ./data)
@@ -90,7 +90,7 @@ Script options (before the command):
   --test                      run the full verify first, then the command
   -h, --help                  this message
 
-Controls: arrows or WASD walk, Space or Z swing, P pause, Esc leaves the
+Controls: arrows or WASD walk, Space or Z swing, P pause, M the map, Esc leaves the
 jungle for the title screen, and quits from there.
 
 Exit codes:

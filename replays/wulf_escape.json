@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "name": "wulf_escape",
-  "note": "Forged by WulfEscapeForge: the Wulf appeared in 6,9 at tick 796 and chased across 4 rooms to 7,11, parried 0 times, until it was outrun; no lives lost. Replayed by ReplayTest.",
-  "contentHash": "4ba8461d983718f98e04e44c74e9cc600e554fb94330f70456cff5832049ba91",
+  "note": "Forged by WulfEscapeForge: the Wulf appeared in 6,9 at tick 796 and chased across 4 rooms to 7,11, parried 0 times, until it was outrun; no lives lost. Replayed by ReplayTest. Checkpoints re-recorded 2026-10-01 when the map scroll and the eyes were added (§14.8); the input is unchanged.",
+  "contentHash": "fbbd4a9216198fc9ea2b8e21740452b370c2ed1ebe73fe780e8125cb5801bbd5",
   "seed": 6,
   "startRoom": "8,10",
   "dev": false,
@@ -40,6 +40,6 @@
     "744c38702aeee8d6", "b17c88614646ef29", "c212bc5ec231a334", "c2b2f5a777f7bd4b",
     "560d4a6a20ce8b92", "31389aacaee623e3", "7adeda13427cd103", "dc26365c318e6594",
     "7c1991b2a00027c8", "54cc93297834d557", "bb6034a88285dbb0", "58af4e1f35a4ca36",
-    "1d3b56ad16ce28d0", "8c025cd7db7194d6", "cf3c328797c54088", "8cdab1a18669eac6"
+    "a82bf3b7a539636d", "cebf5412988b281b", "9dd5b800d166b165", "ef99222f17ac0d53"
   ]
 }

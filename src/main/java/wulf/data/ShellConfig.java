@@ -22,6 +22,7 @@ public record ShellConfig(
         Sound sound,
         Stats stats,
         AmuletReveal amuletReveal,
+        MapScreen map,
         Credits credits) {
 
     public record Title(String wordmark, String tagline, String prompt, Cycle cycle, List<MenuItem> menu,
@@ -42,6 +43,15 @@ public record ShellConfig(
     }
 
     public record Attract(int idleTicks, String replay, String banner, boolean dimEveryOtherRow) {
+    }
+
+    /**
+     * The map screen (§17.7, {@code [NEW]}): {@code key} opens and closes it during play; rooms
+     * visited are drawn in {@code visited}, rooms only the map scroll shows in {@code revealed},
+     * and the room Vale is in blinks in {@code here} every {@code blinkTicks}.
+     */
+    public record MapScreen(String key, String message, String visited, String revealed, String here,
+                            int blinkTicks) {
     }
 
     /** @param progress the line under it, {@code {percent}} standing for how much of the adventure is done (§17.5) */

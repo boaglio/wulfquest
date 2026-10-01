@@ -20,6 +20,7 @@ public final class GameSession {
     private final Simulation sim;
     private final ShellConfig.AmuletReveal reveal;
     private boolean paused;
+    private boolean mapOpen;
     private boolean showMask;
     private int piecesSeen;
     /** Ticks into the amulet reveal (§14.6); negative when none is showing. */
@@ -41,6 +42,9 @@ public final class GameSession {
         }
         if (over() || won()) {
             return;
+        }
+        if (mapOpen) {
+            return;   // §17.7: the game stands still under the map, as under pause; nothing is recorded
         }
         if (revealing()) {
             // The game stands still under the reveal, as the original's did: no sim tick, so
@@ -120,6 +124,17 @@ public final class GameSession {
             case NW -> "NORTH-WEST";
         };
         return (quest.hintToExit() ? "THE ARCH CALLS FROM THE " : "AMULET STIRS TO THE ") + way;
+    }
+
+    /** §17.7: opens or closes the map screen; not while the game is over or the amulet reveal is up. */
+    public void toggleMap() {
+        if (!over() && !won() && !revealing()) {
+            mapOpen = !mapOpen;
+        }
+    }
+
+    public boolean mapOpen() {
+        return mapOpen;
     }
 
     public boolean paused() {

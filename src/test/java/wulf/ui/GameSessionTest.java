@@ -99,6 +99,23 @@ class GameSessionTest {
     }
 
     @Test
+    void theMapStopsTheGameUntilItIsClosed() {
+        // §17.7: like pause, nothing moves under the map, and nothing is recorded.
+        GameSession s = session();
+        s.toggleMap();
+        assertThat(s.mapOpen()).isTrue();
+        long tick = s.sim().tick();
+        for (int i = 0; i < 30; i++) {
+            s.tick(RIGHT, false);
+        }
+        assertThat(s.sim().tick()).isEqualTo(tick);
+        s.toggleMap();
+        assertThat(s.mapOpen()).isFalse();
+        s.tick(RIGHT, false);
+        assertThat(s.sim().tick()).isEqualTo(tick + 1);
+    }
+
+    @Test
     void thePanelLineReflectsTheSession() {
         GameSession s = session();
         assertThat(s.message(false)).isNull();

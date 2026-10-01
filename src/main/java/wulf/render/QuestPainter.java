@@ -16,17 +16,20 @@ public final class QuestPainter {
     private final DisplayConfig.Playfield field;
     private final LandmarksData marks;
     private final Sprite amulet;
+    private final SpriteBank sprites;
     private final int black;
 
     public QuestPainter(DisplayConfig display, SpriteBank sprites, LandmarksData marks, int black) {
         this.field = display.playfield();
         this.marks = marks;
         this.amulet = marks.lairs().isEmpty() ? null : sprites.get(marks.amulet().sprite());
+        this.sprites = sprites;
         this.black = black;
     }
 
     /** The quarter on its pedestal, under the creatures (§5.3: loot before creatures). */
     public void paintLoot(Framebuffer fb, Simulation sim) {
+        paintItems(fb, sim);
         Quest q = sim.quest();
         if (amulet == null || !q.inLair() || q.taken(q.lair())) {
             return;
@@ -39,6 +42,34 @@ public final class QuestPainter {
             fb.clearClip();
         }
     }
+
+    /** §14.8: the map scroll and the eyes still lying in this room. An eye glances about. */
+    private void paintItems(Framebuffer fb, Simulation sim) {
+        LandmarksData.Items items = marks.items();
+        if (items.map() == null) {
+            return;
+        }
+        Quest q = sim.quest();
+        fb.setClip(field.x(), field.y(), field.w(), field.h());
+        try {
+            LandmarksData.Item map = items.map();
+            if (!q.mapTaken() && LandmarksData.room(map.room()).equals(sim.room())) {
+                sprites.get(map.sprite()).blit(fb, field.x() + map.spot().x(), field.y() + map.spot().y());
+            }
+            for (int i = 0; i < items.eyes().size(); i++) {
+                LandmarksData.Eye eye = items.eyes().get(i);
+                if (!q.eyeTaken(i) && LandmarksData.room(eye.room()).equals(sim.room())) {
+                    String frame = "f" + GLANCE[(int) (sim.tick() / items.glanceTicks() % GLANCE.length)];
+                    sprites.get(eye.sprite()).blit(fb, frame, field.x() + eye.spot().x(), field.y() + eye.spot().y());
+                }
+            }
+        } finally {
+            fb.clearClip();
+        }
+    }
+
+    /** Look ahead, right, ahead, left: the eye's frames, a beat each. Drawing only. */
+    private static final int[] GLANCE = {0, 1, 0, 2};
 
     /** The playfield blacked out from the top, a row at a time, over the escape walk (§14.7). */
     public void paintEscape(Framebuffer fb, Simulation sim) {

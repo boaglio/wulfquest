@@ -19,11 +19,37 @@ public record LandmarksData(
         List<Lair> lairs,
         Amulet amulet,
         Shrines shrines,
+        Items items,
         Hint hint,
         Temple temple) {
 
     public LandmarksData {
         lairs = List.copyOf(lairs);
+    }
+
+    /**
+     * What can be found besides the amulet (§14.8, {@code [NEW]}): the map scroll, which
+     * shows every room on the map screen, and the eyes, each of which marks the lairs it
+     * names there. Each lies at {@code spot}, room-local feet, and is taken by touching
+     * {@code pickupBox} around it. An eye lying in a room glances about, a look every
+     * {@code glanceTicks} (drawing only).
+     */
+    public record Items(CreatureData.Box pickupBox, int glanceTicks, Item map, List<Eye> eyes) {
+        public Items {
+            eyes = List.copyOf(eyes);
+        }
+
+        public static final Items NONE = new Items(new CreatureData.Box(0, 0, 1, 1), 1, null, List.of());
+    }
+
+    public record Item(String room, Point spot, String sprite) {
+    }
+
+    /** @param reveals lair ids this eye marks on the map (§14.8) */
+    public record Eye(String room, Point spot, String sprite, List<String> reveals) {
+        public Eye {
+            reveals = List.copyOf(reveals);
+        }
     }
 
     /**
@@ -124,7 +150,8 @@ public record LandmarksData(
     public static final LandmarksData NONE = new LandmarksData(1, "none", "N",
             new Exit("0,0", "0000", new Rect(0, 0, 1, 1), new Point(0, 0), 4, 1), List.of(),
             new Amulet("amulet_piece", new CreatureData.Size(1, 1), new CreatureData.Box(0, 0, 1, 1), 0, 1),
-            new Shrines("0000", new Rect(0, 0, 1, 1), List.of()), new Hint(1, true), new Temple("none", List.of()));
+            new Shrines("0000", new Rect(0, 0, 1, 1), List.of()), Items.NONE, new Hint(1, true),
+            new Temple("none", List.of()));
 
     public boolean isShrine(RoomAddress address) {
         for (String key : shrines.rooms()) {

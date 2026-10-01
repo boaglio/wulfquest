@@ -106,6 +106,14 @@
       ["THE AMULET IS WHOLE.", "ITS LIGHT RUNS IN YOUR BONES.", "GO NOW TO THE ARCH OF STONE:", "THE KEEPER WILL STEP ASIDE."]
     ]
   },
+  "map": {
+    "key": "M",
+    "message": "MAP: PRESS M TO RETURN",
+    "visited": "green",
+    "revealed": "blue",
+    "here": "brightWhite",
+    "blinkTicks": 10
+  },
   "credits": {
     "heading": "CREDITS",
     "lines": [

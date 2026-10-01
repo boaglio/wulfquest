@@ -28,6 +28,15 @@
     "zone": { "x": 104, "y": 88, "w": 48, "h": 16 },
     "rooms": ["4,3", "2,5", "1,9", "2,13", "3,13"]
   },
+  "items": {
+    "pickupBox": { "x": -8, "y": -16, "w": 16, "h": 16 },
+    "glanceTicks": 25,
+    "map": { "room": "6,11", "spot": { "x": 128, "y": 96 }, "sprite": "item_map" },
+    "eyes": [
+      { "room": "14,6", "spot": { "x": 128, "y": 104 }, "sprite": "item_eye", "reveals": ["lair_nw", "lair_ne"] },
+      { "room": "11,13", "spot": { "x": 128, "y": 104 }, "sprite": "item_eye", "reveals": ["lair_sw", "lair_se"] }
+    ]
+  },
   "hint": { "messageTicks": 90, "oncePerLife": true },
   "temple": {
     "name": "The Bone Temple",

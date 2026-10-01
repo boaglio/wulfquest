@@ -5,7 +5,7 @@
   "type": "object",
   "additionalProperties": false,
   "required": ["schemaVersion", "screenHoldTicks", "title", "attract", "gameOver", "tally", "hiScores",
-               "keyConfig", "sound", "stats", "amuletReveal", "credits"],
+               "keyConfig", "sound", "stats", "amuletReveal", "map", "credits"],
   "properties": {
     "schemaVersion": { "type": "integer", "minimum": 1 },
     "screenHoldTicks": { "type": "integer", "minimum": 0, "maximum": 600 },
@@ -137,6 +137,19 @@
           "type": "array",
           "items": { "type": "array", "minItems": 1, "items": { "type": "string" } }
         }
+      }
+    },
+    "map": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["key", "message", "visited", "revealed", "here", "blinkTicks"],
+      "properties": {
+        "key": { "type": "string", "pattern": "^[A-Z0-9]$" },
+        "message": { "type": "string", "minLength": 1, "maxLength": 48 },
+        "visited": { "type": "string", "minLength": 1 },
+        "revealed": { "type": "string", "minLength": 1 },
+        "here": { "type": "string", "minLength": 1 },
+        "blinkTicks": { "type": "integer", "minimum": 1 }
       }
     },
     "credits": {

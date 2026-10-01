@@ -4,7 +4,7 @@
   "title": "world/landmarks.json — AGENTS.md §14",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schemaVersion", "fidelity", "startFacing", "exit", "lairs", "amulet", "shrines", "hint", "temple"],
+  "required": ["schemaVersion", "fidelity", "startFacing", "exit", "lairs", "amulet", "shrines", "items", "hint", "temple"],
   "properties": {
     "schemaVersion": { "type": "integer", "minimum": 1 },
     "fidelity": { "enum": ["recon", "canon"] },
@@ -75,6 +75,39 @@
           }
         },
         "rooms": { "type": "array", "uniqueItems": true, "items": { "$ref": "#/$defs/room" } }
+      }
+    },
+    "items": {
+      "type": "object", "additionalProperties": false, "required": ["pickupBox", "glanceTicks", "map", "eyes"],
+      "properties": {
+        "pickupBox": {
+          "type": "object", "additionalProperties": false, "required": ["x", "y", "w", "h"],
+          "properties": { "x": { "type": "integer" }, "y": { "type": "integer" },
+                          "w": { "type": "integer", "minimum": 1 }, "h": { "type": "integer", "minimum": 1 } }
+        },
+        "glanceTicks": { "type": "integer", "minimum": 1 },
+        "map": {
+            "type": "object", "additionalProperties": false, "required": ["room", "spot", "sprite"],
+            "properties": {
+              "room": { "$ref": "#/$defs/room" },
+              "spot": { "type": "object", "additionalProperties": false, "required": ["x", "y"],
+                        "properties": { "x": { "type": "integer" }, "y": { "type": "integer" } } },
+              "sprite": { "type": "string", "pattern": "^[a-z][a-z0-9_]*$" }
+            }
+          },
+        "eyes": {
+          "type": "array",
+          "items": {
+            "type": "object", "additionalProperties": false, "required": ["room", "spot", "sprite", "reveals"],
+            "properties": {
+              "room": { "$ref": "#/$defs/room" },
+              "spot": { "type": "object", "additionalProperties": false, "required": ["x", "y"],
+                        "properties": { "x": { "type": "integer" }, "y": { "type": "integer" } } },
+              "sprite": { "type": "string", "pattern": "^[a-z][a-z0-9_]*$" },
+              "reveals": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "type": "string" } }
+            }
+          }
+        }
       }
     },
     "hint": {

@@ -825,6 +825,7 @@ public final class Simulation {
         int roomX = room.col() * ROOM_W_PX;
         int roomY = room.row() * ROOM_H_PX;
 
+        takeItems(marks, px, py, pb, roomX, roomY);
         if (q.lair >= 0 && !q.taken[q.lair]) {
             LandmarksData.Lair lair = marks.lairs().get(q.lair);
             CreatureData.Box ab = marks.amulet().collisionBox();
@@ -854,6 +855,37 @@ public final class Simulation {
             sabre = PixelRect.NONE;
             q.escapeFromXFp = player.xFp;
         }
+    }
+
+    /** §14.8: the map scroll and the eyes, taken by touch, once each per game. */
+    private void takeItems(LandmarksData marks, int px, int py, PlayerData.Box pb, int roomX, int roomY) {
+        LandmarksData.Items items = marks.items();
+        if (items.map() == null) {
+            return;
+        }
+        Quest q = quest;
+        CreatureData.Box ib = items.pickupBox();
+        LandmarksData.Item map = items.map();
+        if (!q.mapTaken && LandmarksData.room(map.room()).equals(room)
+                && overlaps(px, py, pb.w(), pb.h(), roomX + map.spot().x() + ib.x(), roomY + map.spot().y() + ib.y(),
+                        ib.w(), ib.h())) {
+            q.mapTaken = true;
+            itemTaken(marks);
+        }
+        for (int i = 0; i < items.eyes().size() && i < Quest.MAX_EYES; i++) {
+            LandmarksData.Eye eye = items.eyes().get(i);
+            if (!q.eyeTaken[i] && LandmarksData.room(eye.room()).equals(room)
+                    && overlaps(px, py, pb.w(), pb.h(), roomX + eye.spot().x() + ib.x(), roomY + eye.spot().y() + ib.y(),
+                            ib.w(), ib.h())) {
+                q.eyeTaken[i] = true;
+                itemTaken(marks);
+            }
+        }
+    }
+
+    private void itemTaken(LandmarksData marks) {
+        quest.pickupFlash = marks.amulet().pickupFlashTicks();   // the same white flash as a quarter
+        sounds.play(SFX_ORCHID_PICK);
     }
 
     private void takePiece(LandmarksData.Lair lair, int centreXPx, int centreYPx) {
@@ -1768,6 +1800,13 @@ public final class Simulation {
         h = mix(h, q.flyTicks);
         h = mix(h, q.flySlot);
         h = mix(h, q.hintTicks);
+        int found = q.mapTaken ? 1 : 0;
+        for (int i = 0; i < Quest.MAX_EYES; i++) {
+            found |= q.eyeTaken[i] ? 2 << i : 0;
+        }
+        if (found != 0) {
+            h = mix(h, found);   // only once something is found (§14.8): a game that has found nothing hashes as before
+        }
         h = mix(h, q.hintDirection.ordinal());
         h = mix(h, q.escapeBonus + 31 * q.timeBonus + 961 * q.livesBonus);
         for (int i = 0; i < q.hintUsed.length; i++) {

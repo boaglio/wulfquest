@@ -89,7 +89,7 @@ public final class Shell {
             case CREDITS, HISCORES, STATS -> page(in);
             case KEY_CONFIG -> keyConfig(in, menu);
             case SOUND -> sound(in, menu);
-            case PLAYING -> playing(in, dev);
+            case PLAYING -> playing(in, menu, dev);
             case GAME_OVER -> gameOver(in);
             case TALLY -> tally(in);
             case HISCORE_ENTRY -> hiScoreEntry(in);
@@ -177,7 +177,11 @@ public final class Shell {
         page(in);
     }
 
-    private void playing(InputState in, boolean dev) {
+    private void playing(InputState in, MenuInput menu, boolean dev) {
+        if (menu.typed(config.map().key())) {
+            session.toggleMap();   // §17.7
+            jukebox.sfx(SFX_PICK);
+        }
         if (in.quitPressed()) {
             // Escape leaves the jungle rather than the program: the run is banked as if it ended.
             endRun();

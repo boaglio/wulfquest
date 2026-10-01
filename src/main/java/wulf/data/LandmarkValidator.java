@@ -140,6 +140,7 @@ public final class LandmarkValidator {
                 throw new DataException(FILE, "/shrines/zone", "is solid everywhere in " + shrine);
             }
         }
+        checkItems(marks, framesBySprite, solid, taken);
         for (int i = 0; i < marks.temple().rooms().size(); i++) {
             room(marks.temple().rooms().get(i), "/temple/rooms/" + i);
         }
@@ -170,6 +171,54 @@ public final class LandmarkValidator {
             }
         }
         return false;
+    }
+
+    /** §14.8: the map scroll and the eyes are in real rooms, on clear ground, and the eyes name real lairs. */
+    private static void checkItems(LandmarksData marks, Map<String, Set<String>> framesBySprite, Solid solid,
+                                   Set<RoomAddress> taken) {
+        LandmarksData.Items items = marks.items();
+        if (items.map() == null) {
+            return;
+        }
+        checkItem(framesBySprite, solid, taken, items.pickupBox(), items.map().room(), items.map().spot(),
+                items.map().sprite(), "/items/map");
+        Set<String> lairIds = new HashSet<>();
+        for (LandmarksData.Lair lair : marks.lairs()) {
+            lairIds.add(lair.id());
+        }
+        Set<String> revealed = new HashSet<>();
+        for (int i = 0; i < items.eyes().size(); i++) {
+            LandmarksData.Eye eye = items.eyes().get(i);
+            String at = "/items/eyes/" + i;
+            checkItem(framesBySprite, solid, taken, items.pickupBox(), eye.room(), eye.spot(), eye.sprite(), at);
+            for (int k = 0; k < eye.reveals().size(); k++) {
+                String id = eye.reveals().get(k);
+                if (!lairIds.contains(id)) {
+                    throw new DataException(FILE, at + "/reveals/" + k, "is '" + id + "', which is not a lair id");
+                }
+                if (!revealed.add(id)) {
+                    throw new DataException(FILE, at + "/reveals/" + k, "is '" + id + "', which another eye already shows");
+                }
+            }
+        }
+        if (!items.eyes().isEmpty() && !revealed.equals(lairIds)) {
+            throw new DataException(FILE, "/items/eyes", "between them show " + revealed + ", not every lair " + lairIds);
+        }
+    }
+
+    private static void checkItem(Map<String, Set<String>> framesBySprite, Solid solid, Set<RoomAddress> taken,
+                                  CreatureData.Box box, String roomKey, LandmarksData.Point spot, String sprite,
+                                  String at) {
+        RoomAddress room = room(roomKey, at + "/room");
+        if (taken.contains(room)) {
+            throw new DataException(FILE, at + "/room", "is " + room + ", already the start, the way out or a lair");
+        }
+        if (!framesBySprite.containsKey(sprite)) {
+            throw new DataException(FILE, at + "/sprite", "names sprite '" + sprite + "', which is not in data/art/sprites/index.json");
+        }
+        if (blocked(solid, room, box, spot.x(), spot.y())) {
+            throw new DataException(FILE, at + "/spot", "is (" + spot.x() + "," + spot.y() + "), inside the scenery");
+        }
     }
 
     private static boolean anyStandingSpot(Solid solid, RoomAddress room, LandmarksData.Rect zone) {

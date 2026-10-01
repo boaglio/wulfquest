@@ -54,7 +54,7 @@ class QuestDataValidationTest {
         LandmarksData.Exit e = m.exit();
         return new LandmarksData(m.schemaVersion(), m.fidelity(), m.startFacing(),
                 new LandmarksData.Exit(room, e.arch(), e.zone(), e.keeper(), e.requiresPieces(), e.escapeWalkTicks()),
-                m.lairs(), m.amulet(), m.shrines(), m.hint(), m.temple());
+                m.lairs(), m.amulet(), m.shrines(), m.items(), m.hint(), m.temple());
     }
 
     private static LandmarksData withLairRoom(int i, String room) {
@@ -63,7 +63,27 @@ class QuestDataValidationTest {
         LandmarksData.Lair l = lairs.get(i);
         lairs.set(i, new LandmarksData.Lair(l.id(), room, l.guardian(), l.piece(), l.pedestal()));
         return new LandmarksData(m.schemaVersion(), m.fidelity(), m.startFacing(), m.exit(), lairs, m.amulet(),
-                m.shrines(), m.hint(), m.temple());
+                m.shrines(), m.items(), m.hint(), m.temple());
+    }
+
+    @Test
+    void anEyeMustShowRealLairsAndTogetherShowThemAll() {
+        // §14.8: an eye naming a lair that does not exist, or the eyes missing one, is a DATA ERROR.
+        LandmarksData m = c.landmarks();
+        LandmarksData.Items items = m.items();
+        LandmarksData.Eye first = items.eyes().get(0);
+        LandmarksData.Items wrong = new LandmarksData.Items(items.pickupBox(), items.glanceTicks(), items.map(), List.of(
+                new LandmarksData.Eye(first.room(), first.spot(), first.sprite(), List.of("lair_nowhere")),
+                items.eyes().get(1)));
+        LandmarksData broken = new LandmarksData(m.schemaVersion(), m.fidelity(), m.startFacing(), m.exit(), m.lairs(),
+                m.amulet(), m.shrines(), wrong, m.hint(), m.temple());
+        assertThat(landmarkError(broken, solid).pointer()).isEqualTo("/items/eyes/0/reveals/0");
+
+        LandmarksData.Items short1 = new LandmarksData.Items(items.pickupBox(), items.glanceTicks(), items.map(),
+                List.of(first));
+        LandmarksData missing = new LandmarksData(m.schemaVersion(), m.fidelity(), m.startFacing(), m.exit(), m.lairs(),
+                m.amulet(), m.shrines(), short1, m.hint(), m.temple());
+        assertThat(landmarkError(missing, solid).pointer()).isEqualTo("/items/eyes");
     }
 
     @Test

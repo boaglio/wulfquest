@@ -236,6 +236,38 @@ class QuestTest {
         assertThat(ms).isLessThan(content.shell().amuletReveal().holdTicks() * 1000L / content.game().tickHz());
     }
 
+    /** §14.8: the map scroll and the eyes are taken by touch, once, and stay taken. */
+    @Test
+    void theMapAndTheEyesAreTakenByTouch() {
+        LandmarksData.Items items = marks.items();
+        LandmarksData.Item map = items.map();
+        Simulation s = sim(OPEN, real, LandmarksData.room(map.room()), map.spot().x(), map.spot().y());
+        assertThat(s.quest().mapTaken()).isFalse();
+        s.tick(STILL);
+        assertThat(s.quest().mapTaken()).isTrue();
+        assertThat(s.quest().eyeTaken(0)).isFalse();
+
+        for (int i = 0; i < items.eyes().size(); i++) {
+            LandmarksData.Eye eye = items.eyes().get(i);
+            Simulation e = sim(OPEN, real, LandmarksData.room(eye.room()), eye.spot().x(), eye.spot().y());
+            e.tick(STILL);
+            assertThat(e.quest().eyeTaken(i)).as("eye %d", i).isTrue();
+            assertThat(e.quest().mapTaken()).as("the eye is not the map").isFalse();
+            assertThat(e.score()).as("finding things scores nothing").isZero();
+        }
+    }
+
+    @Test
+    void theEyesShowEveryLairBetweenThem() {
+        // §14.8: each eye shows two quarters, and two eyes show all four.
+        java.util.Set<String> shown = new java.util.HashSet<>();
+        for (LandmarksData.Eye eye : marks.items().eyes()) {
+            assertThat(eye.reveals()).hasSize(2);
+            shown.addAll(eye.reveals());
+        }
+        assertThat(shown).containsExactlyInAnyOrder("lair_nw", "lair_ne", "lair_sw", "lair_se");
+    }
+
     @Test
     void leftAloneTheRevealEndsAfterItsHold() {
         wulf.data.ShellConfig.AmuletReveal reveal = content.shell().amuletReveal();

@@ -46,9 +46,24 @@ public final class Quest {
     long livesBonus;
     long scoreBeforeBonuses;
 
+    /** §14.8: the map scroll taken, and which eyes; at most {@link #MAX_EYES}. */
+    static final int MAX_EYES = 8;
+    boolean mapTaken;
+    final boolean[] eyeTaken = new boolean[MAX_EYES];
+
     Quest(Creature guardian, Creature keeper) {
         this.guardian = guardian;
         this.keeper = keeper;
+    }
+
+    /** Whether the map scroll has been found: the map screen then shows every room (§14.8). */
+    public boolean mapTaken() {
+        return mapTaken;
+    }
+
+    /** Whether eye {@code i} of {@code landmarks.json → items.eyes} has been found. */
+    public boolean eyeTaken(int i) {
+        return eyeTaken[i];
     }
 
     public int piecesHeld() {

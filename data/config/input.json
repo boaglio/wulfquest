@@ -11,7 +11,7 @@
       "pause": ["P"],
       "quit": ["ESCAPE"],
       "devKill": ["K"],
-      "devMask": ["M"],
+      "devMask": ["N"],
       "devWulf": ["H"]
     },
     "period": {
