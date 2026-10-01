@@ -17,8 +17,9 @@ against publicly documented data: the room grid had been mis-numbered, and
 every room had two rows at the top it never had. Picking up a quarter of the
 amulet now shows the amulet so far and a verse; the sabre fences instead of
 swinging; and game over says how much of the adventure you got through.
-`./run.sh help` lists every way to run it. One acceptance replay, a complete
-winning run, is still to be re-recorded on the new map.
+`./run.sh help` lists every way to run it. A complete winning run — all four
+quarters and out through the arch, about 53 minutes of play — is recorded and
+replayed on every build.
 
 **Milestone M9 complete.** M9 was the hardening pass:
 golden-frame tests that hash what the renderer draws, every recorded replay

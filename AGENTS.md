@@ -2621,11 +2621,15 @@ hash at every 50th tick. `ReplayRunner` re-executes them. Ship at least:
   true map: seed 217, 60 571 ticks, no death)
 - `replays/wulf_escape.json` — a Wulf pursuit survived across 4 rooms. (**M5, shipped**)
 - `replays/full_run.json` — a complete 4-piece win, forged by `FullRunForge`
-  (**M6, shipped; missing since M10**). The true map (§25 Q14) is one long
-  maze and `FullRunForge` has not yet found a win through it: across ~70
-  seeds it reaches one or two quarters and gives up or runs out of time
-  (`forge.maxTicks`, now 500 000). `ReplayTest.theFullRunReplayWinsTheGame` is
-  `@Disabled` with that reason until it is re-forged.
+  (**M6, shipped; re-forged 2026-09-30 on the true map**): seed 306, lairs in
+  order SE, SW, NW, NE, out through the arch in 157 879 ticks without a
+  death. It took three bot fixes, each found by tracing where runs died or
+  stood still: pressing the other way under the reversal flower; meeting
+  the Wulf by turning to it with fire held — fencing makes the blade live at
+  once, and the old wait for a swing that would land stood still while it
+  walked in (3 543 of 6 000 deaths in one trace); and giving ground once it
+  is parried, instead of following the stunned Wulf in. `forge.maxTicks` is
+  500 000 (the old 120 000 was sized for the wrong map).
 
 `ReplayTest.everyShippedReplayStillMatchesItsHashes` runs **every** file in
 `replays/`, so one added later is covered the moment it lands; the ones above
@@ -3406,8 +3410,8 @@ What landed:
 - `replays/wulf_escape.json`, `lair_nw.json` and `attract.json` re-forged;
   golden frames regenerated.
 
-Slipped: **`replays/full_run.json`** (§22.6) — no winning run found yet on the
-true map; its test is disabled with the reason. Also open: walking momentum
+Slipped, then landed 2026-09-30: **`replays/full_run.json`** (§22.6) — re-forged
+once the bot learned to fence the Wulf; its test is back on. Still open: walking momentum
 (the original has it, §11.6), a tune for the reveal (§27.8), shrine rooms for
 the cave hints, and the stale "Still Water" name.
 

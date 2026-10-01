@@ -77,6 +77,8 @@ public final class FullRunForge {
     private static int standing;
     private static int ignoring;
     private static final int STAND_GROUND_PX = 56;
+    /** How close something coming at us gets before the bot turns to it with fire held. */
+    private static final int FENCE_AT_PX = Integer.getInteger("forge.fenceAtPx", 40);
     private static final int GIVE_UP_WAITING_TICKS = 1500;
     /** How long a run may take. The true map (§25 Q14) is one long maze: one lair alone took 60 000. */
     private static final int MAX_TICKS = Integer.getInteger("forge.maxTicks", 500_000);
@@ -318,6 +320,23 @@ public final class FullRunForge {
                 nearestGap = g;
                 nearest = cr;
             }
+        }
+        // Fencing (§11.6): the blade is live the instant fire is held, so the Wulf, once close, is
+        // met by turning to it with the key down: the blade finds it first and the parry throws it
+        // back. The old wait for a swing that would land was built for a windup; on the true map's
+        // corridors it stood still while the Wulf walked in — 3 543 of 6 000 deaths in one trace.
+        // Only the Wulf: stepping into a hippo or a frog to fence it is how the bot died instead.
+        Creature wulfBody = sim.wulf().touchable() ? sim.wulf().body() : null;
+        if (wulfBody != null && gap(sim, wulfBody) <= FENCE_AT_PX) {
+            PlayerData.Box pb = sim.rules().collisionBox();
+            Direction8 at = Direction8.toward(wulfBody.centreXPx() - (Fixed.px(p.xFp()) + pb.x() + pb.w() / 2),
+                    wulfBody.centreYPx() - (Fixed.px(p.yFp()) + pb.y() + pb.h() / 2));
+            if (wulfBody.hurtTicks() > 0) {
+                // Parried and stunned, but still deadly to touch: give ground, blade still out, rather
+                // than follow it in — which is how the bot died with the parry already landed.
+                at = at.rotate(4);
+            }
+            return InputState.of(at.dx(), at.dy(), true, !p.swinging() && p.cooldown() == 0);
         }
         // Fleeing whatever cannot be killed looked sensible and was not: the bot ran from the Wulf
         // for ever and never finished a run. Only give ground to something already struck.
