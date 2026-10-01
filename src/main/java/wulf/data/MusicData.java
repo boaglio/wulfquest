@@ -14,6 +14,8 @@ public record MusicData(int schemaVersion, Map<String, Tune> tunes) {
     public static final String TITLE = "title";
     public static final String WIN = "win";
     public static final String GAME_OVER = "game_over";
+    /** Under the amulet reveal (§14.6): played once, and done before the reveal is. */
+    public static final String REVEAL = "reveal";
 
     /** A rest, which is how silence is written in a note list. */
     public static final String REST = "R";

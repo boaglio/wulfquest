@@ -198,6 +198,44 @@ class QuestTest {
         assertThat(s.tick()).as("and the game goes on").isEqualTo(frozenAt + 1);
     }
 
+    /** §14.6: the reveal has its tune, as the original's did, and the jungle is silent again after it. */
+    @Test
+    void theRevealPlaysItsTuneAndSilenceFollows(@org.junit.jupiter.api.io.TempDir java.nio.file.Path dir) {
+        LandmarksData.Lair lair = marks.lairs().get(3);
+        wulf.data.PlayerDb db = new wulf.data.PlayerDb(dir, new wulf.data.JsonDb(Path.of("data")),
+                content.defaultScores(), content.defaultSettings());
+        wulf.ui.Shell shell = new wulf.ui.Shell(content.shell(), db, List.copyOf(content.input().profiles().keySet()),
+                () -> sim(OPEN, pinnedGuardians(80, 0), lairRoom(3), lair.pedestal().x(), lair.pedestal().y()),
+                null, () -> "2026-09-30");
+        List<String> tunes = new ArrayList<>();
+        shell.jukebox(new wulf.ui.Jukebox() {
+            @Override
+            public void tune(String id) {
+                tunes.add(String.valueOf(id));
+            }
+
+            @Override
+            public void sfx(String id) {
+            }
+        });
+        shell.tick(InputState.of(0, 0, true, true), wulf.input.MenuInput.NONE, false);
+        assertThat(shell.state()).isEqualTo(wulf.ui.Shell.State.PLAYING);
+        shell.tick(STILL, wulf.input.MenuInput.NONE, false);
+        assertThat(shell.session().revealing()).isTrue();
+        assertThat(tunes).last().isEqualTo(wulf.data.MusicData.REVEAL);
+        for (int t = 0; t < content.shell().amuletReveal().holdTicks() && shell.session().revealing(); t++) {
+            shell.tick(STILL, wulf.input.MenuInput.NONE, false);
+        }
+        assertThat(tunes).as("silence once it closes").last().isEqualTo("null");
+
+        // And the tune is done before the reveal is.
+        long ms = 0;
+        for (wulf.data.MusicData.Note n : content.music().tune(wulf.data.MusicData.REVEAL).notes()) {
+            ms += n.ms();
+        }
+        assertThat(ms).isLessThan(content.shell().amuletReveal().holdTicks() * 1000L / content.game().tickHz());
+    }
+
     @Test
     void leftAloneTheRevealEndsAfterItsHold() {
         wulf.data.ShellConfig.AmuletReveal reveal = content.shell().amuletReveal();
@@ -276,24 +314,18 @@ class QuestTest {
 
     @Test
     void aShrinePointsTheWayOncePerLife() {
-        // The true map has one arch, and the Keeper has it (§25 Q14), so the shipped data names no
-        // shrines. The mechanism is tested on one of our own, a room south of the start.
-        RoomAddress shrine = new RoomAddress(8, 11);
-        LandmarksData withShrine = new LandmarksData(marks.schemaVersion(), marks.fidelity(), marks.startFacing(),
-                marks.exit(), marks.lairs(), marks.amulet(), List.of(shrine.toString()), marks.hint(),
-                marks.stillWater());
-        QuestRules rules = new QuestRules(true, withShrine, real.guardianSpecies(), real.keeperSpecies(), real.orbit(),
-                real.stepAsidePx(), real.stepAsideTicks(), real.nudgeZonePx(), real.nudgePx(), real.pieceScore(),
-                real.escapeBonus(), real.timeBonusMax(), real.timeBonusTicksDivisor(), real.lifeRemainingBonus(),
-                real.caveHints());
-        LandmarksData.Rect zone = marks.exit().zone();
+        // The shipped shrines are the hut villages (§14.5): stand at the hut door in 2,5.
+        RoomAddress shrine = LandmarksData.room(marks.shrines().rooms().get(1));
+        assertThat(shrine).isEqualTo(new RoomAddress(2, 5));
+        QuestRules rules = real;
+        LandmarksData.Rect zone = marks.shrines().zone();
         Simulation s = sim(OPEN, rules, shrine, zone.x() + zone.w() / 2, 160);
         int inZone = wy(shrine, zone.y() + zone.h() - 6);
         walkY(s, inZone);
         Quest q = s.quest();
         assertThat(q.hintTicks()).isPositive();
         assertThat(q.hintToExit()).isFalse();
-        // From 8,11 the nearest quarter is 9,10, two rooms away: north-east.
+        // From 2,5 the nearest quarter is 5,3: three rooms east and two north.
         assertThat(q.hintDirection()).isEqualTo(Direction8.NE);
 
         walkY(s, wy(shrine, 160));

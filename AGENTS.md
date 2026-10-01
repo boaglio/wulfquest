@@ -282,7 +282,7 @@ wulfquest/
       scenery.json              object id -> footprint, art ref, collision mask (§9)
       rooms.json                per-room overrides: biome, entity budget, props
       room_entities.json        spawn rules, biome markers, budgets, authored rooms (§12.6)
-      landmarks.json            start room, exit, lair rooms, cave mouths (§14)
+      landmarks.json            exit, lair rooms, shrines, the temple (§14)
     entities/
       player.json               Sabreman/Ranger Vale stats + animation (§11)
       creatures.json            full roster (§12)
@@ -830,14 +830,16 @@ hut villages and 8 arch rooms, none of which the game has.
   navigation anchor; preserve it exactly.
 - **Water** — the water object `93C4` is scattered through 27 rooms of five
   templates (24, 25, 39, 42, 47), mostly near the edges; there is no lake.
-  `landmarks.json → stillWater` still names the temple's rooms under the old
-  name; nothing reads it but the validator.
+  `landmarks.json → temple` names the temple's rooms "The Bone Temple" (it was
+  "The Still Water", after the lake the relabelled grid put here); nothing reads
+  it but the validator.
 - **Hut rooms** — template 5 contains the single hut object `8E18` and is
   used in **5 rooms**: `(4,3) (2,5) (1,9) (2,13) (3,13)`. These are the
-  tribesmen's villages: they get a guaranteed elevated tribesman spawn (§12.6).
+  tribesmen's villages: they get a guaranteed elevated tribesman spawn (§12.6),
+  and they are the shrines (§14.5): ask the way at the hut door.
 - **The arch** — template 7 contains the stone arch `85C8`, used in exactly
   one room, `(8,8)`: the way out (§14.2). There are no other arch rooms, so
-  no cave mouths (§14.5).
+  the shrines moved to the huts (§14.5).
 
 ### 8.3 Adapter rule
 
@@ -1763,9 +1765,10 @@ pass the Keeper of the Arch and escape. That is the whole game.
   ],
   "amulet": { "sprite": "amulet_piece", "size": { "w": 16, "h": 16 }, "collisionBox": { "x": -8, "y": -16, "w": 16, "h": 16 },
               "pickupFlashTicks": 8, "flyToPanelTicks": 24 },
-  "caveMouths": [],
+  "shrines": { "object": "8E18", "zone": { "x": 104, "y": 88, "w": 48, "h": 16 },
+               "rooms": ["4,3", "2,5", "1,9", "2,13", "3,13"] },
   "hint": { "messageTicks": 90, "oncePerLife": true },
-  "stillWater": { "name": "The Still Water", "rooms": ["7,6", "…"] }
+  "temple": { "name": "The Bone Temple", "rooms": ["7,6", "…"] }
 }
 ```
 
@@ -1852,22 +1855,23 @@ this section was prose, the roster's numbers are the contract.
   (36 px), through a four-frame animation, and is harmless from then on.
 - Standing in the zone with the whole amulet then starts the escape (§14.7).
 
-### 14.5 Cave mouths **[RECON]**
+### 14.5 Shrines **[NEW]**
 
-**No rooms at present.** The true map has one arch and the Keeper has it
-(§8.2), so `caveMouths` is empty and the hints below never fire. The mechanism
-stays, tested on a shrine of `QuestTest`'s own, until a shrine is chosen —
-which would be `[NEW]`, not canon, and is the user's call.
-
-The arch rooms of §8.2 are shrines: touch the spot in front of the arch — the
-same rectangle as the way out's, since every arch room is laid out alike — and
-the panel names the way to the nearest quarter still out there for
-`hint.messageTicks` (90): `AMULET STIRS TO THE SOUTH-WEST`. Once the amulet is
-whole it names the way to the arch instead. **Once per room per life**
-(`hint.oncePerLife`), cleared by a death, so it cannot be tapped for a compass.
-Seven rooms, not eight: the way out's own arch belongs to the Keeper. Flag
+The villages are shrines: stand at a hut's door — `shrines.zone`, the same
+rectangle in every hut room, since all five share template 5 — and the panel
+names the way to the nearest quarter still out there for `hint.messageTicks`
+(90): `AMULET STIRS TO THE NORTH-EAST`. Once the amulet is whole it names the
+way to the arch instead. **Once per room per life** (`hint.oncePerLife`),
+cleared by a death, so it cannot be tapped for a compass. Flag
 `features.caveHints`, default on — 256 rooms with no guidance is unfair to a
 player who has no inlay map.
+
+The original has no such thing. The shrines were first the arch rooms ("cave
+mouths"), but on the true map the only arch is the way out (§8.2), so since
+2026-10-01 they are the five hut rooms, `(4,3) (2,5) (1,9) (2,13) (3,13)`,
+where the tribesmen live — ask the way where people are, and pay for it with
+their spears. `LandmarkValidator` checks that each room holds the hut, is
+not the start, the way out or a lair, and that the zone has standing room.
 
 ### 14.6 Amulet pieces
 
@@ -1890,9 +1894,9 @@ player who has no inlay map.
   shows, so no tick passes, nothing is recorded, and replays are untouched; it
   ends after `holdTicks` (300), or on fire once `skipAfterTicks` (50) have
   passed. `ShellValidator.checkAmuletReveal` checks a verse per quarter and
-  that every line and the amulet fit. **No tune yet**: the pickup's own sound
-  plays, and a tune here would be music in `PLAYING` (§27.8) — the user's
-  call.
+  that every line and the amulet fit. Its tune, `reveal`
+  (§18.3), starts as it opens and stops as it closes — music in `PLAYING`,
+  approved by the user (§27.8).
 
 ### 14.7 The win sequence
 
@@ -2242,9 +2246,13 @@ else. With two channels, a higher-priority event steals channel 0.
 - `title` — 24-bar jungle-menace theme, loops.
 - `win` — 8-bar fanfare.
 - `game_over` — 4-bar descending figure.
+- `reveal` — 4 bars in E minor, once, under the amulet reveal (§14.6); done
+  before the reveal is. The original plays a tune there too.
 - **No in-game music.** During play there is only the jungle: footsteps,
   creature noises, and the growl. Silence is the tension. Do not add
-  background music to `PLAYING`.
+  background music to `PLAYING`. The one exception is `reveal`, which plays
+  while the game stands still under the amulet — approved by the user on
+  2026-10-01 (§27.8) — and the jungle is silent again the moment it closes.
 
 ---
 
@@ -3434,8 +3442,8 @@ What landed:
 
 Slipped, then landed 2026-09-30: **`replays/full_run.json`** (§22.6) — re-forged
 once the bot learned to fence the Wulf; its test is back on. Walking momentum
-landed after M10 too (§11.3). Still open: a tune for the reveal (§27.8), shrine rooms for
-the cave hints, and the stale "Still Water" name.
+landed after M10 too (§11.3), and so did the rest, on 2026-10-01: the reveal's
+tune (§18.3), the shrines at the hut doors (§14.5), and the temple's name.
 
 ---
 

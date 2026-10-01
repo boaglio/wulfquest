@@ -54,7 +54,7 @@ class QuestDataValidationTest {
         LandmarksData.Exit e = m.exit();
         return new LandmarksData(m.schemaVersion(), m.fidelity(), m.startFacing(),
                 new LandmarksData.Exit(room, e.arch(), e.zone(), e.keeper(), e.requiresPieces(), e.escapeWalkTicks()),
-                m.lairs(), m.amulet(), m.caveMouths(), m.hint(), m.stillWater());
+                m.lairs(), m.amulet(), m.shrines(), m.hint(), m.temple());
     }
 
     private static LandmarksData withLairRoom(int i, String room) {
@@ -63,7 +63,7 @@ class QuestDataValidationTest {
         LandmarksData.Lair l = lairs.get(i);
         lairs.set(i, new LandmarksData.Lair(l.id(), room, l.guardian(), l.piece(), l.pedestal()));
         return new LandmarksData(m.schemaVersion(), m.fidelity(), m.startFacing(), m.exit(), lairs, m.amulet(),
-                m.caveMouths(), m.hint(), m.stillWater());
+                m.shrines(), m.hint(), m.temple());
     }
 
     @Test

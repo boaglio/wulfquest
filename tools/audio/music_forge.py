@@ -13,6 +13,7 @@ that, so a mistyped length is caught here and not in your ears.
   title      24 bars, A natural minor, loops — the jungle, deciding about you
   win        8 bars, A major — the arch, and out
   game_over  4 bars, descending — it did not work out
+  reveal     4 bars, E minor, once — a quarter of the amulet, chiming (§14.6)
 
 Outputs data/audio/music.json.  Run:  python3 tools/audio/music_forge.py
 """
@@ -51,6 +52,16 @@ TUNES = {
             "F#4:2 G#4:2 A4:2 B4:2  C#5:4 B4:4  A4:2 C#5:2 E5:2 A5:2  A5:8",
             "E4:2 F#4:2 G#4:2 A4:2  B4:2 C#5:2 D5:2 E5:2  C#5:4 A4:4  E5:8",
             "A4:2 E5:2 C#5:2 A4:2  B4:2 G#4:2 E4:2 B4:2  A4:8  A5:8",
+        ],
+    },
+    "reveal": {
+        "bpm": 168,
+        "loop": False,
+        # 4 bars, under six seconds so it is done before the reveal is: the amulet chiming as
+        # it turns, a climb, and a settle on E — the jungle's own A minor's fifth, not yet home.
+        "phrases": [
+            "E4:2 G4:2 B4:2 E5:2  D5:2 B4:2 G4:2 B4:2  C5:2 E5:2 G5:2 E5:2  F#5:4 D5:4",
+            "E5:2 B4:2 G4:2 E4:2  F#4:2 A4:2 C5:2 E5:2  D#5:4 B4:4  E5:8",
         ],
     },
     "game_over": {

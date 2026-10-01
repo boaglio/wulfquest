@@ -4,7 +4,7 @@
   "title": "world/landmarks.json — AGENTS.md §14",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schemaVersion", "fidelity", "startFacing", "exit", "lairs", "amulet", "caveMouths", "hint", "stillWater"],
+  "required": ["schemaVersion", "fidelity", "startFacing", "exit", "lairs", "amulet", "shrines", "hint", "temple"],
   "properties": {
     "schemaVersion": { "type": "integer", "minimum": 1 },
     "fidelity": { "enum": ["recon", "canon"] },
@@ -63,7 +63,20 @@
         "flyToPanelTicks": { "type": "integer", "minimum": 1 }
       }
     },
-    "caveMouths": { "type": "array", "uniqueItems": true, "items": { "$ref": "#/$defs/room" } },
+    "shrines": {
+      "type": "object", "additionalProperties": false, "required": ["object", "zone", "rooms"],
+      "properties": {
+        "object": { "type": "string", "pattern": "^[0-9A-F]{4}$" },
+        "zone": {
+          "type": "object", "additionalProperties": false, "required": ["x", "y", "w", "h"],
+          "properties": {
+            "x": { "type": "integer", "minimum": 0 }, "y": { "type": "integer", "minimum": 0 },
+            "w": { "type": "integer", "minimum": 1 }, "h": { "type": "integer", "minimum": 1 }
+          }
+        },
+        "rooms": { "type": "array", "uniqueItems": true, "items": { "$ref": "#/$defs/room" } }
+      }
+    },
     "hint": {
       "type": "object", "additionalProperties": false, "required": ["messageTicks", "oncePerLife"],
       "properties": {
@@ -71,7 +84,7 @@
         "oncePerLife": { "type": "boolean" }
       }
     },
-    "stillWater": {
+    "temple": {
       "type": "object", "additionalProperties": false, "required": ["name", "rooms"],
       "properties": {
         "name": { "type": "string", "minLength": 1 },

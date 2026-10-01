@@ -36,7 +36,7 @@ class AudioValidationTest {
     void theShippedAudioIsValid() {
         AudioValidator.check(c.sfx(), c.music());
         assertThat(c.sfx().sfx()).hasSizeGreaterThanOrEqualTo(13);
-        assertThat(c.music().tunes()).containsOnlyKeys(MusicData.TITLE, MusicData.WIN, MusicData.GAME_OVER);
+        assertThat(c.music().tunes()).containsOnlyKeys(MusicData.TITLE, MusicData.WIN, MusicData.GAME_OVER, MusicData.REVEAL);
     }
 
     @Test

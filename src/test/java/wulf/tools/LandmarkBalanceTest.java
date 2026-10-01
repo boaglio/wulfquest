@@ -38,8 +38,8 @@ class LandmarkBalanceTest {
         assertThat(c.landmarks().lairRooms().stream().map(RoomAddress::toString).toList())
                 .containsExactlyInAnyOrder("5,3", "3,12", "13,4", "9,10");
         assertThat(rooms[c.landmarks().exitRoom().index()]).as("the way out").isLessThan(Integer.MAX_VALUE);
-        for (String mouth : c.landmarks().caveMouths()) {
-            assertThat(rooms[LandmarksData.room(mouth).index()]).as("shrine %s", mouth).isLessThan(Integer.MAX_VALUE);
+        for (String shrine : c.landmarks().shrines().rooms()) {
+            assertThat(rooms[LandmarksData.room(shrine).index()]).as("shrine %s", shrine).isLessThan(Integer.MAX_VALUE);
         }
     }
 }

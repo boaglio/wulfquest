@@ -183,7 +183,13 @@ public final class Shell {
             endRun();
             return;
         }
+        boolean wasRevealing = session.revealing();
         session.tick(in, dev);
+        if (session.revealing() != wasRevealing) {
+            // §14.6, as the original played one: a tune under the amulet reveal, and silence again
+            // after — the jungle itself has no music (§18.3). The user approved this one exception.
+            jukebox.tune(session.revealing() ? wulf.data.MusicData.REVEAL : tuneFor(State.PLAYING));
+        }
         if (session.won()) {
             go(State.TALLY);
         } else if (session.over()) {

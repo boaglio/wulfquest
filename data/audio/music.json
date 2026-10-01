@@ -1143,6 +1143,137 @@
         }
       ]
     },
+    "reveal": {
+      "bpm": 168,
+      "loop": false,
+      "notes": [
+        {
+          "note": "E",
+          "octave": 4,
+          "ms": 178
+        },
+        {
+          "note": "G",
+          "octave": 4,
+          "ms": 178
+        },
+        {
+          "note": "B",
+          "octave": 4,
+          "ms": 178
+        },
+        {
+          "note": "E",
+          "octave": 5,
+          "ms": 178
+        },
+        {
+          "note": "D",
+          "octave": 5,
+          "ms": 178
+        },
+        {
+          "note": "B",
+          "octave": 4,
+          "ms": 178
+        },
+        {
+          "note": "G",
+          "octave": 4,
+          "ms": 178
+        },
+        {
+          "note": "B",
+          "octave": 4,
+          "ms": 178
+        },
+        {
+          "note": "C",
+          "octave": 5,
+          "ms": 178
+        },
+        {
+          "note": "E",
+          "octave": 5,
+          "ms": 178
+        },
+        {
+          "note": "G",
+          "octave": 5,
+          "ms": 178
+        },
+        {
+          "note": "E",
+          "octave": 5,
+          "ms": 178
+        },
+        {
+          "note": "F#",
+          "octave": 5,
+          "ms": 356
+        },
+        {
+          "note": "D",
+          "octave": 5,
+          "ms": 356
+        },
+        {
+          "note": "E",
+          "octave": 5,
+          "ms": 178
+        },
+        {
+          "note": "B",
+          "octave": 4,
+          "ms": 178
+        },
+        {
+          "note": "G",
+          "octave": 4,
+          "ms": 178
+        },
+        {
+          "note": "E",
+          "octave": 4,
+          "ms": 178
+        },
+        {
+          "note": "F#",
+          "octave": 4,
+          "ms": 178
+        },
+        {
+          "note": "A",
+          "octave": 4,
+          "ms": 178
+        },
+        {
+          "note": "C",
+          "octave": 5,
+          "ms": 178
+        },
+        {
+          "note": "E",
+          "octave": 5,
+          "ms": 178
+        },
+        {
+          "note": "D#",
+          "octave": 5,
+          "ms": 356
+        },
+        {
+          "note": "B",
+          "octave": 4,
+          "ms": 356
+        },
+        {
+          "note": "E",
+          "octave": 5,
+          "ms": 712
+        }
+      ]
+    },
     "game_over": {
       "bpm": 92,
       "loop": false,

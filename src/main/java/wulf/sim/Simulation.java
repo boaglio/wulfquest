@@ -795,8 +795,10 @@ public final class Simulation {
 
         LandmarksData.Rect zone = marks.exit().zone();
         boolean inZone = overlaps(px, py, pb.w(), pb.h(), roomX + zone.x(), roomY + zone.y(), zone.w(), zone.h());
-        if (rules.caveHints() && inZone && marks.isCaveMouth(room) && !q.hintUsed[room.index()]) {
-            // §14.5: the shrine in front of the arch — the same spot in every arch room — points the way.
+        LandmarksData.Rect shrine = marks.shrines().zone();
+        boolean atShrine = overlaps(px, py, pb.w(), pb.h(), roomX + shrine.x(), roomY + shrine.y(), shrine.w(), shrine.h());
+        if (rules.caveHints() && atShrine && marks.isShrine(room) && !q.hintUsed[room.index()]) {
+            // §14.5: the shrine in front of the hut door — the same spot in every hut room — points the way.
             q.hintUsed[room.index()] = true;
             q.hintTicks = marks.hint().messageTicks();
             pointTheWay(marks);

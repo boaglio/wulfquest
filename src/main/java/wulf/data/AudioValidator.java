@@ -55,7 +55,7 @@ public final class AudioValidator {
             throw new DataException(SFX_SOURCE, "/channels",
                     "is " + sfx.channels() + "; §18.1 allows two at most");
         }
-        for (String id : List.of(MusicData.TITLE, MusicData.WIN, MusicData.GAME_OVER)) {
+        for (String id : List.of(MusicData.TITLE, MusicData.WIN, MusicData.GAME_OVER, MusicData.REVEAL)) {
             if (!music.tunes().containsKey(id)) {
                 throw new DataException(MUSIC_SOURCE, "/tunes", "has no '" + id + "', which §18.3 names");
             }
@@ -64,7 +64,7 @@ public final class AudioValidator {
         if (!music.tune(MusicData.TITLE).loop()) {
             throw new DataException(MUSIC_SOURCE, "/tunes/title/loop", "is false; the title theme loops (§18.3)");
         }
-        for (String id : List.of(MusicData.WIN, MusicData.GAME_OVER)) {
+        for (String id : List.of(MusicData.WIN, MusicData.GAME_OVER, MusicData.REVEAL)) {
             if (music.tune(id).loop()) {
                 throw new DataException(MUSIC_SOURCE, "/tunes/" + id + "/loop",
                         "is true; a tune that marks an ending has to end (§18.3)");

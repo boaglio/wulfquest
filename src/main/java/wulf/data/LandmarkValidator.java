@@ -36,7 +36,7 @@ public final class LandmarkValidator {
                     "is '" + marks.exit().arch() + "', which is not a scenery object in data/world/scenery.json");
         }
         RoomAddress exit = room(marks.exit().room(), "/exit/room");
-        if (!hasArch(map, exit, marks.exit().arch())) {
+        if (!hasObject(map, exit, marks.exit().arch())) {
             throw new DataException(FILE, "/exit/room",
                     "is " + exit + ", which has no '" + marks.exit().arch() + "' arch in it");
         }
@@ -115,18 +115,33 @@ public final class LandmarkValidator {
         if (creatures.creatures().isEmpty()) {
             throw new DataException("data/entities/creatures.json", "/creatures", "is empty");
         }
-        for (int i = 0; i < marks.caveMouths().size(); i++) {
-            RoomAddress mouth = room(marks.caveMouths().get(i), "/caveMouths/" + i);
-            if (!hasArch(map, mouth, marks.exit().arch())) {
-                throw new DataException(FILE, "/caveMouths/" + i, "is " + mouth + ", which has no arch in it");
+        LandmarksData.Shrines shrines = marks.shrines();
+        LandmarksData.Rect shrineZone = shrines.zone();
+        if (shrineZone.x() + shrineZone.w() > CollisionMask.COLS * 8 || shrineZone.y() + shrineZone.h() > CollisionMask.ROWS * 8) {
+            throw new DataException(FILE, "/shrines/zone", "runs off the room");
+        }
+        Set<RoomAddress> taken = new HashSet<>();
+        taken.add(exit);
+        taken.add(map.startRoom());
+        for (LandmarksData.Lair lair : marks.lairs()) {
+            taken.add(LandmarksData.room(lair.room()));
+        }
+        for (int i = 0; i < shrines.rooms().size(); i++) {
+            RoomAddress shrine = room(shrines.rooms().get(i), "/shrines/rooms/" + i);
+            if (!hasObject(map, shrine, shrines.object())) {
+                throw new DataException(FILE, "/shrines/rooms/" + i,
+                        "is " + shrine + ", which has no '" + shrines.object() + "' in it");
             }
-            if (mouth.equals(exit)) {
-                throw new DataException(FILE, "/caveMouths/" + i,
-                        "is the way out; its shrine would compete with the Keeper");
+            if (taken.contains(shrine)) {
+                throw new DataException(FILE, "/shrines/rooms/" + i,
+                        "is " + shrine + ", already the start, the way out or a lair");
+            }
+            if (!anyStandingSpot(solid, shrine, shrineZone)) {
+                throw new DataException(FILE, "/shrines/zone", "is solid everywhere in " + shrine);
             }
         }
-        for (int i = 0; i < marks.stillWater().rooms().size(); i++) {
-            room(marks.stillWater().rooms().get(i), "/stillWater/rooms/" + i);
+        for (int i = 0; i < marks.temple().rooms().size(); i++) {
+            room(marks.temple().rooms().get(i), "/temple/rooms/" + i);
         }
         marks.startFacingName();
     }
@@ -148,9 +163,9 @@ public final class LandmarkValidator {
         throw new DataException(FILE, at, "is '" + id + "', which is not in data/entities/guardians.json");
     }
 
-    private static boolean hasArch(OriginalMapRepository map, RoomAddress room, String arch) {
+    private static boolean hasObject(OriginalMapRepository map, RoomAddress room, String object) {
         for (Placement p : map.placements(room)) {
-            if (p.graphic().equals(arch)) {
+            if (p.graphic().equals(object)) {
                 return true;
             }
         }

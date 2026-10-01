@@ -18,13 +18,23 @@ public record LandmarksData(
         Exit exit,
         List<Lair> lairs,
         Amulet amulet,
-        List<String> caveMouths,
+        Shrines shrines,
         Hint hint,
-        StillWater stillWater) {
+        Temple temple) {
 
     public LandmarksData {
         lairs = List.copyOf(lairs);
-        caveMouths = List.copyOf(caveMouths);
+    }
+
+    /**
+     * Where a player can ask the way (§14.5, {@code [NEW]}): stand in {@code zone}, room-local,
+     * in front of {@code object} — the same spot in every room of the list, since those rooms
+     * share the object's template — and the panel names the way to the nearest quarter.
+     */
+    public record Shrines(String object, Rect zone, List<String> rooms) {
+        public Shrines {
+            rooms = List.copyOf(rooms);
+        }
     }
 
     /**
@@ -56,8 +66,8 @@ public record LandmarksData(
     }
 
     /** The central lake the map is built around (§8.2). Flavour: nothing reads it yet. */
-    public record StillWater(String name, List<String> rooms) {
-        public StillWater {
+    public record Temple(String name, List<String> rooms) {
+        public Temple {
             rooms = List.copyOf(rooms);
         }
     }
@@ -114,10 +124,10 @@ public record LandmarksData(
     public static final LandmarksData NONE = new LandmarksData(1, "none", "N",
             new Exit("0,0", "0000", new Rect(0, 0, 1, 1), new Point(0, 0), 4, 1), List.of(),
             new Amulet("amulet_piece", new CreatureData.Size(1, 1), new CreatureData.Box(0, 0, 1, 1), 0, 1),
-            List.of(), new Hint(1, true), new StillWater("none", List.of()));
+            new Shrines("0000", new Rect(0, 0, 1, 1), List.of()), new Hint(1, true), new Temple("none", List.of()));
 
-    public boolean isCaveMouth(RoomAddress address) {
-        for (String key : caveMouths) {
+    public boolean isShrine(RoomAddress address) {
+        for (String key : shrines.rooms()) {
             if (room(key).equals(address)) {
                 return true;
             }
