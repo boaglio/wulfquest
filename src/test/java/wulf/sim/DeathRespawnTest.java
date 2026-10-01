@@ -40,7 +40,57 @@ class DeathRespawnTest {
         run(sim, RIGHT, DOWN);
         assertThat(sim.player().mode()).isEqualTo(Player.Mode.ALIVE);
         assertThat(sim.player().invulnTicks()).isEqualTo(RULES.spawn().invulnTicks());
-        assertThat(sim.player().xFp()).as("back at the room's entry point").isEqualTo(Fixed.fp(1000));
+        assertThat(sim.player().xFp()).as("still where he fell").isEqualTo(Fixed.fp(1000));
+    }
+
+    @Test
+    void heGetsUpWhereHeFellNotWhereHeCameIn() {
+        // §11.7, the original's $AA27: losing a life never moves him. He came into this room at
+        // (1000, 1000), walked on, and died at least 60 px further along.
+        Simulation sim = at(OPEN, 1000, 1000);
+        run(sim, RIGHT, 60);
+        int fellX = sim.player().xFp();
+        int fellY = sim.player().yFp();
+        assertThat(Fixed.px(fellX) - 1000).isGreaterThan(60);
+        sim.kill();
+        run(sim, InputState.NONE, DYING + DOWN);
+        assertThat(sim.player().mode()).isEqualTo(Player.Mode.ALIVE);
+        assertThat(sim.player().xFp()).isEqualTo(fellX);
+        assertThat(sim.player().yFp()).isEqualTo(fellY);
+        assertThat(sim.player().vx()).as("and at rest").isZero();
+    }
+
+    @Test
+    void practiceLivesSetTheCount() {
+        Simulation sim = at(OPEN, 1000, 1000);
+        sim.startLives(12);
+        assertThat(sim.player().lives()).isEqualTo(12);
+        assertThat(sim.practice()).isTrue();
+        assertThat(at(OPEN, 1000, 1000).practice()).as("a plain game is not practice").isFalse();
+    }
+
+    @Test
+    void infiniteLivesStillDieButNeverRunOut() {
+        Simulation sim = at(OPEN, 1000, 1000);
+        sim.infiniteLives(true);
+        int lives = sim.player().lives();
+        for (int death = 0; death < lives + 3; death++) {
+            assertThat(sim.kill()).as("death %d lands", death).isTrue();
+            run(sim, InputState.NONE, DYING + DOWN + RULES.spawn().invulnTicks());
+            assertThat(sim.player().mode()).isEqualTo(Player.Mode.ALIVE);
+        }
+        assertThat(sim.player().lives()).isEqualTo(lives);
+        assertThat(sim.deaths()).isEqualTo(lives + 3);
+    }
+
+    @Test
+    void godModeCannotBeKilled() {
+        Simulation sim = at(OPEN, 1000, 1000);
+        sim.god(true);
+        assertThat(sim.kill()).isFalse();
+        assertThat(sim.player().mode()).isEqualTo(Player.Mode.ALIVE);
+        assertThat(sim.player().lives()).isEqualTo(RULES.lives().start());
+        assertThat(sim.practice()).isTrue();
     }
 
     @Test

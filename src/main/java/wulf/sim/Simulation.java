@@ -94,6 +94,9 @@ public final class Simulation {
     private long orchidStagesRead;
 
     private RoomAddress room;
+    private boolean practice;
+    private boolean infiniteLives;
+    private boolean god;
     private CollisionWorld roomSolid;
     private CollisionWorld roomEdges;
     private Reach reach;
@@ -260,7 +263,7 @@ public final class Simulation {
 
     /** The same death, with what did it, for the ledger (§21.5). */
     public boolean kill(String cause) {
-        if (player.mode != Player.Mode.ALIVE || player.invulnTicks > 0) {
+        if (player.mode != Player.Mode.ALIVE || player.invulnTicks > 0 || god) {
             return false;
         }
         deaths++;
@@ -268,7 +271,9 @@ public final class Simulation {
         sounds.play(SFX_PLAYER_DIE);
         sounds.loop(SFX_WULF_GROWL, false);
         effect.clear();   // §15.2: whatever was in the blood dies with you
-        player.lives--;
+        if (!infiniteLives) {
+            player.lives--;
+        }
         player.mode = Player.Mode.DYING;
         player.modeTick = 0;
         player.swingTick = -1;
@@ -277,6 +282,42 @@ public final class Simulation {
         freeze = 0;
         sabre = PixelRect.NONE;
         return true;
+    }
+
+    // ---------------------------------------------------------------- practice (§17.6)
+
+    /** {@code --lives}: start with this many instead of {@code player.json}'s. */
+    public void startLives(int lives) {
+        if (lives < 1) {
+            throw new IllegalArgumentException("a game starts with at least one life, not " + lives);
+        }
+        player.lives = lives;
+        practice = true;
+    }
+
+    /** {@code --infinite-lives}: deaths still happen, the count never goes down. */
+    public void infiniteLives(boolean on) {
+        infiniteLives = on;
+        practice |= on;
+    }
+
+    /** {@code --god}: nothing can kill him. */
+    public void god(boolean on) {
+        god = on;
+        practice |= on;
+    }
+
+    /** Whether any practice option is on: such a run never reaches the hi-score table or the ledger. */
+    public boolean practice() {
+        return practice;
+    }
+
+    public boolean god() {
+        return god;
+    }
+
+    public boolean infiniteLives() {
+        return infiniteLives;
     }
 
     // ---------------------------------------------------------------- the sabre
@@ -449,9 +490,10 @@ public final class Simulation {
             player.modeTick = 0;
             return;
         }
-        // Same room, at the free spot nearest where the player came in, wholly inside the room (§11.7).
+        // Where he fell, as the original revives him ($AA27 never touches the position) — nudged
+        // only to the nearest spot he can walk to that keeps him wholly on screen (§11.7).
         int[] p = SpawnFinder.nearestFree(world, rules.collisionBox(), rules.spawn().insideRoomPx(), room,
-                player.entryXFp, player.entryYFp);
+                player.xFp, player.yFp);
         player.xFp = p[0];
         player.yFp = p[1];
         player.mode = Player.Mode.ALIVE;
@@ -1641,6 +1683,10 @@ public final class Simulation {
         h = mix(h, player.modeTick);
         h = mix(h, player.entryXFp);
         h = mix(h, player.entryYFp);
+        if (practice) {
+            // Only when on (§17.6): an ordinary game hashes exactly as it always has.
+            h = mix(h, 1 | (infiniteLives ? 2 : 0) | (god ? 4 : 0));
+        }
         h = mix(h, player.vx);
         h = mix(h, player.vy);
         h = mix(h, player.levelX);

@@ -1,6 +1,6 @@
 # play.hash — AGENTS.md §22.5
 # Framebuffer hashes. Regenerate with -Dgolden.update=true, and say why.
 tick 1 = 13c98c04e513f892
-tick 50 = b141a991996191b0
-tick 200 = 89e3aba5c36304b3
-tick 1000 = 735a3c18056a748f
+tick 50 = c635dd815706e77c
+tick 200 = 2618ae20cd52f359
+tick 1000 = fe6c24722541b766

@@ -22,6 +22,28 @@ class BootArgsTest {
     }
 
     @Test
+    void practiceOptionsParse() {
+        // §17.6: how many lives, infinite lives, and god mode.
+        Boot.Args a = parse("--lives", "9", "--infinite-lives", "--god");
+        assertThat(a.error()).isNull();
+        assertThat(a.lives()).isEqualTo(9);
+        assertThat(a.infiniteLives()).isTrue();
+        assertThat(a.god()).isTrue();
+        assertThat(a.practice()).isTrue();
+        assertThat(parse().practice()).as("off by default").isFalse();
+        assertThat(parse("--lives", "0").error()).contains("--lives");
+        assertThat(parse("--lives", "100").error()).contains("--lives");
+        assertThat(parse("--lives").error()).contains("--lives");
+    }
+
+    @Test
+    void aReplayCannotCarryPracticeOptions() {
+        assertThat(parse("--record", "x.json", "--god").error()).contains("--record");
+        assertThat(parse("--record", "x.json", "--lives", "3").error()).contains("--record");
+        assertThat(parse("--record", "x.json").error()).isNull();
+    }
+
+    @Test
     void aSeedMakesARunReplayable() {
         Boot.Args a = parse("--seed", "42");
         assertThat(a.error()).isNull();

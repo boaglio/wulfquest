@@ -337,7 +337,8 @@ class QuestTest {
         for (int t = 0; t < 500 && s.player().mode() != Player.Mode.ALIVE; t++) {
             s.tick(STILL);
         }
-        walkY(s, inZone);
+        // He gets up where he fell (§11.7) — on the shrine, so the new life's hint comes at once.
+        s.tick(STILL);
         assertThat(q.hintTicks()).as("a new life, a new hint").isPositive();
     }
 

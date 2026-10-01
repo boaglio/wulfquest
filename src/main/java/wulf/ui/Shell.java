@@ -262,6 +262,12 @@ public final class Shell {
     private void endRun() {
         Simulation sim = session.sim();
         boolean escaped = session.won();
+        if (sim.practice()) {
+            // §17.6: --lives, --infinite-lives, --god — a practice run is not a run the table can rank.
+            session = null;
+            go(State.TITLE);
+            return;
+        }
         db.putStats(recordGame(db.stats(), sim, escaped));
         HighScores.Entry row = new HighScores.Entry("", sim.score(), sim.quest().piecesHeld(), sim.tick(), today.get());
         session = null;

@@ -4,7 +4,7 @@
   "displayName": "Ranger Vale",
   "sprite": "player",
   "collisionBox": { "x": -5, "y": -9, "w": 10, "h": 9 },
-  "speed": { "xFp": 384, "yFp": 256, "diagonalScaleFp": 218 },
+  "speed": { "xFp": 384, "yFp": 384, "diagonalScaleFp": 218 },
   "momentum": {
     "ticksPerFrame": 2,
     "accel": 7,

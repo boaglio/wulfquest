@@ -118,6 +118,32 @@ class ShellTest {
     }
 
     @Test
+    void aPracticeRunNeverReachesTheTableOrTheLedger(@TempDir Path dir) {
+        // §17.6: --lives, --infinite-lives and --god make a practice run; it scores, and is not kept.
+        PlayerDb db = db(dir);
+        db.putScores(HighScores.empty());
+        long gamesBefore = db.stats().gamesPlayed();
+        Shell shell = new Shell(CONFIG, db, List.copyOf(CONTENT.input().profiles().keySet()), () -> {
+            Simulation practice = GameSessionTest.scoringSim();
+            practice.infiniteLives(true);
+            return practice;
+        }, null, () -> "2026-10-01");
+        shell.tick(FIRE, MenuInput.NONE, false);
+        Simulation sim = shell.session().sim();
+        for (int i = 0; i < 400 && sim.score() == 0; i++) {
+            shell.tick(InputState.of(1, 0, false, false), MenuInput.NONE, false);
+        }
+        assertThat(sim.score()).as("it scored").isPositive();
+        GameSessionTest.playUntilGameOver(shell.session(), sim);
+        idle(shell, CONFIG.gameOver().holdTicks() + 1);
+        shell.tick(GameSessionTest.pressed(false, false, true, false, false), MenuInput.NONE, false);
+        idle(shell, 5);
+        assertThat(shell.state()).isEqualTo(Shell.State.TITLE);
+        assertThat(db.scores().entries()).as("no name asked for, none written").isEmpty();
+        assertThat(db.stats().gamesPlayed()).as("and the ledger untouched").isEqualTo(gamesBefore);
+    }
+
+    @Test
     void aScoringRunEarnsItsPlaceAndTheNameIsWritten(@TempDir Path dir) {
         PlayerDb db = db(dir);
         db.putScores(HighScores.empty());

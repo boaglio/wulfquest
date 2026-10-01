@@ -6,7 +6,7 @@
   "sprite": "creature_wulf",
   "size": { "w": 32, "h": 22 },
   "collisionBox": { "x": -13, "y": -9, "w": 26, "h": 9 },
-  "speed": { "xFp": 486, "yFp": 346 },
+  "speed": { "xFp": 486, "yFp": 486 },
   "appearance": {
     "baseChancePer10k": 1200,
     "chancePerAmuletPiecePer10k": 400,

@@ -36,18 +36,20 @@ class MovementFeelTest {
     }
 
     @Test
-    void atTopSpeedCrossesARoomHeightIn176Ticks() {
+    void atTopSpeedCrossesARoomHeightIn118Ticks() {
+        // The same top speed as across (§11.2): 176 px at 1.5 px a tick.
         Simulation sim = at(OPEN, 1000, 1000);
         run(sim, DOWN, RUN_UP);
         sim = rebase(sim);
-        run(sim, DOWN, Simulation.ROOM_H_PX);
-        assertThat(Fixed.px(sim.player().yFp()) - 1000).isBetween(175, 177);
+        run(sim, DOWN, 118);
+        assertThat(Fixed.px(sim.player().yFp()) - 1000).isBetween(176, 178);
     }
 
     @Test
-    void horizontalIsFasterThanVertical() {
-        // §11.2: the asymmetry is what makes the jungle read as a perspective view. Not a bug.
-        assertThat(SimFixtures.RULES.speed().xFp()).isGreaterThan(SimFixtures.RULES.speed().yFp());
+    void upAndDownIsAsFastAsAcross() {
+        // §11.2: the original clamps both axes alike ($AFC1, $30). A slower vertical was ours,
+        // invented to read as perspective, and the playtest felt it as slowness.
+        assertThat(SimFixtures.RULES.speed().yFp()).isEqualTo(SimFixtures.RULES.speed().xFp());
     }
 
     @Test

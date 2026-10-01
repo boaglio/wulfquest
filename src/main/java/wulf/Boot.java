@@ -164,6 +164,11 @@ public final class Boot {
             if (parsed.debugEffect() != null) {
                 fresh.giveEffect(parsed.debugEffect());   // --debug-effect: every game starts under it
             }
+            if (parsed.lives() > 0) {
+                fresh.startLives(parsed.lives());   // §17.6: practice options, every game of the session
+            }
+            fresh.infiniteLives(parsed.infiniteLives());
+            fresh.god(parsed.god());
             fresh.sounds(mixer, c.sfx().cadence().footstepEveryTicks());
             return fresh;
         };
@@ -417,7 +422,12 @@ public final class Boot {
      */
     record Args(Path dataDir, Path userDir, int scale, RoomAddress room, long seed, boolean seeded, Path record,
                 String debugEffect, boolean headless, boolean browse, boolean dev, boolean noAudio, boolean help,
-                String error) {
+                int lives, boolean infiniteLives, boolean god, String error) {
+
+        /** Any practice option (§17.6). */
+        boolean practice() {
+            return lives > 0 || infiniteLives || god;
+        }
 
         static Args parse(String[] argv) {
             Path dataDir = defaultDataDir();
@@ -433,6 +443,9 @@ public final class Boot {
             boolean dev = false;
             boolean noAudio = false;
             boolean help = false;
+            int lives = 0;
+            boolean infiniteLives = false;
+            boolean god = false;
             try {
                 for (int i = 0; i < argv.length; i++) {
                     switch (argv[i]) {
@@ -441,6 +454,14 @@ public final class Boot {
                         case "--browse" -> browse = true;
                         case "--no-audio" -> noAudio = true;
                         case "--help", "-h" -> help = true;
+                        case "--lives" -> {
+                            lives = number(argv, ++i, "--lives");
+                            if (lives < 1 || lives > 99) {
+                                throw new IllegalArgumentException("--lives expects 1 to 99, got " + lives);
+                            }
+                        }
+                        case "--infinite-lives" -> infiniteLives = true;
+                        case "--god" -> god = true;
                         case "--scale" -> scale = number(argv, ++i, "--scale");
                         case "--room" -> room = roomArg(argv, ++i);
                         case "--record" -> record = Path.of(value(argv, ++i, "--record"));
@@ -456,10 +477,16 @@ public final class Boot {
                 }
             } catch (IllegalArgumentException e) {
                 return new Args(dataDir, userDir, scale, room, seed, seeded, record, debugEffect, headless, browse,
-                        dev, noAudio, help, e.getMessage());
+                        dev, noAudio, help, lives, infiniteLives, god, e.getMessage());
+            }
+            if (record != null && (lives > 0 || infiniteLives || god)) {
+                // A replay file has no room for them, so it would replay a different game.
+                return new Args(dataDir, userDir, scale, room, seed, seeded, record, debugEffect, headless, browse,
+                        dev, noAudio, help, lives, infiniteLives, god,
+                        "--record cannot be combined with --lives, --infinite-lives or --god");
             }
             return new Args(dataDir, userDir, scale, room, seed, seeded, record, debugEffect, headless, browse, dev,
-                    noAudio, help, null);
+                    noAudio, help, lives, infiniteLives, god, null);
         }
 
         private static String value(String[] argv, int i, String option) {
@@ -518,6 +545,11 @@ public final class Boot {
                       --data-dir PATH  content database root (default: ./data, else the jar)
                       --user-dir PATH  player database: hi-scores, settings, stats (§21.1)
                       --no-audio       silence for this run; settings.json is not changed
+                      --lives N        start every game with N lives (1-99)
+                      --infinite-lives you still die, but never run out of lives
+                      --god            nothing can kill you
+                                       (any of these three: a practice run, kept off the
+                                       hi-score table and the ledger)
                       --headless       load and validate the data, then exit
                       --dev            developer mode: K kills, M shows collision, room and
                                        position on the panel
