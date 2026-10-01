@@ -65,10 +65,17 @@ class SoundTest {
         Ear ear = new Ear();
         Simulation s = sim(ear);
         int ticks = SFX.cadence().footstepEveryTicks() * 4;
+        while (s.player().walkTicks() == 0) {   // the run-up (§11.3): no steps until the feet move
+            s.play(InputState.of(1, 0, false, false), false);
+        }
+        ear.heard.clear();
         for (int i = 0; i < ticks; i++) {
             s.play(InputState.of(1, 0, false, false), false);
         }
         assertThat(ear.count("footstep")).isEqualTo(4);
+        for (int i = 0; i < 200; i++) {   // let the glide finish
+            s.play(InputState.NONE, false);
+        }
         ear.heard.clear();
         for (int i = 0; i < ticks; i++) {
             s.play(InputState.NONE, false);

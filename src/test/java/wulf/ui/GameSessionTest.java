@@ -57,7 +57,9 @@ class GameSessionTest {
         assertThat(s.sim().tick()).isEqualTo(tick);
         assertThat(s.sim().player().xFp()).isEqualTo(x);
         s.tick(pressed(false, true, false, false, false), false);
-        s.tick(RIGHT, false);
+        for (int i = 0; i < 12; i++) {   // past the run-up (§11.3)
+            s.tick(RIGHT, false);
+        }
         assertThat(s.sim().player().xFp()).isGreaterThan(x);
     }
 

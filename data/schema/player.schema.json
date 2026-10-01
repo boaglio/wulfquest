@@ -4,7 +4,7 @@
   "title": "entities/player.json — AGENTS.md §11",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schemaVersion", "id", "displayName", "sprite", "collisionBox", "speed", "lives", "spawn", "death", "sabre", "animations"],
+  "required": ["schemaVersion", "id", "displayName", "sprite", "collisionBox", "speed", "momentum", "lives", "spawn", "death", "sabre", "animations"],
   "properties": {
     "schemaVersion": { "type": "integer", "minimum": 1 },
     "id": { "const": "player" },
@@ -24,6 +24,18 @@
         "xFp": { "type": "integer", "minimum": 1, "maximum": 2048 },
         "yFp": { "type": "integer", "minimum": 1, "maximum": 2048 },
         "diagonalScaleFp": { "type": "integer", "minimum": 1, "maximum": 256 }
+      }
+    },
+    "momentum": {
+      "type": "object", "additionalProperties": false,
+      "required": ["ticksPerFrame", "accel", "max", "decay", "step", "fight"],
+      "properties": {
+        "ticksPerFrame": { "type": "integer", "minimum": 1 },
+        "accel": { "type": "integer", "minimum": 1 },
+        "max": { "type": "integer", "minimum": 1 },
+        "decay": { "type": "integer", "minimum": 0 },
+        "step": { "type": "integer", "minimum": 1 },
+        "fight": { "type": "integer", "minimum": 0 }
       }
     },
     "lives": {
@@ -62,7 +74,7 @@
     "sabre": {
       "type": "object", "additionalProperties": false,
       "required": ["windupTicks", "activeTicks", "recoverTicks", "cooldownTicks", "holdRepeatTicks", "reachPx",
-                   "thicknessPx", "diagonalOffsetPx", "moveSpeedScaleFp", "repelWulfPx", "repelWulfStunTicks", "fence"],
+                   "thicknessPx", "diagonalOffsetPx", "repelWulfPx", "repelWulfStunTicks", "fence"],
       "properties": {
         "windupTicks": { "type": "integer", "minimum": 0 },
         "activeTicks": { "type": "integer", "minimum": 1 },
@@ -72,7 +84,6 @@
         "reachPx": { "type": "integer", "minimum": 1 },
         "thicknessPx": { "type": "integer", "minimum": 1 },
         "diagonalOffsetPx": { "type": "integer", "minimum": 0 },
-        "moveSpeedScaleFp": { "type": "integer", "minimum": 0, "maximum": 512 },
         "repelWulfPx": { "type": "integer", "minimum": 0 },
         "repelWulfStunTicks": { "type": "integer", "minimum": 0 },
         "fence": {

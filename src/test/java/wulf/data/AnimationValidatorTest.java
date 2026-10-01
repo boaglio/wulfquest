@@ -27,7 +27,7 @@ class AnimationValidatorTest {
         Map<String, PlayerData.Animation> animations = new HashMap<>(RULES.animations());
         animations.put(animation, value);
         return new PlayerData(RULES.schemaVersion(), RULES.id(), RULES.displayName(), sprite, RULES.collisionBox(),
-                RULES.speed(), RULES.lives(), RULES.spawn(), RULES.death(), RULES.sabre(), animations);
+                RULES.speed(), RULES.momentum(), RULES.lives(), RULES.spawn(), RULES.death(), RULES.sabre(), animations);
     }
 
     private static PlayerData.Animation ticks(int ticksPerFrame, boolean gaitVariants, String... frames) {

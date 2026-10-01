@@ -332,17 +332,33 @@ public final class Simulation {
         if (dx != 0 || dy != 0) {
             player.facing = Direction8.of(dx, dy);   // facing persists when the keys are released (§11.4)
         }
-        PlayerData.Speed speed = rules.speed();
-        int speedX = effect.speedFp(speed.xFp());
-        int speedY = effect.speedFp(speed.yFp());
-        if (player.swingTick >= 0 && rules.sabre().moveSpeedScaleFp() != Fixed.ONE) {
-            speedX = Fixed.mul(speedX, rules.sabre().moveSpeedScaleFp());
-            speedY = Fixed.mul(speedY, rules.sabre().moveSpeedScaleFp());
+        PlayerData.Momentum m = rules.momentum();
+        if (tick % m.ticksPerFrame() == 0) {
+            // One frame of the original (§11.3): accelerate, clamp, take this frame's speed step,
+            // then decay toward rest. Fighting holds a steady pace instead ($ADD0).
+            if (player.swingTick >= 0) {
+                player.vx = dx * m.fight();
+                player.vy = dy * m.fight();
+            } else {
+                player.vx = Math.max(-m.max(), Math.min(m.max(), player.vx + dx * m.accel()));
+                player.vy = Math.max(-m.max(), Math.min(m.max(), player.vy + dy * m.accel()));
+            }
+            player.levelX = Integer.signum(player.vx) * (Math.abs(player.vx) / m.step());
+            player.levelY = Integer.signum(player.vy) * (Math.abs(player.vy) / m.step());
+            if (player.swingTick < 0) {
+                player.vx -= Integer.signum(player.vx) * Math.min(m.decay(), Math.abs(player.vx));
+                player.vy -= Integer.signum(player.vy) * Math.min(m.decay(), Math.abs(player.vy));
+            }
         }
+        int mx = Integer.signum(player.levelX);
+        int my = Integer.signum(player.levelY);
+        PlayerData.Speed speed = rules.speed();
+        int speedX = effect.speedFp(speed.xFp()) * Math.abs(player.levelX) / m.levels();
+        int speedY = effect.speedFp(speed.yFp()) * Math.abs(player.levelY) / m.levels();
         PlayerData.Box box = rules.collisionBox();
-        if (dx != 0 && dy != 0) {
-            boolean xTouching = Collision.boxBlocked(world, box, player.xFp + dx * Fixed.ONE, player.yFp);
-            boolean yTouching = Collision.boxBlocked(world, box, player.xFp, player.yFp + dy * Fixed.ONE);
+        if (mx != 0 && my != 0) {
+            boolean xTouching = Collision.boxBlocked(world, box, player.xFp + mx * Fixed.ONE, player.yFp);
+            boolean yTouching = Collision.boxBlocked(world, box, player.xFp, player.yFp + my * Fixed.ONE);
             if (!xTouching && !yTouching) {
                 // Scale the magnitude, then apply the sign, so left and right are exact mirrors.
                 speedX = Fixed.mul(speedX, speed.diagonalScaleFp());
@@ -352,12 +368,11 @@ public final class Simulation {
         }
         int oldX = player.xFp;
         int oldY = player.yFp;
-        // No acceleration and no inertia: velocity is a pure function of this tick's input (§11.3).
         // X then Y, each resolved on its own: that ordering is what produces wall-sliding (§7.4).
         player.xFp = Collision.resolve(world, box.x(), box.y(), box.w(), box.h(), player.xFp, player.yFp,
-                dx * speedX, true);
+                mx * speedX, true);
         player.yFp = Collision.resolve(world, box.x(), box.y(), box.w(), box.h(), player.xFp, player.yFp,
-                dy * speedY, false);
+                my * speedY, false);
         boolean moved = player.xFp != oldX || player.yFp != oldY;
         player.walkTicks = moved ? player.walkTicks + 1 : 0;
         // A step every few ticks while the feet are actually going somewhere (§18.2).
@@ -442,6 +457,10 @@ public final class Simulation {
         player.mode = Player.Mode.ALIVE;
         player.modeTick = 0;
         player.invulnTicks = rules.spawn().invulnTicks();
+        player.vx = 0;   // back on his feet, at rest
+        player.vy = 0;
+        player.levelX = 0;
+        player.levelY = 0;
         repopulate();
         if (wulf.state != Wulf.State.ABSENT) {
             gone();   // it caught you; it does not wait at the respawn
@@ -1620,6 +1639,10 @@ public final class Simulation {
         h = mix(h, player.modeTick);
         h = mix(h, player.entryXFp);
         h = mix(h, player.entryYFp);
+        h = mix(h, player.vx);
+        h = mix(h, player.vy);
+        h = mix(h, player.levelX);
+        h = mix(h, player.levelY);
         h = mix(h, rng.stateHash());
         h = mix(h, score);
         h = mix(h, kills);

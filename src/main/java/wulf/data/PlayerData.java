@@ -11,6 +11,7 @@ public record PlayerData(
         String sprite,
         Box collisionBox,
         Speed speed,
+        Momentum momentum,
         Lives lives,
         Spawn spawn,
         Death death,
@@ -27,6 +28,22 @@ public record PlayerData(
 
     /** Fixed-point 8.8 pixels per tick (§11.2). */
     public record Speed(int xFp, int yFp, int diagonalScaleFp) {
+    }
+
+    /**
+     * The original's inertia (§11.3, $AEEF): per axis, a velocity in its own units. Each
+     * frame a held direction adds {@code accel}, the velocity is clamped to {@code max} and,
+     * after moving, decays by {@code decay} toward rest. It moves at whole steps of
+     * {@code step} — 0, ⅓, ⅔ or the full {@link Speed} — so it speeds up over a few frames
+     * and glides to a stop. While fighting the velocity is held at {@code fight}, a steady
+     * pace with no inertia ($ADD0). One original frame lasts {@code ticksPerFrame} of ours.
+     */
+    public record Momentum(int ticksPerFrame, int accel, int max, int decay, int step, int fight) {
+
+        /** How many speed steps the clamp allows: 3 for the original's 48 / 16. */
+        public int levels() {
+            return max / step;
+        }
     }
 
     public record Lives(int start, int max, List<Integer> extraAt) {
@@ -56,7 +73,6 @@ public record PlayerData(
             int reachPx,
             int thicknessPx,
             int diagonalOffsetPx,
-            int moveSpeedScaleFp,
             int repelWulfPx,
             int repelWulfStunTicks,
             Fence fence) {

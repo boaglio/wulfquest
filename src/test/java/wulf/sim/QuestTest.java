@@ -66,16 +66,21 @@ class QuestTest {
 
     /** Walks along x to a world pixel, then stops. The player must survive the walk. */
     private static void walkX(Simulation s, int worldXPx) {
-        for (int t = 0; t < 20_000 && Math.abs(Fixed.fp(worldXPx) - s.player().xFp()) > Fixed.ONE; t++) {
-            s.tick(InputState.of(Integer.signum(Fixed.fp(worldXPx) - s.player().xFp()), 0, false, false));
+        // With inertia (§11.3): press toward it, and the other way once the glide would carry him there.
+        for (int t = 0; t < 20_000 && (Math.abs(Fixed.fp(worldXPx) - s.player().xFp()) > Fixed.ONE
+                || Math.abs(s.player().vx()) >= s.rules().momentum().step()); t++) {
+            s.tick(InputState.of(wulf.tools.Steering.axis(Fixed.fp(worldXPx) - s.player().xFp(), s.player().vx(),
+                    s.rules().speed().xFp(), s.rules().momentum()), 0, false, false));
             assertThat(s.player().mode()).as("alive walking to x %d, in %s", worldXPx, s.room()).isEqualTo(Player.Mode.ALIVE);
         }
     }
 
     private static void walkY(Simulation s, int worldYPx) {
-        for (int t = 0; t < 20_000 && Math.abs(Fixed.fp(worldYPx) - s.player().yFp()) > Fixed.ONE
+        for (int t = 0; t < 20_000 && (Math.abs(Fixed.fp(worldYPx) - s.player().yFp()) > Fixed.ONE
+                || Math.abs(s.player().vy()) >= s.rules().momentum().step())
                 && s.player().mode() == Player.Mode.ALIVE; t++) {
-            s.tick(InputState.of(0, Integer.signum(Fixed.fp(worldYPx) - s.player().yFp()), false, false));
+            s.tick(InputState.of(0, wulf.tools.Steering.axis(Fixed.fp(worldYPx) - s.player().yFp(), s.player().vy(),
+                    s.rules().speed().yFp(), s.rules().momentum()), false, false));
         }
     }
 

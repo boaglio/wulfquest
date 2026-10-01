@@ -51,9 +51,14 @@ class PlayerPainterTest {
 
     @Test
     void walkingEastCyclesTheSideGaitEveryFiveTicks() {
+        // The gait is driven by ticks actually moved (§11.5), so it starts with the run-up (§11.3).
         Simulation s = sim();
+        while (s.player().walkTicks() == 0) {
+            s.tick(RIGHT);
+        }
         List<String> seen = new ArrayList<>();
-        for (int i = 0; i < 20; i++) {
+        seen.add(frame(s));
+        for (int i = 1; i < 20; i++) {
             s.tick(RIGHT);
             seen.add(frame(s));
         }
@@ -85,12 +90,16 @@ class PlayerPainterTest {
     }
 
     @Test
-    void stoppingSnapsToFrameZeroAndKeepsTheFacing() {
+    void theGlideKeepsWalkingThenSnapsToFrameZeroAndKeepsTheFacing() {
+        // Let go and he glides (§11.3): the legs keep going while the feet do, then stand.
         Simulation s = sim();
-        run(s, RIGHT, 7);
-        assertThat(frame(s)).isEqualTo("side_walk1");
+        run(s, RIGHT, 30);
         s.tick(InputState.NONE);
+        assertThat(s.player().walkTicks()).as("still gliding").isPositive();
+        assertThat(frame(s)).startsWith("side_walk");
+        run(s, InputState.NONE, 120);
         assertThat(frame(s)).isEqualTo("side_walk0");
+        assertThat(s.player().facing()).isEqualTo(wulf.sim.Direction8.E);
     }
 
     @Test
@@ -130,9 +139,9 @@ class PlayerPainterTest {
     @Test
     void stoppingMidSwingDropsToTheStandingPose() {
         Simulation s = sim();
-        run(s, RIGHT, 6);
+        run(s, RIGHT, 30);
         s.tick(InputState.of(1, 0, true, true));
-        assertThat(frame(s)).endsWith("_walk1");
+        assertThat(frame(s)).matches("side_swing[01]_walk[0-3]");
         s.tick(InputState.NONE);
         // No windup in the original's fighting (§11.6): standing still, it is the fencing pose at once.
         assertThat(frame(s)).isIn("side_swing0", "side_swing1");

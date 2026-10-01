@@ -1137,7 +1137,7 @@ or PgUp/PgDn step through all 256, `M` overlays the collision mask.
 ## 11. Ranger Vale (the player) — movement spec
 
 This section is the most feel-critical in the document. Movement must match
-the original's *character*: instant, weightless, grid-free, slightly faster
+the original's *character*: a short run-up and a glide (§11.3), grid-free, slightly faster
 horizontally than vertically, and sliding along walls.
 
 ### 11.1 `data/entities/player.json`
@@ -1157,7 +1157,6 @@ horizontally than vertically, and sliding along walls.
   "sabre": {
     "windupTicks": 3, "activeTicks": 6, "recoverTicks": 3, "cooldownTicks": 6,
     "reachPx": 14, "thicknessPx": 12, "diagonalOffsetPx": 4,
-    "moveSpeedScaleFp": 256,
     "repelWulfPx": 24, "repelWulfStunTicks": 30
   },
   "animations": { "...": "see §10.2" }
@@ -1180,20 +1179,42 @@ A diagonal must be *slightly* faster than a cardinal in total distance (the
 original rewarded diagonals) but must not be the strictly dominant way to
 move. Verified in `MovementFeelTest`.
 
-### 11.3 No acceleration, no inertia **[CANON]** feel
+### 11.3 Inertia **[CANON]** shape, **[RECON]** timing
 
-Velocity is a pure function of the input held **this tick**:
+Rewritten 2026-09-30. This section used to say "no acceleration, no inertia",
+from memory; the original has both. `GamePlay_Start` (`$AEEF`) keeps a velocity
+per axis in sixteenths of a pixel per frame, and each frame:
 
-```
-vx = (right ? +1 : 0) + (left ? -1 : 0)
-vy = (down  ? +1 : 0) + (up   ? -1 : 0)
-```
+1. a held direction adds `momentum.accel` (7) to that axis (`$AF21`);
+2. the velocity is clamped to `momentum.max` (48 — 3 px a frame, `$AFC1`);
+3. the feet move `velocity / momentum.step` (16) whole steps (`$B031`), so the
+   speed comes in steps — standing, ⅓, ⅔, full — and below one step he stands;
+4. the velocity decays by `momentum.decay` (1) toward rest (`$B047`).
 
-- Release the key → velocity is zero **the same tick**. No deceleration
-  ramp, no coyote frames, no input buffering, no dash.
-- Opposing keys held simultaneously → that axis is zero.
+So he reaches full speed in about eight frames and, let go, glides about 48
+px over some 32 frames. Press the other way and he skids round. Fighting is a
+different handler (`$ADD0`): the velocity is set to `momentum.fight` (32, ⅔)
+in the held direction every frame — no run-up, no glide (§11.6). A secondary
+source agrees: the Spectrum original "keeps him moving a bit after you lose
+hold of the joystick … kind of slippery", and "slows down a notch once he
+starts swishing his sabre" (<http://frgcb.blogspot.com/2017/11/sabre-wulf-ultimate-play-game-1984.html>).
+
+Ours (`player.json → momentum`, `Simulation.move`): the same integers, run
+once per original frame, which lasts `momentum.ticksPerFrame` (2) of our 50 Hz
+ticks — **[RECON]**: the original's frame rate is not measured. Full speed is
+§11.2's per-axis speed, so the room-crossing times there hold at the top of
+the run-up; the steps are ⅓ of it. The step is taken once per frame and held
+for its ticks. When the feet are blocked the velocity is kept, as the
+original keeps it. Diagonals still scale by `diagonalScaleFp` when both axes
+are moving and neither is pressed against a wall.
+
+- Opposing keys held simultaneously → that axis adds nothing.
 - Sub-pixel remainder accumulates in the fixed-point position and is never
   rounded away between ticks.
+- Respawning puts him at rest.
+- The test bots steer with it as a player does — down the straight, braking
+  before the turn (`wulf.tools.Steering`); `CornerWalkTest` walks to every
+  corner of the map that way.
 
 ### 11.4 Facing
 
@@ -1250,9 +1271,8 @@ entered through `$ADBF`). Fighting:
   down over the legs was the "weird" of the third playtest.
 - **Vale moves steadily and slower.** Fighting moves a fixed 2 px a frame in
   the held direction, against walking's top speed of 3 (`$AFC1`):
-  `moveSpeedScaleFp` 171 (⅔). The original's walking also has momentum —
-  it speeds up over ~8 frames and glides to a stop — which §11.3 does not
-  model yet; the playtest asked for the fighting changes only.
+  `momentum.fight` 32 — two of the three speed steps, held, with none of
+  walking's run-up or glide (§11.3).
 
 State machine (the pose follows it: `driver: "sabrePhase"`, §10.2 — with no
 windup or recovery it is the strike pose throughout):
@@ -2617,13 +2637,15 @@ hash at every 50th tick. `ReplayRunner` re-executes them. Ship at least:
   forged in M9 with
   `-Dforge.lairs=0 -Dforge.pieces=1 … FullRunForge replays/lair_nw.json`:
   the same bot, sent to one lair, finishing when the quarter is carried back
-  out instead of waiting for a win. (**M9, shipped**; re-forged in M10 on the
-  true map: seed 217, 60 571 ticks, no death)
+  out instead of waiting for a win. (**M9, shipped**; re-forged on the true
+  map in M10, and again with inertia on 2026-09-30: seed 202, 38 173 ticks,
+  no death)
 - `replays/wulf_escape.json` — a Wulf pursuit survived across 4 rooms. (**M5, shipped**)
 - `replays/full_run.json` — a complete 4-piece win, forged by `FullRunForge`
-  (**M6, shipped; re-forged 2026-09-30 on the true map**): seed 306, lairs in
-  order SE, SW, NW, NE, out through the arch in 157 879 ticks without a
-  death. It took three bot fixes, each found by tracing where runs died or
+  (**M6, shipped; re-forged 2026-09-30 on the true map, then with inertia
+  (§11.3)**): seed 306, lairs in order SE, SW, NW, NE, out through the arch
+  in 122 220 ticks without a death — quicker than the 157 879 without it, once
+  the bot braked before its turns. It took three bot fixes, each found by tracing where runs died or
   stood still: pressing the other way under the reversal flower; meeting
   the Wulf by turning to it with fire held — fencing makes the blade live at
   once, and the old wait for a swing that would land stood still while it
@@ -3411,8 +3433,8 @@ What landed:
   golden frames regenerated.
 
 Slipped, then landed 2026-09-30: **`replays/full_run.json`** (§22.6) — re-forged
-once the bot learned to fence the Wulf; its test is back on. Still open: walking momentum
-(the original has it, §11.6), a tune for the reveal (§27.8), shrine rooms for
+once the bot learned to fence the Wulf; its test is back on. Walking momentum
+landed after M10 too (§11.3). Still open: a tune for the reveal (§27.8), shrine rooms for
 the cave hints, and the stale "Still Water" name.
 
 ---
@@ -3436,7 +3458,7 @@ the source wins.
 | Q2 | The four guardians' species, colours, and lair rooms | **Rooms partly answered 2026-09-27:** the original has no fixed lairs — it picks one of eight preset four-room sets at random (`$A29D`, `Place Amulet Pieces` `$A255`) and lays each quarter at its room type's object slot 1 (`$DC6C`). Our lairs are fixed (`[RECON]`) at the game's set 3, `5,3 13,4 3,12 9,10`. Guardians' species and colours still open; the game's immortals table (`$AC77`) lists rhinos, spear men, fire, the wolf, a hippo and "guardian" as sprites to look at next. | `landmarks.json`, `guardians.json` |
 | Q3 | The exit's actual location and its guard condition | **Lead 2026-09-27:** the true map has exactly one stone arch, `(8,8)`, the heart of the mirrored temple two rooms north of the start. The exit is placed there; the guard condition is unverified. | `landmarks.json` |
 | Q4 | The orchid colour→effect mapping and durations | 6 colours per §15.2 | `orchids.json` |
-| Q5 | Exact player speed in px/frame, and whether it was frame-quantised | 1.5 / 1.0 px/tick | `player.json` |
+| Q5 | Exact player speed in px/frame, and whether it was frame-quantised | **Shape answered 2026-09-30** (§11.3): up to 3 px a frame in whole steps (0–3), with inertia ($AEEF, $AFC1, $B031, $B047); fighting a steady 2 ($ADD0). Still open: the original's frame rate, which fixes px/s — ours assumes 2 ticks a frame, and keeps §11.2's 1.5 / 1.0 px/tick as full speed. | `player.json → speed, momentum` |
 | Q6 | Starting lives and extra-life thresholds | 5 lives, extras at 15k/40k/75k/120k | `player.json` |
 | Q7 | Whether amulet pieces were lost on death | kept | `player.json → death.keepAmulet` |
 | Q8 | Score values per creature and per piece | 100–500, 5000 | `creatures.json`, `loot.json` |

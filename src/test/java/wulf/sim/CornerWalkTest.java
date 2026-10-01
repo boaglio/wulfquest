@@ -107,23 +107,21 @@ class CornerWalkTest {
         int i = 0;
         int sinceProgress = 0;
         while (i < route.size()) {
-            // Feet position whose 10x9 box sits inside this 16x16 block with margin to spare.
-            int tx = Fixed.fp(route.get(i)[0] * 8 + 8);
-            int ty = Fixed.fp(route.get(i)[1] * 8 + 13);
-            int ddx = tx - sim.player().xFp();
-            int ddy = ty - sim.player().yFp();
-            if (Math.abs(ddx) <= Fixed.ONE && Math.abs(ddy) <= Fixed.ONE) {
+            if (wulf.tools.Steering.reached(sim, route.get(i))) {
                 i++;
                 sinceProgress = 0;
                 continue;
             }
-            int dx = Math.abs(ddx) > Fixed.ONE ? Integer.signum(ddx) : 0;
-            int dy = Math.abs(ddy) > Fixed.ONE ? Integer.signum(ddy) : 0;
-            sim.tick(InputState.of(dx, dy, false, false));
+            // With inertia (§11.3): look down the straight, and brake before the turn.
+            sim.tick(wulf.tools.Steering.along(sim, route, i));
             if (++sinceProgress > 600) {
                 throw new AssertionError("stuck heading for block " + i + " of " + route.size()
                         + " at world px " + Fixed.px(sim.player().xFp()) + "," + Fixed.px(sim.player().yFp())
-                        + " in room " + sim.room());
+                        + " in room " + sim.room() + "; aiming at " + Fixed.px(wulf.tools.Steering.footX(route.get(i))) + ","
+                        + Fixed.px(wulf.tools.Steering.footY(route.get(i))) + " (fp " + (wulf.tools.Steering.footX(route.get(i)) - sim.player().xFp())
+                        + "," + (wulf.tools.Steering.footY(route.get(i)) - sim.player().yFp()) + " away), v " + sim.player().vx() + "," + sim.player().vy()
+                        + ", next " + java.util.Arrays.toString(route.get(Math.min(i + 1, route.size() - 1)))
+                        + " " + java.util.Arrays.toString(route.get(Math.min(i + 2, route.size() - 1))));
             }
         }
     }

@@ -11,6 +11,7 @@ import static wulf.sim.SimFixtures.run;
 
 import java.util.ArrayList;
 import java.util.List;
+import wulf.data.PlayerData;
 import org.junit.jupiter.api.Test;
 import wulf.engine.Fixed;
 import wulf.input.InputState;
@@ -109,16 +110,22 @@ class SabreTest {
     }
 
     @Test
-    void fightingSlowsThePlayerToTwoThirds() {
+    void fightingMovesAtASteadyTwoThirdsWithNoInertia() {
         // The original fights at a steady 2 px a frame ($ADD0) against a walking top speed of 3
-        // ($AFC1): 171/256.
-        assertThat(RULES.sabre().moveSpeedScaleFp()).isEqualTo(171);
-        Simulation sim = facingEast();
-        sim.tick(InputState.of(1, 0, true, true));
+        // ($AFC1), with no build-up and no glide: two of the three speed steps from the first frame.
+        PlayerData.Momentum m = RULES.momentum();
+        assertThat(m.fight() / m.step()).isEqualTo(2);
+        Simulation sim = at(OPEN, 1000, 1000);
+        int perTick = RULES.speed().xFp() * 2 / m.levels();
+        for (int t = 0; t < 2 * m.ticksPerFrame(); t++) {   // the stroke starts, and the pace with it
+            sim.tick(InputState.of(1, 0, true, t == 0));
+        }
         int x = sim.player().xFp();
-        sim.tick(RIGHT);
+        for (int t = 0; t < 2 * m.ticksPerFrame(); t++) {
+            sim.tick(InputState.of(1, 0, true, false));
+        }
         assertThat(sim.player().swinging()).isTrue();
-        assertThat(sim.player().xFp() - x).isEqualTo(Fixed.mul(RULES.speed().xFp(), RULES.sabre().moveSpeedScaleFp()));
+        assertThat(sim.player().xFp() - x).isEqualTo(2 * m.ticksPerFrame() * perTick);
     }
 
     @Test

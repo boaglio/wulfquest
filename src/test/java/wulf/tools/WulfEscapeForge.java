@@ -115,11 +115,8 @@ public final class WulfEscapeForge {
                 if (block >= route.size()) {
                     return new Attempt(false, rec, "route finished" + (story.isEmpty() ? "" : " after: " + story));
                 }
-                int ddx = Fixed.fp(route.get(block)[0] * 8 + 8) - sim.player().xFp();
-                int ddy = Fixed.fp(route.get(block)[1] * 8 + 13) - sim.player().yFp();
-                int dx = Math.abs(ddx) > Fixed.ONE ? Integer.signum(ddx) : 0;
-                int dy = Math.abs(ddy) > Fixed.ONE ? Integer.signum(ddy) : 0;
-                in = touches(sim, dx, dy) ? InputState.NONE : InputState.of(dx, dy, false, false);
+                InputState step = Steering.along(sim, route, block);   // with inertia (§11.3)
+                in = touches(sim, step.dx(), step.dy()) ? InputState.NONE : step;
                 if (++sinceProgress > 600) {
                     return new Attempt(false, rec, "stuck" + (chasing ? " in a chase" : ""));
                 }

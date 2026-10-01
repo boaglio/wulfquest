@@ -24,6 +24,11 @@ public final class Player {
     int invulnTicks;
     Mode mode = Mode.ALIVE;
     int modeTick;
+    /** Velocity per axis in the original's units, and the speed step it moves at this frame (§11.3). */
+    int vx;
+    int vy;
+    int levelX;
+    int levelY;
     int entryXFp;
     int entryYFp;
 
@@ -36,6 +41,15 @@ public final class Player {
 
     public int yFp() {
         return yFp;
+    }
+
+    /** Velocity in the original's units (§11.3): what a steering bot needs to know to brake. */
+    public int vx() {
+        return vx;
+    }
+
+    public int vy() {
+        return vy;
     }
 
     public Direction8 facing() {

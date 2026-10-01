@@ -368,7 +368,7 @@ public final class FullRunForge {
         if (block >= route.size()) {
             return InputState.NONE;
         }
-        InputState step = steer(sim, route.get(block));
+        InputState step = Steering.along(sim, route, block);   // with inertia (§11.3): brakes before the turns
         // Give way to what is in the path — but not for ever: a creature parked on the only way is walked past.
         return touches(sim, step.dx(), step.dy()) && waiting < GIVE_WAY_TICKS ? null : step;
     }
@@ -442,14 +442,6 @@ public final class FullRunForge {
                 + sim.creatures().size() + " creatures, Wulf " + sim.wulf().state();
     }
 
-    private static InputState steer(Simulation sim, int[] target) {
-        int ddx = Fixed.fp(target[0] * 8 + 8) - sim.player().xFp();
-        int ddy = Fixed.fp(target[1] * 8 + 13) - sim.player().yFp();
-        int dx = Math.abs(ddx) > Fixed.ONE ? Integer.signum(ddx) : 0;
-        int dy = Math.abs(ddy) > Fixed.ONE ? Integer.signum(ddy) : 0;
-        return InputState.of(dx, dy, false, false);
-    }
-
     /** The route block whose steering point puts the feet on the quarter (§14.6). */
     private static int[] pedestalBlock(LandmarksData marks, int lair) {
         RoomAddress room = LandmarksData.room(marks.lairs().get(lair).room());
@@ -466,8 +458,7 @@ public final class FullRunForge {
     }
 
     private static boolean reached(Simulation sim, int[] block) {
-        return Math.abs(Fixed.fp(block[0] * 8 + 8) - sim.player().xFp()) <= Fixed.ONE
-                && Math.abs(Fixed.fp(block[1] * 8 + 13) - sim.player().yFp()) <= Fixed.ONE;
+        return Steering.reached(sim, block);
     }
 
     private static int gap(Simulation sim, Creature body) {
