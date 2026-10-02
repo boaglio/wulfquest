@@ -264,6 +264,7 @@ wulfquest/
     art/scenery_forge.py        generates the 41 scenery sprites, §10.5 (dev-time only)
     art/character_forge.py      generates Ranger Vale's frames, §10.5 (dev-time only)
     art/creature_forge.py       generates the 13 creature sprites and the puff, §10.5 (dev-time only)
+    art/item_forge.py           draws the map scroll, the eyes and the treasures, §14.8, §16.4 (dev-time only)
     art/font_forge.py           generates the 8x8 display set in font.json, §10.4 (dev-time only)
     audio/music_forge.py        writes music.json from phrases of note tokens, §18.3 (dev-time only)
     check-no-binaries.sh        CI gate, §2.4 — bound to the verify phase
@@ -282,7 +283,8 @@ wulfquest/
       scenery.json              object id -> footprint, art ref, collision mask (§9)
       rooms.json                per-room overrides: biome, entity budget, props
       room_entities.json        spawn rules, biome markers, budgets, authored rooms (§12.6)
-      landmarks.json            exit, lair rooms, shrines, the temple (§14)
+      landmarks.json            exit, lair rooms, shrines, the map scroll and eyes, the temple (§14)
+      treasures.json            [CANON] where treasures lie, what they are, what they score (§16.4)
     entities/
       player.json               Sabreman/Ranger Vale stats + animation (§11)
       creatures.json            full roster (§12)
@@ -1881,7 +1883,7 @@ not the start, the way out or a lair, and that the zone has standing room.
 
 - Sprite: a quarter of a 16x16 amulet, each quarter its guardian's accent, rim
   in plain white so the yellow quarter still reads.
-- Pickup: box overlap with the player's feet box. Awards `5000`, flashes the
+- Pickup: box overlap with the player's feet box. Awards `7500` (§25 Q8), flashes the
   border bright white for `pickupFlashTicks` (8), and flies to its panel slot
   over `flyToPanelTicks` (24). The arpeggio arrives with the synthesiser (M8).
 - The panel shows the amulet assembling: four slots, held quarters drawn from
@@ -2061,7 +2063,8 @@ each effect is looked at on screen; an unknown name is refused at startup.
 
 | item | source | effect | score |
 |------|--------|--------|-------|
-| amulet piece ×4 | lair pedestals | quest progress | 5000 each |
+| amulet piece ×4 | lair pedestals | quest progress | 7500 each |
+| treasure | two places in every room, half of them filled (§16.4) | a life, 1 in 16 | 150 each |
 | orchid bloom | grown in rooms | an effect (§15) | 25–75 |
 | creature kill | sabre | removal, relief | 100–500 (§12.3) |
 | spear intercept | sabre vs. thrown spear | removal | 50 |
@@ -2075,8 +2078,6 @@ meter; it is **not canon** and must not come back. One touch, one life
 
 | flag | item | notes |
 |------|------|-------|
-| `features.treasures` | `idol` (2000 pts), `gem` (750), `tusk` (400) | scattered score pickups, 1 per 12 rooms by `roomSeed` |
-| `features.extraLifeIdol` | `idol_life` | +1 life, one per game, in a fixed far-corner room |
 | `features.bonusRooms` | — | do not build this without asking the user first |
 
 ### 16.3 Score events
@@ -2085,7 +2086,7 @@ meter; it is **not canon** and must not come back. One touch, one life
 {
   "schemaVersion": 1,
   "events": {
-    "amuletPiece": 5000,
+    "amuletPiece": 7500,
     "escapeBonus": 10000,
     "timeBonusMax": 30000,
     "timeBonusTicksDivisor": 2,
@@ -2102,6 +2103,42 @@ meter; it is **not canon** and must not come back. One touch, one life
 - Extra lives at the `player.json → lives.extraAt` thresholds, capped at
   `lives.max` (9). A 10-tick panel flash and a rising 3-note jingle.
 - Hi-score is shown on the panel next to the score at all times.
+
+### 16.4 Treasures **[CANON]**
+
+The original scatters odds and ends through the jungle at the start of every
+game, and it is where most of its lives come from. Found in the SkoolKit
+disassembly (§25 Q10) and kept in `data/world/treasures.json`:
+
+- **Where** (`Initialise Objects` `$A2BD`, `Room Objects` `$A33B`). Every room
+  has two places (`$DDEC`, two bytes a room). Each room type has four spots
+  (`$DC6C`, `slotsByRoomType`: the sprite's left edge and bottom screen row,
+  the banner included; `fromScreen` (+8, −15) turns one into room-local feet,
+  which puts 1020 of the 1024 on open ground). The table is filled by a
+  counter running down from 512 whose low two bits pick the spot, so place 0
+  of an even room takes spot 0 and place 1 spot 3; an odd room's take 2 and 1.
+  Room type 1 has no spots. A spot inside our scenery is skipped.
+- **How many.** A place is filled when a byte read from the ROM is below
+  `$80`, with a kind from a running random nibble. The ROM's share of such
+  bytes is not measured, so `fillPercent` is `[RECON]` 50: about 250 treasures
+  a game. Ours are laid from the run seed by their own random stream, so the
+  creatures' draws are not disturbed and a seed lays the same jungle.
+- **What.** Sixteen kinds, picked evenly (`$C084`…`$C0A2`): crate, ring, fruit,
+  cap, shield, life, money bag, sword, crate, ring, fruit, cap, shield, shield,
+  money bag, sword. Each one ink, from `$A3A7`: bright red, magenta, green,
+  cyan, yellow, round again — so the same thing comes in different colours.
+  The drawings are ours (`tools/art/item_forge.py`, sprite `treasure`).
+- **Taking one** (`$A305`, `$A312`, `$A323`). Touch it: it is gone for the rest
+  of the game, deaths included, and scores **150**. The life (kind 5, one in
+  sixteen) is a life as well, while Vale has fewer than nine (`$A2F8`; our
+  `lives.max`). `pickupBox` is 12×12 (`$AB01` is called with `BC=$0C0C`).
+- **Not in the quest's rooms.** Ours keep the lairs, the way out and the
+  rooms of the map scroll and the eyes (§14.8) clear; the original has no
+  such rule, because it has no fixed lairs (§25 Q2).
+- **Hashing.** Taken treasures enter the state hash only once one is taken.
+
+The `[NEW]` `features.treasures` and `features.extraLifeIdol` that §16.2 used
+to plan (an idol, a gem, a tusk) are dropped: the original had its own.
 
 ---
 
@@ -3505,7 +3542,14 @@ What landed:
   golden frames regenerated.
 
 Slipped, then landed 2026-09-30: **`replays/full_run.json`** (§22.6) — re-forged
-once the bot learned to fence the Wulf; its test is back on. Walking momentum
+once the bot learned to fence the Wulf. **Slipped again 2026-10-01:** when the
+vertical speed was matched to the horizontal (§11.2) its input stopped winning,
+and the bot often stalls at a rhino in the shaft mouth of `0,15`. It was
+re-forged the same day by searching more seeds, 18 forges in parallel: 10 of
+154 seeds won, and the shortest, seed 2088 (109 412 ticks, about 36 minutes),
+is the new `full_run.json`; its test is back on. Its checkpoints were then
+re-recorded with the treasures in (§16.4): the same input still wins, with 63
+treasures picked up on the way. Walking momentum
 landed after M10 too (§11.3), and so did the rest, on 2026-10-01: the reveal's
 tune (§18.3), the shrines at the hut doors (§14.5), and the temple's name.
 
@@ -3533,9 +3577,9 @@ the source wins.
 | Q5 | Exact player speed in px/frame, and whether it was frame-quantised | **Shape answered 2026-09-30** (§11.3): up to 3 px a frame in whole steps (0–3), with inertia ($AEEF, $AFC1, $B031, $B047); fighting a steady 2 ($ADD0). Still open: the original's frame rate, which fixes px/s — ours assumes 2 ticks a frame, and keeps §11.2's 1.5 / 1.0 px/tick as full speed. | `player.json → speed, momentum` |
 | Q6 | Starting lives and extra-life thresholds | 5 lives, extras at 15k/40k/75k/120k | `player.json` |
 | Q7 | Whether amulet pieces were lost on death | kept | `player.json → death.keepAmulet` |
-| Q8 | Score values per creature and per piece | 100–500, 5000 | `creatures.json`, `loot.json` |
+| Q8 | Score values per creature and per piece | **Partly answered 2026-10-01** from `Add Points To Score` (`$B5A9`, BCD) and its callers: a quarter of the amulet is **7500** (`$A1ED`, now in `loot.json`), a treasure **150** (`$A332`, §16.4), and a creature **165, 175, 185 or 195** by its type (`$A4B3`). Our creatures are not the original's (Q1), so their 100–500 stay `[RECON]`. | `creatures.json`, `loot.json` |
 | Q9 | The Wulf's appearance rules and whether the sabre affected it | 12% on entry + bonuses; repel only | `wulf.json` |
-| Q10 | Whether anything besides orchids and the amulet was collectable | nothing | `loot.json` |
+| Q10 | Whether anything besides orchids and the amulet was collectable | **Closed 2026-10-01: yes, treasures.** Source: the SkoolKit disassembly (Q14's link) — `Initialise Objects` `$A2BD`, `Room Objects` `$A33B`, the object location table `$DC6C`, the handlers `$A305`/`$A312`/`$A323` and the sprite table `$C084`. Up to two per room, seven kinds of thing and a life, 150 points each. All in §16.4 and `world/treasures.json`; only the fill rate is `[RECON]`. | `world/treasures.json` |
 | Q11 | Sabre swing duration, reach, and whether movement was locked | **Shape answered 2026-09-27** (§11.6): no windup or recovery, live while fire is held (`$AB0E`), a random one of eight poses every 4th frame (`$AE4B`, `Rand8`), movement at 2 px/frame against walking's 3 (`$ADD0`, `$AFC1`). Reach still `[RECON]` 14 px; converting the original's px/frame needs its frame rate, still unmeasured. | `player.json → sabre` |
 | Q12 | Whether creature spawns were fixed per room or random | authored-with-fallback | `room_entities.json` |
 | Q13 | How the original resolved scenery collision — per pixel, per cell, or per object rectangle — and so which rule reproduces its routes | **Answered 2026-09-27: per object rectangle.** `$B873`, called by the player's movement through `$B81C` with `BC=$160E`, tests the player's box (15 px wide at x..x+14, 23 px tall ending at the feet y) against every placement's whole graphic rectangle (header: height in pixel rows, width in bytes ×8), then retries on one axis for a slide. Our art-derived collision (≥25 % painted) is kept as `[RECON]`: over the corrected map it gives exactly the original's room-to-room topology (below), so the routes are the original's. | `world/scenery.json → solidCoveragePercent`, per-object `collisionCells` |

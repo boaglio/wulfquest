@@ -51,7 +51,7 @@ class JsonDbTest {
     void featureFlagsAreKnownOrRejected() {
         GameConfig game = new JsonDb(DATA).load("config/game", GameConfig.class);
         assertThat(game.feature("caveHints")).isTrue();
-        assertThat(game.feature("treasures")).isFalse();
+        assertThat(game.feature("bonusRooms")).isFalse();
         assertThatThrownBy(() -> game.feature("nope"))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessageContaining("unknown feature flag");

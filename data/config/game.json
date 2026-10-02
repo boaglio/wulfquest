@@ -9,8 +9,6 @@
     "caveHints": true,
     "animatedWater": false,
     "distanceDrivenGait": false,
-    "treasures": false,
-    "extraLifeIdol": false,
     "bonusRooms": false,
     "pauseMap": false,
     "saveInProgress": false,

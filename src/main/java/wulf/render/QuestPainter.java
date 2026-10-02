@@ -5,10 +5,11 @@ import wulf.data.LandmarksData;
 import wulf.sim.Player;
 import wulf.sim.Quest;
 import wulf.sim.Simulation;
+import wulf.sim.Treasures;
 
 /**
- * What the quest adds to the screen (AGENTS.md §14): the quarter waiting on its
- * pedestal, the quarter flying to its panel slot once taken, and the playfield
+ * What the quest adds to the screen (AGENTS.md §14): the treasures lying about
+ * (§16.4), the quarter waiting on its pedestal, the quarter flying to its panel slot once taken, and the playfield
  * going dark row by row as Vale walks into the arch.
  */
 public final class QuestPainter {
@@ -18,8 +19,23 @@ public final class QuestPainter {
     private final Sprite amulet;
     private final SpriteBank sprites;
     private final int black;
+    private final TreasureArt treasures;
+
+    /**
+     * How the treasures look (§16.4): their places, the sprite, and each kind's frame and
+     * colour — one ink, as on the Spectrum.
+     */
+    public record TreasureArt(Treasures places, String sprite, String[] frames, int[] inks) {
+        public static final TreasureArt NONE = new TreasureArt(Treasures.NONE, "", new String[0], new int[0]);
+    }
 
     public QuestPainter(DisplayConfig display, SpriteBank sprites, LandmarksData marks, int black) {
+        this(display, sprites, marks, black, TreasureArt.NONE);
+    }
+
+    public QuestPainter(DisplayConfig display, SpriteBank sprites, LandmarksData marks, int black,
+                        TreasureArt treasures) {
+        this.treasures = treasures;
         this.field = display.playfield();
         this.marks = marks;
         this.amulet = marks.lairs().isEmpty() ? null : sprites.get(marks.amulet().sprite());
@@ -29,6 +45,7 @@ public final class QuestPainter {
 
     /** The quarter on its pedestal, under the creatures (§5.3: loot before creatures). */
     public void paintLoot(Framebuffer fb, Simulation sim) {
+        paintTreasures(fb, sim);
         paintItems(fb, sim);
         Quest q = sim.quest();
         if (amulet == null || !q.inLair() || q.taken(q.lair())) {
@@ -38,6 +55,28 @@ public final class QuestPainter {
         fb.setClip(field.x(), field.y(), field.w(), field.h());
         try {
             amulet.blit(fb, lair.piece().frame(), field.x() + lair.pedestal().x(), field.y() + lair.pedestal().y());
+        } finally {
+            fb.clearClip();
+        }
+    }
+
+    /** §16.4: whatever still lies in this room's two places. */
+    private void paintTreasures(Framebuffer fb, Simulation sim) {
+        Treasures places = treasures.places();
+        if (!places.any()) {
+            return;
+        }
+        Sprite sprite = sprites.get(treasures.sprite());
+        fb.setClip(field.x(), field.y(), field.w(), field.h());
+        try {
+            for (int place = 0; place < Treasures.PLACES_PER_ROOM; place++) {
+                int i = sim.room().index() * Treasures.PLACES_PER_ROOM + place;
+                int kind = sim.treasureIn(i);
+                if (kind >= 0) {
+                    sprite.blitTinted(fb, treasures.frames()[kind], field.x() + places.x()[i],
+                            field.y() + places.y()[i], treasures.inks()[kind]);
+                }
+            }
         } finally {
             fb.clearClip();
         }

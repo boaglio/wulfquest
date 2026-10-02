@@ -17,9 +17,12 @@ against publicly documented data: the room grid had been mis-numbered, and
 every room had two rows at the top it never had. Picking up a quarter of the
 amulet now shows the amulet so far and a verse; the sabre fences instead of
 swinging; and game over says how much of the adventure you got through.
-`./run.sh help` lists every way to run it. A complete winning run — all four
-quarters and out through the arch, about 53 minutes of play — is recorded and
-replayed on every build.
+`./run.sh help` lists every way to run it. Since then the jungle has filled up
+with the original's own treasures — a crate, a ring, a sword, now and then a
+spare life, about two hundred and fifty of them a game, worth 150 each.
+
+A complete winning run — all four quarters and out through the arch, about 36
+minutes of play — is recorded and replayed on every build.
 
 **Milestone M9 complete.** M9 was the hardening pass:
 golden-frame tests that hash what the renderer draws, every recorded replay
@@ -142,7 +145,7 @@ nothing yet.)
 
 ## How it is checked
 
-`mvn -q verify` runs 408 tests and every gate the project has:
+`mvn -q verify` runs 453 tests and every gate the project has:
 
 - **The data validates itself.** Every JSON file is schema-checked at load,
   and the semantic validators go further — a palette colour that does not

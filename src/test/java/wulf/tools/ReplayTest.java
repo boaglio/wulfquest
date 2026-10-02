@@ -197,8 +197,6 @@ class ReplayTest {
      * arch — so a rules change that makes the quest unwinnable fails here, loudly.
      */
     @Test
-    @org.junit.jupiter.api.Disabled("Not yet re-forged since vertical speed matched horizontal (2026-10-01, §11.2): "
-            + "the old run's input no longer wins and FullRunForge has not found a new one yet. Re-forge it and remove this.")
     void theFullRunReplayWinsTheGame() {
         Replay r = Replay.read(Path.of("replays/full_run.json"));
         ReplayRunner.Result result = ReplayRunner.run(content, r);

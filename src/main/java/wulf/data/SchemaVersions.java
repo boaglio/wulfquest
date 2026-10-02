@@ -27,6 +27,7 @@ public final class SchemaVersions {
             Map.entry("wulf", 1),
             Map.entry("guardians", 1),
             Map.entry("landmarks", 1),
+            Map.entry("treasures", 1),
             Map.entry("orchids", 1),
             Map.entry("shell", 1),
             Map.entry("highscores", 1),

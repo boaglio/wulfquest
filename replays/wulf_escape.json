@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "name": "wulf_escape",
-  "note": "Forged by WulfEscapeForge: the Wulf appeared in 6,9 at tick 796 and chased across 4 rooms to 7,11, parried 0 times, until it was outrun; no lives lost. Replayed by ReplayTest. Checkpoints re-recorded 2026-10-01 when the map scroll and the eyes were added (§14.8); the input is unchanged.",
-  "contentHash": "fbbd4a9216198fc9ea2b8e21740452b370c2ed1ebe73fe780e8125cb5801bbd5",
+  "note": "Forged by WulfEscapeForge: the Wulf appeared in 6,9 at tick 796 and chased across 4 rooms to 7,11, parried 0 times, until it was outrun; no lives lost. Replayed by ReplayTest. Checkpoints re-recorded 2026-10-01 when the map scroll and the eyes were added (§14.8); the input is unchanged. Checkpoints re-recorded from the same input when the original's treasures were added (2026-10-01, §16.4).",
+  "contentHash": "7384117991ae9ceb97afdc64023b663e2f22c6856bdd22df1835309c4e679376",
   "seed": 6,
   "startRoom": "8,10",
   "dev": false,
@@ -34,12 +34,12 @@
   "hashes": [
     "4b7a00e6250fe378", "143e3d0cb2655744", "32c432b603aafb29", "ed55c486e2846cf0",
     "83f33869b0cc9c70", "5cbbec8893c2a520", "4e7a1528ced3682b", "104c4a9449f01a02",
-    "7d98ac47c74775ed", "1bb7e03f0dddec2d", "10030d7eea352484", "fc1c828036cce07d",
-    "dd7b9a82af2add4e", "1fdecc8c9c1bfb40", "32dcb224e5a76f59", "baa31f53111a34ca",
-    "aab30481fcc870ad", "5e5e7f16059657c1", "70ea89a36747edd7", "94492c772781c991",
-    "744c38702aeee8d6", "b17c88614646ef29", "c212bc5ec231a334", "c2b2f5a777f7bd4b",
-    "560d4a6a20ce8b92", "31389aacaee623e3", "7adeda13427cd103", "dc26365c318e6594",
-    "7c1991b2a00027c8", "54cc93297834d557", "bb6034a88285dbb0", "58af4e1f35a4ca36",
-    "a82bf3b7a539636d", "cebf5412988b281b", "9dd5b800d166b165", "ef99222f17ac0d53"
+    "7d98ac47c74775ed", "1bb7e03f0dddec2d", "ade82a0a6804889f", "d597bc08e8f4c576",
+    "5a54df73938adaf9", "d02847aec5f39174", "349c4b7d38c88a09", "d6bf665de617283a",
+    "031257f7833e2c65", "9aae87a543f78f5e", "5e57c27c714ac8f4", "ad7f6aaca989ec6a",
+    "f1f86798828c8dd5", "0b42d8717dd0609a", "4774459ad3365a52", "7fa923981e2f6ef1",
+    "f3bdb83a9b76098c", "2a9718bf74f85eb5", "d1b6aac31dd56f11", "a104afc755f763fa",
+    "84cee5e530990e1a", "e296a8080042d9c5", "6daa9bcdcbab51ef", "56a2d793aea0a129",
+    "613684b9340409ed", "11adfe1d3af4a6c8", "4a10596acf76b1fe", "1b972e2cb6e7fe61"
   ]
 }

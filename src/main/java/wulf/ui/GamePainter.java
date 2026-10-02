@@ -50,7 +50,15 @@ public final class GamePainter {
         this.rooms = c.rooms();
         this.roomPainter = new RoomPainter(display, sprites, c.scenery(), palette.indexOf("black"));
         this.flowers = new OrchidPainter(display, sprites, c.orchids());
-        this.quest = new QuestPainter(display, sprites, c.landmarks(), palette.indexOf("black"));
+        int kinds = c.treasures().kinds().size();
+        String[] treasureFrames = new String[kinds];
+        int[] treasureInks = new int[kinds];
+        for (int i = 0; i < kinds; i++) {
+            treasureFrames[i] = c.treasures().kinds().get(i).frame();
+            treasureInks[i] = palette.indexOf(c.treasures().kinds().get(i).ink());
+        }
+        this.quest = new QuestPainter(display, sprites, c.landmarks(), palette.indexOf("black"),
+                new QuestPainter.TreasureArt(c.treasurePlaces(), c.treasures().sprite(), treasureFrames, treasureInks));
         this.beasts = new CreaturePainter(display, sprites, c.creatures(), palette);
         this.vale = new PlayerPainter(display, sprites, c.player(), palette);
         this.panel = new PanelPainter(display, fonts, palette, sprites.get(c.landmarks().amulet().sprite()),

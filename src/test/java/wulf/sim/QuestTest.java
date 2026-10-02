@@ -51,7 +51,8 @@ class QuestTest {
         }
         return new QuestRules(true, real.landmarks(), pinned, real.keeperSpecies(), real.orbit(), real.stepAsidePx(),
                 real.stepAsideTicks(), real.nudgeZonePx(), real.nudgePx(), real.pieceScore(), real.escapeBonus(),
-                real.timeBonusMax(), real.timeBonusTicksDivisor(), real.lifeRemainingBonus(), real.caveHints());
+                real.timeBonusMax(), real.timeBonusTicksDivisor(), real.lifeRemainingBonus(), real.caveHints(),
+                Treasures.NONE);
     }
 
     private static Simulation sim(CollisionWorld world, QuestRules rules, RoomAddress room, int localX, int localY) {

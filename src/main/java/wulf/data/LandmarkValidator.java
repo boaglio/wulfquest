@@ -232,7 +232,7 @@ public final class LandmarkValidator {
         return false;
     }
 
-    private static boolean blocked(Solid solid, RoomAddress room, CreatureData.Box box, int px, int py) {
+    static boolean blocked(Solid solid, RoomAddress room, CreatureData.Box box, int px, int py) {
         int x0 = room.col() * CollisionMask.COLS * 8 + px + box.x();
         int y0 = room.row() * CollisionMask.ROWS * 8 + py + box.y();
         for (int y = y0; y < y0 + box.h(); y++) {

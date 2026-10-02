@@ -11,6 +11,7 @@ import wulf.data.GameConfig;
 import wulf.data.InputConfig;
 import wulf.data.JsonDb;
 import wulf.data.LootData;
+import wulf.data.TreasureData;
 import wulf.data.OriginalMap;
 import wulf.data.OriginalMapRepository;
 import wulf.data.Palette;
@@ -38,6 +39,7 @@ import wulf.world.CollisionMask;
 import java.util.ArrayList;
 import java.util.List;
 import wulf.sim.QuestRules;
+import wulf.sim.Treasures;
 import wulf.sim.RoomPopulator;
 import wulf.data.OrchidData;
 import wulf.data.OrchidValidator;
@@ -73,6 +75,7 @@ public record Content(
         WulfData wulf,
         GuardianData guardians,
         LandmarksData landmarks,
+        TreasureData treasures,
         OrchidData orchids,
         ShellConfig shell,
         SfxData sfx,
@@ -124,9 +127,11 @@ public record Content(
         ShellValidator.checkAmuletReveal(shell, landmarks, display, font);
         LandmarkValidator.check(landmarks, guardians, creatures, map, scenery.ids(),
                 CreatureSpriteValidator.framesBySprite(sprites), solidity(rooms));
+        TreasureData treasures = db.load("world/treasures", TreasureData.class);
+        treasures.check(map, palette, CreatureSpriteValidator.framesBySprite(sprites));
 
         return new Content(db, game, display, palette, font, input, map, sprites, scenery, rooms, player,
-                creatures, roomEntities, loot, biomes, wulf, guardians, landmarks, orchids, shell, sfx, music,
+                creatures, roomEntities, loot, biomes, wulf, guardians, landmarks, treasures, orchids, shell, sfx, music,
                 defaultScores, defaultSettings);
     }
 
@@ -138,7 +143,7 @@ public record Content(
     public Content withSettings(Settings settings) {
         return new Content(db, game.withFeatures(settings.features()), display.withCrt(settings.crt()), palette, font,
                 input.withActive(settings.inputProfile()), map, sprites, scenery, rooms, player, creatures,
-                roomEntities, loot, biomes, wulf, guardians, landmarks, orchids, shell, sfx, music, defaultScores,
+                roomEntities, loot, biomes, wulf, guardians, landmarks, treasures, orchids, shell, sfx, music, defaultScores,
                 defaultSettings);
     }
 
@@ -166,7 +171,30 @@ public record Content(
                 guardians.keeper().stepAsidePx(), game.exit().keeperStepAsideTicks(), game.exit().keeperNudgeZonePx(),
                 game.exit().keeperNudgePx(), loot.event("amuletPiece"), loot.event("escapeBonus"),
                 loot.event("timeBonusMax"), loot.event("timeBonusTicksDivisor"), loot.event("lifeRemainingBonus"),
-                game.feature("caveHints"));
+                game.feature("caveHints"), treasurePlaces());
+    }
+
+    /**
+     * Where the treasures may lie (§16.4): every room's two places, less the rooms the quest
+     * keeps for itself — the lairs, the way out, and the map scroll's and the eyes' rooms.
+     */
+    public Treasures treasurePlaces() {
+        Set<RoomAddress> keepClear = new LinkedHashSet<>(landmarks.lairRooms());
+        keepClear.add(landmarks.exitRoom());
+        LandmarksData.Items items = landmarks.items();
+        if (items.map() != null) {
+            keepClear.add(LandmarksData.room(items.map().room()));
+        }
+        for (LandmarksData.Eye eye : items.eyes()) {
+            keepClear.add(LandmarksData.room(eye.room()));
+        }
+        int[][] places = treasures.places(map, solidity(rooms), keepClear);
+        boolean[] life = new boolean[treasures.kinds().size()];
+        for (int i = 0; i < life.length; i++) {
+            life[i] = treasures.kinds().get(i).extraLife();
+        }
+        return new Treasures(treasures.fillPercent(), treasures.score(), treasures.pickupBox(), life, places[0],
+                places[1]);
     }
 
     /** The Wulf's rules, with its forbidden rooms resolved (§13.3): the start room, the lairs, the way out. */

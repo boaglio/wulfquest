@@ -65,6 +65,8 @@ public final class Simulation {
     private static final String SFX_EXTRA_LIFE = "extra_life";
     private static final String SFX_ROOM_FLIP = "room_flip";
     private static final String SFX_KEEPER_MOVES = "keeper_moves";
+    /** Salt for the treasures' own random stream (§16.4): not a game number, a stream name. */
+    private static final long TREASURE_STREAM = 0x7EA5_0BE5L;
 
     private final PlayerData rules;
     private final CollisionWorld world;
@@ -125,6 +127,14 @@ public final class Simulation {
     private int footstepTicks;
     private int footstepEveryTicks = Integer.MAX_VALUE;
     private int extraLivesAwarded;
+    /**
+     * §16.4: what lies in each room's two places, {@code room.index() * 2 + place}: a kind
+     * plus one, or 0 for nothing or already taken. Laid at the start of the game from the
+     * run seed by its own stream, so the creatures' draws are not disturbed.
+     */
+    private final byte[] treasure;
+    private int treasuresTaken;
+    private long treasuresTakenHash;
 
     private Simulation(PlayerData rules, CollisionWorld world, int transitionFreezeTicks, Ecosystem eco, long runSeed,
                        int xFp, int yFp) {
@@ -154,8 +164,26 @@ public final class Simulation {
         this.orchidCycleStart = new long[RoomAddress.GRID_W * RoomAddress.GRID_H
                 * Math.max(1, eco.orchids().anchors().perRoom())];
         java.util.Arrays.fill(orchidCycleStart, Long.MIN_VALUE);
+        this.treasure = layTreasures(eco.quest().treasures(), runSeed);
         this.room = new RoomAddress(roomColOf(rules.collisionBox(), xFp), roomRowOf(rules.collisionBox(), yFp));
         enterRoom(false);
+    }
+
+    /** §16.4, after {@code $A2BD}: each place holds something {@code fillPercent} of the time, of an even pick of kind. */
+    private static byte[] layTreasures(Treasures t, long runSeed) {
+        byte[] laid = new byte[RoomAddress.GRID_W * RoomAddress.GRID_H * Treasures.PLACES_PER_ROOM];
+        if (!t.any()) {
+            return laid;
+        }
+        Rng draw = new Rng(Rng.hash(runSeed, TREASURE_STREAM));
+        for (int i = 0; i < laid.length; i++) {
+            boolean filled = draw.chance(t.fillPercent() * 100);
+            int kind = draw.nextInt(t.kinds());
+            if (filled && t.hasPlace(i)) {
+                laid[i] = (byte) (kind + 1);
+            }
+        }
+        return laid;
     }
 
     /** A new game without creatures: the player on the free spot nearest the centre of {@code start}. */
@@ -826,6 +854,7 @@ public final class Simulation {
         int roomY = room.row() * ROOM_H_PX;
 
         takeItems(marks, px, py, pb, roomX, roomY);
+        takeTreasures(rules.treasures(), px, py, pb, roomX, roomY);
         if (q.lair >= 0 && !q.taken[q.lair]) {
             LandmarksData.Lair lair = marks.lairs().get(q.lair);
             CreatureData.Box ab = marks.amulet().collisionBox();
@@ -880,6 +909,32 @@ public final class Simulation {
                 q.eyeTaken[i] = true;
                 itemTaken(marks);
             }
+        }
+    }
+
+    /**
+     * §16.4, after {@code $A305}/{@code $A312}/{@code $A323}: touching a treasure takes it for
+     * the rest of the game and scores it; a life is a life as well, while there is room for one.
+     */
+    private void takeTreasures(Treasures t, int px, int py, PlayerData.Box pb, int roomX, int roomY) {
+        CreatureData.Box box = t.pickupBox();
+        for (int place = 0; place < Treasures.PLACES_PER_ROOM; place++) {
+            int i = room.index() * Treasures.PLACES_PER_ROOM + place;
+            if (treasure[i] == 0 || !overlaps(px, py, pb.w(), pb.h(), roomX + t.x()[i] + box.x(),
+                    roomY + t.y()[i] + box.y(), box.w(), box.h())) {
+                continue;
+            }
+            int kind = treasure[i] - 1;
+            treasure[i] = 0;
+            treasuresTaken++;
+            treasuresTakenHash = treasuresTakenHash * 31 + i + 1;
+            if (t.extraLife()[kind] && player.lives < rules.lives().max()) {
+                player.lives++;
+                sounds.play(SFX_EXTRA_LIFE);
+            } else {
+                sounds.play(SFX_ORCHID_PICK);
+            }
+            addScore(t.score());
         }
     }
 
@@ -1627,6 +1682,15 @@ public final class Simulation {
         return wulf;
     }
 
+    /** §16.4: the kind lying in this place, {@code room.index() * 2 + place}, or -1 for none. */
+    public int treasureIn(int place) {
+        return treasure[place] - 1;
+    }
+
+    public int treasuresTaken() {
+        return treasuresTaken;
+    }
+
     public Quest quest() {
         return quest;
     }
@@ -1729,6 +1793,9 @@ public final class Simulation {
         h = mix(h, swingSerial);
         h = mix(h, nextEntityId);
         h = mix(h, extraLivesAwarded);
+        if (treasuresTaken > 0) {
+            h = mix(h, treasuresTakenHash);   // §16.4: only once one is taken, so older runs keep their hashes
+        }
         for (int i = 0; i < visits.length; i++) {
             if (visits[i] != 0) {
                 h = mix(h, ((long) i << 32) | visits[i]);

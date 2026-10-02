@@ -45,8 +45,8 @@
     "features": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["caveHints", "animatedWater", "distanceDrivenGait", "treasures",
-                   "extraLifeIdol", "bonusRooms", "pauseMap", "saveInProgress", "stats"],
+      "required": ["caveHints", "animatedWater", "distanceDrivenGait",
+                   "bonusRooms", "pauseMap", "saveInProgress", "stats"],
       "patternProperties": { "^[a-zA-Z]+$": { "type": "boolean" } }
     }
   }
