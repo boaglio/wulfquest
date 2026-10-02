@@ -6,8 +6,10 @@ import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.RenderingHints;
 import java.awt.Graphics2D;
+import java.awt.Taskbar;
 import java.awt.image.BufferStrategy;
 import java.awt.image.BufferedImage;
+import java.util.List;
 import javax.swing.JFrame;
 import javax.swing.WindowConstants;
 
@@ -40,6 +42,14 @@ public final class Window {
         canvas.createBufferStrategy(2);
         this.strategy = canvas.getBufferStrategy();
         canvas.requestFocusInWindow();
+    }
+
+    /** The window's icon, and the dock's where there is one (macOS, when run from the jar). */
+    public void setIcon(List<BufferedImage> images) {
+        frame.setIconImages(images);
+        if (Taskbar.isTaskbarSupported() && Taskbar.getTaskbar().isSupported(Taskbar.Feature.ICON_IMAGE)) {
+            Taskbar.getTaskbar().setIconImage(images.get(images.size() - 1));
+        }
     }
 
     public JFrame frame() {

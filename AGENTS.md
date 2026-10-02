@@ -44,6 +44,7 @@ and the tests in the same commit.
 | 25 | Open canon questions (research backlog) |
 | 26 | Glossary |
 | 27 | Agent working agreement |
+| 28 | Distribution — the downloads, and Steam later |
 
 ---
 
@@ -260,6 +261,9 @@ wulfquest/
   run.sh                        convenience wrapper around it, §3.2
   .gitattributes                LF endings for all text, §20.9
   .gitignore                    target/, attic/, *.log, save/
+  .github/
+    workflows/release.yml       a v* tag builds and publishes the downloads, §28
+    release-notes.md            the release page's download table and first-run help, §28
   tools/
     art/scenery_forge.py        generates the 41 scenery sprites, §10.5 (dev-time only)
     art/character_forge.py      generates Ranger Vale's frames, §10.5 (dev-time only)
@@ -268,6 +272,7 @@ wulfquest/
     art/font_forge.py           generates the 8x8 display set in font.json, §10.4 (dev-time only)
     audio/music_forge.py        writes music.json from phrases of note tokens, §18.3 (dev-time only)
     check-no-binaries.sh        CI gate, §2.4 — bound to the verify phase
+    package.sh                  the jar to this machine's app: jlink + jpackage, §28.2
     check-schemas.sh            validates every data file against its schema
   data/                         THE DATABASE. Read-only at runtime. Ships in the jar.
     schema/                     *.schema.json, one per data family, §20.2
@@ -306,7 +311,7 @@ wulfquest/
     Boot.java                   main(), CLI args, window setup
     Content.java                loads and cross-checks the whole content DB, for game and tools
     engine/                     tick loop, timing, fixed-point, PRNG, replay
-    render/                     Framebuffer, Blitter, Palette, Scaler, HudPainter
+    render/                     Framebuffer, Blitter, Palette, Scaler, HudPainter, AppIcon
     audio/                      BeeperSynth, Mixer
     input/                      InputMap, InputState, RecordedInput
     data/                       JsonDb, repositories, records, schema validation
@@ -315,7 +320,7 @@ wulfquest/
     sim/ai/                     one class per behaviour in §12.5
     ui/                         Shell (the state machine), ShellPainter, GamePainter,
                                 GameSession, and one class per screen
-    tools/                      MapAudit, SpriteForgeCli, HeadlessSim, ReplayRunner
+    tools/                      MapAudit, SpriteForgeCli, HeadlessSim, ReplayRunner, IconForge
   src/test/java/wulf/           mirrors the above
   src/test/resources/golden/    play.hash and shell.hash — framebuffer hashes, §22.5
   replays/                      recorded input streams for regression, §22.6
@@ -3638,3 +3643,106 @@ directly into `original_map.json` and locked by `MapDataTest`.
    first.
 9. When you finish a milestone, update §24 with what actually landed and
    what slipped.
+
+---
+
+## 28. Distribution — the downloads, and Steam later
+
+Players get the game from **GitHub Releases**: a download each for Windows
+and Linux with no Java to install, and the jar for everyone else. **A Steam version is planned for some time in the future**
+(§28.5): everything here is chosen so that it carries over, and nothing added
+before then may make it harder.
+
+### 28.1 What a release is
+
+Push a tag `vMAJOR.MINOR.PATCH` and `.github/workflows/release.yml` does the
+rest.
+
+**The game is not ready for 1.0.** Releases are `v0.x.y` — `v0.2.0`,
+`v0.3.0`, … — and GitHub marks each one a pre-release. Never tag `v1.0.0`, and
+never let a version start with 1 anywhere, until the user says it is ready.
+
+
+1. **jar** (Ubuntu): `mvn -Pheadless verify` — every test, validator and gate
+   — then the shaded jar, renamed `wulfquest-VERSION.jar`.
+2. **app**, once per platform, from that one jar: Linux x64 and Windows x64.
+   Each runs `tools/package.sh`. **No macOS app for now** (§28.4): Mac
+   players use the jar.
+3. **release**: a GitHub Release for the tag with the two archives and the
+   jar, its page from `.github/release-notes.md` plus the generated changes;
+   a pre-release while the version is `0.x`.
+
+Running the workflow by hand ("Run workflow") does steps 1–2 only, with
+version `0.0.RUN`, and leaves the archives as workflow artifacts.
+
+| archive | inside |
+|---------|--------|
+| `WulfQuest-V-windows-x64.zip` | `WulfQuest/WulfQuest.exe` and its runtime |
+| `WulfQuest-V-linux-x64.tar.gz` | `WulfQuest/bin/WulfQuest` and its runtime |
+| `wulfquest-V.jar` | the jar, for macOS and anyone with Java 21+ |
+
+### 28.2 `tools/package.sh`
+
+`tools/package.sh JAR VERSION` makes this machine's archive under
+`target/package/`, the same on a dev box as in CI:
+
+- **`jlink`** builds a runtime of only the modules `jdeps` finds in the jar
+  (today `java.base`, `java.desktop`, `java.sql`) — about 40 MB packed.
+- **`jpackage --type app-image`**: a launcher beside the jar and the runtime.
+  **App images, not installers** (`.msi`, `.dmg`, `.deb`): nothing to install
+  or uninstall, no WiX on Windows, and a folder is what Steam takes (§28.5).
+- The app reads its data from inside the jar (§20.1) and saves to the user
+  data dir (§21.1), so it runs from wherever it is unpacked.
+
+### 28.3 The icon
+
+The whole amulet: the four quarters of `amulet_piece` put together
+(`wulf.render.AppIcon`), drawn nearest-neighbour at each size. The window and
+the macOS dock get it at runtime. **`wulf.tools.IconForge OUT_DIR`** writes
+the packagers' `WulfQuest.png`, `.ico` and `.icns` at build time, into
+`target/` only: they are build output, like the jar, and §2.4 still holds — no
+image file is ever committed, and the gate fails the build if one is.
+
+### 28.4 Not signed, and no Mac app, yet
+
+The builds are unsigned, so Windows SmartScreen warns on the first launch
+(More info → Run anyway); the release page says so.
+
+**macOS is left out on purpose, by the user's decision (2026-10-01).** An
+unsigned `.app` meets Gatekeeper's warnings, and jpackage refuses a macOS
+version starting with 0 while releases are `0.x` (§28.1). Mac players run
+the jar with Java 21+. A Mac app comes back with signing — an Apple
+Developer ID (yearly fee) plus notarization — which Steam on macOS needs
+anyway (§28.5). `IconForge` still writes the `.icns` so that step is ready.
+Signing on Windows (a code-signing certificate) is a later decision too.
+
+### 28.5 Steam, later **[planned, not started]**
+
+Wulf Quest is meant to reach Steam eventually. Nothing is built for it yet;
+do not start without asking the user. What is already in place, and must stay
+so:
+
+- **The depot is the app image.** Steam ships a folder per platform and a
+  launch command; `tools/package.sh`'s `target/package/app/` is that folder.
+  Steam adds an upload step (`steamcmd`, a ContentBuilder script), not a new
+  build.
+- **No installers.** Steam installs and updates by itself.
+- **Self-contained, location-free.** Data in the jar, saves in the user data
+  dir, never a path relative to the install. Steam Cloud can then sync the
+  player DB (§21) by pointing at that directory, with no code change.
+- **Bundled runtime.** No system Java is assumed.
+
+What Steam will add, when it comes:
+
+- **Steamworks** (achievements, cloud API, overlay) through a native binding
+  such as steamworks4j. §1.3 rules out network, telemetry and accounts, so it
+  belongs in a Steam-only build or behind a default-off flag, and the GitHub
+  build must still run with no Steam client.
+- **The overlay** hooks OpenGL/Direct3D; whether it draws over a Java2D
+  window has to be tried before it is promised.
+- **macOS and signing**: the Mac app left out in §28.4 comes back here,
+  signed and notarized, which Steam expects on macOS.
+- **A store page** — screenshots, capsule art, a trailer. They live outside
+  this repository (§2.4) and follow §2.1 like everything else: our art, our
+  name, no original trade dress.
+

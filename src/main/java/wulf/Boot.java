@@ -18,6 +18,7 @@ import wulf.engine.GameLoop;
 import wulf.input.InputMap;
 import wulf.input.InputState;
 import wulf.input.KeyboardInput;
+import wulf.render.AppIcon;
 import wulf.render.Fonts;
 import wulf.render.Framebuffer;
 import wulf.render.PanelPainter;
@@ -121,6 +122,7 @@ public final class Boot {
         int border = c.palette().indexOf(d.border().idleColour());
         Window window = new Window(title, fb.width() * scale, fb.height() * scale,
                 new Color(c.palette().toArgb()[border]));
+        window.setIcon(AppIcon.windowImages(c.sprites().get(c.landmarks().amulet().sprite()), c.palette().toArgb()));
         return new Screen(fb, scaler, window);
     }
 

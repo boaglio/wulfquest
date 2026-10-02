@@ -10,6 +10,17 @@ A clean-room homage to the flip-screen jungle mazes of 1984, built from
 scratch with original artwork, original audio, and no third-party game
 engine.
 
+## Download
+
+Get the latest build for Windows or Linux from the
+[Releases page](https://github.com/boaglio/wulfquest/releases). Each one
+brings its own Java, so there is nothing else to install: unzip and run
+`WulfQuest.exe` or `WulfQuest/bin/WulfQuest`. On a Mac, or anywhere with
+Java 21 or later, the plain jar works: `java -jar wulfquest-….jar`.
+
+The builds are not signed yet, so Windows warns on the first launch: click
+**More info**, then **Run anyway**.
+
 ## Status
 
 **M10 — the true map.** The jungle is now the original's own layout, checked
