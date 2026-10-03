@@ -124,9 +124,9 @@ class GameSessionTest {
         assertThat(s.message(true)).isEqualTo("PAUSED");
     }
 
-    /** Spends every life, which is the only way to reach {@code GAME_OVER}. */
+    /** Spends every life, which is the only way to reach {@code GAME_OVER}: the reserve and the last fall. */
     static void playUntilGameOver(GameSession s, Simulation sim) {
-        for (int life = 0; life < RULES.lives().start(); life++) {
+        for (int life = 0; life < RULES.lives().start() + 1; life++) {
             for (int i = 0; i < RULES.spawn().invulnTicks(); i++) {
                 s.tick(InputState.NONE, false);
             }

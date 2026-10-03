@@ -46,10 +46,11 @@ public record PlayerData(
         }
     }
 
-    public record Lives(int start, int max, List<Integer> extraAt) {
-        public Lives {
-            extraAt = List.copyOf(extraAt);
-        }
+    /**
+     * Lives in reserve, as the panel shows them: a fall with none left ends the game
+     * (§11.7). Only a treasure adds one, up to {@code max} (§16.4, §25 Q6).
+     */
+    public record Lives(int start, int max) {
     }
 
     /** Respawn rules (§11.7). {@code insideRoomPx} keeps the whole sprite on screen, off the flip-screen clip. */

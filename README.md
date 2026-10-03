@@ -65,7 +65,7 @@ lives in [AGENTS.md](AGENTS.md) §24.
 ./run.sh --debug-effect haste  # start under an orchid's effect: haste, torpor,
                                # reversal, immunity, delirium, stillness
 ./run.sh --no-audio        # silence for this run; your settings are not changed
-./run.sh --lives 9         # practice: start with nine lives
+./run.sh --lives 9         # practice: nine lives in reserve
 ./run.sh --infinite-lives  # practice: die as often as you like
 ./run.sh --god             # practice: nothing can kill you
                            # (practice runs never reach the hi-score table)

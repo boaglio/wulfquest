@@ -13,7 +13,7 @@
     "step": 16,
     "fight": 32
   },
-  "lives": { "start": 5, "max": 9, "extraAt": [15000, 40000, 75000, 120000] },
+  "lives": { "start": 5, "max": 9 },
   "spawn": {
     "invulnTicks": 100,
     "blinkPeriodTicks": 4,

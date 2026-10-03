@@ -21,7 +21,7 @@ import wulf.data.CreatureData;
 import wulf.engine.Fixed;
 import wulf.input.InputState;
 
-/** AGENTS.md §12.2 and §16.3 — touching, striking, spears, score and extra lives. */
+/** AGENTS.md §12.2 and §16.3 — touching, striking, spears and score. */
 class CombatTest {
 
     private static final InputState FIRE = InputState.of(0, 0, true, true);
@@ -37,7 +37,6 @@ class CombatTest {
         Simulation s = with(OPEN, 128, 100, tuned("tribesman", Map.of(), STILL), new Spot("tribesman", 128, 100));
         s.tick(InputState.NONE);
         assertThat(s.player().mode()).isEqualTo(Player.Mode.DYING);
-        assertThat(s.player().lives()).isEqualTo(RULES.lives().start() - 1);
     }
 
     @Test
@@ -137,12 +136,14 @@ class CombatTest {
     }
 
     @Test
-    void crossingAScoreThresholdAwardsALife() {
-        CreatureData prize = tuned("tribesman", Map.of(), STILL, RULES.lives().extraAt().get(0));
+    void noScoreAwardsALife() {
+        // §25 Q6: the original's lives come from treasures only, never from the score.
+        CreatureData prize = tuned("tribesman", Map.of(), STILL, 1_000_000);
         Simulation s = with(OPEN, 128, 100, prize, new Spot("tribesman", 128, 110));
         s.tick(FIRE);
         run(s, RULES.sabre().windupTicks());
-        assertThat(s.player().lives()).isEqualTo(RULES.lives().start() + 1);
+        assertThat(s.score()).isGreaterThanOrEqualTo(1_000_000);
+        assertThat(s.player().lives()).isEqualTo(RULES.lives().start());
     }
 
     @Test

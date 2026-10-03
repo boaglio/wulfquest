@@ -126,7 +126,6 @@ public final class Simulation {
     private SoundSink sounds = SoundSink.NONE;
     private int footstepTicks;
     private int footstepEveryTicks = Integer.MAX_VALUE;
-    private int extraLivesAwarded;
     /**
      * §16.4: what lies in each room's two places, {@code room.index() * 2 + place}: a kind
      * plus one, or 0 for nothing or already taken. Laid at the start of the game from the
@@ -299,9 +298,6 @@ public final class Simulation {
         sounds.play(SFX_PLAYER_DIE);
         sounds.loop(SFX_WULF_GROWL, false);
         effect.clear();   // §15.2: whatever was in the blood dies with you
-        if (!infiniteLives) {
-            player.lives--;
-        }
         player.mode = Player.Mode.DYING;
         player.modeTick = 0;
         player.swingTick = -1;
@@ -314,7 +310,7 @@ public final class Simulation {
 
     // ---------------------------------------------------------------- practice (§17.6)
 
-    /** {@code --lives}: start with this many instead of {@code player.json}'s. */
+    /** {@code --lives}: this many in reserve instead of {@code player.json}'s. */
     public void startLives(int lives) {
         if (lives < 1) {
             throw new IllegalArgumentException("a game starts with at least one life, not " + lives);
@@ -512,11 +508,18 @@ public final class Simulation {
         return Math.max(0, Math.min(RoomAddress.GRID_H - 1, Math.floorDiv(centre, ROOM_H_PX)));
     }
 
+    /**
+     * Getting up costs a life from the reserve, as {@code $AA27} takes it: none left, and
+     * the fall was the last (§11.7, §25 Q6).
+     */
     private void respawn() {
-        if (player.lives <= 0) {
-            player.mode = Player.Mode.GAME_OVER;
-            player.modeTick = 0;
-            return;
+        if (!infiniteLives) {
+            if (player.lives <= 0) {
+                player.mode = Player.Mode.GAME_OVER;
+                player.modeTick = 0;
+                return;
+            }
+            player.lives--;
         }
         // Where he fell, as the original revives him ($AA27 never touches the position) — nudged
         // only to the nearest spot he can walk to that keeps him wholly on screen (§11.7).
@@ -1386,17 +1389,9 @@ public final class Simulation {
         return ticks < SATURATED ? ticks + 1 : ticks;
     }
 
-    /** Score, and the extra lives its thresholds award, capped at the maximum (§16.3). */
+    /** Score. No score earns a life: only a treasure does (§16.3, §16.4, §25 Q6). */
     private void addScore(int points) {
         score += points;
-        List<Integer> thresholds = rules.lives().extraAt();
-        while (extraLivesAwarded < thresholds.size() && score >= thresholds.get(extraLivesAwarded)) {
-            extraLivesAwarded++;
-            if (player.lives < rules.lives().max()) {
-                player.lives++;
-                sounds.play(SFX_EXTRA_LIFE);
-            }
-        }
     }
 
     /** What a behaviour may see and do (§12.5). */
@@ -1792,7 +1787,6 @@ public final class Simulation {
         h = mix(h, kills);
         h = mix(h, swingSerial);
         h = mix(h, nextEntityId);
-        h = mix(h, extraLivesAwarded);
         if (treasuresTaken > 0) {
             h = mix(h, treasuresTakenHash);   // §16.4: only once one is taken, so older runs keep their hashes
         }

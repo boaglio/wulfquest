@@ -69,7 +69,7 @@ tagged with one:
 ### 1.2 In scope
 
 - 256-room (16×16) flip-screen jungle, **[CANON]** layout from extracted data.
-- Sabreman: 8-direction walk, sabre swing, 5 lives, death and respawn.
+- Sabreman: 8-direction walk, sabre swing, 5 lives in reserve, death and respawn.
 - Full creature roster with per-species AI.
 - The Sabre Wulf: unkillable, cross-room pursuer.
 - Four guardians, four amulet pieces, the exit sequence.
@@ -1159,7 +1159,7 @@ horizontally than vertically, and sliding along walls.
   "sprite": { "size": { "w": 16, "h": 24 }, "origin": "bottom-centre" },
   "collisionBox": { "x": -5, "y": -9, "w": 10, "h": 9 },
   "speed": { "xFp": 384, "yFp": 384, "diagonalScaleFp": 218 },
-  "lives": { "start": 5, "max": 9, "extraAt": [15000, 40000, 75000, 120000] },
+  "lives": { "start": 5, "max": 9 },
   "spawn": { "invulnTicks": 100, "blinkPeriodTicks": 4,
              "insideRoomPx": { "left": 8, "right": 8, "top": 24, "bottom": 0 } },
   "death": { "animTicks": 40, "freezeTicks": 20, "keepAmulet": true },
@@ -1324,12 +1324,11 @@ then         COOLDOWN 6 ticks before another stroke, unless fire is still held
 
 ```
 contact with any hostile while not invulnerable and not immune
-  ──► lives--
   ──► DYING state, 40 ticks (4-frame animation, 10 ticks each)
         sim frozen for creatures? NO — creatures keep moving, it is a diorama
         border flashes red on ticks 0,4,8,12 (Ultimate style)
   ──► 20 ticks of black/frozen
-  ──► if lives > 0: get up WHERE HE FELL, at rest — as the original does:
+  ──► if lives > 0: lives--, and get up WHERE HE FELL, at rest — as the original does:
         losing a life ($AA27) never touches the position. Only if that spot
         leaves the sprite cut by the room's edge (spawn.insideRoomPx, a death
         straddling a flip) is he moved, to the nearest spot he can walk to
@@ -1339,6 +1338,12 @@ contact with any hostile while not invulnerable and not immune
   ──► if lives == 0: GAME_OVER
 ```
 
+- **Lives are a reserve** **[CANON]** (2026-10-02, §25 Q6). `lives` counts
+  the lives still to come, as the panel shows them; the one being played is
+  not in it. `$AA27` runs when the fall is over: none in reserve and it is
+  game over (`$AAA4`), else one comes off (`$AA37`). So `start: 5` is six
+  falls, as in the original (`$B21E` writes 5). Until then ours took the life
+  at the hit and ended the game at 0, one fall sooner.
 - **Where he fell** (2026-10-01, from a playtest and `$AA27`). Until then he
   went back to where he had come into the room.
 - **A respawn is never walled off from the way in** (found in a playtest,
@@ -1350,9 +1355,10 @@ contact with any hostile while not invulnerable and not immune
   positions from the entry point first; `SpawnFinderTest` checks every way
   into every room. The creature placement of §12.6 starts from the same
   point, so it was placing creatures around the wrong pocket too.
-- **The amulet is kept on death** (`keepAmulet: true`). Losing pieces would
-  make a 256-room map miserable. This is the one place we choose kindness;
-  it is in JSON if a purist wants it flipped.
+- **The amulet is kept on death** (`keepAmulet: true`) **[CANON]** (§25 Q7).
+  The quarters held are bits of `$970D`, the player's record; only the
+  pickup writes them (`$A1E3`), and the death path `$AA27`–`$AA57` leaves the
+  record's byte alone.
 - Score is kept. Collected loot stays collected.
 - Invulnerability does **not** protect against the room's exit-blocking
   guardian (§14.4) — you simply cannot pass.
@@ -2105,8 +2111,11 @@ meter; it is **not canon** and must not come back. One touch, one life
 - `roomFirstVisit: 10` gently rewards exploration (256 rooms = 2560 points
   for a full sweep).
 - `wulfEvaded: 250` is awarded when a pursuit ends in a give-up, not a death.
-- Extra lives at the `player.json → lives.extraAt` thresholds, capped at
-  `lives.max` (9). A 10-tick panel flash and a rising 3-note jingle.
+- **No score earns a life** **[CANON]** (§25 Q6). The only writes to the
+  original's lives count are the new game (`$B21E`), a fall (`$AA37`), the
+  end of the adventure (`$9F87`) and the treasure (`$A2F8`). Ours had extra
+  lives at 15k/40k/75k/120k (`[RECON]`); they are gone. A life comes from a
+  treasure only (§16.4), with the panel flash and the rising jingle.
 - Hi-score is shown on the panel next to the score at all times.
 
 ### 16.4 Treasures **[CANON]**
@@ -2135,8 +2144,8 @@ disassembly (§25 Q10) and kept in `data/world/treasures.json`:
   The drawings are ours (`tools/art/item_forge.py`, sprite `treasure`).
 - **Taking one** (`$A305`, `$A312`, `$A323`). Touch it: it is gone for the rest
   of the game, deaths included, and scores **150**. The life (kind 5, one in
-  sixteen) is a life as well, while Vale has fewer than nine (`$A2F8`; our
-  `lives.max`). `pickupBox` is 12×12 (`$AB01` is called with `BC=$0C0C`).
+  sixteen) is a life as well, while fewer than nine are in reserve (`$A2F8`;
+  our `lives.max`). `pickupBox` is 12×12 (`$AB01` is called with `BC=$0C0C`).
 - **Not in the quest's rooms.** Ours keep the lairs, the way out and the
   rooms of the map scroll and the eyes (§14.8) clear; the original has no
   such rule, because it has no fixed lairs (§25 Q2).
@@ -2257,7 +2266,7 @@ kill. Off unless given; they last the whole session (every new game).
 
 | option | effect |
 |--------|--------|
-| `--lives N` | start with N lives, 1–99, instead of `player.json`'s |
+| `--lives N` | start with N lives in reserve, 1–99, instead of `player.json`'s |
 | `--infinite-lives` | deaths still happen — the sequence, the respawn, the ledger's cause — but the count never goes down |
 | `--god` | `Simulation.kill` refuses: no creature, spear, guardian or the Wulf can kill him |
 
@@ -3580,10 +3589,10 @@ the source wins.
 | Q3 | The exit's actual location and its guard condition | **Lead 2026-09-27:** the true map has exactly one stone arch, `(8,8)`, the heart of the mirrored temple two rooms north of the start. The exit is placed there; the guard condition is unverified. | `landmarks.json` |
 | Q4 | The orchid colour→effect mapping and durations | 6 colours per §15.2 | `orchids.json` |
 | Q5 | Exact player speed in px/frame, and whether it was frame-quantised | **Shape answered 2026-09-30** (§11.3): up to 3 px a frame in whole steps (0–3), with inertia ($AEEF, $AFC1, $B031, $B047); fighting a steady 2 ($ADD0). Still open: the original's frame rate, which fixes px/s — ours assumes 2 ticks a frame, and keeps §11.2's 1.5 / 1.0 px/tick as full speed. | `player.json → speed, momentum` |
-| Q6 | Starting lives and extra-life thresholds | 5 lives, extras at 15k/40k/75k/120k | `player.json` |
-| Q7 | Whether amulet pieces were lost on death | kept | `player.json → death.keepAmulet` |
+| Q6 | Starting lives and extra-life thresholds | **Closed 2026-10-02** from the disassembly: **5 in reserve** (`$B21E`), so six falls — a fall with none left is game over (`$AA27`–`$AA37`); **no extra lives for score** — the lives count's only writers are `$B21E`, `$AA37`, `$9F87` and the treasure life `$A2F8` (up to 9 in reserve). §11.7, §16.3. | `player.json → lives` |
+| Q7 | Whether amulet pieces were lost on death | **Closed 2026-10-02: kept.** The quarters held are bits of `$970D`, written only by the pickup (`$A1E3`); the death path `$AA27`–`$AA57` does not touch it. §11.7. | `player.json → death.keepAmulet` |
 | Q8 | Score values per creature and per piece | **Partly answered 2026-10-01** from `Add Points To Score` (`$B5A9`, BCD) and its callers: a quarter of the amulet is **7500** (`$A1ED`, now in `loot.json`), a treasure **150** (`$A332`, §16.4), and a creature **165, 175, 185 or 195** by its type (`$A4B3`). Our creatures are not the original's (Q1), so their 100–500 stay `[RECON]`. | `creatures.json`, `loot.json` |
-| Q9 | The Wulf's appearance rules and whether the sabre affected it | 12% on entry + bonuses; repel only | `wulf.json` |
+| Q9 | The Wulf's appearance rules and whether the sabre affected it | 12% on entry + bonuses; repel only. **Lead 2026-10-02:** each actor's state byte is also its sprite ID and indexes the jump table `$9B3E` (dispatch `$99DE`). The Wulf is states `$50`–`$5D` (sprites `$C024`…): `$A858` for `$50`–`$57`, `$A8F5` for `$58`/`$5C`, `$A964` for `$59`/`$5D`. It is one of the "immortals", 12-byte records from `$970E` to `$982E` with the room in `+$01`; `$A8B2` and `$A880` compare that room with the player's (`$9703`). Not yet traced: where the Wulf's record is created and how its room changes. | `wulf.json` |
 | Q10 | Whether anything besides orchids and the amulet was collectable | **Closed 2026-10-01: yes, treasures.** Source: the SkoolKit disassembly (Q14's link) — `Initialise Objects` `$A2BD`, `Room Objects` `$A33B`, the object location table `$DC6C`, the handlers `$A305`/`$A312`/`$A323` and the sprite table `$C084`. Up to two per room, seven kinds of thing and a life, 150 points each. All in §16.4 and `world/treasures.json`; only the fill rate is `[RECON]`. | `world/treasures.json` |
 | Q11 | Sabre swing duration, reach, and whether movement was locked | **Shape answered 2026-09-27** (§11.6): no windup or recovery, live while fire is held (`$AB0E`), a random one of eight poses every 4th frame (`$AE4B`, `Rand8`), movement at 2 px/frame against walking's 3 (`$ADD0`, `$AFC1`). Reach still `[RECON]` 14 px; converting the original's px/frame needs its frame rate, still unmeasured. | `player.json → sabre` |
 | Q12 | Whether creature spawns were fixed per room or random | authored-with-fallback | `room_entities.json` |

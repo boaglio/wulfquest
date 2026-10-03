@@ -547,7 +547,7 @@ public final class Boot {
                       --data-dir PATH  content database root (default: ./data, else the jar)
                       --user-dir PATH  player database: hi-scores, settings, stats (§21.1)
                       --no-audio       silence for this run; settings.json is not changed
-                      --lives N        start every game with N lives (1-99)
+                      --lives N        start every game with N lives in reserve (1-99)
                       --infinite-lives you still die, but never run out of lives
                       --god            nothing can kill you
                                        (any of these three: a practice run, kept off the

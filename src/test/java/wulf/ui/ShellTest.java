@@ -180,7 +180,7 @@ class ShellTest {
         shell.tick(InputState.NONE, MenuInput.NONE, false);
         idle(shell, CONFIG.gameOver().holdTicks());
         assertThat(db.stats().gamesPlayed()).isEqualTo(1);
-        assertThat(db.stats().deaths()).isEqualTo(CONTENT.player().lives().start());
+        assertThat(db.stats().deaths()).isEqualTo(CONTENT.player().lives().start() + 1);   // the reserve, then the last fall
         assertThat(db.stats().escapes()).isZero();
     }
 

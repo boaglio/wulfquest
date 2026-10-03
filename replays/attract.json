@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "name": "attract",
-  "note": "attract-mode demo, cut from lair_nw.json by AttractForge Checkpoints re-recorded 2026-10-01 when the map scroll and the eyes were added (§14.8); the input is unchanged. Checkpoints re-recorded from the same input when the original's treasures were added (2026-10-01, §16.4).",
-  "contentHash": "7384117991ae9ceb97afdc64023b663e2f22c6856bdd22df1835309c4e679376",
+  "note": "attract-mode demo, cut from lair_nw.json by AttractForge Checkpoints re-recorded 2026-10-01 when the map scroll and the eyes were added (§14.8); the input is unchanged. Checkpoints re-recorded from the same input when the original's treasures were added (2026-10-01, §16.4). Re-recorded again when the lives became the original's reserve and score stopped earning lives (2026-10-02, §25 Q6).",
+  "contentHash": "c08b94a5ca1b0cf07468b118c7aba6b3cfa99a0628dae64d0b33884191ee640c",
   "seed": 202,
   "startRoom": "8,10",
   "dev": false,
@@ -76,20 +76,20 @@
     [1, 17], [3, 2], [26, 0], [1, 50], [22, 18]
   ],
   "hashes": [
-    "faca80681e22d7d6", "b663a9b652af3665", "7588bdea0b9dc1c5", "5ed59cbacb761190",
-    "5413d576721a566a", "d55860aa7265f66b", "f2cea85cbb7031c9", "43250cb2e26b43c2",
-    "747b30af920b268a", "9467bc16195fdbff", "cd69243388aa977d", "df2faa26ecab772c",
-    "06a9e73740202976", "ff712a4f5d82d754", "19f40aa0c7606895", "215db784fd1b7f4a",
-    "2f91e1f01ef4beea", "27f7a7adce5189ed", "a439f8e9470ade86", "75b9fc86aebb6225",
-    "33ee52cc01462ee5", "b88eb284bc8ecec2", "d9574c6911887e1f", "e35a464c419fdf8d",
-    "41fc277fc5e382d0", "12cbcf3a6068f77c", "94245ad9c64012f7", "60d7869f1692ad6e",
-    "e9923164e5564967", "b831ed8856aa24f8", "983450b24f6c27e0", "4e995ad1f5492b21",
-    "a8a6b9810f0398d2", "cd8177c64d1762f6", "94468fca53e9777d", "02afa20521cadbe6",
-    "ff4ca5f43b87296d", "c72b262c35f6df7f", "d12f7e880df6c7cf", "a1359a875a2286ce",
-    "decc8b0f2d7fcad2", "8153aae3410451f7", "ed3c3888f7a7290a", "e6d497c75f87d386",
-    "6545c22d1af1fb8d", "cb50cf7be1bbdcc5", "0c22be30c5c0ceef", "a3317f8ad24de4a6",
-    "45ab891642a44490", "8aeaf072437e78bc", "2c4f57c6e3e30d24", "4986133099736b4a",
-    "e0de0d5945903773", "37221bb71794033f", "438f65a22eb50c82", "8361a16dbc7f5d28",
-    "699896368a9bc46b", "63e7cd063e578ef2", "e3ec470fa73cde0a", "49b96dd7a373e863"
+    "f1fa543c87509c36", "eb1b6721358a0725", "ad52832bf74bc325", "0a00b585f353c4b0",
+    "f8b2319e91af086a", "33b30f08352d328b", "923e3b1ca4b29829", "9c34810baac04d42",
+    "5cb7dd9430d2536a", "66015b7ecc91e05f", "55ba060e53e1d87d", "0f101b4c43a7396c",
+    "0e2469a52ab747f6", "5ce45b47bccdfb34", "bd24efe1d1e00075", "4bc9785c6c87078a",
+    "52eeb070dc76294a", "80a0244c8b8ad18d", "1ac0e498d9900d66", "4aaec8fe1d4a9405",
+    "80d8a8745997d685", "346363b6eb802f22", "d48b4890b7bc525f", "8959259552ccc80d",
+    "b768a819039fafd0", "7e4b90061c9010dc", "7b74f99ee6ccaa57", "f9c93cc08f59588e",
+    "a04e387367030fa7", "9962be183080b158", "fbabcce9a3ba7c20", "cb124e413c69f961",
+    "96273276626a0d12", "45093f45fcb767f6", "6f3baa28cabe911d", "e68e7aa98af33246",
+    "56ba60f998c72bad", "cfe62f41c1a5eb7f", "f95a22e94c53cf4f", "06d074f707619a2e",
+    "88236ab823ac3ef2", "1134b0ffa2d3d517", "6ace7bc00c08aaaa", "7f435b98f582ec66",
+    "8349607a7df00a8d", "072ce049b3fe1f45", "6cc57ab9525daa6f", "27adea0690f0c726",
+    "86990235d2bf6ab0", "389665fe95bffd5c", "e8777f68b12d0be4", "89fdcb365793118a",
+    "e4a2947db9161613", "83cc3b5be627e23f", "79b271918e03df62", "3683a397f8816e48",
+    "58d8068f1bc7784b", "3631cf17316f2372", "5eea0be69184cc0a", "1e74513185c6b0a3"
   ]
 }

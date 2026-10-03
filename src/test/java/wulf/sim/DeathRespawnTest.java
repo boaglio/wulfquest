@@ -20,12 +20,15 @@ class DeathRespawnTest {
     private static final int DOWN = RULES.death().freezeTicks();
 
     @Test
-    void aHitCostsALifeAndStartsTheDeathSequence() {
+    void aHitStartsTheDeathSequenceAndGettingUpCostsALife() {
         Simulation sim = at(OPEN, 1000, 1000);
         assertThat(sim.player().lives()).isEqualTo(RULES.lives().start());
         assertThat(sim.kill()).isTrue();
-        assertThat(sim.player().lives()).isEqualTo(RULES.lives().start() - 1);
         assertThat(sim.player().mode()).isEqualTo(Player.Mode.DYING);
+        assertThat(sim.player().lives()).as("$AA27 takes it on getting up").isEqualTo(RULES.lives().start());
+        run(sim, InputState.NONE, DYING + DOWN);
+        assertThat(sim.player().mode()).isEqualTo(Player.Mode.ALIVE);
+        assertThat(sim.player().lives()).isEqualTo(RULES.lives().start() - 1);
     }
 
     @Test
@@ -118,9 +121,10 @@ class DeathRespawnTest {
     }
 
     @Test
-    void theLastLifeEndsTheGame() {
+    void aFallWithNoneInReserveEndsTheGame() {
+        // The lives are a reserve (§25 Q6): five in it is six falls.
         Simulation sim = at(OPEN, 1000, 1000);
-        for (int life = 0; life < RULES.lives().start(); life++) {
+        for (int life = 0; life < RULES.lives().start() + 1; life++) {
             run(sim, InputState.NONE, RULES.spawn().invulnTicks());
             assertThat(sim.kill()).isTrue();
             run(sim, InputState.NONE, DYING + DOWN);

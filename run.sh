@@ -76,7 +76,7 @@ Game options (play, browse and jar):
   --user-dir PATH             player database: hi-scores, settings, stats
   --no-audio                  silence for this run; your settings are not changed
   --headless, --no-window     load and validate the data, then exit
-  --lives N                   start every game with N lives (1-99)
+  --lives N                   start every game with N lives in reserve (1-99)
   --infinite-lives            you still die, but never run out of lives
   --god                       nothing can kill you
                               (any of these three makes a practice run: kept off
