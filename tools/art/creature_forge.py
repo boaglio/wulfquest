@@ -284,33 +284,81 @@ def keeper(cv, f, w, h, aside):
         cv.set(w / 2 + dx - 4 + i * 3, base - 18, "C")                          # necklace
 
 
-def amulet_quarter(q):
-    """One quarter of a 16x16 amulet: a filled quarter-disc in its accent, gold-rimmed.
+def _inside(pts, x, y):
+    """Whether (x, y) is inside the polygon: the even-odd rule."""
+    hit = False
+    for i in range(len(pts)):
+        x0, y0 = pts[i]
+        x1, y1 = pts[(i + 1) % len(pts)]
+        if (y0 > y) != (y1 > y) and x < (x1 - x0) * (y - y0) / (y1 - y0) + x0:
+            hit = not hit
+    return hit
 
-    Its arc is centred on the amulet's middle — the corner this quarter is away from —
-    so the four quarters assemble into one disc in the panel's 2x2 slots.
+
+# The wolf's head on the amulet, front on, in a 32x32 medallion: ears up, cheeks tufted,
+# the muzzle narrowing to the nose. Ours — the original's amulet is never traced (§2.1).
+WOLF_HEAD = [(8.5, 4), (13, 9), (19, 9), (23.5, 4), (26.5, 12), (26.5, 15), (28, 17.5), (25.5, 18), (26, 20),
+             (22.5, 21.5), (19.5, 29), (12.5, 29), (9.5, 21.5), (6, 20), (6.5, 18), (4, 17.5), (5.5, 15), (5.5, 12)]
+WOLF_EAR = [(9.4, 7), (12, 10), (8.6, 11.2)]
+
+
+def amulet_face():
+    """The whole amulet, 32x32: 'A' is a quarter's bright accent, 'a' its plain twin.
+
+    A wolf's face in a grey-rimmed medallion, outlined in black so it reads at 16x16 a
+    quarter; the brows low over slanting eyes, a black nose, two fangs.
     """
-    colour = ("G", "B", "R", "Y")[q]
+    cv = Canvas(32, 32)
+    head = [[_inside(WOLF_HEAD, x + 0.5, y + 0.5) for x in range(32)] for y in range(32)]
+    for y in range(32):
+        for x in range(32):
+            r = math.hypot(x + 0.5 - 16, y + 0.5 - 16)
+            if r > 15.9:
+                continue
+            if r > 14.5:
+                cv.set(x, y, "w")                      # the rim: grey, so the yellow quarter still reads
+            elif head[y][x]:
+                edge = any(not head[y + dy][x + dx] for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)))
+                cv.set(x, y, "K" if edge else "A")     # the head, outlined
+            else:
+                cv.set(x, y, "a")                      # the field behind it
+    for ear in (WOLF_EAR, [(32 - x, y) for x, y in WOLF_EAR]):
+        for y in range(32):
+            for x in range(32):
+                if _inside(ear, x + 0.5, y + 0.5):
+                    cv.set(x, y, "a")                  # inside the ear
+    for sx in (1, -1):
+        def m(x):
+            return x if sx > 0 else 31 - x
+        for x, y in ((8, 12), (9, 12), (10, 13), (11, 13), (12, 14), (13, 14)):
+            cv.set(m(x), y, "K")                       # the brow, low over the eye
+        for x, y in ((9, 14), (10, 14), (11, 15), (12, 15)):
+            cv.set(m(x), y, "W")                       # the eye, slanting up and out
+        cv.set(m(11), 15, "K")                         # its pupil
+        for x, y in ((13, 18), (13, 19), (12, 20), (12, 21)):
+            cv.set(m(x), y, "a")                       # the fold beside the muzzle
+    for row, xs in ((24, range(13, 19)), (25, range(14, 18)), (26, range(15, 17)), (27, range(15, 17))):
+        for x in xs:
+            cv.set(x, row, "K")                        # the nose, and the line of the mouth
+    cv.set(13, 28, "W")
+    cv.set(18, 28, "W")                                # fangs
+    return cv
+
+
+def amulet_quarter(q):
+    """One quarter of the amulet (16x16), in its guardian's accent: nw green, ne blue, sw red, se yellow.
+
+    Cut from one face, so the four assemble into it in the panel's 2x2 slots and the reveal.
+    """
+    hue = (("G", "g"), ("B", "b"), ("R", "r"), ("Y", "y"))[q]
+    face = amulet_face()
+    ox = 16 if q % 2 else 0
+    oy = 16 if q >= 2 else 0
     cv = Canvas(16, 16)
-    sx = 1 if q % 2 == 0 else -1          # nw/sw fill leftwards from the right edge
-    sy = 1 if q < 2 else -1               # nw/ne fill upwards from the bottom edge
-    cx = 15.5 if sx > 0 else 0.5
-    cy = 15.5 if sy > 0 else 0.5
     for y in range(16):
         for x in range(16):
-            dx = abs(x - cx)
-            dy = abs(y - cy)
-            r = math.hypot(dx, dy)
-            if r > 15.0 or (sx > 0 and x > 15) or (sy > 0 and y > 15):
-                continue
-            if r > 13.4:
-                cv.set(x, y, "w")          # the amulet's rim: grey, so the yellow quarter still reads
-            elif r > 3.0:
-                cv.set(x, y, colour)
-            elif r > 1.6:
-                cv.set(x, y, "W")          # the hole at the centre of the disc
-    cv.set(cx - sx * 11, cy - sy * 5, "W")
-    cv.set(cx - sx * 5, cy - sy * 11, "W")
+            c = face.get(ox + x, oy + y)
+            cv.set(x, y, hue[0] if c == "A" else hue[1] if c == "a" else c)
     return cv.rows()
 
 

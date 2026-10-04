@@ -1954,8 +1954,13 @@ not the start, the way out or a lair, and that the zone has standing room.
 
 ### 14.6 Amulet pieces
 
-- Sprite: a quarter of a 16x16 amulet, each quarter its guardian's accent, rim
-  in plain white so the yellow quarter still reads.
+- Sprite: a quarter of a 32x32 amulet, each quarter its guardian's accent, rim
+  in plain white so the yellow quarter still reads. The amulet is **a wolf's
+  face** in a medallion (2026-10-04, from the user: the original's amulet was a
+  face, not a plain disc), drawn whole by `creature_forge.py → amulet_face` and
+  cut into the four quarters, so it assembles as they are found. Our own
+  drawing: ears up, brows low over slanting eyes, a long muzzle, a black nose,
+  two fangs — the original's amulet graphic is never traced or decoded (§2.1).
 - Pickup: box overlap with the player's feet box. Awards `7500` (§25 Q8), flashes the
   border bright white for `pickupFlashTicks` (8), and flies to its panel slot
   over `flyToPanelTicks` (24). The arpeggio arrives with the synthesiser (M8).
@@ -3813,7 +3818,7 @@ version `0.0.RUN`, and leaves the archives as workflow artifacts.
 
 ### 28.3 The icon
 
-The whole amulet: the four quarters of `amulet_piece` put together
+The whole amulet — the wolf's face of §14.6: the four quarters of `amulet_piece` put together
 (`wulf.render.AppIcon`), drawn nearest-neighbour at each size. The window and
 the macOS dock get it at runtime. **`wulf.tools.IconForge OUT_DIR`** writes
 the packagers' `WulfQuest.png`, `.ico` and `.icns` at build time, into

@@ -34,9 +34,9 @@ class IconForgeTest {
     void theIconIsTheAmuletOnATransparentGround() {
         BufferedImage img = AppIcon.draw(amulet, argb, 64);
         assertThat(img.getRGB(0, 0) >>> 24).as("corner").isZero();
-        assertThat(img.getRGB(32, 32) >>> 24).as("the hole in the middle").isZero();
-        // Every quarter is there, each in its guardian's colour (§14.6).
-        int[] quarters = {img.getRGB(16, 20), img.getRGB(48, 20), img.getRGB(16, 44), img.getRGB(48, 44)};
+        assertThat(img.getRGB(32, 32) >>> 24).as("the wolf's face fills the middle").isEqualTo(0xFF);
+        // Every quarter is there, each in its guardian's colour (§14.6): sampled in the field round the head.
+        int[] quarters = {img.getRGB(10, 16), img.getRGB(52, 16), img.getRGB(10, 46), img.getRGB(52, 46)};
         assertThat(Arrays.stream(quarters).map(c -> c >>> 24)).containsOnly(0xFF);
         assertThat(Arrays.stream(quarters).distinct().count()).isEqualTo(4);
     }
