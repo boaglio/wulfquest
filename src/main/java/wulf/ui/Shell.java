@@ -42,6 +42,8 @@ public final class Shell {
     /** The input profiles the keys page offers, in the order it shows them (§19.1). */
     private final java.util.List<String> profiles;
     private Jukebox jukebox = Jukebox.SILENT;
+    /** §21.4: quick save and load, when {@code features.quickSave} is on; null when it is off. */
+    private QuickSaves quick;
 
     private State state = State.TITLE;
     private long stateTick;
@@ -79,6 +81,11 @@ public final class Shell {
         this.jukebox.tune(tuneFor(state));
     }
 
+    /** §21.4: turns quick save and load on, with what they need. Off unless called. */
+    public void quickSaves(QuickSaves saves) {
+        this.quick = saves;
+    }
+
     // ---------------------------------------------------------------- the machine
 
     public void tick(InputState in, MenuInput menu, boolean dev) {
@@ -99,6 +106,18 @@ public final class Shell {
     private void title(InputState in, MenuInput menu) {
         if (in.quitPressed()) {
             quit = true;
+            return;
+        }
+        if (quick != null && menu.typed(config.quickSave().loadKey())) {
+            QuickSaves.Loaded loaded = quick.load();
+            if (loaded.ok()) {
+                jukebox.sfx(SFX_PICK);
+                session = new GameSession(loaded.sim(), config.amuletReveal(), loaded.played());
+                session.note("LOADED", config.quickSave().noteTicks());
+                go(State.PLAYING);
+            } else {
+                notice = loaded.refusal();
+            }
             return;
         }
         String screen = TitleScreen.screenFor(config.title().menu(), menu);
@@ -187,6 +206,7 @@ public final class Shell {
             endRun();
             return;
         }
+        quickKeys(menu);
         boolean wasRevealing = session.revealing();
         session.tick(in, dev);
         if (session.revealing() != wasRevealing) {
@@ -198,6 +218,28 @@ public final class Shell {
             go(State.TALLY);
         } else if (session.over()) {
             go(State.GAME_OVER);
+        }
+    }
+
+    /** §21.4: the save key keeps this moment; the load key goes back to the last one kept. */
+    private void quickKeys(MenuInput menu) {
+        if (quick == null) {
+            return;
+        }
+        ShellConfig.QuickSave keys = config.quickSave();
+        if (menu.typed(keys.saveKey()) && !session.over() && !session.won()) {
+            quick.save(session);
+            session.note("SAVED", keys.noteTicks());
+            jukebox.sfx(SFX_PICK);
+        } else if (menu.typed(keys.loadKey())) {
+            QuickSaves.Loaded loaded = quick.load();
+            if (loaded.ok()) {
+                session = new GameSession(loaded.sim(), config.amuletReveal(), loaded.played());
+                session.note("LOADED", keys.noteTicks());
+                jukebox.sfx(SFX_PICK);
+            } else {
+                session.note(loaded.refusal(), keys.noteTicks());
+            }
         }
     }
 

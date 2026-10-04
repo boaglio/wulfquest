@@ -114,6 +114,7 @@
     "here": "brightWhite",
     "blinkTicks": 10
   },
+  "quickSave": { "saveKey": "F5", "loadKey": "F9", "noteTicks": 100 },
   "credits": {
     "heading": "CREDITS",
     "lines": [

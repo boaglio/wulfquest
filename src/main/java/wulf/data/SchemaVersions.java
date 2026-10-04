@@ -33,6 +33,7 @@ public final class SchemaVersions {
             Map.entry("highscores", 1),
             Map.entry("settings", 1),
             Map.entry("stats", 1),
+            Map.entry("quicksave", QuickSaveData.SCHEMA_VERSION),
             Map.entry("sfx", 1),
             Map.entry("music", 1));
 

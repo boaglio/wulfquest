@@ -341,6 +341,11 @@ public final class Simulation {
         practice |= on;
     }
 
+    /** §21.4: a quick load makes the game a practice run; dying has become something you can undo. */
+    public void markPractice() {
+        practice = true;
+    }
+
     /** Whether any practice option is on: such a run never reaches the hi-score table or the ledger. */
     public boolean practice() {
         return practice;

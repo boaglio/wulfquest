@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wulfquest.invalid/schema/quicksave.schema.json",
+  "title": "quicksave.json — AGENTS.md §21.4 [NEW]: one game, as its seed and every input so far",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "contentHash", "seed", "startRoom", "dev", "practiced", "ticks", "input", "stateHash"],
+  "properties": {
+    "schemaVersion": { "type": "integer", "minimum": 1 },
+    "contentHash": { "type": "string" },
+    "seed": { "type": "integer" },
+    "startRoom": { "type": "string", "pattern": "^([0-9]|1[0-5]),([0-9]|1[0-5])$" },
+    "dev": { "type": "boolean" },
+    "practiced": { "type": "boolean" },
+    "ticks": { "type": "integer", "minimum": 0 },
+    "input": {
+      "type": "array",
+      "items": { "type": "array", "minItems": 2, "maxItems": 2, "items": { "type": "integer", "minimum": 0 } }
+    },
+    "stateHash": { "type": "string", "pattern": "^[0-9a-f]{16}$" }
+  }
+}

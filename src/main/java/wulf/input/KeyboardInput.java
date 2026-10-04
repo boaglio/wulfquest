@@ -21,6 +21,7 @@ public final class KeyboardInput implements KeyListener, FocusListener {
     private final Set<Integer> pressedSinceSample = ConcurrentHashMap.newKeySet();
     private final Map<Integer, Long> lastRelease = new ConcurrentHashMap<>();
     private final java.util.Queue<Character> typedSinceDrain = new java.util.concurrent.ConcurrentLinkedQueue<>();
+    private final java.util.Queue<String> namedSinceDrain = new java.util.concurrent.ConcurrentLinkedQueue<>();
     private final java.util.concurrent.atomic.AtomicBoolean anyKeySinceDrain =
             new java.util.concurrent.atomic.AtomicBoolean();
 
@@ -45,6 +46,9 @@ public final class KeyboardInput implements KeyListener, FocusListener {
             char ch = menuChar(code);
             if (ch != 0) {
                 typedSinceDrain.add(ch);
+            }
+            if (code >= KeyEvent.VK_F1 && code <= KeyEvent.VK_F12) {
+                namedSinceDrain.add("F" + (code - KeyEvent.VK_F1 + 1));
             }
         }
     }
@@ -78,6 +82,7 @@ public final class KeyboardInput implements KeyListener, FocusListener {
         pressedSinceSample.clear();
         lastRelease.clear();
         typedSinceDrain.clear();
+        namedSinceDrain.clear();
         anyKeySinceDrain.set(false);
     }
 
@@ -92,14 +97,18 @@ public final class KeyboardInput implements KeyListener, FocusListener {
      */
     public MenuInput drainMenu() {
         boolean any = anyKeySinceDrain.getAndSet(false);
-        if (typedSinceDrain.isEmpty()) {
+        if (typedSinceDrain.isEmpty() && namedSinceDrain.isEmpty()) {
             return any ? new MenuInput(java.util.List.of(), true) : MenuInput.NONE;
         }
         java.util.List<Character> chars = new java.util.ArrayList<>();
         for (Character c = typedSinceDrain.poll(); c != null; c = typedSinceDrain.poll()) {
             chars.add(c);
         }
-        return new MenuInput(chars, true);
+        java.util.List<String> names = new java.util.ArrayList<>();
+        for (String n = namedSinceDrain.poll(); n != null; n = namedSinceDrain.poll()) {
+            names.add(n);
+        }
+        return new MenuInput(chars, true, names);
     }
 
     /** One snapshot per tick. Never call from the simulation itself. */

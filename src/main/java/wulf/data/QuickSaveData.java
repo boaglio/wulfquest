@@ -1,0 +1,22 @@
+package wulf.data;
+
+import java.util.List;
+
+/**
+ * {@code quicksave.json} in the player database (AGENTS.md §21.4, [NEW]): one game kept as
+ * what made it — its seed, where it started, and every tick's input — plus the state hash
+ * it reached. Loading replays it; the hash says whether it came out the same.
+ *
+ * @param contentHash the content database's hash when saved: another version's rules may not replay it
+ * @param practiced   whether the game was already a practice run (§17.6), which is in the state hash
+ * @param input       run-length {@code [ticks, bits]} pairs, as in a replay (§22.6)
+ */
+public record QuickSaveData(int schemaVersion, String contentHash, long seed, String startRoom, boolean dev,
+                            boolean practiced, int ticks, List<int[]> input, String stateHash) {
+
+    public static final int SCHEMA_VERSION = 1;
+
+    public QuickSaveData {
+        input = List.copyOf(input);
+    }
+}

@@ -8,6 +8,7 @@ import java.nio.file.Path;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.LongFunction;
 import java.util.function.Supplier;
 import wulf.data.DataException;
 import wulf.data.DisplayConfig;
@@ -37,6 +38,7 @@ import wulf.input.RecordedInput;
 import wulf.ui.DataErrorScreen;
 import wulf.ui.GameSession;
 import wulf.ui.Jukebox;
+import wulf.ui.QuickSaves;
 import wulf.ui.Shell;
 import wulf.ui.ShellPainter;
 import wulf.world.Room;
@@ -160,9 +162,10 @@ public final class Boot {
         // The run seed decides every room's creatures (§6.3). Game n of a session uses seed + n.
         long firstSeed = parsed.seeded() ? parsed.seed() : System.nanoTime();
         AtomicLong nextSeed = new AtomicLong(firstSeed);
-        Supplier<Simulation> newGame = () -> {
+        // One way to make a game, so a quick load (§21.4) rebuilds it exactly as it was begun.
+        LongFunction<Simulation> silentGame = seed -> {
             Simulation fresh = Simulation.startingIn(c.player(), world, c.game().transition().freezeTicks(), start, eco,
-                    nextSeed.getAndIncrement());
+                    seed);
             if (parsed.debugEffect() != null) {
                 fresh.giveEffect(parsed.debugEffect());   // --debug-effect: every game starts under it
             }
@@ -171,11 +174,19 @@ public final class Boot {
             }
             fresh.infiniteLives(parsed.infiniteLives());
             fresh.god(parsed.god());
-            fresh.sounds(mixer, c.sfx().cadence().footstepEveryTicks());
+            return fresh;
+        };
+        java.util.function.Consumer<Simulation> voice = sim -> sim.sounds(mixer, c.sfx().cadence().footstepEveryTicks());
+        Supplier<Simulation> newGame = () -> {
+            Simulation fresh = silentGame.apply(nextSeed.getAndIncrement());
+            voice.accept(fresh);
             return fresh;
         };
         Shell shell = new Shell(c.shell(), player, List.copyOf(c.input().profiles().keySet()), newGame,
                 demoSource(c, world, eco), Boot::today);
+        if (c.game().feature("quickSave")) {
+            shell.quickSaves(new QuickSaves(player, c.db().contentHash(), start, parsed.dev(), silentGame, voice));
+        }
         shell.jukebox(new Jukebox() {
             @Override
             public void tune(String id) {
@@ -202,6 +213,9 @@ public final class Boot {
                 ? c.sfx().sfx().size() + " sounds, " + c.music().tunes().size() + " tunes, "
                         + player.settings().audio().volumePercent() + "% volume"
                 : parsed.noAudio() ? "off (--no-audio)" : "off (settings.json)"));
+        System.out.println("  quick save   : " + (c.game().feature("quickSave")
+                ? c.shell().quickSave().saveKey() + " saves, " + c.shell().quickSave().loadKey() + " loads (a load makes it practice)"
+                : "off (features.quickSave)"));
         System.out.println("  controls     : arrows or WASD walk, Space or Z swing, P pause, Esc leaves the jungle"
                 + (parsed.dev() ? "   [dev: K kill, N collision mask, H summon the roaming Wulf]" : ""));
 

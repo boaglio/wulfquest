@@ -3,6 +3,7 @@ package wulf.ui;
 import wulf.data.ShellConfig;
 import wulf.engine.Fixed;
 import wulf.input.InputState;
+import wulf.input.RecordedInput;
 import wulf.sim.Player;
 import wulf.sim.Quest;
 import wulf.sim.Simulation;
@@ -25,18 +26,31 @@ public final class GameSession {
     private int piecesSeen;
     /** Ticks into the amulet reveal (§14.6); negative when none is showing. */
     private int revealTick = -1;
+    /** §21.4: every input the game has played since it began — what a quick save keeps. */
+    private final RecordedInput played;
+    private String note;
+    private int noteTicks;
 
     public GameSession(Simulation sim) {
         this(sim, ShellConfig.AmuletReveal.NONE);
     }
 
     public GameSession(Simulation sim, ShellConfig.AmuletReveal reveal) {
+        this(sim, reveal, new RecordedInput());
+    }
+
+    /** A game already under way: {@code played} is the input that brought {@code sim} to where it is (§21.4). */
+    public GameSession(Simulation sim, ShellConfig.AmuletReveal reveal, RecordedInput played) {
         this.sim = sim;
         this.reveal = reveal;
+        this.played = played;
         this.piecesSeen = sim.quest().piecesHeld();
     }
 
     public void tick(InputState in, boolean dev) {
+        if (noteTicks > 0 && --noteTicks == 0) {
+            note = null;
+        }
         if (dev && in.devMaskPressed()) {
             showMask = !showMask;
         }
@@ -63,6 +77,7 @@ public final class GameSession {
             return;
         }
         sim.play(in, dev);
+        played.append(in);
         int held = sim.quest().piecesHeld();
         if (held > piecesSeen) {
             piecesSeen = held;
@@ -92,6 +107,9 @@ public final class GameSession {
 
     /** The panel line: pause, a shrine's hint, or in dev mode where you are. Null for none. */
     public String message(boolean dev) {
+        if (note != null) {
+            return note;
+        }
         if (paused) {
             return "PAUSED";
         }
@@ -109,6 +127,17 @@ public final class GameSession {
 
     public Simulation sim() {
         return sim;
+    }
+
+    /** §21.4: the input played so far, as a copy. */
+    public RecordedInput played() {
+        return RecordedInput.of(played.runs());
+    }
+
+    /** A line on the panel for {@code ticks} ticks: "SAVED", or why a load could not be done. */
+    public void note(String text, int ticks) {
+        note = text;
+        noteTicks = ticks;
     }
 
     /** §14.5: {@code AMULET STIRS TO THE NORTH-WEST}, or the way to the arch once it is whole. */

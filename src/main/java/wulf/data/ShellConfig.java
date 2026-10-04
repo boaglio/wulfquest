@@ -23,6 +23,7 @@ public record ShellConfig(
         Stats stats,
         AmuletReveal amuletReveal,
         MapScreen map,
+        QuickSave quickSave,
         Credits credits) {
 
     public record Title(String wordmark, String tagline, String prompt, Cycle cycle, List<MenuItem> menu,
@@ -52,6 +53,13 @@ public record ShellConfig(
      */
     public record MapScreen(String key, String message, String visited, String revealed, String here,
                             int blinkTicks) {
+    }
+
+    /**
+     * Quick save and quick load (§21.4, {@code [NEW]}, {@code features.quickSave}): the keys,
+     * by name ({@code "F5"}), and how long "SAVED" or a refusal stays on the panel.
+     */
+    public record QuickSave(String saveKey, String loadKey, int noteTicks) {
     }
 
     /** @param progress the line under it, {@code {percent}} standing for how much of the adventure is done (§17.5) */

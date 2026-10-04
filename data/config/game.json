@@ -10,9 +10,9 @@
     "animatedWater": false,
     "distanceDrivenGait": false,
     "roamingWulf": false,
+    "quickSave": false,
     "bonusRooms": false,
     "pauseMap": false,
-    "saveInProgress": false,
     "stats": true
   }
 }

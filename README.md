@@ -132,7 +132,13 @@ The title screen has the rest: `K` for the keys page, where the period layout
 `A` for sound and volume; `H` for the hi-scores, `C` for the credits, `S` for
 your lifetime ledger. Nothing is hidden behind a key you have to know.
 
-Hi-scores, settings and stats are written to your own user directory —
+**Quick save** (off by default, as the original had none): add
+`"features": { "quickSave": true }` to `settings.json` (below). Then `F5` keeps
+the moment and `F9` goes back to it, during play or from the title screen to
+pick the game up again. A game you have loaded into is practice: it gets no
+hi-score.
+
+Hi-scores, settings, stats and the quick save are written to your own user directory —
 `~/.local/share/wulfquest` on Linux, `~/Library/Application Support/WulfQuest`
 on macOS, `%APPDATA%\WulfQuest` on Windows — never into the game's own files.
 

@@ -2336,7 +2336,8 @@ Any of them makes the game a **practice run** (`Simulation.practice()`, in the
 state hash): when it ends it goes straight back to the title — no hi-score
 entry, nothing added to the ledger — because a table that a god-mode run can
 top means nothing. A replay file cannot carry them, so `--record` refuses to
-combine with any of them (exit 64).
+combine with any of them (exit 64). A quick load (§21.4) makes a game practice
+the same way.
 
 ### 17.7 The map **[NEW]**
 
@@ -2687,13 +2688,37 @@ flags. Written on change. **Feature flags in settings override
 `game.json`** — `game.json` is the shipped default, settings are the
 player's choice.
 
-### 21.4 `progress.json` (`[NEW]`, flag `features.saveInProgress`, default off)
+### 21.4 Quick save and quick load — `quicksave.json` (`[NEW]`, flag `features.quickSave`, default off)
 
-A full mid-run snapshot: `runSeed`, RNG state, room address, player position
-and lives, pieces held, taken loot set, per-room orchid clocks, visit
-counts, elapsed ticks, score. The original had no save; this is off by
-default. If implemented, the snapshot must round-trip bit-exactly — assert
-it in `SaveRoundTripTest` by hashing sim state before and after.
+Asked for by the user (2026-10-04), emulator style: **F5** keeps this moment,
+**F9** goes back to it — during play as often as you like, and on the title
+screen to resume the saved game. The keys are `shell.json → quickSave`; the
+panel says `SAVED`, `LOADED`, or why a load was refused, for `noteTicks`. The
+original had no save, so it is off by default: turn it on with
+`"features": { "quickSave": true }` in the player's `settings.json` (§21.3).
+
+**A save is the game as it was made, not a snapshot of it**: the run seed, the
+start room, `dev`, and every tick's input since the game began (`GameSession`
+records what it feeds `Simulation.play`), run-length encoded as a replay's
+(§22.6), plus the state hash it reached. Loading builds a fresh game the way a
+new game of this session is built (`Boot`'s one `silentGame` function, practice
+options and all), replays the input silently at full speed — an hour of play is
+well under a second — and compares the hash. Nothing is copied field by field,
+so nothing can be forgotten. A save is refused, never loaded wrong, when it is
+another version's (`contentHash`), another session's options (start room,
+`--dev`), damaged, or does not replay to its hash (other practice options, a
+rule changed).
+
+**A load makes the game a practice run** (§17.6, `Simulation.markPractice`,
+in the state hash): dying can now be undone, so it never reaches the hi-score
+table or the ledger. Saving alone changes nothing. One slot; it stays until
+the next save overwrites it. `QuickSavesTest` checks a load lands on exactly
+the hash and tick saved, saves and loads again from a loaded game, and every
+refusal.
+
+The `progress.json` snapshot this section used to plan
+(`features.saveInProgress`) is dropped: replaying the input is exact by
+construction.
 
 ### 21.5 `stats.json` (`[NEW]`, default on, purely local)
 
