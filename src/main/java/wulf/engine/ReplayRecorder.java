@@ -22,6 +22,7 @@ public final class ReplayRecorder {
     private final RecordedInput input = new RecordedInput();
     private final List<String> hashes = new ArrayList<>();
     private String note = "recorded with ./run.sh --record";
+    private java.util.Map<String, Boolean> features = java.util.Map.of();
 
     public ReplayRecorder(String name, String contentHash, long seed, RoomAddress start, boolean dev) {
         this.name = name;
@@ -39,6 +40,12 @@ public final class ReplayRecorder {
         }
     }
 
+    /** The feature flags the run is played under, when they are not {@code game.json}'s (§1.1). */
+    public ReplayRecorder features(java.util.Map<String, Boolean> flags) {
+        features = java.util.Map.copyOf(flags);
+        return this;
+    }
+
     public ReplayRecorder note(String text) {
         note = text;
         return this;
@@ -50,7 +57,7 @@ public final class ReplayRecorder {
 
     public Replay replay() {
         return new Replay(Replay.SCHEMA_VERSION, name, note, contentHash, seed, start.toString(), dev,
-                CHECKPOINT_EVERY, input.runs(), hashes);
+                CHECKPOINT_EVERY, input.runs(), hashes, features);
     }
 
     public void write(Path file) {

@@ -108,8 +108,8 @@ class SoundTest {
     }
 
     @Test
-    void theWulfHowlsWhenItArrivesAndGrowlsUntilItIsGone() {
-        Content c = Content.load(Path.of("data"));
+    void theRoamingWulfHowlsWhenItArrivesAndGrowlsUntilItIsGone() {
+        Content c = Content.load(Path.of("data")).withFeature("roamingWulf", true);
         WorldGrid grid = new WorldGrid(c.rooms());
         // The start room is walled in on the true map (§25 Q14): the Wulf has no edge to come in by.
         // Any room it can come into will do; this is about what is heard.

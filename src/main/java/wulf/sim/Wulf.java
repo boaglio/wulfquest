@@ -3,12 +3,13 @@ package wulf.sim;
 import wulf.world.RoomAddress;
 
 /**
- * The Wulf's simulation state (AGENTS.md §13). There is exactly one, carried across
- * room flips; {@link Simulation} drives it and everyone else reads it.
+ * The Wulf's simulation state (AGENTS.md §13). There is exactly one; {@link Simulation}
+ * drives it and everyone else reads it.
  *
- * <p>Its body is an ordinary {@link Creature} steered by CHASE_DIRECT, so it moves,
- * collides and turns by the same rules as the rhino — only faster, unkillable, and
- * never left behind by a flip.
+ * <p>The original's (§13.8, the default) prowls one row of the map for the whole game,
+ * in its own room whether the player is there or not. The roaming one ({@code
+ * features.roamingWulf}, [NEW]) is an ordinary {@link Creature} steered by CHASE_DIRECT,
+ * carried across room flips — only faster, unkillable, and never left behind.
  */
 public final class Wulf {
 
@@ -25,7 +26,26 @@ public final class Wulf {
         /** Followed the player through a flip; off screen until the arrival delay has passed. */
         ARRIVING,
         /** Gave up: running off the nearest edge. */
-        LEAVING
+        LEAVING,
+        /** §13.8: running along its row, here or elsewhere. */
+        PROWLING,
+        /** §13.8: stopped by a sabre held towards it as it came. */
+        SITTING,
+        /** §13.8: getting up again, moving at its old speed. */
+        RISING
+    }
+
+    /**
+     * §13.8, the original's {@code IX+$02} while it prowls: may it still turn towards the
+     * player, and be made to sit? Free again whenever the player is off its row.
+     */
+    public enum Latch {
+        /** The player is not on its row: it will turn towards them when they are. */
+        FREE,
+        /** It has turned towards the player; a sabre can still make it sit. */
+        STEERED,
+        /** It has sat and got up: no more turning, no more sitting, until the player leaves the row. */
+        SPENT
     }
 
     /** A room edge. West and east edges run along y; north and south along x. */
@@ -55,6 +75,14 @@ public final class Wulf {
     int parries;
     int evasions;
     int followedFlips;
+    /** §13.8: the room it is in, which may not be the player's. */
+    RoomAddress at = new RoomAddress(0, 0);
+    /** §13.8: -1 west, 1 east. */
+    int heading = -1;
+    int speedFp;
+    Latch latch = Latch.FREE;
+    /** §13.8: in the player's room this tick, so seen, heard and touchable. */
+    boolean here;
 
     Wulf(Creature body) {
         this.body = body;
@@ -87,9 +115,13 @@ public final class Wulf {
         return arrivalEdge;
     }
 
-    /** On screen: warning, chasing or leaving. */
+    /** On screen: warning, chasing or leaving; or, prowling (§13.8), in the player's room. */
     public boolean visible() {
-        return state == State.WARNING || state == State.PURSUE || state == State.LEAVING;
+        return switch (state) {
+            case WARNING, PURSUE, LEAVING -> true;
+            case PROWLING, SITTING, RISING -> here;
+            case ABSENT, ARRIVING -> false;
+        };
     }
 
     /** Whether touching it kills, and a swing can parry it: whenever it is on screen. */
@@ -117,5 +149,18 @@ public final class Wulf {
 
     public int quietRooms() {
         return quietRooms;
+    }
+
+    /** §13.8: the room it is in. */
+    public RoomAddress at() {
+        return at;
+    }
+
+    public int heading() {
+        return heading;
+    }
+
+    public Latch latch() {
+        return latch;
     }
 }

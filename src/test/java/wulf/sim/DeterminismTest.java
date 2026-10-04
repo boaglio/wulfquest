@@ -62,8 +62,8 @@ class DeterminismTest {
     }
 
     @Test
-    void runsWithTheWulfAgreeOnEveryTick() {
-        Content c = Content.load(Path.of("data"));
+    void runsWithTheRoamingWulfAgreeOnEveryTick() {
+        Content c = Content.load(Path.of("data")).withFeature("roamingWulf", true);
         WorldGrid grid = new WorldGrid(c.rooms());
         int freeze = c.game().transition().freezeTicks();
         RoomAddress populated = new RoomAddress(4, 1);   // a hut the Wulf can get into
@@ -81,6 +81,28 @@ class DeterminismTest {
             }
         }
         assertThat(a.wulf().appearances()).as("the Wulf was in the run").isPositive();
+    }
+
+    @Test
+    void runsBesideTheOriginalsWulfAgreeOnEveryTick() {
+        // §13.8: its own room's scenery, the wrap at the map's ends, sitting and rising — all in the hash.
+        Content c = Content.load(Path.of("data"));
+        WorldGrid grid = new WorldGrid(c.rooms());
+        int freeze = c.game().transition().freezeTicks();
+        RoomAddress row = c.wulfRules().patrolRoom();
+        Simulation a = Simulation.startingIn(c.player(), grid, freeze, row, c.ecosystem(), 91L);
+        Simulation b = Simulation.startingIn(c.player(), grid, freeze, row, c.ecosystem(), 91L);
+        int here = 0;
+        for (int t = 0; t < 5000; t++) {
+            InputState in = script(t);
+            a.play(in, false);
+            b.play(in, false);
+            if (a.stateHash() != b.stateHash()) {
+                throw new AssertionError("diverged at tick " + t);
+            }
+            here += a.wulf().visible() ? 1 : 0;
+        }
+        assertThat(here).as("the Wulf was in the player's room").isPositive();
     }
 
     @Test

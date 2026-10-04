@@ -214,7 +214,7 @@ public final class CreaturePainter {
     /** Howling while it warns (§13.3); otherwise the ordinary gait, facing its way. */
     static String wulfFrame(Wulf wulf, long tick, int ticksPerFrame) {
         Creature body = wulf.body();
-        if (wulf.state() == Wulf.State.WARNING) {
+        if (wulf.state() == Wulf.State.WARNING || wulf.state() == Wulf.State.SITTING) {
             return body.faceX() < 0 ? "howl_l" : "howl";
         }
         return frameFor(body, tick, ticksPerFrame);

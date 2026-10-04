@@ -4,7 +4,7 @@
   "title": "entities/wulf.json — AGENTS.md §13",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schemaVersion", "fidelity", "id", "displayName", "sprite", "size", "collisionBox", "speed", "appearance", "pursuit", "parry", "audio"],
+  "required": ["schemaVersion", "fidelity", "id", "displayName", "sprite", "size", "collisionBox", "speed", "appearance", "pursuit", "parry", "patrol", "audio"],
   "properties": {
     "schemaVersion": { "type": "integer", "minimum": 1 },
     "fidelity": { "enum": ["recon", "canon"] },
@@ -57,6 +57,22 @@
         "giveUpRoomDistance": { "type": "integer", "minimum": 1, "maximum": 15 },
         "leaveMaxTicks": { "type": "integer", "minimum": 1 },
         "arrivalClearancePx": { "type": "integer", "minimum": 0, "maximum": 192 }
+      }
+    },
+    "patrol": {
+      "description": "AGENTS.md §13.8 [CANON]: the original's one Wulf, prowling row 15",
+      "type": "object", "additionalProperties": false,
+      "required": ["fidelity", "room", "xPx", "yPx", "heading", "speedFp", "risenSpeedFp", "sitReleaseTicks", "riseTicks"],
+      "properties": {
+        "fidelity": { "enum": ["canon", "recon"] },
+        "room": { "type": "string", "pattern": "^([0-9]|1[0-5]),([0-9]|1[0-5])$" },
+        "xPx": { "type": "integer", "minimum": 0, "maximum": 255 },
+        "yPx": { "type": "integer", "minimum": 0, "maximum": 191 },
+        "heading": { "enum": [-1, 1] },
+        "speedFp": { "type": "integer", "minimum": 1 },
+        "risenSpeedFp": { "type": "integer", "minimum": 1 },
+        "sitReleaseTicks": { "type": "integer", "minimum": 1 },
+        "riseTicks": { "type": "integer", "minimum": 1 }
       }
     },
     "parry": {

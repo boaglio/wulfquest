@@ -21,6 +21,7 @@ import wulf.world.RoomAddress;
 class ReplayTest {
 
     private static Content content;
+    private static Content roaming;
 
     @TempDir
     Path dir;
@@ -28,6 +29,7 @@ class ReplayTest {
     @BeforeAll
     static void load() {
         content = Content.load(Path.of("data"));
+        roaming = content.withFeature("roamingWulf", true);   // the dev key summons only the roaming Wulf (§13.8)
     }
 
     /** A busy script in a populated room, pressing the dev key for the Wulf every 50 ticks — it comes when it can. */
@@ -42,8 +44,8 @@ class ReplayTest {
     private static Replay record(long seed, int ticks) {
         RoomAddress start = new RoomAddress(4, 1);   // a hut: the Wulf can get in (7,3's openings are too narrow for it)
         Replay shell = new Replay(Replay.SCHEMA_VERSION, "t", null, "", seed, start.toString(), true, 50, List.of(), List.of());
-        Simulation sim = ReplayRunner.start(content, shell);
-        ReplayRecorder rec = new ReplayRecorder("test", content.db().contentHash(), seed, start, true).note("ReplayTest");
+        Simulation sim = ReplayRunner.start(roaming, shell);
+        ReplayRecorder rec = new ReplayRecorder("test", roaming.db().contentHash(), seed, start, true).note("ReplayTest");
         for (int t = 0; t < ticks; t++) {
             InputState in = script(t);
             sim.play(in, true);
@@ -57,7 +59,7 @@ class ReplayTest {
         Path file = dir.resolve("run.json");
         record(5L, 1200).write(file);
         Replay back = Replay.read(file);
-        ReplayRunner.Result result = ReplayRunner.run(content, back);
+        ReplayRunner.Result result = ReplayRunner.run(roaming, back);
         assertThat(result.passed()).as("diverged at %d", result.divergedAtTick()).isTrue();
         assertThat(result.ticks()).isEqualTo(1200);
         assertThat(result.checkpoints()).isEqualTo(24);
@@ -228,7 +230,7 @@ class ReplayTest {
         hashes.set(3, "0000000000000000");
         Replay tampered = new Replay(r.schemaVersion(), r.name(), r.note(), r.contentHash(), r.seed(), r.startRoom(), r.dev(),
                 r.checkpointEvery(), r.input(), hashes);
-        ReplayRunner.Result result = ReplayRunner.run(content, tampered);
+        ReplayRunner.Result result = ReplayRunner.run(roaming, tampered);
         assertThat(result.passed()).isFalse();
         assertThat(result.divergedAtTick()).isEqualTo(200);
     }

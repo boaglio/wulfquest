@@ -1,12 +1,13 @@
 {
   "schemaVersion": 1,
   "name": "wulf_escape",
-  "note": "Forged by WulfEscapeForge: the Wulf appeared in 6,9 at tick 796 and chased across 4 rooms to 7,11, parried 0 times, until it was outrun; no lives lost. Replayed by ReplayTest. Checkpoints re-recorded 2026-10-01 when the map scroll and the eyes were added (§14.8); the input is unchanged. Checkpoints re-recorded from the same input when the original's treasures were added (2026-10-01, §16.4). Re-recorded again when the lives became the original's reserve and score stopped earning lives (2026-10-02, §25 Q6).",
-  "contentHash": "c08b94a5ca1b0cf07468b118c7aba6b3cfa99a0628dae64d0b33884191ee640c",
+  "note": "Forged by WulfEscapeForge: the Wulf appeared in 6,9 at tick 796 and chased across 4 rooms to 7,11, parried 0 times, until it was outrun; no lives lost. Replayed by ReplayTest. Checkpoints re-recorded 2026-10-01 when the map scroll and the eyes were added (§14.8); the input is unchanged. Checkpoints re-recorded from the same input when the original's treasures were added (2026-10-01, §16.4). Re-recorded again when the lives became the original's reserve and score stopped earning lives (2026-10-02, §25 Q6). Re-recorded under features.roamingWulf when the original's Wulf became the default (2026-10-03, §13.8); the input is unchanged.",
+  "contentHash": "c00bbc72e588fea5aab5b7340caed75acd5f7ac55e2b85ca57a1904e1f3f899e",
   "seed": 6,
   "startRoom": "8,10",
   "dev": false,
   "checkpointEvery": 50,
+  "features": { "roamingWulf": true },
   "input": [
     [62, 1], [4, 2], [18, 6], [2, 10], [2, 6], [26, 9], [2, 5], [35, 1], [4, 2], [3, 6],
     [1, 4], [7, 6], [2, 10], [1, 52], [1, 9], [2, 6], [2, 9], [2, 6], [6, 9], [16, 1],
@@ -32,14 +33,14 @@
     [2, 10], [1, 9], [5, 5], [10, 1], [1, 2]
   ],
   "hashes": [
-    "f5a4d1192e6bf6d8", "dc09541074d91764", "6119a6ec1575cea9", "0113aab0df0f5d30",
-    "977e606ae3712950", "56ceb3d5021e73c0", "a2b1b6ac5bd55a6b", "ca15dce5b8f68ec2",
-    "76c44bf5893fe6ed", "19c96b642545968d", "f290bfe224e2889f", "deb8229d22a11e16",
-    "6bff7124e7dc5159", "ab5eb6012229aff4", "056786b70e239889", "d54f034a4e3bb15a",
-    "4ef991a40d313e05", "2c8b3aa36d88eebe", "783ff660f9ae5534", "dfed83b6494af94a",
-    "cac7d130d85e9395", "b75e374b3ea0583a", "ed751e27abdb4512", "3bed54c3f0c0f351",
-    "14bb1d37341d5a0c", "c6139f6619c7c135", "7bb76b07e2db6811", "b17a19b76422c17a",
-    "46a0cbc8ab9634fa", "ce213d2e14330005", "fce9271aa9f7874f", "c4a74eee2d9832c9",
-    "203a80e3e9c3b8cd", "a9fbbd4081074bc8", "7758f82121a9fbbe", "d525e6f7feb28921"
+    "a11353e64c4f8920", "af0796e17344975c", "416374a0b8e2f9e1", "0777342cdaf21e28",
+    "6829ad9fb41dbc48", "fff2b3b33f17c178", "d6ea48ae802af833", "f8bc3584dc54272a",
+    "43f0373f5ce659f5", "c0bb5edb4e05ca15", "2b6a2f38319d13c7", "f741894dde34769e",
+    "7185adb1f4604e41", "f221b30a47e8123c", "fcd7752fbb8aab11", "f7b8b222e2a8d6f2",
+    "ada18f997ed915ad", "d3c0867387b60be6", "9ddb7c711340d19c", "8e0d1388ca007f92",
+    "d36ae18b1a52a22d", "be1e87cc176b8bf2", "7971e83e1ab7b1aa", "5beabd50af7527e9",
+    "5e44464fbaca2af4", "8aa95ef1f11c299d", "8d02f052f29a4039", "4e827550cc3d8382",
+    "d75d55b8e5a1d452", "3fabfd55fc85f63d", "1bbc32ce4cc6f927", "2fbf41ebc4532311",
+    "ff31a99da831eab5", "6edc80bbc9bb89b0", "af3329a5a97d9a66", "a9eec233fd7383c9"
   ]
 }

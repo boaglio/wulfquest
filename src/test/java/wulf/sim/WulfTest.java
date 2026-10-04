@@ -70,7 +70,7 @@ class WulfTest {
                         a.minDistancePx()),
                 new WulfData.Pursuit(p.turnCooldownTicks(), p.stallTicks(), giveUpTicks, p.giveUpRoomDistance(), leaveMaxTicks,
                         p.arrivalClearancePx()),
-                REAL.parry(), REAL.audio());
+                REAL.parry(), REAL.patrol(), REAL.audio());
     }
 
     /** The shipped Wulf, appearing with exactly this chance and no waiting. */
@@ -442,7 +442,7 @@ class WulfTest {
 
     @Test
     void theStartTheLairsAndTheWayOutAreOffLimits() {
-        Content c = Content.load(Path.of("data"));
+        Content c = Content.load(Path.of("data")).withFeature("roamingWulf", true);
         java.util.Set<RoomAddress> expected = new java.util.HashSet<>(c.landmarks().lairRooms());
         expected.add(c.map().startRoom());
         expected.add(c.landmarks().exitRoom());

@@ -6,6 +6,8 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.DeserializationFeature;
 import tools.jackson.databind.ObjectMapper;
@@ -20,6 +22,8 @@ import wulf.world.RoomAddress;
  * divergence means determinism broke (§6.4), and is never fixed by re-recording
  * until the cause is found.
  *
+ * @param features    feature flags the run was recorded under, laid over {@code game.json}'s
+ *                    (§1.1) — so a replay of a [NEW] rule keeps playing it. Usually empty
  * @param contentHash the content database's hash when recorded. Informational: a
  *                    replay may survive a content change that does not touch the
  *                    simulation, and its hashes decide
@@ -34,7 +38,8 @@ public record Replay(
         boolean dev,
         int checkpointEvery,
         List<int[]> input,
-        List<String> hashes) {
+        List<String> hashes,
+        Map<String, Boolean> features) {
 
     public static final int SCHEMA_VERSION = 1;
 
@@ -46,6 +51,13 @@ public record Replay(
     public Replay {
         input = List.copyOf(input);
         hashes = List.copyOf(hashes);
+        features = features == null ? Map.of() : Map.copyOf(features);
+    }
+
+    /** The same run under no flags of its own. */
+    public Replay(int schemaVersion, String name, String note, String contentHash, long seed, String startRoom,
+                  boolean dev, int checkpointEvery, List<int[]> input, List<String> hashes) {
+        this(schemaVersion, name, note, contentHash, seed, startRoom, dev, checkpointEvery, input, hashes, Map.of());
     }
 
     public RoomAddress start() {
@@ -137,6 +149,15 @@ public record Replay(
         sb.append("  \"startRoom\": ").append(quote(startRoom)).append(",\n");
         sb.append("  \"dev\": ").append(dev).append(",\n");
         sb.append("  \"checkpointEvery\": ").append(checkpointEvery).append(",\n");
+        if (!features.isEmpty()) {
+            sb.append("  \"features\": {");
+            String sep = " ";
+            for (Map.Entry<String, Boolean> e : new TreeMap<>(features).entrySet()) {
+                sb.append(sep).append(quote(e.getKey())).append(": ").append(e.getValue());
+                sep = ", ";
+            }
+            sb.append(" },\n");
+        }
         sb.append("  \"input\": [");
         for (int i = 0; i < input.size(); i++) {
             sb.append(i == 0 ? "\n    " : i % 10 == 0 ? ",\n    " : ", ");

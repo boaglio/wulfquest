@@ -9,6 +9,7 @@
     "caveHints": true,
     "animatedWater": false,
     "distanceDrivenGait": false,
+    "roamingWulf": false,
     "bonusRooms": false,
     "pauseMap": false,
     "saveInProgress": false,

@@ -38,6 +38,8 @@ public final class WulfEscapeForge {
     private static final int TAIL_TICKS = 100;
     private static final int STAND_GROUND_PX = 56;
 
+    private static final java.util.Map<String, Boolean> ROAMING = java.util.Map.of("roamingWulf", true);
+
     private record Attempt(boolean escaped, ReplayRecorder recorder, String story) {
     }
 
@@ -51,7 +53,8 @@ public final class WulfEscapeForge {
 
     public static void main(String[] args) {
         Path out = Path.of(args.length > 0 ? args[0] : "replays/wulf_escape.json");
-        Content c = Content.load(Path.of("data"));
+        // The escape is the roaming Wulf's (§13.3–§13.5, [NEW]); the original's never follows (§13.8).
+        Content c = Content.load(Path.of("data")).withFeatures(ROAMING);
         WorldGrid grid = new WorldGrid(c.rooms());
         RoomAddress start = c.map().startRoom();
         RoomAddress[] targets = {new RoomAddress(14, 1), new RoomAddress(1, 1), new RoomAddress(14, 14), new RoomAddress(1, 14),
@@ -82,7 +85,7 @@ public final class WulfEscapeForge {
 
     private static Attempt attempt(Content c, WorldGrid grid, RoomAddress start, List<int[]> route, long seed) {
         Simulation sim = Simulation.startingIn(c.player(), grid, c.game().transition().freezeTicks(), start, c.ecosystem(), seed);
-        ReplayRecorder rec = new ReplayRecorder("wulf_escape", c.db().contentHash(), seed, start, false);
+        ReplayRecorder rec = new ReplayRecorder("wulf_escape", c.db().contentHash(), seed, start, false).features(ROAMING);
         Wulf w = sim.wulf();
         int block = 0;
         int sinceProgress = 0;

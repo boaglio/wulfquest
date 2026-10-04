@@ -47,7 +47,7 @@ class WulfValidatorTest {
                 new WulfData.Appearance(a.baseChancePer10k(), a.chancePerAmuletPiecePer10k(), a.chancePerQuietRoomPer10k(),
                         a.quietRoomsCap(), a.rollEveryTicks(), a.minTicksBetweenAppearances(), a.graceTicksAfterPlayerDeath(),
                         a.neverInRooms(), a.warningTicks(), 8, 9, a.minDistancePx()),
-                WULF.pursuit(), WULF.parry(), WULF.audio());
+                WULF.pursuit(), WULF.parry(), WULF.patrol(), WULF.audio());
         DataException e = catchThrowableOfType(DataException.class, () -> WulfValidator.check(odd, SPRITES));
         assertThat(e).isNotNull();
         assertThat(e.pointer()).isEqualTo("/appearance/warningFlashOnTicks");

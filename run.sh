@@ -70,7 +70,7 @@ Game options (play, browse and jar):
                               haste, torpor, reversal, immunity, delirium, stillness
   --browse                    the room browser instead of the game
   --dev                       developer mode: K kills Vale, N shows collision,
-                              H calls the Wulf, room and position on the panel
+                              H calls the roaming Wulf, room and position on the panel
   --scale N                   window scale, 1..6
   --data-dir PATH             content database root (default: ./data)
   --user-dir PATH             player database: hi-scores, settings, stats

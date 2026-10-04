@@ -203,7 +203,7 @@ public final class Boot {
                         + player.settings().audio().volumePercent() + "% volume"
                 : parsed.noAudio() ? "off (--no-audio)" : "off (settings.json)"));
         System.out.println("  controls     : arrows or WASD walk, Space or Z swing, P pause, Esc leaves the jungle"
-                + (parsed.dev() ? "   [dev: K kill, N collision mask, H summon the Wulf]" : ""));
+                + (parsed.dev() ? "   [dev: K kill, N collision mask, H summon the roaming Wulf]" : ""));
 
         GameLoop loop = new GameLoop(c.game().tickHz(), c.game().maxCatchupTicks());
         loop.run(new GameLoop.Stepper() {

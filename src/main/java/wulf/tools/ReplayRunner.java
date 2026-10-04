@@ -32,10 +32,11 @@ public final class ReplayRunner {
     private ReplayRunner() {
     }
 
-    /** A fresh simulation exactly as the recording began. */
+    /** A fresh simulation exactly as the recording began, under the feature flags it was recorded with. */
     public static Simulation start(Content c, Replay r) {
-        return Simulation.startingIn(c.player(), new WorldGrid(c.rooms()), c.game().transition().freezeTicks(),
-                r.start(), c.ecosystem(), r.seed());
+        Content under = c.withFeatures(r.features());
+        return Simulation.startingIn(under.player(), new WorldGrid(under.rooms()), under.game().transition().freezeTicks(),
+                r.start(), under.ecosystem(), r.seed());
     }
 
     public static Result run(Content c, Replay r) {

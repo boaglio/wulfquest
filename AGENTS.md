@@ -1580,13 +1580,21 @@ player holds 2 amulet pieces and `+1` again at 4 pieces (cap 6). Store as
 
 ---
 
-## 13. The Wulf **[CANON]** concept, **[RECON]** numbers
+## 13. The Wulf
 
 The pursuing beast is the game's identity. Get this wrong and nothing else
 matters. In code and in player-facing text it is **the Wulf** — never the
 original creature's name (§2.1, rule 4).
 
-### 13.1 Design intent
+**Two Wulfs, one at a time** (2026-10-03, §25 Q9). By default it is the
+original's: **one Wulf prowling the bottom row of the map**, §13.8 **[CANON]**.
+The Wulf that appears anywhere after a warning and follows the player between
+rooms — §13.1 to §13.7, built in M5 before the disassembly was read — is
+**[NEW]**, behind `game.json → features.roamingWulf` (default **off**), kept by
+the user's decision. `Content.wulfRules()` picks one: `WulfRules.patrol` or
+`WulfRules.of`.
+
+### 13.1 Design intent (the roaming Wulf, [NEW])
 
 It is **not** an enemy you fight. It is weather. It arrives without warning,
 it is faster than you, it cannot be killed, it follows you between rooms, and
@@ -1628,11 +1636,23 @@ decision below serves "oh no, not now".
     "leaveMaxTicks": 150
   },
   "parry": { "borderFlashTicks": 2 },
+  "patrol": {
+    "fidelity": "canon",
+    "room": "6,15",
+    "xPx": 128,
+    "yPx": 48,
+    "heading": -1,
+    "speedFp": 512,
+    "risenSpeedFp": 768,
+    "sitReleaseTicks": 30,
+    "riseTicks": 16
+  },
   "audio": { "warning": "wulf_howl", "loop": "wulf_growl", "parry": "wulf_parry", "loopSilentAtPx": 300 }
 }
 ```
 
-Integers only, like every file the simulation reads. Three Wulf numbers live
+`patrol` is the original's Wulf (§13.8); everything else in the file but the
+sprite, the box and the audio is the roaming one's. Integers only, like every file the simulation reads. Three Wulf numbers live
 elsewhere, where their siblings are: the parry's push and stun are the sabre's
 (`player.json → sabre.repelWulfPx` 24, `repelWulfStunTicks` 30), the arrival
 delay is the flip's (`game.json → transition.wulfArrivalDelayTicks` 12), and an
@@ -1743,11 +1763,53 @@ player should hear it before the room even settles — and the howl on
 
 ### 13.7 Where it is checked
 
-`WulfTest` pins every rule above on hand-built worlds — a corridor where only
+`WulfTest` pins every rule of the roaming Wulf on hand-built worlds — a corridor where only
 one edge fits, and a pen whose 16 px door lets the player through but never the
 Wulf — plus the shipped chance (about one first room entry in seven, measured
-over 2 000 seeds). `DeterminismTest` runs it; `HeadlessSimTest` requires it to
-appear; `replays/wulf_escape.json` (§22.6) is a chase survived across four rooms.
+over 2 000 seeds). `DeterminismTest` runs it; `replays/wulf_escape.json`
+(§22.6) is a chase survived across four rooms, recorded with `"features":
+{ "roamingWulf": true }` so it keeps playing that rule.
+
+### 13.8 The original's Wulf **[CANON]** — the default
+
+Read from the disassembly (§25 Q9). One Wulf, one row, all game:
+
+- **Where.** A new game copies the actor table (`$AC77`) into place: one Wulf,
+  in **room (6,15)** at local (128, 48) (the table's x 112 is the sprite's
+  left edge), heading **west**. Nothing else ever makes a Wulf.
+- **One row.** It moves only along x. Past the east end of the map it comes in
+  at the west end, and the other way about (`$B19F`, `$B187`, `$B193`); it
+  never changes row. Ours collides with the joined world, so it turns where
+  the map's own scenery closes the row: on the true map it runs (2,15) to
+  (15,15). (The original checks only the room it is in, so it can step into
+  the next room's edge before turning.)
+- **Always moving**, in its own room whether the player is there or not, while
+  the player is dying too: **2 px a tick** (`speedFp` 512 — the original's 4
+  px a frame, `IX+$06` = ±`$40` ÷ 16, at our 2 ticks a frame, §25 Q5). It is
+  faster than Vale's 1.5. Blocked by scenery, it turns back (`$AAED`, `$ADB3`).
+- **It turns towards the player once** (`$A922`): when the player comes onto
+  its row it heads for their room — east or west by room, or within its own
+  room by which side of it they are. Then it keeps that heading, turning only
+  at scenery, until the player has left the row and come back.
+- **A touch costs a life** (`$A880`), as any creature's does; the sabre does
+  not block it (small fry's touch it does, from the front, `$AB3D`). Only the
+  green flower's immunity (§15.2) keeps it off. After a hit on a player who was
+  not fighting, it turns away (`$A8AC`).
+- **Held off, it sits** (`$A8B2`, `$A8E4`). A player fighting — the blade out,
+  §11.6 — and facing the Wulf as it comes at him, anywhere in the room, makes
+  it **stop and sit** (`SITTING`, its howl frame). It sits for as long as the
+  blade is held towards it (`$A8F5`), then `sitReleaseTicks` (30) more, then
+  **gets up** (`RISING`, `riseTicks` 16, moving at its old speed) and runs on
+  at `risenSpeedFp` (768, 3 px a tick; `$A964` adds `$20`). Having sat once it
+  will not sit again, nor turn towards the player, until the player has left
+  its row (`IX+$02` = `$10`; `Wulf.Latch.SPENT`).
+- **No warning, no chase, no giving up.** It is simply there when you walk
+  into its room. Its growl loops while it is in the player's room (§13.6);
+  sitting down, it howls. The dev key (H) does nothing to it.
+- **The hash** carries its room, heading, speed and latch.
+
+`ProwlerTest` pins each rule on open and walled worlds; `DeterminismTest`
+runs beside it on its row; `HeadlessSimTest` checks it never leaves the row.
 
 ---
 
@@ -2395,7 +2457,8 @@ The `period` profile is `Q/A/O/P/M` — the era's default key layout. Offer it
 on the title screen as a nod; do not make it default.
 
 - `devKill`, `devMask` and `devWulf` act only with `--dev`. `devWulf` summons the
-  Wulf (§13.3); it is not `W`, which is up.
+  roaming Wulf (§13.3) — only under `features.roamingWulf`; the original's
+  (§13.8) is never summoned. It is not `W`, which is up.
 - A key bound to two actions within a profile is a load-time `DataException`.
 - The deadzone is an integer percent: nothing that reaches the game is a float.
 - **X11 auto-repeat** delivers a release and a press with the same timestamp
@@ -2757,18 +2820,24 @@ hash at every 50th tick. `ReplayRunner` re-executes them. Ship at least:
   the same bot, sent to one lair, finishing when the quarter is carried back
   out instead of waiting for a win. (**M9, shipped**; re-forged on the true
   map in M10, with inertia on 2026-09-30, and at the equal speeds of
-  2026-10-01: seed 202, 35 389 ticks, no death)
+  2026-10-01: seed 202, 35 389 ticks, no death; re-forged 2026-10-03 with the
+  original's Wulf (§13.8): seed 202 again, 43 420 ticks, no death)
 - `replays/wulf_escape.json` — a Wulf pursuit survived across 4 rooms. (**M5, shipped**)
+  It is the roaming Wulf's (§13.1–§13.7, [NEW]), so since 2026-10-03 the file
+  carries `"features": { "roamingWulf": true }`: a replay may name the flags it
+  was recorded under, and `ReplayRunner` lays them over `game.json`'s, so a
+  [NEW] rule's replay keeps playing that rule when the default changes.
 - `replays/full_run.json` — a complete 4-piece win, forged by `FullRunForge`
   (**M6, shipped; re-forged 2026-09-30 on the true map, then with inertia
   (§11.3)**): seed 306, lairs in order SE, SW, NW, NE, out through the arch
   in 122 220 ticks without a death — quicker than the 157 879 without it, once
-  the bot braked before its turns. **Missing again since 2026-10-01**: making
-  vertical speed equal to horizontal (§11.2) changed every path, the old input
-  no longer wins, and the first search at the new speed found no win (most
-  seeds ran out of time holding two or three quarters).
-  `ReplayTest.theFullRunReplayWinsTheGame` is `@Disabled` with that reason
-  until it is re-forged. It took three bot fixes, each found by tracing where runs died or
+  the bot braked before its turns. Re-forged 2026-10-01 at equal speeds (seed
+  2088, 109 412 ticks), and **2026-10-03 with the original's Wulf** (§13.8):
+  seed 2018, lairs SE, SW, NW, NE, 106 638 ticks, no death, found by 20 forges
+  over seeds 2000–2159. The lairs are placed by the run seed (§25 Q2), so a
+  seed's route can be two rooms or the whole map: seeds 1–60 for `lair_nw`
+  won only in 108 000–241 000 ticks, and seeds 3000–3159 for the full run
+  in 300 000 and more, so search near the seeds that won before. It took three bot fixes, each found by tracing where runs died or
   stood still: pressing the other way under the reversal flower; meeting
   the Wulf by turning to it with fire held — fencing makes the blade live at
   once, and the old wait for a swing that would land stood still while it
@@ -3567,6 +3636,12 @@ treasures picked up on the way. Walking momentum
 landed after M10 too (§11.3), and so did the rest, on 2026-10-01: the reveal's
 tune (§18.3), the shrines at the hut doors (§14.5), and the temple's name.
 
+From the disassembly, 2026-10-02 and 03 (§25 Q6, Q7, Q9): the original's lives
+— five in reserve, none for score (§11.7, §16.3) — and **the original's Wulf as
+the default** (§13.8): one, prowling the bottom row, sat down by a sabre held
+towards it. The roaming Wulf of M5 stays as `[NEW]` `features.roamingWulf`.
+Replays may now carry the flags they were recorded under (§22.6).
+
 ---
 
 ## 25. Open canon questions (research backlog)
@@ -3584,15 +3659,15 @@ the source wins.
 
 | # | Question | Currently | Where it lives |
 |---|----------|-----------|----------------|
-| Q1 | The exact creature roster and per-room creature assignment table | 13 invented species, biome-weighted | `creatures.json`, `room_entities.json` |
+| Q1 | The exact creature roster and per-room creature assignment table | 13 invented species, biome-weighted. **Lead 2026-10-03:** the original's room creatures are not per room. Up to `$96BE` (3) at once appear as a puff in the player's room (`$9A68`), then become one of 15 kinds from `$A41A` — spider, scorpion, bat, parrot, monkey, lizard, snake, then rat, bird, frog, mosquito, skunk, flea, earwig — picked from the first `8 + 2 × quarters held` entries (`$A3EC`), so the jungle gets worse as the amulet fills. The fixed ones are in the actor table `$AC77`: rhinos in (8,9) twice, (7,0) and (3,15); tribesmen in (7,10), (4,4), (2,14); a hippo in (3,8); the guardian at the arch (8,8); and the Wulf (Q9). A flame (`$34`) comes for a player who lingers: `$96B4`, set to `$80` on entering a room (`$B164`), counts down (`$9ABC`). | `creatures.json`, `room_entities.json` |
 | Q2 | The four guardians' species, colours, and lair rooms | **Rooms partly answered 2026-09-27:** the original has no fixed lairs — it picks one of eight preset four-room sets at random (`$A29D`, `Place Amulet Pieces` `$A255`) and lays each quarter at its room type's object slot 1 (`$DC6C`). Our lairs are fixed (`[RECON]`) at the game's set 3, `5,3 13,4 3,12 9,10`. Guardians' species and colours still open; the game's immortals table (`$AC77`) lists rhinos, spear men, fire, the wolf, a hippo and "guardian" as sprites to look at next. | `landmarks.json`, `guardians.json` |
 | Q3 | The exit's actual location and its guard condition | **Lead 2026-09-27:** the true map has exactly one stone arch, `(8,8)`, the heart of the mirrored temple two rooms north of the start. The exit is placed there; the guard condition is unverified. | `landmarks.json` |
-| Q4 | The orchid colour→effect mapping and durations | 6 colours per §15.2 | `orchids.json` |
+| Q4 | The orchid colour→effect mapping and durations | 6 colours per §15.2. **Lead 2026-10-03:** touching an orchid sets the player's colour to the orchid's (`$A754`), and every hurt check — creatures `$AB36`, the Wulf `$A880`, the flame `$9DE5` — passes only while that colour is plain `$47`: under any tint nothing can hurt him. White (`$47`) instead clears `$96B0`. Not yet traced: each colour's effect and how long a tint lasts. | `orchids.json` |
 | Q5 | Exact player speed in px/frame, and whether it was frame-quantised | **Shape answered 2026-09-30** (§11.3): up to 3 px a frame in whole steps (0–3), with inertia ($AEEF, $AFC1, $B031, $B047); fighting a steady 2 ($ADD0). Still open: the original's frame rate, which fixes px/s — ours assumes 2 ticks a frame, and keeps §11.2's 1.5 / 1.0 px/tick as full speed. | `player.json → speed, momentum` |
 | Q6 | Starting lives and extra-life thresholds | **Closed 2026-10-02** from the disassembly: **5 in reserve** (`$B21E`), so six falls — a fall with none left is game over (`$AA27`–`$AA37`); **no extra lives for score** — the lives count's only writers are `$B21E`, `$AA37`, `$9F87` and the treasure life `$A2F8` (up to 9 in reserve). §11.7, §16.3. | `player.json → lives` |
 | Q7 | Whether amulet pieces were lost on death | **Closed 2026-10-02: kept.** The quarters held are bits of `$970D`, written only by the pickup (`$A1E3`); the death path `$AA27`–`$AA57` does not touch it. §11.7. | `player.json → death.keepAmulet` |
 | Q8 | Score values per creature and per piece | **Partly answered 2026-10-01** from `Add Points To Score` (`$B5A9`, BCD) and its callers: a quarter of the amulet is **7500** (`$A1ED`, now in `loot.json`), a treasure **150** (`$A332`, §16.4), and a creature **165, 175, 185 or 195** by its type (`$A4B3`). Our creatures are not the original's (Q1), so their 100–500 stay `[RECON]`. | `creatures.json`, `loot.json` |
-| Q9 | The Wulf's appearance rules and whether the sabre affected it | 12% on entry + bonuses; repel only. **Lead 2026-10-02:** each actor's state byte is also its sprite ID and indexes the jump table `$9B3E` (dispatch `$99DE`). The Wulf is states `$50`–`$5D` (sprites `$C024`…): `$A858` for `$50`–`$57`, `$A8F5` for `$58`/`$5C`, `$A964` for `$59`/`$5D`. It is one of the "immortals", 12-byte records from `$970E` to `$982E` with the room in `+$01`; `$A8B2` and `$A880` compare that room with the player's (`$9703`). Not yet traced: where the Wulf's record is created and how its room changes. | `wulf.json` |
+| Q9 | The Wulf's appearance rules and whether the sabre affected it | 12% on entry + bonuses; repel only. **Answered and built 2026-10-03** (§13.8, now the default; ours kept as [NEW] `features.roamingWulf`). Each actor's state byte is also its sprite ID and indexes the jump table `$9B3E`. (1) **One Wulf, on one row.** A new game copies the actor table `$AC77` to `$9702`: one Wulf record (`$976E`, state `$50`) in room **(6,15)**, x 112. Its y velocity is never set, and a side exit changes only the column, wrapping 15↔0 (`$B187`, `$B19F`, `$B193`), so it **never leaves row 15**. Nothing else makes a Wulf: the room's random creatures (`$9A68`, puff `$01`, `$A3E0`) come from `$A41A`, all small fry. (2) **Always moving, on- or off-screen**, 4 px per update in x (`IX+$06` = ±`$40`, ÷16 in `$B031`) against the player's 3; blocked by its own room's scenery, it turns (`$AAED`→`$ADB3`). (3) **It hunts only along the row**: with the player in row 15 it heads for the player's room, east or west by room number, or by x in the same room (`$A922`); otherwise it keeps its heading. (4) **Touch costs a life**, the same throw as any creature (`$9704`, `$A985`, then `$AA0D`→`$AA27`), unless the player's colour is not plain `$47` — under an orchid's tint (`$A880`). (5) **The sabre does not stop the hit**, unlike against small fry, whose touch it blocks when Vale faces them (`$AB3D`). But facing an oncoming Wulf while fighting makes it **stop and sit** (state +8, `$A8B2`/`$A8E4`) for as long as he keeps facing it (`$A8F5`), then it goes on, briefly faster (±`$60`, `$A964`). Our Wulf — appearing anywhere after a warning, following across rooms, giving up — is `[RECON]` that the original does not support. | `wulf.json` |
 | Q10 | Whether anything besides orchids and the amulet was collectable | **Closed 2026-10-01: yes, treasures.** Source: the SkoolKit disassembly (Q14's link) — `Initialise Objects` `$A2BD`, `Room Objects` `$A33B`, the object location table `$DC6C`, the handlers `$A305`/`$A312`/`$A323` and the sprite table `$C084`. Up to two per room, seven kinds of thing and a life, 150 points each. All in §16.4 and `world/treasures.json`; only the fill rate is `[RECON]`. | `world/treasures.json` |
 | Q11 | Sabre swing duration, reach, and whether movement was locked | **Shape answered 2026-09-27** (§11.6): no windup or recovery, live while fire is held (`$AB0E`), a random one of eight poses every 4th frame (`$AE4B`, `Rand8`), movement at 2 px/frame against walking's 3 (`$ADD0`, `$AFC1`). Reach still `[RECON]` 14 px; converting the original's px/frame needs its frame rate, still unmeasured. | `player.json → sabre` |
 | Q12 | Whether creature spawns were fixed per room or random | authored-with-fallback | `room_entities.json` |

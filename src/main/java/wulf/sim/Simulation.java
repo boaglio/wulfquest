@@ -84,6 +84,10 @@ public final class Simulation {
     private final Context context = new Context();
     private final Spawns spawns = new Spawns();
     private final Wulf wulf;
+    /** §13.8: the world with the map's east and west ends joined, for the Wulf that runs off one and on at the other. */
+    private final CollisionWorld rowWorld;
+    /** Whether the prowling Wulf's growl is on: audio only, never hashed. */
+    private boolean wulfHeard;
     private final Behaviour chase = BehaviourCatalog.of("CHASE_DIRECT");
     private final Quest quest;
     private final Behaviour orbit = BehaviourCatalog.of("GUARD_ORBIT");
@@ -155,8 +159,12 @@ public final class Simulation {
         player.lives = rules.lives().start();
         WulfData.Appearance appearance = eco.wulf().data().appearance();
         this.wulf = new Wulf(new Creature(Wulf.ID, eco.wulf().species(), -1, xFp, yFp, Herd.NONE));
+        this.rowWorld = (gx, gy) -> world.isSolid(Math.floorMod(gx, RoomAddress.GRID_W * CollisionMask.COLS), gy);
         wulf.ticksSinceGone = appearance.minTicksBetweenAppearances();
         wulf.ticksSinceRespawn = appearance.graceTicksAfterPlayerDeath();
+        if (eco.wulf().enabled() && !eco.wulf().roaming()) {
+            placeProwler();
+        }
         Creature keeper = new Creature(Quest.KEEPER_ID, eco.quest().keeperSpecies(), -1, xFp, yFp, Herd.NONE);
         this.quest = new Quest(keeper, keeper);   // the guardian is seated on entering a lair
         this.orchids = new OrchidField(eco.orchids());
@@ -218,6 +226,7 @@ public final class Simulation {
             }
             case DYING -> {
                 tickCreatures();   // §11.7: the jungle carries on around the fallen player
+                prowlWhileDown();
                 if (++player.modeTick >= rules.death().animTicks()) {
                     player.mode = Player.Mode.DOWN;
                     player.modeTick = 0;
@@ -226,6 +235,7 @@ public final class Simulation {
             }
             case DOWN -> {
                 tickCreatures();
+                prowlWhileDown();
                 if (++player.modeTick >= rules.death().freezeTicks()) {
                     respawn();
                 }
@@ -688,7 +698,11 @@ public final class Simulation {
             CreatureData.Box wb = wulf.body.species().collisionBox();
             if (overlaps(px, py, pb.w(), pb.h(), Fixed.px(wulf.body.xFp) + wb.x(), Fixed.px(wulf.body.yFp) + wb.y(),
                     wb.w(), wb.h())) {
+                boolean fighting = !sabre.isEmpty();
                 kill(wulf.body.species().id());
+                if (!eco.wulf().roaming() && !fighting) {
+                    head(wulf, -wulf.heading);   // $A8AC: it turns away from a player it has hit
+                }
                 return;
             }
         }
@@ -1058,7 +1072,8 @@ public final class Simulation {
      * @return whether it came: not while it is already about, the player is down, or no edge has room
      */
     public boolean summonWulf() {
-        if (!eco.wulf().enabled() || wulf.state != Wulf.State.ABSENT || player.mode != Player.Mode.ALIVE) {
+        if (!eco.wulf().enabled() || !eco.wulf().roaming() || wulf.state != Wulf.State.ABSENT
+                || player.mode != Player.Mode.ALIVE) {
             return false;
         }
         return appear();
@@ -1067,6 +1082,10 @@ public final class Simulation {
     private void tickWulf() {
         WulfRules hunt = eco.wulf();
         if (!hunt.enabled()) {
+            return;
+        }
+        if (!hunt.roaming()) {
+            prowl();
             return;
         }
         WulfData.Pursuit pursuit = hunt.data().pursuit();
@@ -1129,6 +1148,128 @@ public final class Simulation {
                 stepOut(pursuit);
             }
         }
+    }
+
+    // ---------------------------------------------------------------- the original's Wulf (§13.8)
+
+    /** Where the original's actor table puts it ({@code $AC77}): its room, its spot, its heading. */
+    private void placeProwler() {
+        WulfData.Patrol p = eco.wulf().data().patrol();
+        RoomAddress start = eco.wulf().patrolRoom();
+        Wulf w = wulf;
+        w.state = Wulf.State.PROWLING;
+        w.at = start;
+        w.speedFp = p.speedFp();
+        w.latch = Wulf.Latch.FREE;
+        w.body.xFp = Fixed.fp(start.col() * ROOM_W_PX + p.xPx());
+        w.body.yFp = Fixed.fp(start.row() * ROOM_H_PX + p.yPx());
+        head(w, p.heading());
+    }
+
+    /**
+     * One tick of the original's Wulf ({@code $A858}, {@code $A8F5}, {@code $A964}). It runs
+     * whether or not the player is in its room, along its row only, wrapping from one end of
+     * the map to the other; it turns towards the player once as they come onto its row, and a
+     * sabre held towards it as it comes makes it sit.
+     */
+    private void prowl() {
+        Wulf w = wulf;
+        WulfData.Patrol p = eco.wulf().data().patrol();
+        if (w.state == Wulf.State.PROWLING) {
+            if (room.row() != w.at.row()) {
+                w.latch = Wulf.Latch.FREE;
+            } else if (w.latch == Wulf.Latch.FREE) {
+                // $A922: by room along the row, or within the room by which side the player is on.
+                w.latch = Wulf.Latch.STEERED;
+                w.speedFp = p.speedFp();
+                head(w, room.col() != w.at.col() ? Integer.signum(room.col() - w.at.col())
+                        : context.playerCentreXPx() < w.body.centreXPx() ? -1 : 1);
+            }
+            if (w.here && w.latch != Wulf.Latch.SPENT && heldOff(w)) {
+                w.state = Wulf.State.SITTING;   // $A8B2, $A8E4
+                w.stateTick = 0;
+                w.body.moveTicks = 0;
+                sounds.play(SFX_WULF_HOWL);
+            }
+        }
+        switch (w.state) {
+            case SITTING -> {
+                // $A8F5: it sits for as long as the sabre is held towards it, then a while longer.
+                if (w.here && !sabre.isEmpty() && player.facing.dx() == -w.heading) {
+                    w.stateTick = 0;
+                } else if (++w.stateTick >= p.sitReleaseTicks()) {
+                    w.state = Wulf.State.RISING;
+                    w.stateTick = 0;
+                }
+            }
+            case RISING -> {
+                stepProwler(w);
+                if (++w.stateTick >= p.riseTicks()) {
+                    // $A964: up and away, faster, and done with turning and sitting until the player leaves the row.
+                    w.state = Wulf.State.PROWLING;
+                    w.stateTick = 0;
+                    w.latch = Wulf.Latch.SPENT;
+                    w.speedFp = p.risenSpeedFp();
+                }
+            }
+            default -> stepProwler(w);
+        }
+        noticeProwler();
+    }
+
+    /** While the player is dying or down, it runs on — but nobody is fighting it, and it cannot sit. */
+    private void prowlWhileDown() {
+        if (eco.wulf().enabled() && !eco.wulf().roaming()) {
+            prowl();
+        }
+    }
+
+    /**
+     * {@code $A8B2}/{@code $A8E4}: the player is fighting, the Wulf is coming at him, and he
+     * faces it. How near does not matter.
+     */
+    private boolean heldOff(Wulf w) {
+        if (sabre.isEmpty() || player.facing.dx() != -w.heading) {
+            return false;
+        }
+        int gap = context.playerCentreXPx() - w.body.centreXPx();
+        return w.heading < 0 ? gap < 0 : gap >= 0;
+    }
+
+    /** Along the row: blocked, it turns ({@code $AAED}, {@code $ADB3}); past an end of the map, it comes in at the other. */
+    private void stepProwler(Wulf w) {
+        Creature body = w.body;
+        CreatureData.Box b = body.species().collisionBox();
+        int x = Collision.resolve(rowWorld, b.x(), b.y(), b.w(), b.h(), body.xFp, body.yFp, w.heading * w.speedFp, true);
+        if (x == body.xFp) {
+            head(w, -w.heading);
+            body.moveTicks = 0;
+            return;
+        }
+        int width = Fixed.fp(RoomAddress.GRID_W * ROOM_W_PX);
+        body.xFp = Math.floorMod(x, width);
+        body.moveTicks++;
+        int col = Math.floorDiv(Fixed.px(body.xFp), ROOM_W_PX);
+        if (col != w.at.col()) {
+            w.at = new RoomAddress(col, w.at.row());
+        }
+    }
+
+    private void head(Wulf w, int heading) {
+        w.heading = heading;
+        w.body.direction(heading, 0);
+    }
+
+    /** Whether it is in the player's room — seen, heard and touchable — and the growl that says so (§13.6). */
+    private void noticeProwler() {
+        Wulf w = wulf;
+        boolean here = w.at.equals(room);
+        boolean heard = here && player.mode == Player.Mode.ALIVE;
+        if (heard != wulfHeard) {
+            sounds.loop(SFX_WULF_GROWL, heard);
+            wulfHeard = heard;
+        }
+        w.here = here;
     }
 
     /** The appearance roll (§13.3): on entering a room, and every {@code rollEveryTicks} while in one. */
@@ -1258,6 +1399,10 @@ public final class Simulation {
         if (!hunt.enabled()) {
             return;
         }
+        if (!hunt.roaming()) {
+            noticeProwler();
+            return;
+        }
         Wulf w = wulf;
         w.ticksInRoom = 0;
         switch (w.state) {
@@ -1351,8 +1496,8 @@ public final class Simulation {
     private void parryWulf() {
         Wulf w = wulf;
         Creature body = w.body;
-        if (!w.touchable() || body.lastHitSwing == swingSerial) {
-            return;
+        if (!eco.wulf().roaming() || !w.touchable() || body.lastHitSwing == swingSerial) {
+            return;   // §13.8: the original's Wulf is not pushed by the blade; held off, it sits instead
         }
         CreatureData.Box b = body.species().collisionBox();
         if (!overlaps(sabre, Fixed.px(body.xFp) + b.x(), Fixed.px(body.yFp) + b.y(), b.w(), b.h())) {
@@ -1840,6 +1985,11 @@ public final class Simulation {
         h = mix(h, w.parries);
         h = mix(h, w.evasions);
         h = mix(h, w.followedFlips);
+        h = mix(h, w.at.index());
+        h = mix(h, w.heading);
+        h = mix(h, w.speedFp);
+        h = mix(h, w.latch.ordinal());
+        h = mix(h, w.here ? 1 : 0);
         h = mix(h, wb.xFp);
         h = mix(h, wb.yFp);
         h = mix(h, ((long) wb.dirX << 32) ^ (wb.dirY & 0xFFFFFFFFL));

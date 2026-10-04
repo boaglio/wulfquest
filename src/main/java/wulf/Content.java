@@ -147,6 +147,24 @@ public record Content(
                 defaultSettings);
     }
 
+    /** The same content with one feature flag set (§1.1): for tests and tools that need a [NEW] rule on or off. */
+    public Content withFeature(String name, boolean on) {
+        return withFeatures(java.util.Map.of(name, on));
+    }
+
+    /** The same content with these feature flags laid over {@code game.json}'s; an unknown name is refused. */
+    public Content withFeatures(java.util.Map<String, Boolean> flags) {
+        if (flags.isEmpty()) {
+            return this;
+        }
+        for (String name : flags.keySet()) {
+            game.feature(name);
+        }
+        return new Content(db, game.withFeatures(flags), display, palette, font, input, map, sprites,
+                scenery, rooms, player, creatures, roomEntities, loot, biomes, wulf, guardians, landmarks, treasures, orchids,
+                shell, sfx, music, defaultScores, defaultSettings);
+    }
+
     /** The living jungle: creatures, how rooms are populated, what exploring scores, the Wulf, and the quest. */
     public Ecosystem ecosystem() {
         RoomPopulator jungle = new BiomePopulator(creatures, roomEntities, biomes, game.difficulty());
@@ -197,8 +215,14 @@ public record Content(
                 places[1]);
     }
 
-    /** The Wulf's rules, with its forbidden rooms resolved (§13.3): the start room, the lairs, the way out. */
+    /**
+     * The Wulf's rules: the original's prowler (§13.8), or with {@code features.roamingWulf} the roaming
+     * one [NEW], its forbidden rooms resolved (§13.3): the start room, the lairs, the way out.
+     */
     public WulfRules wulfRules() {
+        if (!game.feature("roamingWulf")) {
+            return WulfRules.patrol(wulf);
+        }
         Set<RoomAddress> never = new LinkedHashSet<>();
         for (String where : wulf.appearance().neverInRooms()) {
             switch (where) {

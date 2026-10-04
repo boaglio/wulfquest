@@ -23,6 +23,13 @@ The builds are not signed yet, so Windows warns on the first launch: click
 
 ## Status
 
+**The original's Wulf.** Read from the original's disassembly: there is one
+Wulf, and it prowls the bottom row of the jungle all game, faster than you. A
+sabre held towards it as it comes makes it sit — for a while. The Wulf that
+appears anywhere and follows you is still there as an option
+(`features.roamingWulf` in `data/config/game.json`). Lives work as they did
+then too: five in reserve, and none for score.
+
 **M10 — the true map.** The jungle is now the original's own layout, checked
 against publicly documented data: the room grid had been mis-numbered, and
 every room had two rows at the top it never had. Picking up a quarter of the
@@ -60,7 +67,7 @@ lives in [AGENTS.md](AGENTS.md) §24.
 ./run.sh                   # play, starting in 8,10
 ./run.sh --seed 42         # replay the same creatures in every room
 ./run.sh --room 3,4        # start somewhere else
-./run.sh --dev             # K kills Vale, N shows collision, H calls the Wulf
+./run.sh --dev             # K kills Vale, N shows collision, H calls the roaming Wulf
 ./run.sh --record run.json # save the first game as a replay
 ./run.sh --debug-effect haste  # start under an orchid's effect: haste, torpor,
                                # reversal, immunity, delirium, stillness

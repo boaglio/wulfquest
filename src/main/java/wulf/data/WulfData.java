@@ -17,6 +17,7 @@ public record WulfData(
         Appearance appearance,
         Pursuit pursuit,
         Parry parry,
+        Patrol patrol,
         Audio audio) {
 
     /** {@code neverInRooms} names: the start room now; lairs and the exit arrive with the quest (M6). */
@@ -28,7 +29,8 @@ public record WulfData(
     public static final WulfData NONE = new WulfData(1, "none", "wulf", "The Wulf", "creature_wulf",
             new CreatureData.Size(1, 1), new CreatureData.Box(0, 0, 1, 1), new CreatureData.Speed(0, 0),
             new Appearance(0, 0, 0, 0, 1, 0, 0, List.of(), 1, 1, 0, 0),
-            new Pursuit(0, 0, 1, 1, 1, 0), new Parry(0), new Audio("none", "none", "none", 1));
+            new Pursuit(0, 0, 1, 1, 1, 0), new Parry(0), new Patrol("none", "0,0", 0, 0, -1, 1, 1, 1, 1),
+            new Audio("none", "none", "none", 1));
 
     /**
      * §13.3. Chances are out of 10 000 per roll.
@@ -66,6 +68,21 @@ public record WulfData(
 
     /** §13.5. The push and the stun live with the sabre, in {@code player.json}. */
     public record Parry(int borderFlashTicks) {
+    }
+
+    /**
+     * §13.8: the original's Wulf, one of them, prowling a row of the map.
+     *
+     * @param room         where it starts, "col,row"; it never leaves that row
+     * @param xPx          its feet in that room at the start
+     * @param heading      -1 west, 1 east, as it starts
+     * @param speedFp      along the row, per tick
+     * @param risenSpeedFp after it has sat and got up again, until it is next steered
+     * @param sitReleaseTicks how long it sits on once the player stops facing it
+     * @param riseTicks    getting up: moving again, still at the old speed
+     */
+    public record Patrol(String fidelity, String room, int xPx, int yPx, int heading, int speedFp, int risenSpeedFp,
+                         int sitReleaseTicks, int riseTicks) {
     }
 
     /** §13.6. Sound names for M8's synthesiser; nothing plays them yet. */
