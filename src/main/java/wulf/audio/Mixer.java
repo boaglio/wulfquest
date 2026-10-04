@@ -9,6 +9,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.DataLine;
 import javax.sound.sampled.LineUnavailableException;
 import javax.sound.sampled.SourceDataLine;
 import wulf.data.MusicData;
@@ -143,7 +144,7 @@ public final class Mixer implements SoundSink, AutoCloseable {
         AudioFormat format = new AudioFormat(data.sampleRateHz(), 16, 1, true, false);
         SourceDataLine line;
         try {
-            line = AudioSystem.getSourceDataLine(format);
+            line = openLine(format);
             line.open(format, data.bufferFrames() * BYTES_PER_SAMPLE * 2);
             line.start();
         } catch (LineUnavailableException | IllegalArgumentException e) {
@@ -166,6 +167,40 @@ public final class Mixer implements SoundSink, AutoCloseable {
             line.stop();
             line.close();
         }
+    }
+
+    /**
+     * The output line (§18.1). Where Java lists a device named {@code [default]} — on Linux,
+     * ALSA's default, which goes through PipeWire or PulseAudio to the speakers the user
+     * picked — that one, by name. Left to choose, Java could hand back a line that opened
+     * and played without error and was never heard (found on a Linux desktop with four
+     * sound cards, 2026-10-04). Elsewhere, Java's own choice.
+     */
+    private static SourceDataLine openLine(AudioFormat format) throws LineUnavailableException {
+        DataLine.Info info = new DataLine.Info(SourceDataLine.class, format);
+        javax.sound.sampled.Mixer.Info[] mixers = AudioSystem.getMixerInfo();
+        String[] names = new String[mixers.length];
+        for (int i = 0; i < mixers.length; i++) {
+            names[i] = mixers[i].getName();
+        }
+        int pick = preferred(names);
+        if (pick >= 0) {
+            javax.sound.sampled.Mixer m = AudioSystem.getMixer(mixers[pick]);
+            if (m.isLineSupported(info)) {
+                return (SourceDataLine) m.getLine(info);
+            }
+        }
+        return AudioSystem.getSourceDataLine(format);
+    }
+
+    /** Which of these devices to ask first: the one named {@code [default]}, or -1 for none. */
+    static int preferred(String[] mixerNames) {
+        for (int i = 0; i < mixerNames.length; i++) {
+            if (mixerNames[i].contains("[default]")) {
+                return i;
+            }
+        }
+        return -1;
     }
 
     // ---------------------------------------------------------------- mixing

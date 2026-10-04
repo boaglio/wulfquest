@@ -43,6 +43,15 @@ class MixerTest {
     }
 
     @Test
+    void theDefaultDeviceIsAskedFirst() {
+        // §18.1: on Linux, ALSA's default goes through PipeWire to the speakers; a card opened directly may not.
+        String[] linux = {"Audigy2 [plughw:0,0]", "alsa_playback.java [default]", "headset [plughw:2,0]"};
+        assertThat(Mixer.preferred(linux)).isEqualTo(1);
+        String[] windows = {"Primary Sound Driver", "Speakers (Realtek(R) Audio)"};
+        assertThat(Mixer.preferred(windows)).as("no such device: Java chooses").isEqualTo(-1);
+    }
+
+    @Test
     void aSoundIsSilentUntilItIsAskedFor() {
         Mixer m = mixer();
         assertThat(silent(block(m))).isTrue();

@@ -2361,6 +2361,14 @@ until taken (§14.8). `MapScreen`.
 All sound is generated in-process. No files. A single mixer thread feeds a
 `SourceDataLine` at `44100 Hz, 16-bit, mono`, with a 2048-frame buffer.
 
+**The line comes from the device named `[default]` when Java lists one**
+(`Mixer.openLine`), else from Java's own choice. On Linux that is ALSA's
+default, which goes through PipeWire or PulseAudio to the speakers the user
+picked. Left to choose, Java handed back a line that opened, played without an
+error, and was never heard — on a desktop with four sound cards, where the
+Windows build was fine (2026-10-04). Only `[default]` played reliably; a
+second line opened in the same run often did not, so the game opens one.
+
 `audio/BeeperSynth.java` generates **square waves with hard edges** — the
 period's authentic sound — plus a simple LFSR noise source for impacts. No
 reverb, no filters, no envelopes beyond linear attack/decay. Two channels
