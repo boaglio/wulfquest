@@ -13,3 +13,9 @@ unidentified developer, because these builds are not signed yet: at "Windows
 protected your PC" click **More info**, then **Run anyway**.
 
 Hi-scores and settings are kept per user and survive updates.
+
+**Quick save** is off by default, since the original had none. To turn it on,
+add `"features": { "quickSave": true }` to `settings.json` in your user folder
+(see the README). Then F5 saves and F9 loads, during play or from the title
+screen. A game you have loaded into gets no hi-score. A save may not load in a
+later version: the game will say so.
