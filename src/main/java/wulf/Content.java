@@ -165,6 +165,15 @@ public record Content(
                 shell, sfx, music, defaultScores, defaultSettings);
     }
 
+    /**
+     * The orchids that grow (§15): the original's five, or with {@code features.inventedOrchids}
+     * our own six [NEW]. Everything — the jungle, the painter, the panel — reads them from here.
+     */
+    @Override
+    public OrchidData orchids() {
+        return game.feature("inventedOrchids") ? orchids.invented() : orchids;
+    }
+
     /** The living jungle: creatures, how rooms are populated, what exploring scores, the Wulf, and the quest. */
     public Ecosystem ecosystem() {
         RoomPopulator jungle = new BiomePopulator(creatures, roomEntities, biomes, game.difficulty());
@@ -176,7 +185,7 @@ public record Content(
                 jungle.populate(spawner, room, seed, visit);
             }
         };
-        return new Ecosystem(creatures, populator, loot.event("roomFirstVisit"), wulfRules(), questRules(), orchids);
+        return new Ecosystem(creatures, populator, loot.event("roomFirstVisit"), wulfRules(), questRules(), orchids());
     }
 
     /** The quest's rules: each lair's guardian as a species, the Keeper, and the numbers that pace and score it. */

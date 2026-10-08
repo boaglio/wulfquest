@@ -67,6 +67,7 @@ public final class GamePainter {
         for (int i = 0; i < effectColours.length; i++) {
             effectColours[i] = palette.indexOf(OrchidValidator.bright(c.orchids().orchids().get(i).colour()));
         }
+        vale.tints(effectColours);
         this.border = palette.indexOf(display.border().idleColour());
         this.alarm = palette.indexOf("brightRed");
         this.parry = palette.indexOf("brightWhite");

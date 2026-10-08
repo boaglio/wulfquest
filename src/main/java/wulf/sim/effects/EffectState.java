@@ -15,6 +15,7 @@ public final class EffectState {
     private int remainingTicks;
     private int totalTicks;
     private int scaleFp = 256;
+    private boolean untouchable;
     private int deliriumTimer;
     private int deliriumHold;
     private int deliriumDx;
@@ -42,9 +43,19 @@ public final class EffectState {
         return kind != EffectKind.NONE;
     }
 
-    /** Takes a bloom: whatever was in the blood is gone. */
+    /** §15.2: nothing can hurt him while it lasts. */
+    public boolean untouchable() {
+        return untouchable;
+    }
+
+    /** Takes a bloom: whatever was in the blood is gone. The cure leaves nothing in its place. */
     public void take(int orchidIndex, OrchidData.Orchid taken) {
+        if (EffectKind.of(taken.effect()) == EffectKind.CURE) {
+            clear();
+            return;
+        }
         kind = EffectKind.of(taken.effect());
+        untouchable = taken.untouchable();
         orchid = orchidIndex;
         remainingTicks = taken.ticks();
         totalTicks = taken.ticks();
@@ -61,6 +72,7 @@ public final class EffectState {
         remainingTicks = 0;
         totalTicks = 0;
         scaleFp = 256;
+        untouchable = false;
         deliriumHold = 0;
     }
 
@@ -118,6 +130,6 @@ public final class EffectState {
     public long hashValue() {
         return ((long) kind.ordinal() << 48) ^ ((long) orchid << 40) ^ ((long) remainingTicks << 24)
                 ^ ((long) totalTicks << 12) ^ ((long) deliriumTimer << 6) ^ (deliriumHold * 9L)
-                ^ ((deliriumDx + 1) * 3L) ^ (deliriumDy + 1L) ^ scaleFp;
+                ^ ((deliriumDx + 1) * 3L) ^ (deliriumDy + 1L) ^ scaleFp ^ (untouchable ? 1L << 62 : 0L);
     }
 }

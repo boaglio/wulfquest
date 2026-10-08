@@ -28,9 +28,9 @@ class OrchidValidationTest {
         OrchidData o = c.orchids();
         List<OrchidData.Orchid> all = new ArrayList<>(o.orchids());
         OrchidData.Orchid f = all.get(0);
-        all.set(0, new OrchidData.Orchid(colour, f.weight(), effect, f.ticks(), speedScaleFp, f.score()));
-        return new OrchidData(o.schemaVersion(), o.fidelity(), o.sprite(), o.cycle(), o.anchors(), all, o.delirium(),
-                o.immunity());
+        all.set(0, new OrchidData.Orchid(colour, f.weight(), effect, f.ticks(), speedScaleFp, f.score(), f.untouchable()));
+        return new OrchidData(o.schemaVersion(), o.fidelity(), o.sprite(), o.cycle(), o.anchors(), all,
+                o.inventedOrchids(), o.tint(), o.delirium(), o.immunity());
     }
 
     private static DataException error(OrchidData o, Map<String, Set<String>> f) {
@@ -40,7 +40,12 @@ class OrchidValidationTest {
     @Test
     void theShippedOrchidsAreValid() {
         OrchidValidator.check(c.orchids(), c.palette(), frames);
-        assertThat(c.orchids().orchids()).as("all six colours").hasSize(6);
+        // §15.2: the original's five; §15.4: our own six, behind features.inventedOrchids.
+        assertThat(c.orchids().orchids()).extracting(OrchidData.Orchid::colour)
+                .containsExactly("red", "cyan", "magenta", "yellow", "white");
+        assertThat(c.orchids().inventedOrchids()).as("ours").hasSize(6);
+        assertThat(c.withFeature("inventedOrchids", true).orchids().orchids()).as("under the flag")
+                .isEqualTo(c.orchids().inventedOrchids());
     }
 
     @Test
@@ -71,9 +76,9 @@ class OrchidValidationTest {
         List<OrchidData.Orchid> all = new ArrayList<>(o.orchids());
         OrchidData.Orchid second = all.get(1);
         all.set(1, new OrchidData.Orchid(second.colour(), second.weight(), all.get(0).effect(), second.ticks(),
-                second.speedScaleFp(), second.score()));
+                second.speedScaleFp(), second.score(), second.untouchable()));
         DataException e = error(new OrchidData(o.schemaVersion(), o.fidelity(), o.sprite(), o.cycle(), o.anchors(), all,
-                o.delirium(), o.immunity()), frames);
+                o.inventedOrchids(), o.tint(), o.delirium(), o.immunity()), frames);
         assertThat(e.pointer()).isEqualTo("/orchids/1/effect");
     }
 }

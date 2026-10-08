@@ -148,6 +148,62 @@ class PlayerPainterTest {
     }
 
     @Test
+    void aFlowersColourKeepsHisOutlineAndTwoShades() {
+        // §15.2: black stays black; bright pixels take the flower's bright shade, plain ones its plain twin.
+        Sprite vale = new SpriteBank(new SpriteRepository(DB)).get(RULES.sprite());
+        Framebuffer plainFb = new Framebuffer(32, 32);
+        Framebuffer inkedFb = new Framebuffer(32, 32);
+        plainFb.clear(3);
+        inkedFb.clear(3);
+        vale.blit(plainFb, "side_walk0", 16, 28);
+        vale.blitInked(inkedFb, "side_walk0", 16, 28, 2, 10, 0);
+        int outline = 0;
+        for (int y = 0; y < 32; y++) {
+            for (int x = 0; x < 32; x++) {
+                int was = plainFb.get(x, y);
+                int now = inkedFb.get(x, y);
+                if (was == 3) {
+                    assertThat(now).isEqualTo(3);
+                } else if (was == 0) {
+                    assertThat(now).as("the outline").isZero();
+                    outline++;
+                } else {
+                    assertThat(now).isEqualTo(was >= 9 ? 10 : 2);
+                }
+            }
+        }
+        assertThat(outline).isPositive();
+    }
+
+    @Test
+    void knockedDownMidSwingHeSitsWithNoBlade() {
+        // Found playing --debug-effect knockdown: the sitting frame has no hand, so no blade may be drawn.
+        wulf.Content c = wulf.Content.load(Path.of("data"));
+        Simulation s = Simulation.startingIn(c.player(), new WorldGrid(c.rooms()), 0, c.map().startRoom(),
+                c.ecosystem(), 1L);
+        s.tick(FIRE);
+        assertThat(s.sabre().isEmpty()).as("the blade is out").isFalse();
+        assertThat(s.giveEffect("KNOCKDOWN")).isTrue();
+        DisplayConfig display = DB.load("config/display", DisplayConfig.class);
+        PlayerPainter painter = new PlayerPainter(display, new SpriteBank(new SpriteRepository(DB)), RULES,
+                DB.load("art/palette", Palette.class));
+        Framebuffer fb = new Framebuffer(display.canvas().w(), display.canvas().h());
+        painter.paint(fb, s);
+        s.tick(FIRE);
+        assertThat(s.sabre().isEmpty()).as("he cannot fight sitting down").isTrue();
+        painter.paint(fb, s);
+    }
+
+    @Test
+    void knockedDownHeSitsFacingHisWay() {
+        Simulation s = sim();
+        s.tick(RIGHT);
+        assertThat(PlayerPainter.sitting(s.player())).isEqualTo("side_sit");
+        s.tick(InputState.of(-1, 0, false, false));
+        assertThat(PlayerPainter.sitting(s.player())).isEqualTo("side_sit_l");
+    }
+
+    @Test
     void theBladeIsDrawnFromTheHandNotFromTheFeet() {
         DisplayConfig display = DB.load("config/display", DisplayConfig.class);
         Palette palette = DB.load("art/palette", Palette.class);

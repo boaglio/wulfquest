@@ -31,11 +31,22 @@ public final class OrchidValidator {
         if (!frames.contains("sprout")) {
             throw new DataException(FILE, "/sprite", "names a sprite with no 'sprout' frame");
         }
+        checkList(orchids.orchids(), "/orchids/", orchids.sprite(), frames, palette);
+        checkList(orchids.inventedOrchids(), "/inventedOrchids/", orchids.sprite(), frames, palette);
+        OrchidData.Anchors a = orchids.anchors();
+        if (a.perRoom() > 0 && a.insetPx() * 2 >= 176) {
+            throw new DataException(FILE, "/anchors/insetPx", "is " + a.insetPx() + ", which leaves no room to grow in");
+        }
+    }
+
+    /** One garden's flowers: colours and effects each once, both halves of each colour in the palette, every frame drawn. */
+    private static void checkList(java.util.List<OrchidData.Orchid> list, String path, String sprite, Set<String> frames,
+                                  Palette palette) {
         Set<String> colours = new HashSet<>();
         Set<String> effects = new HashSet<>();
-        for (int i = 0; i < orchids.orchids().size(); i++) {
-            OrchidData.Orchid o = orchids.orchids().get(i);
-            String at = "/orchids/" + i;
+        for (int i = 0; i < list.size(); i++) {
+            OrchidData.Orchid o = list.get(i);
+            String at = path + i;
             if (!colours.add(o.colour())) {
                 throw new DataException(FILE, at + "/colour", "repeats '" + o.colour() + "'");
             }
@@ -48,17 +59,13 @@ public final class OrchidValidator {
             for (String frame : frames(o.colour())) {
                 if (!frames.contains(frame)) {
                     throw new DataException(FILE, at + "/colour",
-                            "is '" + o.colour() + "', but sprite '" + orchids.sprite() + "' has no frame '" + frame + "'");
+                            "is '" + o.colour() + "', but sprite '" + sprite + "' has no frame '" + frame + "'");
                 }
             }
             if ((o.effect().equals("HASTE") || o.effect().equals("TORPOR")) && o.speedScaleFp() == 256) {
                 throw new DataException(FILE, at + "/speedScaleFp",
                         "is 256, which leaves " + o.effect() + " doing nothing");
             }
-        }
-        OrchidData.Anchors a = orchids.anchors();
-        if (a.perRoom() > 0 && a.insetPx() * 2 >= 176) {
-            throw new DataException(FILE, "/anchors/insetPx", "is " + a.insetPx() + ", which leaves no room to grow in");
         }
     }
 

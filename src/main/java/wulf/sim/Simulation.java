@@ -260,8 +260,13 @@ public final class Simulation {
         if (player.invulnTicks > 0) {
             player.invulnTicks--;
         }
-        updateSwing(in);
-        move(in);
+        // §15.2: knocked down by the yellow flower, he neither walks nor fights until it wears off.
+        InputState obeyed = effect.kind().holdsStill() ? InputState.NONE : in;
+        if (effect.kind().holdsStill()) {
+            player.swingTick = -1;   // the blade too, however he came to be sitting (--debug-effect, mid-swing)
+        }
+        updateSwing(obeyed);
+        move(obeyed);
         if (updateRoom()) {
             sabre = PixelRect.NONE;
             return;   // the new room's creatures start moving after the hitch
@@ -674,7 +679,7 @@ public final class Simulation {
         int px = Fixed.px(player.xFp) + pb.x();
         int py = Fixed.px(player.yFp) + pb.y();
         // §15.2: the green flower stops contact killing you — the Keeper still bars the arch.
-        boolean immune = effect.kind().blocksLethalContact();
+        boolean immune = effect.kind().blocksLethalContact() || effect.untouchable();
         if (quest.inLair() && !immune) {
             Creature g = quest.guardian;
             CreatureData.Box gb = g.species().collisionBox();
@@ -768,8 +773,8 @@ public final class Simulation {
     private void tickOrchids() {
         // Age first, take second: a bloom picked this tick keeps every tick it promised.
         effect.tick();
-        if (roomOrchids.length == 0) {
-            return;
+        if (roomOrchids.length == 0 || god) {
+            return;   // §17.6: --god walks through the flowers; none of them takes him
         }
         OrchidData data = eco.orchids();
         PlayerData.Box pb = rules.collisionBox();
@@ -790,6 +795,11 @@ public final class Simulation {
             }
             int which = orchids.orchidAt(runSeed, room, i, start);
             effect.take(which, data.orchid(which));
+            if (effect.kind().holdsStill()) {
+                player.vx = 0;   // $AE8F: down at once, no glide
+                player.vy = 0;
+                player.swingTick = -1;
+            }
             addScore(data.orchid(which).score());
             orchidsByColour.merge(data.orchid(which).colour(), 1, Integer::sum);
             sounds.play(SFX_ORCHID_PICK);
@@ -1838,6 +1848,22 @@ public final class Simulation {
 
     public Quest quest() {
         return quest;
+    }
+
+    /**
+     * §15.2: the flower's colour Vale is drawn in this tick — an index into the orchids — or -1
+     * for himself. Untouchable, he wears it; for the last {@code tint.warnTicks} he flashes back
+     * to himself every {@code tint.flashTicks} ({@code $AF7A}).
+     */
+    public int effectTint() {
+        if (!effect.untouchable()) {
+            return -1;
+        }
+        OrchidData.Tint t = eco.orchids().tint();
+        if (effect.remainingTicks() <= t.warnTicks() && (effect.remainingTicks() / t.flashTicks()) % 2 == 0) {
+            return -1;
+        }
+        return effect.orchid();
     }
 
     /** Whether the player's sprite is flashing white this tick: immunity (§15.2). */

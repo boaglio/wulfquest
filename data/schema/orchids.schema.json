@@ -4,7 +4,7 @@
   "title": "entities/orchids.json — AGENTS.md §15",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schemaVersion", "fidelity", "sprite", "cycle", "anchors", "orchids", "delirium", "immunity"],
+  "required": ["schemaVersion", "fidelity", "sprite", "cycle", "anchors", "orchids", "inventedOrchids", "tint", "delirium", "immunity"],
   "properties": {
     "schemaVersion": { "type": "integer", "minimum": 1 },
     "fidelity": { "enum": ["recon", "canon"] },
@@ -32,18 +32,19 @@
       }
     },
     "orchids": {
-      "type": "array", "minItems": 1,
-      "items": {
-        "type": "object", "additionalProperties": false,
-        "required": ["colour", "weight", "effect", "ticks", "speedScaleFp", "score"],
-        "properties": {
-          "colour": { "type": "string", "pattern": "^[a-zA-Z]+$" },
-          "weight": { "type": "integer", "minimum": 1 },
-          "effect": { "enum": ["HASTE", "TORPOR", "REVERSAL", "IMMUNITY", "DELIRIUM", "STILLNESS"] },
-          "ticks": { "type": "integer", "minimum": 1 },
-          "speedScaleFp": { "type": "integer", "minimum": 1, "maximum": 2048 },
-          "score": { "type": "integer", "minimum": 0 }
-        }
+      "description": "AGENTS.md §15.2 [CANON]: the original's five colours",
+      "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/orchid" }
+    },
+    "inventedOrchids": {
+      "description": "AGENTS.md §15.4 [NEW], features.inventedOrchids: our own six",
+      "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/orchid" }
+    },
+    "tint": {
+      "description": "§15.2: an untouchable Vale is drawn in the flower's colour, and flashes for its last warnTicks",
+      "type": "object", "additionalProperties": false, "required": ["warnTicks", "flashTicks"],
+      "properties": {
+        "warnTicks": { "type": "integer", "minimum": 0 },
+        "flashTicks": { "type": "integer", "minimum": 1 }
       }
     },
     "delirium": {
@@ -58,6 +59,21 @@
     "immunity": {
       "type": "object", "additionalProperties": false, "required": ["flashPeriodTicks"],
       "properties": { "flashPeriodTicks": { "type": "integer", "minimum": 1 } }
+    }
+  },
+  "$defs": {
+    "orchid": {
+      "type": "object", "additionalProperties": false,
+      "required": ["colour", "weight", "effect", "ticks", "speedScaleFp", "score", "untouchable"],
+      "properties": {
+        "colour": { "type": "string", "pattern": "^[a-zA-Z]+$" },
+        "weight": { "type": "integer", "minimum": 1 },
+        "effect": { "enum": ["HASTE", "TORPOR", "REVERSAL", "IMMUNITY", "DELIRIUM", "STILLNESS", "KNOCKDOWN", "CURE"] },
+        "ticks": { "type": "integer", "minimum": 1 },
+        "speedScaleFp": { "type": "integer", "minimum": 1, "maximum": 2048 },
+        "score": { "type": "integer", "minimum": 0 },
+        "untouchable": { "type": "boolean" }
+      }
     }
   }
 }

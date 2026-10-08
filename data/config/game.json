@@ -10,6 +10,7 @@
     "animatedWater": false,
     "distanceDrivenGait": false,
     "roamingWulf": false,
+    "inventedOrchids": false,
     "quickSave": false,
     "bonusRooms": false,
     "pauseMap": false,

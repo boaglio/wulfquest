@@ -30,7 +30,8 @@ class OrchidTest {
 
     @BeforeAll
     static void load() {
-        content = Content.load(Path.of("data"));
+        // Our own six (§15.4, [NEW]); the original's five are OriginalOrchidTest's.
+        content = Content.load(Path.of("data")).withFeature("inventedOrchids", true);
         data = content.orchids();
         field = new OrchidField(data);
     }
@@ -40,7 +41,7 @@ class OrchidTest {
         return new OrchidData(data.schemaVersion(), data.fidelity(), data.sprite(), data.cycle(),
                 new OrchidData.Anchors(0, data.anchors().minSpacingPx(), data.anchors().attempts(),
                         data.anchors().insetPx()),
-                data.orchids(), data.delirium(), data.immunity());
+                data.orchids(), data.inventedOrchids(), data.tint(), data.delirium(), data.immunity());
     }
 
     private static Simulation sim(CollisionWorld world, RoomAddress room, int localX, int localY, long seed) {

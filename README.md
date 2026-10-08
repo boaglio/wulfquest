@@ -2,8 +2,8 @@
 
 A Java game: you are a ranger, alone in a 256-room jungle, looking for four
 pieces of a broken amulet. Large animals guard them. Smaller things want to
-kill you on the way. Flowers grow that will make you fast, or slow, or
-invert your sense of direction. And somewhere out there is the Wulf, which
+kill you on the way. Flowers grow that make you untouchable, at a price: fast,
+or slow, or with your sense of direction reversed, or flat on your back. And somewhere out there is the Wulf, which
 cannot be killed and does not lose interest.
 
 A clean-room homage to the flip-screen jungle mazes of 1984, built from
@@ -28,7 +28,10 @@ Wulf, and it prowls the bottom row of the jungle all game, faster than you. A
 sabre held towards it as it comes makes it sit — for a while. The Wulf that
 appears anywhere and follows you is still there as an option
 (`features.roamingWulf` in `data/config/game.json`). Lives work as they did
-then too: five in reserve, and none for score.
+then too: five in reserve, and none for score. And so do the orchids: red, cyan,
+magenta and yellow each make you untouchable while they last — slow, fast,
+reversed or knocked flat — and white cures you. Our own six flowers stay as an
+option too (`features.inventedOrchids`).
 
 **M10 — the true map.** The jungle is now the original's own layout, checked
 against publicly documented data: the room grid had been mis-numbered, and
@@ -59,7 +62,7 @@ howl when the Wulf arrives and a growl that stays until it is gone. There are
 three tunes, none of which plays in the jungle, where there is only the jungle.
 
 Everything before it is still in: the whole quest, the Wulf, thirteen kinds of
-creature, and six colours of orchid. `mvn -q package` gives you one jar you can
+creature, and the orchids. `mvn -q package` gives you one jar you can
 double-click, with the game, its data and its demo inside it. The full plan
 lives in [AGENTS.md](AGENTS.md) §24.
 
@@ -69,8 +72,8 @@ lives in [AGENTS.md](AGENTS.md) §24.
 ./run.sh --room 3,4        # start somewhere else
 ./run.sh --dev             # K kills Vale, N shows collision, H calls the roaming Wulf
 ./run.sh --record run.json # save the first game as a replay
-./run.sh --debug-effect haste  # start under an orchid's effect: haste, torpor,
-                               # reversal, immunity, delirium, stillness
+./run.sh --debug-effect haste  # start under an orchid's effect: torpor (red), haste
+                               # (cyan), reversal (magenta), knockdown (yellow)
 ./run.sh --no-audio        # silence for this run; your settings are not changed
 ./run.sh --lives 9         # practice: nine lives in reserve
 ./run.sh --infinite-lives  # practice: die as often as you like

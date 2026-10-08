@@ -2060,6 +2060,35 @@
         ".KWWKWCCCCCCWwwr",
         "..KK.KKKKKKKKKKK"
       ]
+    },
+    {
+      "id": "side_sit",
+      "rows": [
+        "................",
+        "................",
+        ".............K..",
+        "..K.........KYK.",
+        ".KYK.........K..",
+        "..K.............",
+        "......KKKK......",
+        ".....KYYYYK.....",
+        "....KYYYYYYK....",
+        "..KKKyyyyyyKKK..",
+        ".KYYYYYYYYYYYYK.",
+        "..KKKWWWWWKKKK..",
+        "....KWWWKWK.....",
+        "....KWWWWWWK....",
+        ".....KWWWWK.....",
+        ".....KCCCCK.....",
+        "....KCCCCCCK....",
+        "....KCCCCCcK....",
+        "....KCCCCCCK.KK.",
+        "....KCCCCCcCKrrK",
+        ".....KCCCCKKWrrK",
+        ".....KyyyywwwrrK",
+        "......KKwwwwwrrK",
+        "........KKKKKKK."
+      ]
     }
   ],
   "mirror": {
@@ -2137,6 +2166,10 @@
     },
     "side_swing2_walk3_l": {
       "from": "side_swing2_walk3",
+      "flipX": true
+    },
+    "side_sit_l": {
+      "from": "side_sit",
       "flipX": true
     }
   }

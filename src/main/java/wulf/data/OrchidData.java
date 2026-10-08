@@ -13,16 +13,25 @@ public record OrchidData(
         Cycle cycle,
         Anchors anchors,
         List<Orchid> orchids,
+        List<Orchid> inventedOrchids,
+        Tint tint,
         Delirium delirium,
         Immunity immunity) {
 
     public OrchidData {
         orchids = List.copyOf(orchids);
+        inventedOrchids = List.copyOf(inventedOrchids);
     }
 
     /** No orchids: a jungle that does not flower, for simulations without them. */
     public static final OrchidData NONE = new OrchidData(1, "none", "orchid", new Cycle(1, 1, 1, 1, 1, 1),
-            new Anchors(0, 0, 1, 0), List.of(), new Delirium(1, 1, 1), new Immunity(1));
+            new Anchors(0, 0, 1, 0), List.of(), List.of(), new Tint(0, 1), new Delirium(1, 1, 1), new Immunity(1));
+
+    /** §15.4, {@code features.inventedOrchids} [NEW]: the same garden, growing our own six instead. */
+    public OrchidData invented() {
+        return new OrchidData(schemaVersion, fidelity, sprite, cycle, anchors, inventedOrchids, inventedOrchids, tint,
+                delirium, immunity);
+    }
 
     /** §15.1. The stages in order; one full turn is their sum. */
     public record Cycle(int seedTicks, int sproutTicks, int budTicks, int bloomTicks, int wiltTicks, int swayTicks) {
@@ -41,8 +50,17 @@ public record OrchidData(
 
     /**
      * @param speedScaleFp what the effect does to the player's base speed, 8.8 — 256 leaves it alone
+     * @param untouchable  §15.2: while it lasts nothing can hurt him — the original's every colour but white
      */
-    public record Orchid(String colour, int weight, String effect, int ticks, int speedScaleFp, int score) {
+    public record Orchid(String colour, int weight, String effect, int ticks, int speedScaleFp, int score,
+                         boolean untouchable) {
+    }
+
+    /**
+     * §15.2: an untouchable Vale is drawn in his flower's colour; for its last {@code warnTicks}
+     * he flashes back to himself every {@code flashTicks}, as the original's does ({@code $AF7A}).
+     */
+    public record Tint(int warnTicks, int flashTicks) {
     }
 
     public record Delirium(int everyMinTicks, int everyRandomTicks, int holdTicks) {

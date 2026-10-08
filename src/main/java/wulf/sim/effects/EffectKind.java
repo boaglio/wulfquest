@@ -19,7 +19,11 @@ public enum EffectKind {
     /** Now and then your legs go their own way. */
     DELIRIUM,
     /** Every creature in the room stands still. The one unambiguously good flower. */
-    STILLNESS;
+    STILLNESS,
+    /** §15.2, the original's yellow: knocked down, sitting helpless until it wears off ({@code $AE8F}). */
+    KNOCKDOWN,
+    /** §15.2, the original's white: whatever was in the blood is gone, and nothing takes its place ({@code $A757}). */
+    CURE;
 
     /** @param scaleFp the orchid's {@code speedScaleFp}; 256 is unchanged */
     public int modifySpeedFp(int baseFp, int scaleFp) {
@@ -36,6 +40,11 @@ public enum EffectKind {
 
     public boolean blocksLethalContact() {
         return this == IMMUNITY;
+    }
+
+    /** Whether the player can neither move nor fight while it lasts. */
+    public boolean holdsStill() {
+        return this == KNOCKDOWN;
     }
 
     public boolean freezesCreatures() {

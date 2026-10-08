@@ -97,6 +97,30 @@ public final class Sprite {
         }
     }
 
+    /**
+     * Draws a frame in one hue but its outline: {@code keep} (black) stays; the bright half of
+     * the palette takes {@code bright} and the plain half {@code plain}, so the shapes inside
+     * the outline still read. A flower's colour on Vale (§15.2).
+     */
+    public void blitInked(Framebuffer fb, String frameId, int x, int y, int plain, int bright, int keep) {
+        byte[] px = frames.get(frameId);
+        if (px == null) {
+            throw new IllegalStateException("sprite '" + name + "' has no frame '" + frameId + "'");
+        }
+        int left = x - originX;
+        int top = y - originY;
+        for (int yy = 0; yy < h; yy++) {
+            int row = yy * w;
+            for (int xx = 0; xx < w; xx++) {
+                byte v = px[row + xx];
+                if (v >= 0) {
+                    // 9..15 are the bright half of the palette; 1..7 are the same hues, plain.
+                    fb.set(left + xx, top + yy, v == keep ? v : v >= 9 ? bright : plain);
+                }
+            }
+        }
+    }
+
     /** Draws a frame's silhouette in one colour: a hit flash. */
     public void blitTinted(Framebuffer fb, String frameId, int x, int y, int paletteIndex) {
         byte[] px = frames.get(frameId);

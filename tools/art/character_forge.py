@@ -12,6 +12,7 @@ Frames match the animations in data/entities/player.json:
   <view>_swing<p>_walk<g>                       the same three poses on each walking
                                                 gait, so a swing on the move never glides
   die0-3                                        the death sequence (§11.7)
+  side_sit                                      knocked down by the yellow flower (§15.2)
 
 Every swing frame carries a "hand" anchor. The renderer draws the blade out of
 that hand, with the hitbox's exact reach and timing; the hitbox itself stays on
@@ -267,6 +268,20 @@ def die(i):
     return finish(cv), None
 
 
+def side_sit():
+    """Knocked down by the yellow flower (§15.2): sitting on the ground, legs out, dazed — the
+    original's yellow sits Sabreman down ($AE8F). Mirrored for facing left, like every side frame."""
+    cv = Canvas(W, H)
+    bob = 7
+    cv.rect(8, 21, 13, 23, "w")              # the legs, straight out along the ground
+    cv.rect(13, 19, 15, 23, "r")             # the boots, toes up
+    upper(cv, "side", bob)
+    arm(cv, (8, 9 + bob), (12, 20))          # a hand on the knee
+    cv.set(2, 4, "Y")                        # stars round his head: dazed
+    cv.set(13, 3, "Y")
+    return finish(cv), None
+
+
 def main():
     frames = []
 
@@ -294,6 +309,7 @@ def main():
                 add("%s_swing%d_walk%d" % (view, p, g), front_swing(view, p, g))
     for i in range(4):
         add("die%d" % i, die(i))
+    add("side_sit", side_sit())
 
     used = sorted({c for _, rows, _ in frames for r in rows for c in r}, key=lambda c: LEGEND[c])
     out_frames = []

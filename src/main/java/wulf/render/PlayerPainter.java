@@ -29,6 +29,11 @@ public final class PlayerPainter {
     private final int blade;
     private final int immuneFlash;
     private final int hilt;
+    private final int outline;
+    /** §15.2: each orchid's bright colour, by orchid index: what an untouchable Vale is drawn in. */
+    private int[] tints = new int[0];
+    /** §15.2: the yellow flower's pose, drawn by {@code character_forge.py}. */
+    static final String SIT_FRAME = "side_sit";
 
     public PlayerPainter(DisplayConfig display, SpriteBank sprites, PlayerData rules, Palette palette) {
         this.field = display.playfield();
@@ -37,6 +42,12 @@ public final class PlayerPainter {
         this.blade = palette.indexOf("brightWhite");
         this.immuneFlash = palette.indexOf("brightWhite");
         this.hilt = palette.indexOf("brightYellow");
+        this.outline = palette.indexOf("black");
+    }
+
+    /** The orchids' colours, by orchid index, as palette indices (§15.2). */
+    public void tints(int[] byOrchid) {
+        this.tints = byOrchid.clone();
     }
 
     public void paint(Framebuffer fb, Simulation sim) {
@@ -44,15 +55,21 @@ public final class PlayerPainter {
         // World pixels to screen: subtract the room origin, add the playfield origin.
         int feetX = Fixed.px(p.xFp()) + field.x() - sim.room().col() * Simulation.ROOM_W_PX;
         int feetY = Fixed.px(p.yFp()) + field.y() - sim.room().row() * Simulation.ROOM_H_PX;
-        String frame = frameFor(p, rules);
-        boolean fighting = !sim.sabre().isEmpty();
+        // §15.2: knocked down by the yellow flower, he sits on the ground, dazed, facing as he was.
+        boolean sitting = sim.effect().kind().holdsStill();
+        String frame = sitting ? sitting(p) : frameFor(p, rules);
+        int tint = sim.effectTint();
+        boolean fighting = !sim.sabre().isEmpty() && !sitting;   // the sitting frame has no hand to hold a blade
         // A player straddling a room edge is cut at the playfield: flip-screen, not scrolling.
         fb.setClip(field.x(), field.y(), field.w(), field.h());
         try {
             if (!visible(p, rules)) {
                 return;
             }
-            if (sim.effectFlash()) {
+            if (tint >= 0 && tint < tints.length) {
+                // In his flower's colour, two shades of it (the bright index and its plain twin, 8 below), his black outline kept.
+                sprite.blitInked(fb, frame, feetX, feetY, tints[tint] - 8, tints[tint], outline);
+            } else if (sim.effectFlash()) {
                 sprite.blitTinted(fb, frame, feetX, feetY, immuneFlash);   // §15.2: nothing can touch him
             } else {
                 sprite.blit(fb, frame, feetX, feetY);
@@ -63,6 +80,11 @@ public final class PlayerPainter {
         } finally {
             fb.clearClip();
         }
+    }
+
+    /** {@code side_sit}, mirrored when he faces left (§10.1). */
+    static String sitting(Player p) {
+        return SIT_FRAME + (p.facing().dx() < 0 ? "_l" : "");
     }
 
     /** The sprite frame for this state. */

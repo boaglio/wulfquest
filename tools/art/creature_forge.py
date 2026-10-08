@@ -494,19 +494,24 @@ def main():
     names.append("amulet_piece")
     flowers = json.loads((ROOT / "data/entities/orchids.json").read_text(encoding="utf-8"))
     frames = [("sprout", orchid_sprout(16))]
-    for o in flowers["orchids"]:
-        colour = BRIGHT["bright" + o["colour"][0].upper() + o["colour"][1:]]
-        frames.append((f"bud_{o['colour']}", orchid_bud(colour)))
-        frames.append((f"bloom0_{o['colour']}", orchid_bloom(colour, 0)))
-        frames.append((f"bloom1_{o['colour']}", orchid_bloom(colour, 1)))
-        frames.append((f"wilt_{o['colour']}", orchid_wilt(colour)))
+    # Every colour either garden grows (§15.2, §15.4): ours in their order, then any only the original's has.
+    colours = []
+    for o in flowers["inventedOrchids"] + flowers["orchids"]:
+        if o["colour"] not in colours:
+            colours.append(o["colour"])
+    for name in colours:
+        colour = BRIGHT["bright" + name[0].upper() + name[1:]]
+        frames.append((f"bud_{name}", orchid_bud(colour)))
+        frames.append((f"bloom0_{name}", orchid_bloom(colour, 0)))
+        frames.append((f"bloom1_{name}", orchid_bloom(colour, 1)))
+        frames.append((f"wilt_{name}", orchid_wilt(colour)))
     write_sprite(flowers["sprite"], 16, 16, frames)
     names.append(flowers["sprite"])
     write_sprite("puff", 12, 12, [("f0", puff(0)), ("f1", puff(1))])
     names.append("puff")
     update_index(names, lambda n: n.startswith("creature_") or n in ("puff", "amulet_piece", "orchid"))
     print(f"creature forge: drew {len(roster)} creatures, the Wulf, {len(wardens['guardians'])} guardians, "
-          f"the Keeper, the amulet, {len(flowers['orchids'])} orchids and the puff")
+          f"the Keeper, the amulet, orchids in {len(colours)} colours and the puff")
 
 
 if __name__ == "__main__":

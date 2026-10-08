@@ -2022,7 +2022,7 @@ skip it.
 
 ---
 
-## 15. Orchids — the drug system **[CANON]** concept, **[RECON]** effects
+## 15. Orchids — the drug system **[CANON]** concept and effects, **[RECON]** growth
 
 The single most distinctive mechanic in the original: flowers grow in the
 jungle, bloom into a colour, and touching a bloom does something to you —
@@ -2063,41 +2063,51 @@ One orchid per anchor point, cycling forever:
   worked out; `OrchidTest.onlyTheRoomYouAreInCostsAnything` holds it to exactly
   one per flower per tick in the room the player is in.
 
-### 15.2 The effect table
+### 15.2 The effect table **[CANON]** — the original's five
+
+Read from the disassembly (2026-10-04, §25 Q4) and the default since then. The
+six effects M7 invented are §15.4, behind a flag.
 
 ```json
-{
-  "schemaVersion": 1,
-  "fidelity": "recon",
-  "sprite": "orchid",
-  "cycle": { "seedTicks": 150, "sproutTicks": 100, "budTicks": 80, "bloomTicks": 250, "wiltTicks": 100, "swayTicks": 20 },
-  "anchors": { "perRoom": 3, "minSpacingPx": 40, "attempts": 24, "insetPx": 24 },
   "orchids": [
-    { "colour": "yellow",  "weight": 22, "effect": "HASTE",     "ticks": 500, "speedScaleFp": 512, "score": 50 },
-    { "colour": "cyan",    "weight": 20, "effect": "TORPOR",    "ticks": 400, "speedScaleFp": 128, "score": 25 },
-    { "colour": "magenta", "weight": 18, "effect": "REVERSAL",  "ticks": 600, "speedScaleFp": 256, "score": 25 },
-    { "colour": "green",   "weight": 15, "effect": "IMMUNITY",  "ticks": 400, "speedScaleFp": 256, "score": 75 },
-    { "colour": "white",   "weight": 15, "effect": "DELIRIUM",  "ticks": 300, "speedScaleFp": 256, "score": 25 },
-    { "colour": "blue",    "weight": 10, "effect": "STILLNESS", "ticks": 250, "speedScaleFp": 256, "score": 75 }
+    { "colour": "red",     "weight": 3, "effect": "TORPOR",    "ticks": 768, "speedScaleFp": 171, "score": 0, "untouchable": true },
+    { "colour": "cyan",    "weight": 3, "effect": "HASTE",     "ticks": 768, "speedScaleFp": 341, "score": 0, "untouchable": true },
+    { "colour": "magenta", "weight": 3, "effect": "REVERSAL",  "ticks": 768, "speedScaleFp": 256, "score": 0, "untouchable": true },
+    { "colour": "yellow",  "weight": 3, "effect": "KNOCKDOWN", "ticks": 384, "speedScaleFp": 256, "score": 0, "untouchable": true },
+    { "colour": "white",   "weight": 4, "effect": "CURE",      "ticks": 1,   "speedScaleFp": 256, "score": 0, "untouchable": false }
   ],
-  "delirium": { "everyMinTicks": 20, "everyRandomTicks": 20, "holdTicks": 10 },
-  "immunity": { "flashPeriodTicks": 4 }
-}
+  "tint": { "warnTicks": 188, "flashTicks": 32 },
 ```
 
-One row per flower, colour and effect both unique, so the player can learn one
-from the other. A colour needs both halves of the palette — `yellow` for the
-wilt, `brightYellow` for the bloom — and a frame of each stage drawn for it, or
-the load fails (`OrchidValidator`).
+| colour | the original | ours |
+|--------|--------------|------|
+| red | slow: at most 2 px a frame against 3 (`$AFC1`, `$AFE0`) | `TORPOR`, speed ×2/3 |
+| cyan | fast: 4 px a frame (`$AFE4`), footsteps twice as often | `HASTE`, speed ×4/3 |
+| magenta | every direction reversed (`$AF14`) | `REVERSAL` |
+| yellow | knocked down, sitting helpless (`$AEF5`, `$AE8F`, `$A61B`) | `KNOCKDOWN`: no walking, no fighting; he sits on the ground, legs out, dazed (`side_sit`, facing his way) |
+| white | the cure: whatever was on is gone (`$A757`) | `CURE`: clears the effect, leaves none |
 
-| effect | what it does |
-|--------|--------------|
-| `HASTE` | Player speed ×2.0. Exhilarating and lethal — you overshoot into creatures. Walk animation rate doubles. |
-| `TORPOR` | Player speed ×0.5. The Wulf becomes a death sentence. |
-| `REVERSAL` | Left↔right **and** up↔down inverted. Applied at the input-mapping layer, so recorded replays stay faithful. |
-| `IMMUNITY` | Player cannot be killed by contact (still cannot pass `BLOCK_STATIC`). Player flashes between its normal palette and bright white every 4 ticks. |
-| `DELIRIUM` | Every `20 + rng(20)` ticks, the input direction is overridden by a random 8-direction for `10` ticks. Panic. |
-| `STILLNESS` | All creatures in the current room (not the Wulf) freeze for the duration. Drawn in the non-bright version of their palette. The one unambiguously good flower. |
+- **Every colour but white makes him untouchable** (`untouchable`): the
+  original's creatures, Wulf and flame hurt only a white Vale (`$AB36`,
+  `$A880`, `$9DE5`). So red and magenta are protection at a price, and yellow
+  is protection you cannot use. Our guardians and the Keeper (§14) obey it too.
+- **He wears the flower's colour** while it lasts, as the original's
+  one-colour Sabreman does: his black outline stays, his bright pixels take
+  the flower's bright shade and his plain ones its plain twin
+  (`Sprite.blitInked`), so the hat, face, body and legs still read. For the
+  last `tint.warnTicks` he flashes back to himself every `tint.flashTicks`
+  (`$AF7A`: the last `$2F` counts, 8 counts a phase). Changed 2026-10-07 from a
+  flat silhouette, at the user's request.
+- **God mode walks through the flowers** (§17.6, the user's choice, 2026-10-07):
+  under `--god` no bloom is picked, so none takes him and none is counted
+  (`OriginalOrchidTest`). `--debug-effect` still puts him under one.
+- **How long**: the timer `$96B0` starts at `$C0` and counts down every other
+  frame — 384 frames, 768 of our ticks at 2 a frame (§25 Q5). Yellow's is
+  `$60`: 384 ticks.
+- **Odds** (`$A6FD`, sixteen entries): white 4, each other colour 3.
+- **No score** for a flower; the original adds none.
+- `[RECON]` still: the growth cycle of §15.1, and the speed ratios applied to
+  our base speed rather than as the original's per-frame clamp.
 
 Rules:
 
@@ -2134,6 +2144,38 @@ picked this tick keeps every tick it promised.
 each effect is looked at on screen; an unknown name is refused at startup.
 
 ---
+
+
+### 15.4 Our own six **[NEW]**, `features.inventedOrchids` (default off)
+
+M7's flowers, built before the disassembly was read and kept by the user's
+decision (2026-10-04) as `orchids.json → inventedOrchids`: `Content.orchids()`
+hands out that list instead when the flag is on, so the jungle, the painter
+and the panel all see the same garden.
+
+```json
+  "inventedOrchids": [
+    { "colour": "yellow",  "weight": 22, "effect": "HASTE",     "ticks": 500, "speedScaleFp": 512, "score": 50, "untouchable": false },
+    { "colour": "cyan",    "weight": 20, "effect": "TORPOR",    "ticks": 400, "speedScaleFp": 128, "score": 25, "untouchable": false },
+    { "colour": "magenta", "weight": 18, "effect": "REVERSAL",  "ticks": 600, "speedScaleFp": 256, "score": 25, "untouchable": false },
+    { "colour": "green",   "weight": 15, "effect": "IMMUNITY",  "ticks": 400, "speedScaleFp": 256, "score": 75, "untouchable": false },
+    { "colour": "white",   "weight": 15, "effect": "DELIRIUM",  "ticks": 300, "speedScaleFp": 256, "score": 25, "untouchable": false },
+    { "colour": "blue",    "weight": 10, "effect": "STILLNESS", "ticks": 250, "speedScaleFp": 256, "score": 75, "untouchable": false }
+  ],
+```
+
+| effect | what it does |
+|--------|--------------|
+| `HASTE` | Player speed ×2.0. Exhilarating and lethal — you overshoot into creatures. |
+| `TORPOR` | Player speed ×0.5. The Wulf becomes a death sentence. |
+| `REVERSAL` | Left↔right **and** up↔down inverted, inside the simulation, so recorded replays stay faithful. |
+| `IMMUNITY` | Cannot be killed by contact (still cannot pass `BLOCK_STATIC`); flashes bright white every `immunity.flashPeriodTicks`. |
+| `DELIRIUM` | Every `20 + rng(20)` ticks the direction is overridden by a random 8-direction for `10` ticks. |
+| `STILLNESS` | Every creature in the room (not the Wulf) freezes, drawn in its plain colours. |
+
+`OrchidTest` pins these; `OriginalOrchidTest` pins §15.2's. The forge
+(`creature_forge.py`) draws every colour either list grows. `wulf_escape.json`
+carries `inventedOrchids` beside `roamingWulf`, so it still plays M5's rules.
 
 ## 16. Loot and scoring
 
@@ -2335,7 +2377,7 @@ kill. Off unless given; they last the whole session (every new game).
 |--------|--------|
 | `--lives N` | start with N lives in reserve, 1–99, instead of `player.json`'s |
 | `--infinite-lives` | deaths still happen — the sequence, the respawn, the ledger's cause — but the count never goes down |
-| `--god` | `Simulation.kill` refuses: no creature, spear, guardian or the Wulf can kill him |
+| `--god` | `Simulation.kill` refuses: no creature, spear, guardian or the Wulf can kill him; and no flower takes him (§15.2) |
 
 Any of them makes the game a **practice run** (`Simulation.practice()`, in the
 state hash): when it ends it goes straight back to the title — no hi-score
@@ -2859,7 +2901,8 @@ hash at every 50th tick. `ReplayRunner` re-executes them. Ship at least:
   out instead of waiting for a win. (**M9, shipped**; re-forged on the true
   map in M10, with inertia on 2026-09-30, and at the equal speeds of
   2026-10-01: seed 202, 35 389 ticks, no death; re-forged 2026-10-03 with the
-  original's Wulf (§13.8): seed 202 again, 43 420 ticks, no death)
+  original's Wulf (§13.8): seed 202 again, 43 420 ticks, no death; and with the
+  original's orchids (§15.2), 2026-10-04: seed 202, 28 326 ticks, no death)
 - `replays/wulf_escape.json` — a Wulf pursuit survived across 4 rooms. (**M5, shipped**)
   It is the roaming Wulf's (§13.1–§13.7, [NEW]), so since 2026-10-03 the file
   carries `"features": { "roamingWulf": true }`: a replay may name the flags it
@@ -2872,10 +2915,13 @@ hash at every 50th tick. `ReplayRunner` re-executes them. Ship at least:
   the bot braked before its turns. Re-forged 2026-10-01 at equal speeds (seed
   2088, 109 412 ticks), and **2026-10-03 with the original's Wulf** (§13.8):
   seed 2018, lairs SE, SW, NW, NE, 106 638 ticks, no death, found by 20 forges
-  over seeds 2000–2159. The lairs are placed by the run seed (§25 Q2), so a
-  seed's route can be two rooms or the whole map: seeds 1–60 for `lair_nw`
-  won only in 108 000–241 000 ticks, and seeds 3000–3159 for the full run
-  in 300 000 and more, so search near the seeds that won before. It took three bot fixes, each found by tracing where runs died or
+  over seeds 2000–2159; and **2026-10-04 with the original's orchids** (§15.2):
+  seed 2008, the same lair order, 71 179 ticks, no death — the bot, untouchable
+  under every flower but white, wins faster. The lairs are fixed
+  (`landmarks.json`), but a seed decides every creature, and the bot's luck
+  with them varies enormously: seeds 1–60 for `lair_nw` won only in
+  108 000–241 000 ticks, and seeds 3000–3159 for the full run in 300 000 and
+  more, so search near the seeds that won before. It took three bot fixes, each found by tracing where runs died or
   stood still: pressing the other way under the reversal flower; meeting
   the Wulf by turning to it with fire held — fencing makes the blade live at
   once, and the old wait for a swing that would land stood still while it
@@ -3700,7 +3746,7 @@ the source wins.
 | Q1 | The exact creature roster and per-room creature assignment table | 13 invented species, biome-weighted. **Lead 2026-10-03:** the original's room creatures are not per room. Up to `$96BE` (3) at once appear as a puff in the player's room (`$9A68`), then become one of 15 kinds from `$A41A` — spider, scorpion, bat, parrot, monkey, lizard, snake, then rat, bird, frog, mosquito, skunk, flea, earwig — picked from the first `8 + 2 × quarters held` entries (`$A3EC`), so the jungle gets worse as the amulet fills. The fixed ones are in the actor table `$AC77`: rhinos in (8,9) twice, (7,0) and (3,15); tribesmen in (7,10), (4,4), (2,14); a hippo in (3,8); the guardian at the arch (8,8); and the Wulf (Q9). A flame (`$34`) comes for a player who lingers: `$96B4`, set to `$80` on entering a room (`$B164`), counts down (`$9ABC`). | `creatures.json`, `room_entities.json` |
 | Q2 | The four guardians' species, colours, and lair rooms | **Rooms partly answered 2026-09-27:** the original has no fixed lairs — it picks one of eight preset four-room sets at random (`$A29D`, `Place Amulet Pieces` `$A255`) and lays each quarter at its room type's object slot 1 (`$DC6C`). Our lairs are fixed (`[RECON]`) at the game's set 3, `5,3 13,4 3,12 9,10`. Guardians' species and colours still open; the game's immortals table (`$AC77`) lists rhinos, spear men, fire, the wolf, a hippo and "guardian" as sprites to look at next. | `landmarks.json`, `guardians.json` |
 | Q3 | The exit's actual location and its guard condition | **Lead 2026-09-27:** the true map has exactly one stone arch, `(8,8)`, the heart of the mirrored temple two rooms north of the start. The exit is placed there; the guard condition is unverified. | `landmarks.json` |
-| Q4 | The orchid colour→effect mapping and durations | 6 colours per §15.2. **Lead 2026-10-03:** touching an orchid sets the player's colour to the orchid's (`$A754`), and every hurt check — creatures `$AB36`, the Wulf `$A880`, the flame `$9DE5` — passes only while that colour is plain `$47`: under any tint nothing can hurt him. White (`$47`) instead clears `$96B0`. Not yet traced: each colour's effect and how long a tint lasts. | `orchids.json` |
+| Q4 | The orchid colour→effect mapping and durations | 6 colours per §15.2. **Answered and built 2026-10-04** (§15.2, now the default; ours kept as [NEW] `features.inventedOrchids`, §15.4). Touching a flower **in full bloom** (state `$4F`, `$A737`) turns Vale its colour (`$9707`) and sets the timer `$96B0` to `$C0`; it counts down every other frame (`$AE7A`), so an effect lasts **384 frames** (768 of our ticks at 2 a frame, §25 Q5), and for its last `$2F` counts Vale flashes white (`$AF7A`). At zero he is white (`$47`) again. **Five colours** (`$A6FD`, picked when a flower closes, from the frame counter): **red** `$42` — slow, at most 2 px a frame against 3 (`$AFC1`, `$AFE0`); **cyan** `$45` — fast, 4 px a frame (`$AFE4`), footsteps twice as often (`$BF4B`); **magenta** `$43` — every direction reversed (`$AF14`, `XOR %1111`); **yellow** `$46` — knocked down, sitting helpless for `$60` counts, then he gets up (`$AEF5`, `$AE8F`, `$A61B`); **white** `$47` — the cure: clears any effect (`$A757`). Odds of a colour: white 4 in 16, each other 3 in 16. **Every coloured state makes him untouchable**: creatures, the Wulf and the flame all hurt only a white Vale (`$AB36`, `$A880`, `$9DE5`) — so red and magenta are protection with a cost, yellow is protection you cannot use. **No score** for a flower. A death clears the effect (`$AA49`). Ours — haste, torpor, reversal, immunity, delirium, stillness, scored 25–75 — is `[RECON]` that the original does not support. Not traced: the growth timings in our ticks (`$A680`–`$A731`: closed for `$10` counts, open for `$80`–`$BF`). | `orchids.json` |
 | Q5 | Exact player speed in px/frame, and whether it was frame-quantised | **Shape answered 2026-09-30** (§11.3): up to 3 px a frame in whole steps (0–3), with inertia ($AEEF, $AFC1, $B031, $B047); fighting a steady 2 ($ADD0). Still open: the original's frame rate, which fixes px/s — ours assumes 2 ticks a frame, and keeps §11.2's 1.5 / 1.0 px/tick as full speed. | `player.json → speed, momentum` |
 | Q6 | Starting lives and extra-life thresholds | **Closed 2026-10-02** from the disassembly: **5 in reserve** (`$B21E`), so six falls — a fall with none left is game over (`$AA27`–`$AA37`); **no extra lives for score** — the lives count's only writers are `$B21E`, `$AA37`, `$9F87` and the treasure life `$A2F8` (up to 9 in reserve). §11.7, §16.3. | `player.json → lives` |
 | Q7 | Whether amulet pieces were lost on death | **Closed 2026-10-02: kept.** The quarters held are bits of `$970D`, written only by the pickup (`$A1E3`); the death path `$AA27`–`$AA57` does not touch it. §11.7. | `player.json → death.keepAmulet` |

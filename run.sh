@@ -67,7 +67,9 @@ Game options (play, browse and jar):
   --seed N                    run seed: the same seed gives the same creatures
   --record FILE               save the first game as a replay (see: replay)
   --debug-effect E            start every game under an orchid's effect:
-                              haste, torpor, reversal, immunity, delirium, stillness
+                              torpor (red), haste (cyan), reversal (magenta),
+                              knockdown (yellow); with features.inventedOrchids
+                              also immunity, delirium, stillness
   --browse                    the room browser instead of the game
   --dev                       developer mode: K kills Vale, N shows collision,
                               H calls the roaming Wulf, room and position on the panel
