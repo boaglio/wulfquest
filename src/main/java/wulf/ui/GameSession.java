@@ -63,9 +63,9 @@ public final class GameSession {
         if (revealing()) {
             // The game stands still under the reveal, as the original's did: no sim tick, so
             // nothing is recorded and a replay never knows it was there (§22.6).
-            revealTick++;
-            boolean skipped = revealTick >= reveal.skipAfterTicks() && in.firePressed();
-            if (skipped || revealTick >= reveal.holdTicks()) {
+            // It waits for fire (§14.6), but not the press that took the quarter.
+            revealTick = Math.min(revealTick + 1, reveal.skipAfterTicks());
+            if (revealTick >= reveal.skipAfterTicks() && in.firePressed()) {
                 revealTick = -1;
             }
             return;
@@ -81,7 +81,7 @@ public final class GameSession {
         int held = sim.quest().piecesHeld();
         if (held > piecesSeen) {
             piecesSeen = held;
-            if (reveal.holdTicks() > 0) {
+            if (!reveal.verses().isEmpty()) {
                 revealTick = 0;
             }
         }
@@ -90,6 +90,16 @@ public final class GameSession {
     /** Whether the amulet reveal of §14.6 is up. */
     public boolean revealing() {
         return revealTick >= 0;
+    }
+
+    /** Whether the reveal now takes fire to close: its prompt shows (§14.6). */
+    public boolean revealWaitsForFire() {
+        return revealing() && revealTick >= reveal.skipAfterTicks();
+    }
+
+    /** The reveal's "press fire" line. */
+    public String revealPrompt() {
+        return reveal.prompt();
     }
 
     /** The verse for the quarters now held; empty when no reveal is showing. */

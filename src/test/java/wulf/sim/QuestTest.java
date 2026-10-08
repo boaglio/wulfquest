@@ -224,17 +224,12 @@ class QuestTest {
         shell.tick(STILL, wulf.input.MenuInput.NONE, false);
         assertThat(shell.session().revealing()).isTrue();
         assertThat(tunes).last().isEqualTo(wulf.data.MusicData.REVEAL);
-        for (int t = 0; t < content.shell().amuletReveal().holdTicks() && shell.session().revealing(); t++) {
+        for (int t = 0; t < content.shell().amuletReveal().skipAfterTicks(); t++) {
             shell.tick(STILL, wulf.input.MenuInput.NONE, false);
         }
+        shell.tick(InputState.of(0, 0, true, true), wulf.input.MenuInput.NONE, false);
+        assertThat(shell.session().revealing()).as("fire closes it").isFalse();
         assertThat(tunes).as("silence once it closes").last().isEqualTo("null");
-
-        // And the tune is done before the reveal is.
-        long ms = 0;
-        for (wulf.data.MusicData.Note n : content.music().tune(wulf.data.MusicData.REVEAL).notes()) {
-            ms += n.ms();
-        }
-        assertThat(ms).isLessThan(content.shell().amuletReveal().holdTicks() * 1000L / content.game().tickHz());
     }
 
     /** §14.8: the map scroll and the eyes are taken by touch, once, and stay taken. */
@@ -270,18 +265,26 @@ class QuestTest {
     }
 
     @Test
-    void leftAloneTheRevealEndsAfterItsHold() {
+    void theRevealWaitsForFireButNotThePressThatTookTheQuarter() {
+        // §14.6: it stays until fire, asked for by the user — but a press before skipAfterTicks is ignored.
         wulf.data.ShellConfig.AmuletReveal reveal = content.shell().amuletReveal();
         LandmarksData.Lair lair = marks.lairs().get(0);
         Simulation s = sim(OPEN, pinnedGuardians(80, 0), lairRoom(0), lair.pedestal().x(), lair.pedestal().y());
         wulf.ui.GameSession session = new wulf.ui.GameSession(s, reveal);
         session.tick(STILL, false);
-        for (int t = 1; t < reveal.holdTicks(); t++) {
+        assertThat(session.revealing()).isTrue();
+        session.tick(InputState.of(0, 0, true, true), false);
+        assertThat(session.revealing()).as("too soon: the press that took it").isTrue();
+        assertThat(session.revealWaitsForFire()).isFalse();
+        for (int t = 0; t < 5000; t++) {
             session.tick(STILL, false);
         }
-        assertThat(session.revealing()).isTrue();
-        session.tick(STILL, false);
+        assertThat(session.revealing()).as("left alone, it waits").isTrue();
+        assertThat(session.revealWaitsForFire()).as("and says so").isTrue();
+        long tick = s.tick();
+        session.tick(InputState.of(0, 0, true, true), false);
         assertThat(session.revealing()).isFalse();
+        assertThat(s.tick()).as("the game stood still under it").isEqualTo(tick);
     }
 
     @Test

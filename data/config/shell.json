@@ -96,9 +96,9 @@
     "emptyLine": "NOTHING RECORDED YET"
   },
   "amuletReveal": {
-    "holdTicks": 300,
     "skipAfterTicks": 50,
     "scale": 3,
+    "prompt": "PRESS FIRE TO GO ON",
     "verses": [
       ["A QUARTER WAKES IN YOUR HAND,", "COLD AS RIVER STONE.", "THREE MORE SLEEP IN THE GREEN,", "AND THE WULF HAS YOUR SCENT."],
       ["TWO HALVES OF A BROKEN MOON", "KNIT TOGETHER AT YOUR TOUCH.", "THE JUNGLE LEANS IN TO LISTEN.", "KEEP WALKING, RANGER."],

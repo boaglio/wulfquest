@@ -69,9 +69,11 @@ public record ShellConfig(
     /**
      * The screen a quarter brings up (§14.6): the amulet so far, drawn large on a
      * cleared playfield, over the verse for how many quarters are held — the first
-     * verse for one, the fourth for all four. The game stands still underneath.
+     * verse for one, the fourth for all four. The game stands still underneath until fire
+     * is pressed — from {@code skipAfterTicks} on, when {@code prompt} shows — so the press
+     * that took the quarter cannot close it unseen.
      */
-    public record AmuletReveal(int holdTicks, int skipAfterTicks, int scale, List<List<String>> verses) {
+    public record AmuletReveal(int skipAfterTicks, int scale, String prompt, List<List<String>> verses) {
         public AmuletReveal {
             List<List<String>> copies = new java.util.ArrayList<>();
             for (List<String> verse : verses) {
@@ -81,7 +83,7 @@ public record ShellConfig(
         }
 
         /** No reveal at all: what a bare {@code GameSession} in a test gets. */
-        public static final AmuletReveal NONE = new AmuletReveal(0, 0, 1, List.of());
+        public static final AmuletReveal NONE = new AmuletReveal(0, 1, "", List.of());
     }
 
     public record Tally(int holdTicks) {

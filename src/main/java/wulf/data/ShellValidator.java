@@ -58,10 +58,6 @@ public final class ShellValidator {
             throw new DataException(SOURCE, "/amuletReveal/verses",
                     "has " + r.verses().size() + " verses; there is one for each of the " + quarters + " quarters held");
         }
-        if (r.skipAfterTicks() > r.holdTicks()) {
-            throw new DataException(SOURCE, "/amuletReveal/skipAfterTicks",
-                    "is " + r.skipAfterTicks() + ", longer than the " + r.holdTicks() + " ticks the screen is held");
-        }
         FontData.Set big = font.sets().get("big");
         DisplayConfig.Playfield field = display.playfield();
         for (int v = 0; v < r.verses().size(); v++) {
@@ -77,8 +73,11 @@ public final class ShellValidator {
         for (List<String> verse : r.verses()) {
             tallest = Math.max(tallest, verse.size());
         }
-        // Two quarters down, a line of space, then the verse.
-        if (2 * marks.amulet().size().h() * r.scale() + (tallest + 1) * big.lineHeight() + REVEAL_MARGINS_PX > field.h()) {
+        if (r.prompt().length() * big.advance() > field.w()) {
+            throw new DataException(SOURCE, "/amuletReveal/prompt", "is wider than the playfield");
+        }
+        // Two quarters down, a line of space, the verse, then the prompt.
+        if (2 * marks.amulet().size().h() * r.scale() + (tallest + 2) * big.lineHeight() + REVEAL_MARGINS_PX > field.h()) {
             throw new DataException(SOURCE, "/amuletReveal/scale",
                     "is " + r.scale() + ": the amulet and its verse no longer fit the playfield");
         }

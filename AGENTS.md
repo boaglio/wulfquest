@@ -1976,9 +1976,11 @@ not the start, the way out or a lair, and that the zone has standing room.
   own (never the original's), the amulet sprite drawn ×`scale` as the panel
   lays it out, held quarters only. `GameSession` holds the game still while it
   shows, so no tick passes, nothing is recorded, and replays are untouched; it
-  ends after `holdTicks` (300), or on fire once `skipAfterTicks` (50) have
-  passed. `ShellValidator.checkAmuletReveal` checks a verse per quarter and
-  that every line and the amulet fit. Its tune, `reveal`
+  **waits for fire** (the user's request, 2026-10-07; the original's pause is
+  timed): a press in the first `skipAfterTicks` (50) is ignored, so the press
+  that took the quarter cannot close it unseen, and from then on `prompt`
+  ("PRESS FIRE TO GO ON") shows under the verse. `ShellValidator.checkAmuletReveal`
+  checks a verse per quarter and that every line, the prompt and the amulet fit. Its tune, `reveal`
   (§18.3), starts as it opens and stops as it closes — music in `PLAYING`,
   approved by the user (§27.8).
 

@@ -30,14 +30,15 @@ final class AmuletRevealScreen {
         this.scale = reveal.scale();
     }
 
-    void paint(Framebuffer fb, int slotMask, List<String> verse) {
+    /** @param prompt "press fire", once fire will close it; null before then */
+    void paint(Framebuffer fb, int slotMask, List<String> verse, String prompt) {
         fb.fillRect(field.x(), field.y(), field.w(), field.h(), chrome.ground());
         // Four quarters, two across and two down, as the panel lays them out (§17.3).
         int piece = amulet.w() * scale;
         int size = 2 * piece;
         int lineH = chrome.big().lineHeight();
         // The amulet and the verse as one block, centred in the playfield.
-        int block = size + lineH + verse.size() * lineH;
+        int block = size + lineH + (verse.size() + 1) * lineH;
         int top = field.y() + (field.h() - block) / 2;
         int left = field.x() + (field.w() - size) / 2;
         for (int slot = 0; slot < framesBySlot.size(); slot++) {
@@ -49,6 +50,9 @@ final class AmuletRevealScreen {
         for (String line : verse) {
             chrome.big().drawCentred(fb, line, field.x(), field.w(), y, chrome.body());
             y += lineH;
+        }
+        if (prompt != null) {
+            chrome.big().drawCentred(fb, prompt, field.x(), field.w(), y, chrome.bright());
         }
     }
 }

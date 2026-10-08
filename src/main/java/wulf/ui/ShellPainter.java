@@ -102,7 +102,8 @@ public final class ShellPainter {
             return;
         }
         if (session.revealing()) {
-            reveal.paint(fb, session.sim().quest().slotMask(), session.verse());
+            reveal.paint(fb, session.sim().quest().slotMask(), session.verse(),
+                    session.revealWaitsForFire() ? session.revealPrompt() : null);
             return;
         }
         if (session.paused()) {

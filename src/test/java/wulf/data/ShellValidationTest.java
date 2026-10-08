@@ -97,7 +97,7 @@ class ShellValidationTest {
     void theAmuletRevealNeedsAVerseForEveryCountOfQuarters() {
         ShellConfig.AmuletReveal r = c.shell().amuletReveal();
         ShellValidator.checkAmuletReveal(c.shell(), c.landmarks(), c.display(), c.font());
-        DataException e = revealError(new ShellConfig.AmuletReveal(r.holdTicks(), r.skipAfterTicks(), r.scale(),
+        DataException e = revealError(new ShellConfig.AmuletReveal(r.skipAfterTicks(), r.scale(), r.prompt(),
                 r.verses().subList(0, 3)));
         assertThat(e.pointer()).isEqualTo("/amuletReveal/verses");
     }
@@ -107,9 +107,9 @@ class ShellValidationTest {
         ShellConfig.AmuletReveal r = c.shell().amuletReveal();
         List<List<String>> verses = new java.util.ArrayList<>(r.verses());
         verses.set(2, List.of("A LINE FAR TOO LONG FOR THIS SCREEN TO HOLD"));
-        DataException e = revealError(new ShellConfig.AmuletReveal(r.holdTicks(), r.skipAfterTicks(), r.scale(), verses));
+        DataException e = revealError(new ShellConfig.AmuletReveal(r.skipAfterTicks(), r.scale(), r.prompt(), verses));
         assertThat(e.pointer()).isEqualTo("/amuletReveal/verses/2/0");
-        assertThat(revealError(new ShellConfig.AmuletReveal(r.holdTicks(), r.skipAfterTicks(), 8, r.verses())).pointer())
+        assertThat(revealError(new ShellConfig.AmuletReveal(r.skipAfterTicks(), 8, r.prompt(), r.verses())).pointer())
                 .isEqualTo("/amuletReveal/scale");
     }
 
