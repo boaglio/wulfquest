@@ -49,10 +49,15 @@ public record ShellConfig(
     /**
      * The map screen (§17.7, {@code [NEW]}): {@code key} opens and closes it during play; rooms
      * visited are drawn in {@code visited}, rooms only the map scroll shows in {@code revealed},
-     * and the room Vale is in blinks in {@code here} every {@code blinkTicks}.
+     * and the room Vale is in blinks in {@code here} every {@code blinkTicks}. A lair an eye has
+     * shown fills its room in its quarter's colour, {@code quarters} by panel slot; a lair whose
+     * quarter is taken, in {@code taken} (§14.8).
      */
     public record MapScreen(String key, String message, String visited, String revealed, String here,
-                            int blinkTicks) {
+                            List<String> quarters, String taken, int blinkTicks) {
+        public MapScreen {
+            quarters = List.copyOf(quarters);
+        }
     }
 
     /**

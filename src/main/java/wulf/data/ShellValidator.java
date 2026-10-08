@@ -25,6 +25,15 @@ public final class ShellValidator {
                         "names '" + colour + "', which is not a palette entry");
             }
         }
+        ShellConfig.MapScreen map = shell.map();
+        java.util.List<String> mapColours = new java.util.ArrayList<>(
+                java.util.List.of(map.visited(), map.revealed(), map.here(), map.taken()));
+        mapColours.addAll(map.quarters());
+        for (String colour : mapColours) {
+            if (!inPalette(palette, colour)) {
+                throw new DataException(SOURCE, "/map", "names '" + colour + "', which is not a palette entry");
+            }
+        }
         Set<String> keys = new HashSet<>();
         for (int i = 0; i < shell.title().menu().size(); i++) {
             ShellConfig.MenuItem item = shell.title().menu().get(i);

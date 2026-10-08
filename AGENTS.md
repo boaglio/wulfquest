@@ -1997,7 +1997,11 @@ pick-up sound:
 - **Two eyes** (`item_eye`, glancing about every `glanceTicks`): the north eye
   at `14,6` shows the north-west and north-east quarters on the map, the south
   eye at `11,13` the south-west and south-east — each eye two, both eyes all
-  four. A quarter stays marked until it is taken.
+  four. On the map (§17.7) a shown lair fills its room in its quarter's
+  colour (`shell.json → map.quarters`, by panel slot), and once its quarter is
+  taken the room turns `map.taken` (grey) — eye or no eye — so the map says
+  where to go and what is done. Changed 2026-10-07 from half-size amulet
+  pieces, which the user could not see.
 
 Drawn by `tools/art/item_forge.py`. `LandmarkValidator` checks the rooms, the
 sprites, clear ground at each spot, and that the eyes name real lairs and
@@ -2401,8 +2405,9 @@ miniature, a pixel for every 2×2 cells, walls left dark, so the ways through
 read as a maze. Rooms Vale has been in are drawn in `visited` (green); once
 the map scroll is found every other room is drawn in `revealed` (blue); the
 rest stays black. The room he is in blinks in `here` every `blinkTicks`.
-Quarters the eyes have shown sit in their rooms as half-size amulet pieces
-until taken (§14.8). `MapScreen`.
+A lair an eye has shown fills its room in its quarter's colour, outlined in
+black; a lair whose quarter is taken, grey (§14.8). `MapScreen`,
+`MapScreenTest`.
 
 ## 18. Audio — procedural 1-bit beeper
 

@@ -142,13 +142,15 @@
     "map": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["key", "message", "visited", "revealed", "here", "blinkTicks"],
+      "required": ["key", "message", "visited", "revealed", "here", "quarters", "taken", "blinkTicks"],
       "properties": {
         "key": { "type": "string", "pattern": "^[A-Z0-9]$" },
         "message": { "type": "string", "minLength": 1, "maxLength": 48 },
         "visited": { "type": "string", "minLength": 1 },
         "revealed": { "type": "string", "minLength": 1 },
         "here": { "type": "string", "minLength": 1 },
+        "quarters": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } },
+        "taken": { "type": "string", "minLength": 1 },
         "blinkTicks": { "type": "integer", "minimum": 1 }
       }
     },

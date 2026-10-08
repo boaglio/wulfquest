@@ -112,6 +112,8 @@
     "visited": "green",
     "revealed": "blue",
     "here": "brightWhite",
+    "quarters": ["brightGreen", "brightBlue", "brightRed", "brightYellow"],
+    "taken": "white",
     "blinkTicks": 10
   },
   "quickSave": { "saveKey": "F5", "loadKey": "F9", "noteTicks": 100 },
