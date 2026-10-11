@@ -66,6 +66,8 @@ public final class Simulation {
     private static final String SFX_EXTRA_LIFE = "extra_life";
     private static final String SFX_ROOM_FLIP = "room_flip";
     private static final String SFX_KEEPER_MOVES = "keeper_moves";
+    private static final String SFX_BEAST_SHOVE = "beast_shove";
+    private static final String SFX_TRIBESMAN_CALL = "tribesman_call";
     /** Salt for the treasures' own random stream (§16.4): not a game number, a stream name. */
     private static final long TREASURE_STREAM = 0x7EA5_0BE5L;
 
@@ -93,6 +95,11 @@ public final class Simulation {
     private final ArrayList<Creature> away = new ArrayList<>();
     /** §12.8: ticks before the swarm may come again after a fall ({@code $96B1}). */
     private int swarmQuiet;
+    /** §12.9: the original's big beasts, living on the whole map. */
+    private final ArrayList<Beast> beasts = new ArrayList<>();
+    private final List<Beast> beastsView = Collections.unmodifiableList(beasts);
+    /** §12.9: the world with both pairs of its ends joined, as the original's room numbers wrap ({@code $B193}, {@code $B12F}). */
+    private final CollisionWorld wrapWorld;
     /** §13.8: the world with the map's east and west ends joined, for the Wulf that runs off one and on at the other. */
     private final CollisionWorld rowWorld;
     /** Whether the prowling Wulf's growl is on: audio only, never hashed. */
@@ -174,6 +181,9 @@ public final class Simulation {
         WulfData.Appearance appearance = eco.wulf().data().appearance();
         this.wulf = new Wulf(new Creature(Wulf.ID, eco.wulf().species(), -1, xFp, yFp, Herd.NONE));
         this.rowWorld = (gx, gy) -> world.isSolid(Math.floorMod(gx, RoomAddress.GRID_W * CollisionMask.COLS), gy);
+        this.wrapWorld = (gx, gy) -> world.isSolid(Math.floorMod(gx, RoomAddress.GRID_W * CollisionMask.COLS),
+                Math.floorMod(gy, RoomAddress.GRID_H * CollisionMask.ROWS));
+        placeBeasts();
         wulf.ticksSinceGone = appearance.minTicksBetweenAppearances();
         wulf.ticksSinceRespawn = appearance.graceTicksAfterPlayerDeath();
         if (eco.wulf().enabled() && !eco.wulf().roaming()) {
@@ -240,6 +250,7 @@ public final class Simulation {
             }
             case DYING -> {
                 tickCreatures();   // §11.7: the jungle carries on around the fallen player
+                tickBeasts();
                 prowlWhileDown();
                 if (++player.modeTick >= rules.death().animTicks()) {
                     player.mode = Player.Mode.DOWN;
@@ -249,6 +260,7 @@ public final class Simulation {
             }
             case DOWN -> {
                 tickCreatures();
+                tickBeasts();
                 prowlWhileDown();
                 if (++player.modeTick >= rules.death().freezeTicks()) {
                     respawn();
@@ -288,6 +300,7 @@ public final class Simulation {
         sabre = computeSabre();
         tickCreatures();
         tickSwarm();
+        tickBeasts();
         tickFlame();
         tickWulf();
         tickQuest();
@@ -734,6 +747,268 @@ public final class Simulation {
         creatures.add(c);
     }
 
+    // ---------------------------------------------------------------- the original's big beasts (§12.9)
+
+    /** {@code $AC77}: where a new game sets them, heading as the actor table says. */
+    private void placeBeasts() {
+        BeastRules r = eco.beasts();
+        for (int i = 0; i < r.placings().size(); i++) {
+            BeastRules.Placing p = r.placings().get(i);
+            CreatureData.Species s = r.kinds().get(p.kind());
+            Beast b = new Beast(i, r.kindOf().get(p.kind()), p.kind(), s, p.tint(), p.room(), Fixed.fp(p.xPx()),
+                    Fixed.fp(p.yPx()));
+            int speed = switch (b.kind) {
+                case RHINO -> r.param(p.kind(), "paceFp");
+                case SLEEPER -> r.param(p.kind(), "chargeFp");
+                case TRIBESMAN -> 0;   // the table's ±2 and ±3 are under a pixel: it stands, and picks a course at once
+            };
+            b.vxFp = p.heading() * speed;
+            b.faceX = p.heading() < 0 ? -1 : 1;
+            b.asleep = p.asleep();
+            beasts.add(b);
+        }
+    }
+
+    /** Every beast, every tick, wherever it is: they never wait for the player. */
+    private void tickBeasts() {
+        for (int i = 0; i < beasts.size(); i++) {
+            Beast b = beasts.get(i);
+            switch (b.kind) {
+                case RHINO -> rhino(b);
+                case TRIBESMAN -> tribesman(b);
+                case SLEEPER -> sleeper(b);
+            }
+        }
+    }
+
+    /**
+     * {@code $AD07}: along its row at a steady pace, turning about at the scenery; a blade held
+     * at it sends it off the other way at a run ({@code $AD69}) until something stops it, and
+     * then it is back to its pace. Running into him, it turns about too.
+     */
+    private void rhino(Beast b) {
+        BeastRules r = eco.beasts();
+        if (!stepBeast(b)) {
+            b.vxFp = (b.vxFp < 0 ? -1 : 1) * r.param(b.kindIndex, "paceFp");   // $AD20
+            turnAbout(b);
+        }
+        switch (touchBeast(b)) {
+            case STRUCK -> shove(b, r.param(b.kindIndex, "shovedFp"));
+            case HIT -> {
+                kill(b.species.id());
+                turnAbout(b);
+            }
+            default -> {
+            }
+        }
+    }
+
+    /**
+     * {@code $AB74}: a slanting walk at one of four speeds each way, a new one whenever the
+     * scenery stops it ({@code $ABDE}); a blade pushes him back ({@code $ABAB}). He follows the
+     * player about the map ({@code $A630}), and level with an amulet quarter he lights up and
+     * calls ({@code $9D41}).
+     */
+    private void tribesman(Beast b) {
+        BeastRules r = eco.beasts();
+        follow(b);
+        boolean moved = (b.vxFp != 0 || b.vyFp != 0) && stepBeast(b);
+        if (!moved) {
+            b.vxFp = walk(b);
+            b.vyFp = walk(b);
+            b.faceX = b.vxFp < 0 ? -1 : 1;
+        }
+        Touch t = touchBeast(b);
+        if (t != Touch.NONE) {
+            shove(b, r.param(b.kindIndex, "shovedFp"));
+            b.vyFp = walk(b);
+            if (t == Touch.HIT) {
+                kill(b.species.id());
+            }
+        }
+        boolean hinting = b.at.equals(room) && levelWithAQuarter(b, r.param(b.kindIndex, "hintPx"));
+        if (hinting && (!b.hinting || tick % r.param(b.kindIndex, "callEveryTicks") == 0)) {
+            sounds.play(SFX_TRIBESMAN_CALL);
+        }
+        b.hinting = hinting;
+    }
+
+    /** {@code $AC24}: one of four speeds, two each way. */
+    private int walk(Beast b) {
+        BeastRules r = eco.beasts();
+        int speed = rng.nextInt(2) == 0 ? r.param(b.kindIndex, "walkSlowFp") : r.param(b.kindIndex, "walkFastFp");
+        return rng.nextInt(2) == 0 ? -speed : speed;
+    }
+
+    /**
+     * {@code $9D41}: on the map column of a quarter still lying, and level with it across the
+     * room; or on its map row, and level with it up and down.
+     */
+    private boolean levelWithAQuarter(Beast b, int hintPx) {
+        LandmarksData marks = eco.quest().landmarks();
+        if (marks == null) {
+            return false;
+        }
+        int bx = Fixed.px(b.xFp) - b.at.col() * ROOM_W_PX;
+        int by = Fixed.px(b.yFp) - b.at.row() * ROOM_H_PX;
+        for (int i = 0; i < marks.lairs().size(); i++) {
+            if (quest.taken(i)) {
+                continue;
+            }
+            LandmarksData.Lair lair = marks.lairs().get(i);
+            RoomAddress at = LandmarksData.room(lair.room());
+            if (at.col() == b.at.col() && Math.abs(lair.pedestal().x() - bx) < hintPx
+                    || at.row() == b.at.row() && Math.abs(lair.pedestal().y() - by) < hintPx) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * {@code $9EB3}, {@code $9E72}: asleep, it follows the player about the map, coming awake in
+     * each new room as a hippo or a warthog ({@code $9F06}). Touched, it wakes, turns about, and
+     * stands a moment; then it charges until something stops it, and sleeps there.
+     */
+    private void sleeper(Beast b) {
+        BeastRules r = eco.beasts();
+        if (b.asleep) {
+            follow(b);
+            if (!b.at.equals(room)) {
+                return;
+            }
+            Touch t = touchBeast(b);
+            // $9F01: with Vale not on his feet, any touch at all wakes it.
+            boolean bumped = t != Touch.NONE || player.mode != Player.Mode.ALIVE && overlapsVale(b);
+            if (bumped) {
+                b.asleep = false;
+                turnAbout(b);
+                b.pauseTicks = r.param(b.kindIndex, "wakeTicks");
+                sounds.play(SFX_BEAST_SHOVE);
+                if (t == Touch.HIT) {
+                    kill(b.species.id());
+                }
+            }
+            return;
+        }
+        if (b.pauseTicks > 0) {
+            b.pauseTicks--;
+            b.moveTicks = 0;
+            if (touchBeast(b) == Touch.HIT) {
+                kill(b.species.id());
+            }
+            return;
+        }
+        if (!stepBeast(b)) {
+            b.asleep = true;   // $9E92: where it stops, it sleeps
+            b.moveTicks = 0;
+            return;
+        }
+        switch (touchBeast(b)) {   // $AD28: as a rhino
+            case STRUCK -> shove(b, r.param(b.kindIndex, "shovedFp"));
+            case HIT -> {
+                kill(b.species.id());
+                turnAbout(b);
+            }
+            default -> {
+            }
+        }
+    }
+
+    /**
+     * {@code $A630}: two rows or more from the player, it is set down a row from him, in his block
+     * of columns but its own column of it, at the room's spot — unless that is his room.
+     *
+     * @return whether it moved
+     */
+    private boolean follow(Beast b) {
+        BeastRules r = eco.beasts();
+        if (Math.abs(b.at.row() - room.row()) < r.followRows()) {
+            return false;
+        }
+        int row = rng.nextInt(2) == 0 ? room.row() - 1 : room.row() + 1;
+        if (row < 0 || row >= RoomAddress.GRID_H) {
+            row = room.row();
+        }
+        int block = r.followColumns();
+        int col = room.col() - room.col() % block + b.at.col() % block;
+        RoomAddress to = new RoomAddress(col, row);
+        if (to.equals(room)) {
+            return false;
+        }
+        if (b.kind == Beast.Kind.SLEEPER) {
+            b.kindIndex = r.sleepers()[rng.nextInt(r.sleepers().length)];   // $9F06
+            b.species = r.kinds().get(b.kindIndex);
+        }
+        b.at = to;
+        b.xFp = Fixed.fp(col * ROOM_W_PX + r.spotXPx()[to.index()] + b.species.size().w() / 2);
+        b.yFp = Fixed.fp(row * ROOM_H_PX + r.spotYPx()[to.index()]);
+        b.moveTicks = 0;
+        return true;
+    }
+
+    /** {@code $AFE8}, {@code $B81C}: x then y against the scenery, room to room. @return whether it moved at all ({@code $AAED}) */
+    private boolean stepBeast(Beast b) {
+        CreatureData.Box box = b.species.collisionBox();
+        int ox = b.xFp;
+        int oy = b.yFp;
+        if (b.vxFp != 0) {
+            b.xFp = Collision.resolve(wrapWorld, box.x(), box.y(), box.w(), box.h(), b.xFp, b.yFp, b.vxFp, true);
+        }
+        if (b.vyFp != 0) {
+            b.yFp = Collision.resolve(wrapWorld, box.x(), box.y(), box.w(), box.h(), b.xFp, b.yFp, b.vyFp, false);
+        }
+        boolean moved = b.xFp != ox || b.yFp != oy;
+        b.xFp = Math.floorMod(b.xFp, Fixed.fp(RoomAddress.GRID_W * ROOM_W_PX));
+        b.yFp = Math.floorMod(b.yFp, Fixed.fp(RoomAddress.GRID_H * ROOM_H_PX));
+        int col = Math.floorDiv(Fixed.px(b.xFp), ROOM_W_PX);
+        int row = Math.floorDiv(Fixed.px(b.yFp), ROOM_H_PX);
+        if (col != b.at.col() || row != b.at.row()) {
+            b.at = new RoomAddress(col, row);
+        }
+        b.moveTicks = moved ? b.moveTicks + 1 : 0;
+        return moved;
+    }
+
+    /** {@code $ADA2}: about face. */
+    private static void turnAbout(Beast b) {
+        b.vxFp = -b.vxFp;
+        b.faceX = -b.faceX;
+    }
+
+    /** {@code $AD69}, {@code $ABAB}: sent the way his blade points. */
+    private void shove(Beast b, int speedFp) {
+        int dir = player.facing.dx() != 0 ? player.facing.dx() : b.centreXPx() < context.playerCentreXPx() ? -1 : 1;
+        b.vxFp = dir * speedFp;
+        b.faceX = dir;
+        sounds.play(SFX_BEAST_SHOVE);
+    }
+
+    private enum Touch { NONE, STRUCK, HIT }
+
+    /**
+     * {@code $AB36}: only a white Vale on his feet, in its room. Fencing and facing it, the blade
+     * has it; otherwise it has him.
+     */
+    private Touch touchBeast(Beast b) {
+        if (!b.at.equals(room) || player.mode != Player.Mode.ALIVE || player.invulnTicks > 0
+                || effect.kind().holdsStill() || effect.kind().blocksLethalContact() || effect.untouchable()
+                || !overlapsVale(b)) {
+            return Touch.NONE;
+        }
+        return player.swingTick >= 0 && inFront(b.centreXPx(), b.centreYPx()) ? Touch.STRUCK : Touch.HIT;
+    }
+
+    private boolean overlapsVale(Beast b) {
+        if (!b.at.equals(room)) {
+            return false;
+        }
+        PlayerData.Box pb = rules.collisionBox();
+        CreatureData.Box bb = b.species.collisionBox();
+        return overlaps(Fixed.px(player.xFp) + pb.x(), Fixed.px(player.yFp) + pb.y(), pb.w(), pb.h(),
+                Fixed.px(b.xFp) + bb.x(), Fixed.px(b.yFp) + bb.y(), bb.w(), bb.h());
+    }
+
     /** {@code $A4B3}: by its frame while it forms; after, by its kind, and a little more facing right. */
     private int swarmScore(Creature c) {
         SwarmRules s = eco.swarm();
@@ -753,11 +1028,15 @@ public final class Simulation {
 
     /** {@code $AB4E}: fencing, a creature on the side he faces is struck; one behind him is not. */
     private boolean inFront(Creature c) {
-        int gapX = c.centreXPx() - context.playerCentreXPx();
+        return inFront(c.centreXPx(), c.centreYPx());
+    }
+
+    private boolean inFront(int xPx, int yPx) {
+        int gapX = xPx - context.playerCentreXPx();
         if (player.facing.dx() != 0) {
             return Integer.signum(gapX) != -player.facing.dx();
         }
-        int gapY = c.centreYPx() - context.playerCentreYPx();
+        int gapY = yPx - context.playerCentreYPx();
         return Integer.signum(gapY) != -player.facing.dy();
     }
 
@@ -1984,6 +2263,11 @@ public final class Simulation {
         return creaturesView;
     }
 
+    /** §12.9: the original's big beasts, wherever they are; the painter draws those in {@link #room()}. */
+    public List<Beast> beasts() {
+        return beastsView;
+    }
+
     public List<Spear> spears() {
         return spearsView;
     }
@@ -2224,6 +2508,20 @@ public final class Simulation {
             if (eco.swarm().on()) {
                 h = mix(h, ((long) c.tint << 32) ^ (c.homeRoom & 0xFFFFFFFFL));
             }
+        }
+        for (int i = 0; i < beasts.size(); i++) {
+            // §12.9: only the original's jungle has any, so the invented one's runs keep their hashes.
+            Beast b = beasts.get(i);
+            h = mix(h, b.kindIndex);
+            h = mix(h, b.at.index());
+            h = mix(h, b.xFp);
+            h = mix(h, b.yFp);
+            h = mix(h, b.vxFp);
+            h = mix(h, b.vyFp);
+            h = mix(h, b.faceX);
+            h = mix(h, (b.asleep ? 1 : 0) | (b.hinting ? 2 : 0));
+            h = mix(h, b.pauseTicks);
+            h = mix(h, b.moveTicks);
         }
         if (eco.swarm().on()) {
             // §12.8: only with the swarm, so the invented jungle's runs keep their hashes.

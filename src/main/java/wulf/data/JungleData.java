@@ -5,9 +5,11 @@ import java.util.List;
 /**
  * Bound view of {@code data/entities/jungle.json} (AGENTS.md §12.8, [CANON]): the original's
  * creatures. The small ones come as a swarm — puffs in the player's room ({@code $9A68}) that
- * turn into one of {@code pick.table} ({@code $A3E0}) — and the roster says how each moves.
+ * turn into one of {@code pick.table} ({@code $A3E0}) — and the roster says how each moves. The
+ * big ones are {@code beasts} (§12.9): set down by the actor table ({@code $AC77}) and never killed.
  */
-public record JungleData(int schemaVersion, String fidelity, Swarm swarm, List<CreatureData.Species> creatures) {
+public record JungleData(int schemaVersion, String fidelity, Swarm swarm, Beasts beasts,
+                         List<CreatureData.Species> creatures) {
 
     public JungleData {
         creatures = List.copyOf(creatures);
@@ -47,5 +49,30 @@ public record JungleData(int schemaVersion, String fidelity, Swarm swarm, List<C
         public Pick {
             table = List.copyOf(table);
         }
+    }
+
+    /**
+     * The big beasts (§12.9): rhinos, tribesmen, and the sleeper that wakes a hippo or a warthog.
+     *
+     * @param followRows    a tribesman or a sleeper this many rows from the player is set down near him ({@code $A630}),
+     *                      a row from him, in his block of {@code followColumns} columns ({@code AND $FC}), in its own column of it
+     * @param screenTopPx the original's y counts from the top of the screen, banner and all: this much above our rooms
+     * @param spots       where a beast set down in a room stands, by room type: the original's x (the sprite's left)
+     *                    and y (its feet) — the table the orchids grow at ({@code $D6A6}, {@code $A7D4})
+     * @param kinds       each beast as a species; its behaviour names its kind and speeds
+     * @param placed      where a new game sets them, from the actor table, in the original's numbers
+     */
+    public record Beasts(int followRows, int followColumns, int screenTopPx, List<List<Integer>> spots, List<CreatureData.Species> kinds,
+                         List<Placed> placed) {
+
+        public Beasts {
+            spots = spots.stream().map(List::copyOf).toList();
+            kinds = List.copyOf(kinds);
+            placed = List.copyOf(placed);
+        }
+    }
+
+    /** One record of the actor table: a kind, its room ("col,row"), the original's x and y, its heading and colour. */
+    public record Placed(String kind, String room, int x, int y, int heading, String tint, boolean asleep) {
     }
 }

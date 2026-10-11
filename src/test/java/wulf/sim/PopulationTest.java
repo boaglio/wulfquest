@@ -33,7 +33,7 @@ class PopulationTest {
     static void load() {
         content = Content.load(Path.of("data"));
         grid = new WorldGrid(content.rooms());
-        eco = content.ecosystem();
+        eco = content.withFeature("inventedCreatures", true).ecosystem();   // §12.6: the invented jungle's populator
     }
 
     private static RoomAddress interiorRoomIn(String biome) {

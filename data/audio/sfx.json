@@ -312,6 +312,45 @@
           "vibratoDepthPerMille": 0
         }
       ]
+    },
+    "beast_shove": {
+      "priority": 5,
+      "loop": false,
+      "steps": [
+        {
+          "shape": "square",
+          "hz": 180,
+          "ms": 60,
+          "volPerMille": 420,
+          "slideToHz": 90,
+          "vibratoHz": 0,
+          "vibratoDepthPerMille": 0
+        }
+      ]
+    },
+    "tribesman_call": {
+      "priority": 3,
+      "loop": false,
+      "steps": [
+        {
+          "shape": "square",
+          "hz": 1400,
+          "ms": 30,
+          "volPerMille": 260,
+          "slideToHz": 0,
+          "vibratoHz": 0,
+          "vibratoDepthPerMille": 0
+        },
+        {
+          "shape": "square",
+          "hz": 1800,
+          "ms": 30,
+          "volPerMille": 260,
+          "slideToHz": 0,
+          "vibratoHz": 0,
+          "vibratoDepthPerMille": 0
+        }
+      ]
     }
   }
 }

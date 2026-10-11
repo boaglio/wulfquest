@@ -338,6 +338,31 @@ public final class FullRunForge {
             }
             return InputState.of(at.dx(), at.dy(), true, !p.swinging() && p.cooldown() == 0);
         }
+        // §12.8, §12.9: the original's creatures are met with the blade out and facing them. A small one
+        // that touches him then bursts, and a beast is shoved off; neither costs a life ($AB68).
+        // §12.7: the flame is the one thing the blade cannot answer. Give it room, and keep going:
+        // standing to fence is what lets it come — 208 of 299 deaths in one trace.
+        Creature flame = flame(sim);
+        if (flame != null && gap(sim, flame) <= FLAME_CLEAR_PX) {
+            PlayerData.Box pb = sim.rules().collisionBox();
+            int rx = Fixed.px(p.xFp()) + pb.x() + pb.w() / 2 - flame.centreXPx();
+            int ry = Fixed.px(p.yFp()) + pb.y() + pb.h() / 2 - flame.centreYPx();
+            int fx = flame.dirX();
+            int fy = flame.dirY();
+            if (fx * rx + fy * ry > 0) {
+                // Coming our way, and faster than we are: out of its line, not along it.
+                int side = Integer.signum(fx * ry - fy * rx);
+                if (side == 0) {
+                    side = 1;
+                }
+                return InputState.of(-fy * side, fx * side, false, false);
+            }
+        }
+        int[] near = nearestOriginal(sim);
+        if (near != null && (flame == null || near[2] <= FLAME_FENCE_PX)) {
+            int dx = near[0] != 0 ? Integer.signum(near[0]) : p.facing().dx() != 0 ? p.facing().dx() : 1;
+            return InputState.of(dx, 0, true, !p.swinging() && p.cooldown() == 0);
+        }
         // Fleeing whatever cannot be killed looked sensible and was not: the bot ran from the Wulf
         // for ever and never finished a run. Only give ground to something already struck.
         if (nearest != null && nearestGap <= 40 && (p.swinging() || p.cooldown() > 0)
@@ -371,6 +396,46 @@ public final class FullRunForge {
         InputState step = Steering.along(sim, route, block);   // with inertia (§11.3): brakes before the turns
         // Give way to what is in the path — but not for ever: a creature parked on the only way is walked past.
         return touches(sim, step.dx(), step.dy()) && waiting < GIVE_WAY_TICKS ? null : step;
+    }
+
+    private static final int FLAME_CLEAR_PX = 64;
+    private static final int FLAME_FENCE_PX = 20;
+
+    private static Creature flame(Simulation sim) {
+        String id = sim.ecosystem().flame().id();
+        for (Creature cr : sim.creatures()) {
+            if (cr.alive() && cr.species().id().equals(id)) {
+                return cr;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * The nearest of the original's creatures close enough to fence (§12.8, §12.9): a small one in
+     * colour, a beast awake, or a sleeper about to be walked into. Its x gap, y gap and distance, or null.
+     */
+    private static int[] nearestOriginal(Simulation sim) {
+        PlayerData.Box pb = sim.rules().collisionBox();
+        int px = Fixed.px(sim.player().xFp()) + pb.x() + pb.w() / 2;
+        int py = Fixed.px(sim.player().yFp()) + pb.y() + pb.h() / 2;
+        int[] best = null;
+        for (Creature cr : sim.creatures()) {
+            if (cr.alive() && cr.tint() >= 0) {
+                best = nearer(best, cr.centreXPx() - px, cr.centreYPx() - py, FENCE_AT_PX);
+            }
+        }
+        for (wulf.sim.Beast b : sim.beasts()) {
+            if (b.at().equals(sim.room())) {
+                best = nearer(best, b.centreXPx() - px, b.centreYPx() - py, b.asleep() ? 24 : FENCE_AT_PX + 16);
+            }
+        }
+        return best;
+    }
+
+    private static int[] nearer(int[] best, int dx, int dy, int within) {
+        int d = Math.max(Math.abs(dx), Math.abs(dy));
+        return d <= within && (best == null || d < best[2]) ? new int[] {dx, dy, d} : best;
     }
 
     private static int nearestBlock(Simulation sim, List<int[]> route) {
@@ -418,6 +483,9 @@ public final class FullRunForge {
 
     /** What was touching the player as they fell. */
     private static String killer(Simulation sim) {
+        if (!sim.deathsByCause().isEmpty()) {
+            return String.join("+", sim.deathsByCause().keySet());   // the sim's own ledger (§21.5): beasts and bursts too
+        }
         PlayerData.Box pb = sim.rules().collisionBox();
         int px = Fixed.px(sim.player().xFp()) + pb.x();
         int py = Fixed.px(sim.player().yFp()) + pb.y();

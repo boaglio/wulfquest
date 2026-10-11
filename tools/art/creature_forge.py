@@ -154,6 +154,20 @@ def quadruped(cv, f, w, h, body, dark, head_extra):
     head_extra(cv, w, h, base)
 
 
+def sleeping(cv, w, h, body, dark, head_extra):
+    """Lying down, legs folded under: the original's sleeper (§12.9) before it is woken."""
+    low = h + 4
+    cv.ellipse(w / 2 - 1, low - 1 - 7, w / 2 - 3, (h - 6) / 2.6, body)
+    head_extra(cv, w, low, low - 1)
+    cv.rect(2, h - 2, w - 4, h - 1, dark)                                       # folded legs
+
+
+SLEEPERS = {
+    "boar": lambda cv, w, h: sleeping(cv, w, h, "r", "r", boar_head),
+    "hippo": lambda cv, w, h: sleeping(cv, w, h, "M", "m", hippo_head),
+}
+
+
 def boar_head(cv, w, h, base):
     cv.ellipse(w - 5, base - 7, 4, 3.2, "r")
     cv.rect(w - 3, base - 6, w, base - 4, "y")                                  # snout
@@ -621,10 +635,15 @@ def main():
             DRAW[sid](cv, f, w, h)
             cv.outline("K")
             frames.append((f"walk{f}", cv.rows()))
+        if sid in SLEEPERS:
+            cv = Canvas(w, h)
+            SLEEPERS[sid](cv, w, h)
+            cv.outline("K")
+            frames.append(("sleep", cv.rows()))
         name = species["sprite"]
         write_sprite(name, w, h, frames)
         names.append(name)
-        drawn[sid] = frames
+        drawn[sid] = frames[:2]   # the walk frames: a guardian is its sibling grown, awake
     beast = json.loads((ROOT / "data/entities/wulf.json").read_text(encoding="utf-8"))
     ww, wh = beast["size"]["w"], beast["size"]["h"]
     frames = []

@@ -11,7 +11,7 @@
     "distanceDrivenGait": false,
     "roamingWulf": false,
     "inventedOrchids": false,
-    "inventedCreatures": true,
+    "inventedCreatures": false,
     "quickSave": false,
     "bonusRooms": false,
     "pauseMap": false,

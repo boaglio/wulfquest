@@ -70,6 +70,33 @@
         ".KmK...KmKKKKKKKKKKmK...KmK...",
         ".KmK...KmK........KmK...KmK..."
       ]
+    },
+    {
+      "id": "sleep",
+      "rows": [
+        "..............................",
+        "..............................",
+        "..............................",
+        "..............................",
+        "..............................",
+        "..............................",
+        "..............................",
+        "..............................",
+        "..............................",
+        "..............................",
+        "...................KK.........",
+        ".........KKKKKKKKKKmmKKKKKK...",
+        "......KKKMMMMMMMMMMmmMMMMMMK..",
+        "....KKMMMMMMMMMMMMMMMMKMMMMMK.",
+        "...KMMMMMMMMMMMMMMMMMMMMMMMMMK",
+        "..KMMMMMMMMMMMMMMMMMMMMMMMMMMM",
+        ".KMMMMMMMMMMMMMMMMMMMMMMMMMMMM",
+        ".KMMMMMMMMMMMMMMMMMMMMMMMMMMMM",
+        ".KMMMMMMMMMMMMMMMMMMMMMMMMMMMM",
+        ".KMMMMMMMMMMMMMMMMMMMMMMMMMMMK",
+        ".KmmmmmmmmmmmmmmmmmmmmmmmmWKWK",
+        "..KKMMMMMMMMMMMMMMMMMMMMMMMKK."
+      ]
     }
   ],
   "mirror": {
@@ -79,6 +106,10 @@
     },
     "walk1_l": {
       "from": "walk1",
+      "flipX": true
+    },
+    "sleep_l": {
+      "from": "sleep",
       "flipX": true
     }
   }

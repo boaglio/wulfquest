@@ -9,6 +9,7 @@ import wulf.data.CreatureSpriteValidator;
 import wulf.data.DisplayConfig;
 import wulf.data.Palette;
 import wulf.engine.Fixed;
+import wulf.sim.Beast;
 import wulf.sim.Creature;
 import wulf.sim.Simulation;
 import wulf.sim.Spear;
@@ -39,6 +40,7 @@ public final class CreaturePainter {
     private final Sprite puff;
     private final int flash;
     private final int outline;
+    private final int hint;
     private final int thread;
     private final int shaft;
     private final int point;
@@ -54,6 +56,7 @@ public final class CreaturePainter {
         this.puff = sprites.get(CreatureSpriteValidator.PUFF);
         this.flash = palette.indexOf("brightWhite");
         this.outline = palette.indexOf("black");
+        this.hint = palette.indexOf("brightYellow");
         this.thread = palette.indexOf("white");
         this.shaft = palette.indexOf("white");
         this.point = palette.indexOf("brightCyan");
@@ -74,6 +77,12 @@ public final class CreaturePainter {
             for (int i = 0; i < order.size(); i++) {
                 if (resting == null || !resting[i]) {
                     paintCreature(fb, order.get(i), sim.tick(), ox, oy);
+                }
+            }
+            for (int i = 0; i < sim.beasts().size(); i++) {
+                Beast b = sim.beasts().get(i);
+                if (b.at().equals(sim.room())) {
+                    paintBeast(fb, b, ox, oy);
                 }
             }
             Quest quest = sim.quest();
@@ -187,6 +196,19 @@ public final class CreaturePainter {
         } else {
             sprite.blit(fb, frame, x, y);
         }
+    }
+
+    /**
+     * §12.9: in the colour the actor table gives it, ink and outline; a tribesman level with a
+     * quarter in yellow ({@code $ABCE}); a sleeper lying down.
+     */
+    private void paintBeast(Framebuffer fb, Beast b, int ox, int oy) {
+        Sprite sprite = sprites.get(b.species().sprite());
+        String side = b.faceX() < 0 ? "_l" : "";
+        String frame = b.asleep() ? "sleep" + side
+                : "walk" + (b.moveTicks() > 0 ? (b.moveTicks() / roster.walkTicksPerFrame()) % 2 : 0) + side;
+        int ink = b.hinting() ? hint : b.tint();
+        sprite.blitInked(fb, frame, Fixed.px(b.xFp()) + ox, Fixed.px(b.yFp()) + oy, ink - 8, ink, outline);
     }
 
     private void paintWulf(Framebuffer fb, Wulf wulf, long tick, int ox, int oy) {

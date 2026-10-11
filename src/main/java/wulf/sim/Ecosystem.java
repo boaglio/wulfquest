@@ -7,15 +7,16 @@ import wulf.data.OrchidData;
 /**
  * What lives in the jungle and how rooms fill with it (AGENTS.md §12, §13): the
  * roster, the populator, the score for a first visit to a room (§16.3), the Wulf, and
- * the quest (§14), the orchids (§15), the flame (§12.7), and the original's swarm (§12.8).
+ * the quest (§14), the orchids (§15), the flame (§12.7), and the original's swarm (§12.8) and big beasts (§12.9).
  */
 public record Ecosystem(CreatureData creatures, RoomPopulator populator, int roomFirstVisitScore, WulfRules wulf,
                         QuestRules quest, OrchidData orchids, FlameData flame,
-                        SwarmRules swarm) {
+                        SwarmRules swarm, BeastRules beasts) {
 
     /** No creatures, no Wulf, no quest: M3's empty jungle. */
     public static final Ecosystem NONE = new Ecosystem(CreatureData.EMPTY, RoomPopulator.NONE, 0, WulfRules.NONE,
-            QuestRules.NONE, OrchidData.NONE, FlameData.NONE, SwarmRules.NONE);
+            QuestRules.NONE, OrchidData.NONE, FlameData.NONE, SwarmRules.NONE,
+            BeastRules.NONE);
 
     /** Everything but the flame (§12.7): a jungle that lets you stand still, as most tests want. */
     public Ecosystem(CreatureData creatures, RoomPopulator populator, int roomFirstVisitScore, WulfRules wulf,
@@ -27,6 +28,12 @@ public record Ecosystem(CreatureData creatures, RoomPopulator populator, int roo
     public Ecosystem(CreatureData creatures, RoomPopulator populator, int roomFirstVisitScore, WulfRules wulf,
                      QuestRules quest, OrchidData orchids, FlameData flame) {
         this(creatures, populator, roomFirstVisitScore, wulf, quest, orchids, flame, SwarmRules.NONE);
+    }
+
+    /** The original's swarm without its big beasts (§12.8). */
+    public Ecosystem(CreatureData creatures, RoomPopulator populator, int roomFirstVisitScore, WulfRules wulf,
+                     QuestRules quest, OrchidData orchids, FlameData flame, SwarmRules swarm) {
+        this(creatures, populator, roomFirstVisitScore, wulf, quest, orchids, flame, swarm, BeastRules.NONE);
     }
 
     /** Creatures without a Wulf or a quest. */

@@ -58,6 +58,27 @@
         ".KrK...KrKKrK...KrK...",
         ".KrK...KrKKrK...KrK..."
       ]
+    },
+    {
+      "id": "sleep",
+      "rows": [
+        "......................",
+        "......................",
+        "......................",
+        "......................",
+        "......................",
+        "......................",
+        "......................",
+        "....K..KKKKKKK........",
+        "...KyKKyrryrryKKKKK...",
+        "...KrrrrrrrrrrrrrrrKK.",
+        "..KrrrrrrrrrrrrrrrrrrK",
+        ".KrrrrrrrrrrrrrrrKrrrK",
+        ".KrrrrrrrrrrrrrrrrrrWW",
+        "..KrrrrrrrrrrrrrrrryWy",
+        ".KrrrrrrrrrrrrrrrrrWyy",
+        "..KKKKKrrrrrrKKKKKKWKK"
+      ]
     }
   ],
   "mirror": {
@@ -67,6 +88,10 @@
     },
     "walk1_l": {
       "from": "walk1",
+      "flipX": true
+    },
+    "sleep_l": {
+      "from": "sleep",
       "flipX": true
     }
   }

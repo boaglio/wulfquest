@@ -21,6 +21,55 @@
     "appearScores": [165, 175, 175, 185, 185],
     "facingRightBonus": 10
   },
+  "beasts": {
+    "followRows": 2,
+    "followColumns": 4,
+    "screenTopPx": 16,
+    "spots": [
+        [56, 63], [0, 0], [80, 119], [48, 127], [80, 127], [168, 127], [216, 127], [48, 71],
+        [120, 95], [88, 63], [120, 127], [176, 127], [128, 127], [104, 127], [56, 63], [128, 127],
+        [192, 127], [192, 127], [120, 95], [120, 95], [200, 63], [32, 63], [72, 63], [216, 127],
+        [176, 127], [120, 63], [32, 127], [128, 127], [72, 63], [192, 127], [32, 127], [184, 63],
+        [200, 127], [96, 127], [112, 127], [16, 127], [144, 63], [216, 127], [88, 79], [152, 127],
+        [64, 127], [160, 127], [192, 127], [200, 127], [72, 63], [80, 127], [120, 63], [64, 63]
+    ],
+    "kinds": [
+      {
+        "id": "rhino", "displayName": "Rhino", "sprite": "creature_rhino",
+        "size": { "w": 28, "h": 20 }, "collisionBox": { "x": -13, "y": -12, "w": 26, "h": 12 },
+        "speed": { "xFp": 384, "yFp": 0 }, "hp": 1, "score": 0, "ignoresScenery": false,
+        "behaviour": { "kind": "RHINO", "params": { "paceFp": 384, "shovedFp": 768 } }
+      },
+      {
+        "id": "tribesman", "displayName": "Tribesman", "sprite": "creature_tribesman",
+        "size": { "w": 16, "h": 24 }, "collisionBox": { "x": -6, "y": -10, "w": 12, "h": 10 },
+        "speed": { "xFp": 384, "yFp": 384 }, "hp": 1, "score": 0, "ignoresScenery": false,
+        "behaviour": { "kind": "TRIBESMAN", "params": { "walkSlowFp": 256, "walkFastFp": 384, "shovedFp": 512, "hintPx": 16, "callEveryTicks": 16 } }
+      },
+      {
+        "id": "hippo", "displayName": "Hippo", "sprite": "creature_hippo",
+        "size": { "w": 30, "h": 22 }, "collisionBox": { "x": -14, "y": -13, "w": 28, "h": 13 },
+        "speed": { "xFp": 256, "yFp": 0 }, "hp": 1, "score": 0, "ignoresScenery": false,
+        "behaviour": { "kind": "SLEEPER", "params": { "chargeFp": 256, "shovedFp": 768, "wakeTicks": 30 } }
+      },
+      {
+        "id": "warthog", "displayName": "Warthog", "sprite": "creature_boar",
+        "size": { "w": 22, "h": 16 }, "collisionBox": { "x": -10, "y": -10, "w": 20, "h": 10 },
+        "speed": { "xFp": 256, "yFp": 0 }, "hp": 1, "score": 0, "ignoresScenery": false,
+        "behaviour": { "kind": "SLEEPER", "params": { "chargeFp": 256, "shovedFp": 768, "wakeTicks": 30 } }
+      }
+    ],
+    "placed": [
+      { "kind": "rhino", "room": "8,9", "x": 112, "y": 131, "heading": -1, "tint": "brightMagenta", "asleep": false },
+      { "kind": "rhino", "room": "7,0", "x": 112, "y": 63, "heading": 1, "tint": "brightMagenta", "asleep": false },
+      { "kind": "rhino", "room": "3,15", "x": 112, "y": 131, "heading": -1, "tint": "brightMagenta", "asleep": false },
+      { "kind": "rhino", "room": "8,9", "x": 112, "y": 63, "heading": 1, "tint": "brightMagenta", "asleep": false },
+      { "kind": "tribesman", "room": "7,10", "x": 80, "y": 80, "heading": 0, "tint": "brightRed", "asleep": false },
+      { "kind": "tribesman", "room": "4,4", "x": 80, "y": 80, "heading": 0, "tint": "brightMagenta", "asleep": false },
+      { "kind": "tribesman", "room": "2,14", "x": 48, "y": 120, "heading": 0, "tint": "brightCyan", "asleep": false },
+      { "kind": "hippo", "room": "3,8", "x": 120, "y": 135, "heading": -1, "tint": "brightYellow", "asleep": false }
+    ]
+  },
   "creatures": [
     {
       "id": "spider", "displayName": "Spider", "sprite": "vermin_spider",

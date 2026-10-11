@@ -45,6 +45,9 @@ import wulf.sim.QuestRules;
 import wulf.sim.Treasures;
 import wulf.sim.RoomPopulator;
 import wulf.sim.SwarmRules;
+import wulf.sim.Beast;
+import wulf.sim.BeastRules;
+import wulf.sim.Simulation;
 import wulf.data.OrchidData;
 import wulf.data.OrchidValidator;
 import wulf.data.HighScores;
@@ -191,7 +194,7 @@ public record Content(
     public Ecosystem ecosystem() {
         if (!game.feature("inventedCreatures")) {
             return new Ecosystem(originalCreatures(), RoomPopulator.NONE, loot.event("roomFirstVisit"), wulfRules(),
-                    questRules(), orchids(), flame, swarmRules());
+                    questRules(), orchids(), flame, swarmRules(), beastRules());
         }
         RoomPopulator jungle = new BiomePopulator(creatures, roomEntities, biomes, game.difficulty());
         // §14.3: a lair is a single clean puzzle — its guardian and nothing else. The way out is kept clear too.
@@ -285,6 +288,48 @@ public record Content(
     }
 
     /**
+     * The original's big beasts (§12.9): each room's spot from its type ({@code $A7D4}), and the actor
+     * table's placings turned from the original's numbers — a sprite's left edge, feet counted from
+     * the top of the screen — into our world feet.
+     */
+    public BeastRules beastRules() {
+        JungleData.Beasts b = jungle.beasts();
+        List<CreatureData.Species> kinds = b.kinds();
+        List<Beast.Kind> kindOf = kinds.stream().map(k -> Beast.Kind.valueOf(k.behaviour().kind())).toList();
+        int rooms = map.gridW() * map.gridH();
+        int[] spotX = new int[rooms];
+        int[] spotY = new int[rooms];
+        for (int row = 0; row < map.gridH(); row++) {
+            for (int col = 0; col < map.gridW(); col++) {
+                List<Integer> spot = b.spots().get(map.roomType(col, row));
+                int i = new RoomAddress(col, row).index();
+                spotX[i] = spot.get(0);
+                spotY[i] = spot.get(1) - b.screenTopPx();
+            }
+        }
+        int[] sleepers = java.util.stream.IntStream.range(0, kinds.size())
+                .filter(k -> kindOf.get(k) == Beast.Kind.SLEEPER).toArray();
+        List<BeastRules.Placing> placings = new ArrayList<>();
+        for (JungleData.Placed p : b.placed()) {
+            int k = indexOfKind(kinds, p.kind());
+            RoomAddress room = LandmarksData.room(p.room());
+            int x = room.col() * Simulation.ROOM_W_PX + p.x() + kinds.get(k).size().w() / 2;
+            int y = room.row() * Simulation.ROOM_H_PX + p.y() - b.screenTopPx();
+            placings.add(new BeastRules.Placing(k, room, x, y, p.heading(), palette.indexOf(p.tint()), p.asleep()));
+        }
+        return new BeastRules(true, b.followRows(), b.followColumns(), kinds, kindOf, spotX, spotY, sleepers, placings);
+    }
+
+    private static int indexOfKind(List<CreatureData.Species> kinds, String id) {
+        for (int k = 0; k < kinds.size(); k++) {
+            if (kinds.get(k).id().equals(id)) {
+                return k;
+            }
+        }
+        throw new IllegalStateException("no beast '" + id + "' in jungle.json");
+    }
+
+    /**
      * §12.8: every behaviour known with its parameters, every sprite drawn, every name in the pick
      * table a creature of the roster, the fold inside the table, and every tint a bright colour.
      */
@@ -314,6 +359,51 @@ public record Content(
             String tint = jungle.swarm().tints().get(i);
             if (!palette.has(tint) || palette.indexOf(tint) < 9) {
                 throw new DataException(source, "/swarm/tints/" + i, "is '" + tint + "', which is not a bright colour of the palette");
+            }
+        }
+        checkBeasts(jungle.beasts(), palette, sprites, source);
+    }
+
+    /** §12.9: every beast a known kind with its speeds, drawn, placed in a real room, in a bright colour. */
+    private static void checkBeasts(JungleData.Beasts beasts, Palette palette, SpriteRepository sprites, String source) {
+        java.util.Map<Beast.Kind, List<String>> params = java.util.Map.of(
+                Beast.Kind.RHINO, List.of("paceFp", "shovedFp"),
+                Beast.Kind.TRIBESMAN, List.of("walkSlowFp", "walkFastFp", "shovedFp", "hintPx", "callEveryTicks"),
+                Beast.Kind.SLEEPER, List.of("chargeFp", "shovedFp", "wakeTicks"));
+        List<CreatureData.Species> kinds = beasts.kinds();
+        for (int i = 0; i < kinds.size(); i++) {
+            CreatureData.Behaviour b = kinds.get(i).behaviour();
+            String at = "/beasts/kinds/" + i + "/behaviour";
+            Beast.Kind kind;
+            try {
+                kind = Beast.Kind.valueOf(b.kind());
+            } catch (IllegalArgumentException e) {
+                throw new DataException(source, at + "/kind", "is '" + b.kind() + "', which is not one of "
+                        + java.util.Arrays.toString(Beast.Kind.values()));
+            }
+            if (!new LinkedHashSet<>(params.get(kind)).equals(b.params().keySet())) {
+                throw new DataException(source, at + "/params", "has " + b.params().keySet() + "; " + kind + " takes "
+                        + params.get(kind));
+            }
+        }
+        CreatureData drawn = new CreatureData(1, "canon", 256, 1, 0, 1, kinds, List.of());
+        java.util.Map<String, Set<String>> frames = CreatureSpriteValidator.framesBySprite(sprites);
+        CreatureSpriteValidator.check(drawn, frames, source);
+        for (int i = 0; i < kinds.size(); i++) {
+            Set<String> has = frames.get(kinds.get(i).sprite());
+            if (kinds.get(i).behaviour().kind().equals("SLEEPER") && !(has.contains("sleep") && has.contains("sleep_l"))) {
+                throw new DataException(source, "/beasts/kinds/" + i + "/sprite",
+                        "names sprite '" + kinds.get(i).sprite() + "', which has no 'sleep' frame; a sleeper lies in one");
+            }
+        }
+        for (int i = 0; i < beasts.placed().size(); i++) {
+            JungleData.Placed p = beasts.placed().get(i);
+            String at = "/beasts/placed/" + i;
+            if (kinds.stream().noneMatch(k -> k.id().equals(p.kind()))) {
+                throw new DataException(source, at + "/kind", "is '" + p.kind() + "', which is not one of /beasts/kinds");
+            }
+            if (!palette.has(p.tint()) || palette.indexOf(p.tint()) < 9) {
+                throw new DataException(source, at + "/tint", "is '" + p.tint() + "', which is not a bright colour of the palette");
             }
         }
     }

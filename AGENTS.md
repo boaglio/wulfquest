@@ -1378,7 +1378,11 @@ temptation to add a verb.
 
 ### 12.1 Fidelity note — read this before implementing
 
-The original's creature table has **not** been extracted into this repo. The
+**Since 2026-10-10 the original's creatures are extracted and the default** (§12.8, §12.9).
+What follows, §12.2–§12.6, is our invented jungle, kept as `[NEW]` `features.inventedCreatures`
+(default off); where §12.2's universal rules and §12.8 disagree, the original's play §12.8's.
+
+The original's creature table had **not** been extracted into this repo when this was written. The
 roster below is tagged `[RECON]`: it reproduces the *documented composition*
 of the original's jungle (roaming tribesmen, large charging beasts, small
 fast vermin, fliers, the four guardians, the Wulf) with our own tuned
@@ -1618,10 +1622,9 @@ flame comes for you.
 
 ### 12.8 The original's creatures **[CANON]** — `data/entities/jungle.json`
 
-From the disassembly (2026-10-10, §25 Q1). Built in stages: **the small ones are in**,
-behind `features.inventedCreatures` — on (the default, for now) it is still §12.3–§12.6's
-invented jungle; off, the original's. The big ones (rhinos, tribesmen, the sleeping hippo or
-warthog: the actor table `$AC77`) come next, and then the default flips.
+From the disassembly (2026-10-10, §25 Q1). **The default since 2026-10-10**: the small ones
+here, the big ones in §12.9. §12.3–§12.6's invented jungle stays as `[NEW]`
+`features.inventedCreatures` (default off) — the roster, the biome populator and all.
 
 **The swarm.** The original fills no room on entry. Once an update while Vale is on his feet
 (`$9A3C`), if his room holds fewer than **3** (`$96BE`) — puffs and bursts counted — and all
@@ -1663,6 +1666,45 @@ rooms fewer than **6** (the slots at `$9792`), a puff comes at a random spot (`$
   ink). `[RECON]`: the spot's mapping to our feet, the box against him and the scenery (ours
   14×10, the original tests `$1313` and `$1717`), and one puff struck in its sixth update.
   `SwarmTest`.
+
+### 12.9 The original's big beasts **[CANON]** — `jungle.json → beasts`
+
+From the disassembly (2026-10-10). The actor table (`$AC77`, copied to `$9702` by a new game)
+sets them down: **four rhinos** — two in (8,9), one in (7,0), one in (3,15), all magenta;
+**three tribesmen** — (7,10) red, (4,4) magenta, (2,14) cyan; and **a sleeper** — awake, a
+yellow hippo heading west in (3,8). Unlike the swarm they live on the whole map: every update,
+wherever they are, they move (`$AFE8`), crossing from room to room as Vale does, the map's ends
+joined (`$B193`, `$B12F`). **Nothing kills them**: a blade only pushes. Each keeps its colour,
+and ours inks its sprite in it. `jungle.json → beasts.placed` keeps the table's own numbers (x
+the sprite's left, y its feet from the top of the screen); `Content.beastRules()` turns them into
+ours.
+
+- **The rhino** (`$AD07`) paces its row at 3 px an update (`±$30`; ours 1.5 px a tick), and
+  when the scenery stops it dead (`$AAED`) it turns about at that pace again (`$AD20`). Running
+  into a walking Vale it takes a life and turns about (`$ADA2`). Met with the blade, facing it,
+  it is **sent off the way the blade points at 6 px an update** (`$AD69`) until something stops
+  it — then back to its pace.
+- **The tribesman** (`$AB74`) walks a slant, one of ±2 or ±3 px each way (`$AC24`), and picks a
+  new one whenever stopped dead (`$ABDE`). Met with the blade he is pushed back at 4 px
+  (`$ABAB`, `±$40`); walked into, he takes a life all the same, and is pushed. **He follows the
+  player** (`$A630`): two rows or more from him, he is set down a row above or below (at random;
+  his own row at the map's edge), in his block of four columns but at his own column of it, at
+  the room's **spot** — never in his room. And **level with an amulet quarter still lying** (on
+  its map column and within 16 px of it across, or on its row and within 16 px up and down,
+  `$9D41`) he **flashes yellow and calls** (`$BF3D`, `$ABCE`): the original's own hint.
+- **The sleeper** (`$9EB3`, `$9E72`) lies asleep and follows the player as a tribesman does;
+  each time it is set down it is a hippo or a warthog, at random (`$9F06`). Touched it wakes,
+  turns about, stands 15 updates — deadly to touch — then charges at 2 px an update (`$E0`)
+  until the scenery stops it, and sleeps there (`$9E92`). A blade turns it as it does a rhino.
+  With Vale not on his feet, any touch at all wakes it (`$9F01`).
+- **The spots** (`$D6A6`, through `$A7D4`): one per room type, the table the orchids grow at —
+  48 pairs in `beasts.spots`.
+- **Touch** (`$AB36`, as §12.8): only a white Vale on his feet, in its room.
+- **Ours**: `Beast` and `BeastRules`, run by `Simulation.tickBeasts`; the art is the invented
+  roster's rhino, tribesman, hippo and warthog, inked, with a `sleep` frame for the last two.
+  `[RECON]`: the room spot's x taken as the sprite's left (ours adds half its width); crossing
+  south keeps x (the original sets the room type's entry x, `$6036`); the boxes; and the shove's
+  direction from our eight-way facing. `BeastTest`.
 
 ## 13. The Wulf
 
@@ -2993,10 +3035,14 @@ hash at every 50th tick. `ReplayRunner` re-executes them. Ship at least:
   2026-10-01: seed 202, 35 389 ticks, no death; re-forged 2026-10-03 with the
   original's Wulf (§13.8): seed 202 again, 43 420 ticks, no death; and with the
   original's orchids (§15.2), 2026-10-04: seed 202, 28 326 ticks, no death;
-  and with the flame (§12.7), 2026-10-08: seed 190, 25 849 ticks, no death)
+  and with the flame (§12.7), 2026-10-08: seed 190, 25 849 ticks, no death; and with the
+  original's creatures (§12.8, §12.9), 2026-10-10: seed 350, 51 119 ticks, no death, found by
+  6 forges over seeds 300–359 once the bot learned to fence them and to step out of the flame's
+  line — a trace before that put 208 of 299 deaths on the flame)
 - `replays/wulf_escape.json` — a Wulf pursuit survived across rooms. (**M5, shipped**;
   re-forged 2026-10-08 with the flame: seed 35, chased across 6 rooms,
-  parried 8 times, outrun, no life lost)
+  parried 8 times, outrun, no life lost; since 2026-10-10 it also carries
+  `"inventedCreatures": true`, the jungle it was recorded in)
   It is the roaming Wulf's (§13.1–§13.7, [NEW]), so since 2026-10-03 the file
   carries `"features": { "roamingWulf": true }`: a replay may name the flags it
   was recorded under, and `ReplayRunner` lays them over `game.json`'s, so a
@@ -3011,7 +3057,9 @@ hash at every 50th tick. `ReplayRunner` re-executes them. Ship at least:
   over seeds 2000–2159; and **2026-10-04 with the original's orchids** (§15.2):
   seed 2008, the same lair order, 71 179 ticks, no death — the bot, untouchable
   under every flower but white, wins faster; and **2026-10-08 with the flame**
-  (§12.7): seed 2016, the same order, 72 191 ticks, no death. The lairs are fixed
+  (§12.7): seed 2016, the same order, 72 191 ticks, no death; and **2026-10-10 with the
+  original's creatures** (§12.8, §12.9): seed 2050, the same order, 112 295 ticks, no death,
+  score 277 950 — every burst scores — found by 16 forges over seeds 2000–2079. The lairs are fixed
   (`landmarks.json`), but a seed decides every creature, and the bot's luck
   with them varies enormously: seeds 1–60 for `lair_nw` won only in
   108 000–241 000 ticks, and seeds 3000–3159 for the full run in 300 000 and
@@ -3837,14 +3885,14 @@ the source wins.
 
 | # | Question | Currently | Where it lives |
 |---|----------|-----------|----------------|
-| Q1 | The exact creature roster and per-room creature assignment table | 13 invented species, biome-weighted. **Lead 2026-10-03:** the original's room creatures are not per room. Up to `$96BE` (3) at once appear as a puff in the player's room (`$9A68`), then become one of 15 kinds from `$A41A` — spider, scorpion, bat, parrot, monkey, lizard, snake, then rat, bird, frog, mosquito, skunk, flea, earwig — picked from the first `8 + 2 × quarters held` entries (`$A3EC`), so the jungle gets worse as the amulet fills. The fixed ones are in the actor table `$AC77`: rhinos in (8,9) twice, (7,0) and (3,15); tribesmen in (7,10), (4,4), (2,14); a hippo in (3,8); the guardian at the arch (8,8); and the Wulf (Q9). A flame (`$34`) comes for a player who lingers — **built 2026-10-08**, §12.7. **The small ones built 2026-10-10** (§12.8), behind `features.inventedCreatures` while the big ones are built. Traced too: rhinos (`$AD07`) pace a row at 3 px and turn at the scenery, and a blade sends one back at 6 (`$AD69`); tribesmen (`$AB74`) walk a slant, re-steer when stopped, are pushed back by a blade, and follow the player — two rows away, one is set down a row from him (`$A630`) — and flash and beep when level with an amulet quarter (`$9D41`); the hippo sleeps (`$9EB3`), follows the same way, comes back a hippo or a warthog at random (`$9F06`), and touched it wakes, turns and charges until stopped (`$9E72`). | `jungle.json`, `creatures.json`, `room_entities.json` |
+| Q1 | The exact creature roster and per-room creature assignment table | 13 invented species, biome-weighted. **Lead 2026-10-03:** the original's room creatures are not per room. Up to `$96BE` (3) at once appear as a puff in the player's room (`$9A68`), then become one of 15 kinds from `$A41A` — spider, scorpion, bat, parrot, monkey, lizard, snake, then rat, bird, frog, mosquito, skunk, flea, earwig — picked from the first `8 + 2 × quarters held` entries (`$A3EC`), so the jungle gets worse as the amulet fills. The fixed ones are in the actor table `$AC77`: rhinos in (8,9) twice, (7,0) and (3,15); tribesmen in (7,10), (4,4), (2,14); a hippo in (3,8); the guardian at the arch (8,8); and the Wulf (Q9). A flame (`$34`) comes for a player who lingers — **built 2026-10-08**, §12.7. **Built 2026-10-10 and now the default**: the small ones (§12.8) and the big ones (§12.9); ours kept as [NEW] `features.inventedCreatures`. In brief: rhinos (`$AD07`) pace a row at 3 px and turn at the scenery, and a blade sends one back at 6 (`$AD69`); tribesmen (`$AB74`) walk a slant, re-steer when stopped, are pushed back by a blade, and follow the player — two rows away, one is set down a row from him (`$A630`) — and flash and beep when level with an amulet quarter (`$9D41`); the hippo sleeps (`$9EB3`), follows the same way, comes back a hippo or a warthog at random (`$9F06`), and touched it wakes, turns and charges until stopped (`$9E72`). | `jungle.json`, `creatures.json`, `room_entities.json` |
 | Q2 | The four guardians' species, colours, and lair rooms | **Rooms partly answered 2026-09-27:** the original has no fixed lairs — it picks one of eight preset four-room sets at random (`$A29D`, `Place Amulet Pieces` `$A255`) and lays each quarter at its room type's object slot 1 (`$DC6C`). Our lairs are fixed (`[RECON]`) at the game's set 3, `5,3 13,4 3,12 9,10`. Guardians' species and colours still open; the game's immortals table (`$AC77`) lists rhinos, spear men, fire, the wolf, a hippo and "guardian" as sprites to look at next. | `landmarks.json`, `guardians.json` |
 | Q3 | The exit's actual location and its guard condition | **Lead 2026-09-27:** the true map has exactly one stone arch, `(8,8)`, the heart of the mirrored temple two rooms north of the start. The exit is placed there. **Guard condition traced 2026-10-10** (`$9F16`, not yet built): the actor table puts "the Guardian" (sprites `$94`/`$95`) at the arch, (8,8). Until all four quarters are held (`$970D` = `$0F`) it stands there and its touch throws Vale back (`$9704` = `$80`) — whatever his colour (`$AB3D`, no white check); with the amulet whole it steps aside at 2 px an update, right if he is on the room's left half and left if on its right, until it is past `$C0` or `$40`. | `landmarks.json` |
 | Q4 | The orchid colour→effect mapping and durations | 6 colours per §15.2. **Answered and built 2026-10-04** (§15.2, now the default; ours kept as [NEW] `features.inventedOrchids`, §15.4). Touching a flower **in full bloom** (state `$4F`, `$A737`) turns Vale its colour (`$9707`) and sets the timer `$96B0` to `$C0`; it counts down every other frame (`$AE7A`), so an effect lasts **384 frames** (768 of our ticks at 2 a frame, §25 Q5), and for its last `$2F` counts Vale flashes white (`$AF7A`). At zero he is white (`$47`) again. **Five colours** (`$A6FD`, picked when a flower closes, from the frame counter): **red** `$42` — slow, at most 2 px a frame against 3 (`$AFC1`, `$AFE0`); **cyan** `$45` — fast, 4 px a frame (`$AFE4`), footsteps twice as often (`$BF4B`); **magenta** `$43` — every direction reversed (`$AF14`, `XOR %1111`); **yellow** `$46` — knocked down, sitting helpless for `$60` counts, then he gets up (`$AEF5`, `$AE8F`, `$A61B`); **white** `$47` — the cure: clears any effect (`$A757`). Odds of a colour: white 4 in 16, each other 3 in 16. **Every coloured state makes him untouchable**: creatures, the Wulf and the flame all hurt only a white Vale (`$AB36`, `$A880`, `$9DE5`) — so red and magenta are protection with a cost, yellow is protection you cannot use. **No score** for a flower. A death clears the effect (`$AA49`). Ours — haste, torpor, reversal, immunity, delirium, stillness, scored 25–75 — is `[RECON]` that the original does not support. Not traced: the growth timings in our ticks (`$A680`–`$A731`: closed for `$10` counts, open for `$80`–`$BF`). | `orchids.json` |
 | Q5 | Exact player speed in px/frame, and whether it was frame-quantised | **Shape answered 2026-09-30** (§11.3): up to 3 px a frame in whole steps (0–3), with inertia ($AEEF, $AFC1, $B031, $B047); fighting a steady 2 ($ADD0). Still open: the original's frame rate, which fixes px/s — ours assumes 2 ticks a frame, and keeps §11.2's 1.5 / 1.0 px/tick as full speed. | `player.json → speed, momentum` |
 | Q6 | Starting lives and extra-life thresholds | **Closed 2026-10-02** from the disassembly: **5 in reserve** (`$B21E`), so six falls — a fall with none left is game over (`$AA27`–`$AA37`); **no extra lives for score** — the lives count's only writers are `$B21E`, `$AA37`, `$9F87` and the treasure life `$A2F8` (up to 9 in reserve). §11.7, §16.3. | `player.json → lives` |
 | Q7 | Whether amulet pieces were lost on death | **Closed 2026-10-02: kept.** The quarters held are bits of `$970D`, written only by the pickup (`$A1E3`); the death path `$AA27`–`$AA57` does not touch it. §11.7. | `player.json → death.keepAmulet` |
-| Q8 | Score values per creature and per piece | **Partly answered 2026-10-01** from `Add Points To Score` (`$B5A9`, BCD) and its callers: a quarter of the amulet is **7500** (`$A1ED`, now in `loot.json`), a treasure **150** (`$A332`, §16.4), and a creature **165, 175, 185 or 195** by its type (`$A4B3`). Our creatures are not the original's (Q1), so their 100–500 stay `[RECON]`. | `creatures.json`, `loot.json` |
+| Q8 | Score values per creature and per piece | **Partly answered 2026-10-01** from `Add Points To Score` (`$B5A9`, BCD) and its callers: a quarter of the amulet is **7500** (`$A1ED`, now in `loot.json`), a treasure **150** (`$A332`, §16.4), and a creature **165, 175, 185 or 195** by its type (`$A4B3`). **Creatures closed 2026-10-10** with Q1: the original's are the default (§12.8), scored as `$A4B3` scores them; the invented roster's 100–500 stay `[RECON]` behind `features.inventedCreatures`. | `creatures.json`, `loot.json` |
 | Q9 | The Wulf's appearance rules and whether the sabre affected it | 12% on entry + bonuses; repel only. **Answered and built 2026-10-03** (§13.8, now the default; ours kept as [NEW] `features.roamingWulf`). Each actor's state byte is also its sprite ID and indexes the jump table `$9B3E`. (1) **One Wulf, on one row.** A new game copies the actor table `$AC77` to `$9702`: one Wulf record (`$976E`, state `$50`) in room **(6,15)**, x 112. Its y velocity is never set, and a side exit changes only the column, wrapping 15↔0 (`$B187`, `$B19F`, `$B193`), so it **never leaves row 15**. Nothing else makes a Wulf: the room's random creatures (`$9A68`, puff `$01`, `$A3E0`) come from `$A41A`, all small fry. (2) **Always moving, on- or off-screen**, 4 px per update in x (`IX+$06` = ±`$40`, ÷16 in `$B031`) against the player's 3; blocked by its own room's scenery, it turns (`$AAED`→`$ADB3`). (3) **It hunts only along the row**: with the player in row 15 it heads for the player's room, east or west by room number, or by x in the same room (`$A922`); otherwise it keeps its heading. (4) **Touch costs a life**, the same throw as any creature (`$9704`, `$A985`, then `$AA0D`→`$AA27`), unless the player's colour is not plain `$47` — under an orchid's tint (`$A880`). (5) **The sabre does not stop the hit**, unlike against small fry, whose touch it blocks when Vale faces them (`$AB3D`). But facing an oncoming Wulf while fighting makes it **stop and sit** (state +8, `$A8B2`/`$A8E4`) for as long as he keeps facing it (`$A8F5`), then it goes on, briefly faster (±`$60`, `$A964`). Our Wulf — appearing anywhere after a warning, following across rooms, giving up — is `[RECON]` that the original does not support. | `wulf.json` |
 | Q10 | Whether anything besides orchids and the amulet was collectable | **Closed 2026-10-01: yes, treasures.** Source: the SkoolKit disassembly (Q14's link) — `Initialise Objects` `$A2BD`, `Room Objects` `$A33B`, the object location table `$DC6C`, the handlers `$A305`/`$A312`/`$A323` and the sprite table `$C084`. Up to two per room, seven kinds of thing and a life, 150 points each. All in §16.4 and `world/treasures.json`; only the fill rate is `[RECON]`. | `world/treasures.json` |
 | Q11 | Sabre swing duration, reach, and whether movement was locked | **Shape answered 2026-09-27** (§11.6): no windup or recovery, live while fire is held (`$AB0E`), a random one of eight poses every 4th frame (`$AE4B`, `Rand8`), movement at 2 px/frame against walking's 3 (`$ADD0`, `$AFC1`). Reach still `[RECON]` 14 px; converting the original's px/frame needs its frame rate, still unmeasured. | `player.json → sabre` |

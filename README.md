@@ -23,6 +23,16 @@ The builds are not signed yet, so Windows warns on the first launch: click
 
 ## Status
 
+**The original's creatures.** The jungle is now the original's, read from its
+disassembly: small creatures — spiders, scorpions, bats, parrots and ten more —
+appear as puffs, three to a room, each in a colour of its own, and the later kinds
+only come as the amulet fills. Meet them with the sabre out and facing them and
+they burst; walk into one and it takes you with it. Rhinos pace their corridors,
+tribesmen follow you about the map — and light up and call when they stand level
+with a quarter of the amulet — and somewhere a hippo or a warthog sleeps. None of
+those can be killed, only pushed back. Our own invented creatures stay as an
+option (`features.inventedCreatures`).
+
 **The original's Wulf.** Read from the original's disassembly: there is one
 Wulf, and it prowls the bottom row of the jungle all game, faster than you. A
 sabre held towards it as it comes makes it sit — for a while. The Wulf that
