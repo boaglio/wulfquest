@@ -58,7 +58,7 @@
     "sprite": "creature_keeper",
     "size": { "w": 24, "h": 32 },
     "collisionBox": { "x": -10, "y": -14, "w": 20, "h": 14 },
-    "stepAsideFp": 256,
+    "stepAsideFp": 128,
     "asideMinPx": 76,
     "asideMaxPx": 204
   }

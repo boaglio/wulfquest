@@ -36,10 +36,10 @@
     "xPx": 128,
     "yPx": 48,
     "heading": -1,
-    "speedFp": 512,
-    "risenSpeedFp": 768,
-    "sitReleaseTicks": 30,
-    "riseTicks": 16
+    "speedFp": 256,
+    "risenSpeedFp": 384,
+    "sitReleaseTicks": 60,
+    "riseTicks": 32
   },
   "audio": { "warning": "wulf_howl", "loop": "wulf_growl", "parry": "wulf_parry", "loopSilentAtPx": 300 }
 }

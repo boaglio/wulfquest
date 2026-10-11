@@ -1222,6 +1222,11 @@ public final class Simulation {
         if (roomOrchids.length == 0 || god) {
             return;   // §17.6: --god walks through the flowers; none of them takes him
         }
+        if (effect.kind().holdsStill()) {
+            // $AB01: only a walking or fighting Sabreman picks a flower. Sat on a bloom that grows
+            // back before he can stand, he would otherwise be knocked down again, forever.
+            return;
+        }
         OrchidData data = eco.orchids();
         PlayerData.Box pb = rules.collisionBox();
         int px = Fixed.px(player.xFp) + pb.x();

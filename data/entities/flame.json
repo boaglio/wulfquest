@@ -6,10 +6,10 @@
   "sprite": "flame",
   "size": { "w": 16, "h": 16 },
   "collisionBox": { "x": -6, "y": -12, "w": 12, "h": 12 },
-  "speed": { "xFp": 512, "yFp": 512 },
-  "lingerTicks": 256,
-  "lifeTicks": 512,
-  "steerTicks": 128,
+  "speed": { "xFp": 256, "yFp": 256 },
+  "lingerTicks": 512,
+  "lifeTicks": 1024,
+  "steerTicks": 256,
   "homingPer10k": 5000,
   "spawnInsetPx": 24
 }

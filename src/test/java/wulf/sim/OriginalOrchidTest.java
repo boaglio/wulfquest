@@ -94,6 +94,23 @@ class OriginalOrchidTest {
     }
 
     @Test
+    void sittingDownHePicksNothing() {
+        // $AB01: knocked down on a bloom, no flower takes him — not even the one he sits on growing back.
+        RoomAddress room = new RoomAddress(5, 5);
+        int[] anchors = new OrchidField(data).anchors(room, OPEN, 3L);
+        Ecosystem eco = new Ecosystem(EcoFixtures.CREATURES, RoomPopulator.NONE, 0, WulfRules.NONE, QuestRules.NONE, data);
+        Simulation s = Simulation.at(SimFixtures.RULES, OPEN, 0, Fixed.fp(room.col() * Simulation.ROOM_W_PX + anchors[0]),
+                Fixed.fp(room.row() * Simulation.ROOM_H_PX + anchors[1] - 4), eco, 3L);
+        for (int t = 0; t < 6000; t++) {
+            if (s.effect().remainingTicks() <= 1) {
+                s.giveEffect("KNOCKDOWN");   // kept down for good, past every bloom of the flowers round him
+            }
+            s.tick(STILL);
+        }
+        assertThat(s.orchidsByColour()).isEmpty();
+    }
+
+    @Test
     void whiteCuresWhateverWasOn() {
         // $A757: the white flower clears the effect and leaves nothing in its place.
         Simulation s = sim(false);
