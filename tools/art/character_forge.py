@@ -269,16 +269,15 @@ def die(i):
 
 
 def side_sit():
-    """Knocked down by the yellow flower (§15.2): sitting on the ground, legs out, dazed — the
-    original's yellow sits Sabreman down ($AE8F). Mirrored for facing left, like every side frame."""
+    """Knocked down by the yellow flower (§15.2): sitting on the ground, legs out — the original's
+    yellow sits Sabreman down ($AE8F). No stars round his head: two lone outlined pixels read as
+    a broken sprite (the user, 2026-10-11), and the original draws none. Mirrored for facing left, like every side frame."""
     cv = Canvas(W, H)
     bob = 7
     cv.rect(8, 21, 13, 23, "w")              # the legs, straight out along the ground
     cv.rect(13, 19, 15, 23, "r")             # the boots, toes up
     upper(cv, "side", bob)
     arm(cv, (8, 9 + bob), (12, 20))          # a hand on the knee
-    cv.set(2, 4, "Y")                        # stars round his head: dazed
-    cv.set(13, 3, "Y")
     return finish(cv), None
 
 

@@ -2255,7 +2255,7 @@ six effects M7 invented are §15.4, behind a flag.
 | red | slow: at most 2 px a frame against 3 (`$AFC1`, `$AFE0`) | `TORPOR`, speed ×2/3 |
 | cyan | fast: 4 px a frame (`$AFE4`), footsteps twice as often | `HASTE`, speed ×4/3 |
 | magenta | every direction reversed (`$AF14`) | `REVERSAL` |
-| yellow | knocked down, sitting helpless (`$AEF5`, `$AE8F`, `$A61B`) | `KNOCKDOWN`: no walking, no fighting; he sits on the ground, legs out, dazed (`side_sit`, facing his way) |
+| yellow | knocked down, sitting helpless (`$AEF5`, `$AE8F`, `$A61B`) | `KNOCKDOWN`: no walking, no fighting; he sits on the ground, legs out (`side_sit`, facing his way; no stars round his head — the original has none) |
 | white | the cure: whatever was on is gone (`$A757`) | `CURE`: clears the effect, leaves none |
 
 - **Every colour but white makes him untouchable** (`untouchable`): the
