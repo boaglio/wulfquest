@@ -4,9 +4,9 @@
   "displayName": "Ranger Vale",
   "sprite": "player",
   "collisionBox": { "x": -5, "y": -9, "w": 10, "h": 9 },
-  "speed": { "xFp": 384, "yFp": 384, "diagonalScaleFp": 218 },
+  "speed": { "xFp": 768, "yFp": 768, "diagonalScaleFp": 218 },
   "momentum": {
-    "ticksPerFrame": 2,
+    "ticksPerFrame": 1,
     "accel": 7,
     "max": 48,
     "decay": 1,
@@ -38,9 +38,9 @@
     }
   },
   "animations": {
-    "walk_side":  { "frames": ["side_walk0", "side_walk1", "side_walk2", "side_walk3"], "ticksPerFrame": 5, "loop": true, "driver": "ticks", "gaitVariants": false },
-    "walk_up":    { "frames": ["up_walk0", "up_walk1", "up_walk2", "up_walk3"], "ticksPerFrame": 5, "loop": true, "driver": "ticks", "gaitVariants": false },
-    "walk_down":  { "frames": ["down_walk0", "down_walk1", "down_walk2", "down_walk3"], "ticksPerFrame": 5, "loop": true, "driver": "ticks", "gaitVariants": false },
+    "walk_side":  { "frames": ["side_walk0", "side_walk1", "side_walk2", "side_walk3"], "ticksPerFrame": 3, "loop": true, "driver": "ticks", "gaitVariants": false },
+    "walk_up":    { "frames": ["up_walk0", "up_walk1", "up_walk2", "up_walk3"], "ticksPerFrame": 3, "loop": true, "driver": "ticks", "gaitVariants": false },
+    "walk_down":  { "frames": ["down_walk0", "down_walk1", "down_walk2", "down_walk3"], "ticksPerFrame": 3, "loop": true, "driver": "ticks", "gaitVariants": false },
     "swing_side": { "frames": ["side_swing0", "side_swing1", "side_swing2"], "ticksPerFrame": 0, "loop": false, "driver": "sabrePhase", "gaitVariants": true },
     "swing_up":   { "frames": ["up_swing0", "up_swing1", "up_swing2"], "ticksPerFrame": 0, "loop": false, "driver": "sabrePhase", "gaitVariants": true },
     "swing_down": { "frames": ["down_swing0", "down_swing1", "down_swing2"], "ticksPerFrame": 0, "loop": false, "driver": "sabrePhase", "gaitVariants": true },

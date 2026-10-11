@@ -26,22 +26,22 @@ class MovementFeelTest {
     private static final int RUN_UP = 24;
 
     @Test
-    void atTopSpeedCrossesARoomWidthIn171Ticks() {
+    void atTopSpeedCrossesARoomWidthIn85Ticks() {
         Simulation sim = at(OPEN, 1000, 1000);
         run(sim, RIGHT, RUN_UP);
         sim = rebase(sim);
-        run(sim, RIGHT, 171);
+        run(sim, RIGHT, 85);
         assertThat(Fixed.px(sim.player().xFp()) - 1000).isBetween(255, 257);
         assertThat(sim.player().yFp()).isEqualTo(Fixed.fp(1000));
     }
 
     @Test
-    void atTopSpeedCrossesARoomHeightIn118Ticks() {
-        // The same top speed as across (§11.2): 176 px at 1.5 px a tick.
+    void atTopSpeedCrossesARoomHeightIn59Ticks() {
+        // The same top speed as across (§11.2): 176 px at 3 px a tick.
         Simulation sim = at(OPEN, 1000, 1000);
         run(sim, DOWN, RUN_UP);
         sim = rebase(sim);
-        run(sim, DOWN, 118);
+        run(sim, DOWN, 59);
         assertThat(Fixed.px(sim.player().yFp()) - 1000).isBetween(176, 178);
     }
 

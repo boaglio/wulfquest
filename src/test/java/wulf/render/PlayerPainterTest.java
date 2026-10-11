@@ -50,7 +50,7 @@ class PlayerPainterTest {
     }
 
     @Test
-    void walkingEastCyclesTheSideGaitEveryFiveTicks() {
+    void walkingEastCyclesTheSideGaitEveryThreeTicks() {
         // The gait is driven by ticks actually moved (§11.5), so it starts with the run-up (§11.3).
         Simulation s = sim();
         while (s.player().walkTicks() == 0) {
@@ -62,11 +62,11 @@ class PlayerPainterTest {
             s.tick(RIGHT);
             seen.add(frame(s));
         }
-        assertThat(seen.subList(0, 4)).containsOnly("side_walk0");
-        assertThat(seen.get(4)).isEqualTo("side_walk1");
-        assertThat(seen.get(9)).isEqualTo("side_walk2");
-        assertThat(seen.get(14)).isEqualTo("side_walk3");
-        assertThat(seen.get(19)).isEqualTo("side_walk0");
+        assertThat(seen.subList(0, 2)).containsOnly("side_walk0");
+        assertThat(seen.get(2)).isEqualTo("side_walk1");
+        assertThat(seen.get(5)).isEqualTo("side_walk2");
+        assertThat(seen.get(8)).isEqualTo("side_walk3");
+        assertThat(seen.get(11)).isEqualTo("side_walk0");
     }
 
     @Test

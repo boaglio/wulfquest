@@ -6,7 +6,7 @@
   "sprite": "creature_wulf",
   "size": { "w": 32, "h": 22 },
   "collisionBox": { "x": -13, "y": -9, "w": 26, "h": 9 },
-  "speed": { "xFp": 486, "yFp": 486 },
+  "speed": { "xFp": 972, "yFp": 972 },
   "appearance": {
     "baseChancePer10k": 1200,
     "chancePerAmuletPiecePer10k": 400,
@@ -36,10 +36,10 @@
     "xPx": 128,
     "yPx": 48,
     "heading": -1,
-    "speedFp": 256,
-    "risenSpeedFp": 384,
-    "sitReleaseTicks": 60,
-    "riseTicks": 32
+    "speedFp": 512,
+    "risenSpeedFp": 768,
+    "sitReleaseTicks": 30,
+    "riseTicks": 16
   },
   "audio": { "warning": "wulf_howl", "loop": "wulf_growl", "parry": "wulf_parry", "loopSilentAtPx": 300 }
 }

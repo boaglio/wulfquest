@@ -1160,7 +1160,7 @@ horizontally than vertically, and sliding along walls.
   "displayName": "Ranger Vale",
   "sprite": { "size": { "w": 16, "h": 24 }, "origin": "bottom-centre" },
   "collisionBox": { "x": -5, "y": -9, "w": 10, "h": 9 },
-  "speed": { "xFp": 384, "yFp": 384, "diagonalScaleFp": 218 },
+  "speed": { "xFp": 768, "yFp": 768, "diagonalScaleFp": 218 },
   "lives": { "start": 5, "max": 9 },
   "spawn": { "invulnTicks": 100, "blinkPeriodTicks": 4,
              "insideRoomPx": { "left": 8, "right": 8, "top": 24, "bottom": 0 } },
@@ -1178,18 +1178,20 @@ horizontally than vertically, and sliding along walls.
 
 | Axis | Fixed-point | px/tick | px/s | time to cross a room |
 |------|-------------|---------|------|----------------------|
-| Horizontal | `384` | 1.5 | 75 | 256 px ≈ **3.4 s** |
-| Vertical | `384` | 1.5 | 75 | 176 px ≈ **2.3 s** |
+| Horizontal | `768` | 3 | 150 | 256 px ≈ **1.7 s** |
+| Vertical | `768` | 3 | 150 | 176 px ≈ **1.2 s** |
 
 Full speed, at the top of the run-up (§11.3). The original clamps both axes
 to the same 3 px a frame (`$AFC1`). Until 2026-10-01 vertical was ⅔ of
 horizontal — "deliberate and required", to read as perspective — which was
 ours, not the original's, and a playtest felt it as Vale being slower than
 he should be. The Wulf's vertical speed rose with it, keeping its 1.27×
-(§12). Absolute px/s still waits on the original's frame rate (§25 Q5).
+(§12). Absolute px/s follows from the original's main loop, which moves him every 50 Hz frame
+(§12.10, §25 Q5): 3 px a frame is 3 px a tick. Until 2026-10-11 we ran him at 2 ticks a
+frame, half the original's pace, and the user found him slow.
 
 Diagonal: both components are applied, each scaled by
-`diagonalScaleFp = 218` (≈ 0.85), giving ~1.28 px/tick X and ~0.85 px/tick Y.
+`diagonalScaleFp = 218` (≈ 0.85), giving ~2.55 px/tick on each axis.
 A diagonal must be *slightly* faster than a cardinal in total distance (the
 original rewarded diagonals) but must not be the strictly dominant way to
 move. Verified in `MovementFeelTest`.
@@ -1215,8 +1217,8 @@ hold of the joystick … kind of slippery", and "slows down a notch once he
 starts swishing his sabre" (<http://frgcb.blogspot.com/2017/11/sabre-wulf-ultimate-play-game-1984.html>).
 
 Ours (`player.json → momentum`, `Simulation.move`): the same integers, run
-once per original frame, which lasts `momentum.ticksPerFrame` (2) of our 50 Hz
-ticks — **[RECON]**: the original's frame rate is not measured. Full speed is
+once per original frame, which lasts `momentum.ticksPerFrame` (1) of our 50 Hz
+ticks — the original runs Sabreman once each time the 50 Hz frame counter moves (§12.10). Full speed is
 §11.2's per-axis speed, so the room-crossing times there hold at the top of
 the run-up; the steps are ⅓ of it. The step is taken once per frame and held
 for its ticks. When the feet are blocked the velocity is kept, as the
@@ -1242,9 +1244,9 @@ are moving and neither is pressed against a wall.
 
 ### 11.5 Walk animation cadence **[RECON]**
 
-- 4 frames, cycling `0,1,2,3`, advancing every **5 ticks** (10 fps) while
-  moving. One full cycle = 20 ticks = 0.4 s = 30 px travelled horizontally —
-  roughly one stride per 30 px, which reads correctly at 16 px sprite width.
+- 4 frames, cycling `0,1,2,3`, advancing every **3 ticks** (≈ 17 fps) while
+  moving. One full cycle = 12 ticks = 0.24 s = 36 px travelled horizontally —
+  roughly one stride per 36 px, which reads correctly at 16 px sprite width.
 - Idle: snap to frame 0 **immediately** on stopping (not a freeze of the
   current frame). Original-style, no idle breathing animation.
 - The animation clock is driven by **ticks moved**, not wall time, so slow
@@ -1433,8 +1435,8 @@ kill; `∞` means unkillable, sabre only repels.
 | `rhino` | Rhino | 28×20 | 1.20 (307) | 0.85 (218) | 3 | `CHASE_DIRECT` slow turn | 500 | jungle, mountain | turn rate limited to 1 direction step / 12 ticks |
 | `hippo` | Hippo | 30×22 | 0.80 (205) | 0.55 (141) | 3 | `LINEAR_BOUNCE` | 450 | swamp, water | huge hitbox, corridors become lethal |
 | `wildebeest` | Wildebeest | 24×18 | 1.70 (435) | 1.20 (307) | 1 | `HERD_BOUNCE` | 250 | mountain, jungle | spawns as a herd of 3, shared direction |
-| `wulf` | The Wulf | 32×22 | 1.90 (486) | 1.90 (486) | ∞ | `CHASE_DIRECT` | — | anywhere | §13 |
-| `guardian_*` | the four guardians | 32×28 | 1.10 (282) | 0.80 (205) | ∞ | `GUARD_ORBIT` | — | lair rooms | §14; arrives in M6 |
+| `wulf` | The Wulf | 32×22 | 3.80 (972) | 3.80 (972) | ∞ | `CHASE_DIRECT` | — | anywhere | §13 |
+| `guardian_*` | the four guardians | 32×28 | 2.20 (564) | 1.60 (410) | ∞ | `GUARD_ORBIT` | — | lair rooms | §14; arrives in M6 |
 | `cave_guardian` | Keeper of the Arch | 24×32 | 0 | 0 | ∞ | `BLOCK_STATIC` | — | exit room | §14.4; arrives in M6 |
 
 The table's biome column is descriptive; `room_entities.json` (§12.6) is what
@@ -1593,20 +1595,20 @@ default. The original punishes a player who stays put: linger in a room and a
 flame comes for you.
 
 ```json
-{ "lingerTicks": 512, "lifeTicks": 1024, "steerTicks": 256, "homingPer10k": 5000,
-  "speed": { "xFp": 256, "yFp": 256 }, "spawnInsetPx": 24, "collisionBox": { "x": -6, "y": -12, "w": 12, "h": 12 } }
+{ "lingerTicks": 256, "lifeTicks": 512, "steerTicks": 128, "homingPer10k": 5000,
+  "speed": { "xFp": 512, "yFp": 512 }, "spawnInsetPx": 24, "collisionBox": { "x": -6, "y": -12, "w": 12, "h": 12 } }
 ```
 
 - **When** (`$9ABC`): every room entered (`$B164`) and every getting up after
   a fall (`$AA52`) sets a wait, `$96B4` = `$80` (128 passes of the actor table,
-  512 of our ticks at 4 a pass, §12.10); it counts down while Vale is alive and no flame
+  256 of our ticks at 2 a pass, §12.10); it counts down while Vale is alive and no flame
   burns. At zero a flame appears. The wait is **not** set again while he stays,
   so when a flame goes out the next comes at once.
 - **Where** (`$9AE9`): in line with him on one axis — straight above or
   below him at a random height, or level with him at a random x — never on
   him and never in the scenery; if the spot will not do, it tries again next tick.
-- **How it moves** (`$9D91`, `$9E0E`): at 1 px a tick (the original's 4 px an
-  update, §12.10 — slower than Vale's 1.5). Every `steerTicks` it takes a new course: half
+- **How it moves** (`$9D91`, `$9E0E`): at 2 px a tick (the original's 4 px an
+  update, §12.10 — slower than Vale's 3). Every `steerTicks` it takes a new course: half
   the time a diagonal straight at him, half one of eight at random. Whatever
   stops it, it glances off (the original bounces off the room's edges and
   re-steers at scenery; ours reflects at both, `[RECON]`).
@@ -1634,7 +1636,7 @@ rooms fewer than **6** (the slots at `$9792`), a puff comes at a random spot (`$
 
 - **Its colour** is one of red, magenta, cyan, yellow (`$9AB8`), kept for life; ours inks the
   sprite in it, keeping only its black outline.
-- **It forms** over 6 updates (sprites `$01`–`$06`, 24 ticks): harmless, but a blade can take
+- **It forms** over 6 updates (sprites `$01`–`$06`, 12 ticks): harmless, but a blade can take
   it (`$A3B7`), scoring 165–185 by the frame.
 - **What it becomes** (`$A3E0`, `$A41A`): a roll of 0..15 into spider, scorpion, bat, parrot,
   monkey, lizard, snake, spider, rat, bird, frog, mosquito, skunk, flea, earwig, rat; a roll at
@@ -1642,7 +1644,7 @@ rooms fewer than **6** (the slots at `$9792`), a puff comes at a random spot (`$
   two at a time as the amulet fills, and with it whole every kind is out.
 - **How it moves** — two ways:
   - `DART` (`$A54F`, `$A5CD`), all but three: a straight line at a random speed per axis,
-    3–6 px an update each way (`$A601`: ±`$30`..`$60`, ÷16; ours 0.75–1.5 px a tick, §12.10), so always
+    3–6 px an update each way (`$A601`: ±`$30`..`$60`, ÷16; ours 1.5–3 px a tick, §12.10), so always
     slanting; for up to 256 updates, or until the scenery stops it dead (`$AAED`), when it
     stands 8–15 updates and sets off again. A room edge turns it about (`$A44B`).
   - `HOME_IN` (`$A4D7`), the bat, the lizard and the snake: each axis leans towards Vale by
@@ -1679,7 +1681,7 @@ and ours inks its sprite in it. `jungle.json → beasts.placed` keeps the table'
 the sprite's left, y its feet from the top of the screen); `Content.beastRules()` turns them into
 ours.
 
-- **The rhino** (`$AD07`) paces its row at 3 px an update (`±$30`; ours 0.75 px a tick, §12.10), and
+- **The rhino** (`$AD07`) paces its row at 3 px an update (`±$30`; ours 1.5 px a tick, §12.10), and
   when the scenery stops it dead (`$AAED`) it turns about at that pace again (`$AD20`). Running
   into a walking Vale it takes a life and turns about (`$ADA2`). Met with the blade, facing it,
   it is **sent off the way the blade points at 6 px an update** (`$AD69`) until something stops
@@ -1715,14 +1717,21 @@ the Wulf, the flame, each moving and redrawing itself — ends at `$9A1D`, which
 swarm (`$9A3C`) and the flame's wait (`$9ABC`). So **Vale moves every frame, everything else
 once a pass**, and a pass with a few sprites to draw takes about two frames.
 
-Ours ticks Vale at 2 ticks a frame (§25 Q5), so we count **4 ticks an update** for the actors:
-every speed in `jungle.json`, `flame.json` and `wulf.json → patrol` is the original's per-update
-figure ÷ 4 (a 3 px update is 0.75 px a tick), every count of updates × 4 (the swarm's
-`everyTicks`, `appearTicks`, `lingerTicks`, `quietAfterGettingUpTicks`; a dart's run and pause;
-the flame's wait, life and steering; the Wulf's sit and rise), and the homing creatures'
-lean ÷ 16 (a speed per tick gained per tick). The original's pass grows with what is on
-screen; ours is fixed. Until 2026-10-11 we counted 2 ticks an update, as for Vale, and the
-user found the jungle **twice too fast**: a dart outran him, the Wulf too.
+Ours is 50 Hz too, so **Vale takes one tick a frame** (`player.json → momentum.ticksPerFrame`
+1: up to 3 px a tick) and **the actors one update every 2 ticks**: every speed in `jungle.json`,
+`flame.json` and `wulf.json → patrol` is the original's per-update figure ÷ 2 (a 3 px update
+is 1.5 px a tick), every count of updates × 2 (the swarm's `everyTicks`, `appearTicks`,
+`lingerTicks`, `quietAfterGettingUpTicks`; a dart's run and pause; the flame's wait, life and
+steering; the Wulf's sit and rise), and the homing creatures' lean ÷ 4 (a speed per tick gained
+per tick). The original's pass grows with what is on screen; ours is fixed. Timers Sabreman
+keeps — a flower's colour (§15.2) — count his frames, one tick each.
+
+History, 2026-10-11: we had counted 2 ticks for Vale's frame and for an actor's update alike,
+and the user found the jungle twice too fast for him. The first fix slowed the actors to 4
+ticks an update; the user then found Vale himself slow, and he was — running at half the
+original's pace all along. Now both are at the original's: the ratio the user approved, at
+twice the speed. Our own `[RECON]` movers that were tuned against Vale (the invented Wulf, §13;
+the lair guardians, §14) were doubled with him, to keep their ratios.
 
 ## 13. The Wulf
 
@@ -1756,7 +1765,7 @@ decision below serves "oh no, not now".
   "sprite": "creature_wulf",
   "size": { "w": 32, "h": 22 },
   "collisionBox": { "x": -13, "y": -9, "w": 26, "h": 9 },
-  "speed": { "xFp": 486, "yFp": 486 },
+  "speed": { "xFp": 972, "yFp": 972 },
   "appearance": {
     "baseChancePer10k": 1200,
     "chancePerAmuletPiecePer10k": 400,
@@ -1786,10 +1795,10 @@ decision below serves "oh no, not now".
     "xPx": 128,
     "yPx": 48,
     "heading": -1,
-    "speedFp": 256,
-    "risenSpeedFp": 384,
-    "sitReleaseTicks": 60,
-    "riseTicks": 32
+    "speedFp": 512,
+    "risenSpeedFp": 768,
+    "sitReleaseTicks": 30,
+    "riseTicks": 16
   },
   "audio": { "warning": "wulf_howl", "loop": "wulf_growl", "parry": "wulf_parry", "loopSilentAtPx": 300 }
 }
@@ -1928,9 +1937,9 @@ Read from the disassembly (§25 Q9). One Wulf, one row, all game:
   (15,15). (The original checks only the room it is in, so it can step into
   the next room's edge before turning.)
 - **Always moving**, in its own room whether the player is there or not, while
-  the player is dying too: **1 px a tick** (`speedFp` 256 — the original's 4
-  px an update, `IX+$06` = ±`$40` ÷ 16, at our 4 ticks an update, §12.10). It is
-  slower than Vale's 1.5. Blocked by scenery, it turns back (`$AAED`, `$ADB3`).
+  the player is dying too: **2 px a tick** (`speedFp` 512 — the original's 4
+  px an update, `IX+$06` = ±`$40` ÷ 16, at our 2 ticks an update, §12.10). It is
+  slower than Vale's 3. Blocked by scenery, it turns back (`$AAED`, `$ADB3`).
 - **It turns towards the player once** (`$A922`): when the player comes onto
   its row it heads for their room — east or west by room, or within its own
   room by which side of it they are. Then it keeps that heading, turning only
@@ -1942,9 +1951,9 @@ Read from the disassembly (§25 Q9). One Wulf, one row, all game:
 - **Held off, it sits** (`$A8B2`, `$A8E4`). A player fighting — the blade out,
   §11.6 — and facing the Wulf as it comes at him, anywhere in the room, makes
   it **stop and sit** (`SITTING`, its howl frame). It sits for as long as the
-  blade is held towards it (`$A8F5`), then `sitReleaseTicks` (60) more, then
-  **gets up** (`RISING`, `riseTicks` 32, moving at its old speed) and runs on
-  at `risenSpeedFp` (384, 1.5 px a tick; `$A964` adds `$20`). Having sat once it
+  blade is held towards it (`$A8F5`), then `sitReleaseTicks` (30) more, then
+  **gets up** (`RISING`, `riseTicks` 16, moving at its old speed) and runs on
+  at `risenSpeedFp` (768, 3 px a tick; `$A964` adds `$20`). Having sat once it
   will not sit again, nor turn towards the player, until the player has left
   its row (`IX+$02` = `$10`; `Wulf.Latch.SPENT`).
 - **No warning, no chase, no giving up.** It is simply there when you walk
@@ -2079,7 +2088,7 @@ whole amulet, feet above y 112 (`$A18C`: `$80` on the original's screen) and he 
   exit.keeperNudgeZonePx` is 0. Set it (16, with `keeperNudgePx` 8, was ours before) and the
   front of it pushes instead of killing — `[RECON]`, kept for anyone who wants it.
 - **With the amulet whole** it is harmless, and while he is in its room it slides away from his
-  half at 2 px an update (`guardians.json → keeper.stepAsideFp`, 0.5 px a tick, §12.10): right while he is
+  half at 2 px an update (`guardians.json → keeper.stepAsideFp`, 1 px a tick, §12.10): right while he is
   on the room's left, left while he is on its right, stopping at `asideMaxPx` 204 or `asideMinPx`
   76 (the original's `$C0` and `$40`, the sprite's left edge; ours adds half its width). Cross
   to its side and it slides back across the doorway. It keeps its place when he leaves.
@@ -2228,13 +2237,13 @@ six effects M7 invented are §15.4, behind a flag.
 
 ```json
   "orchids": [
-    { "colour": "red",     "weight": 3, "effect": "TORPOR",    "ticks": 768, "speedScaleFp": 171, "score": 0, "untouchable": true },
-    { "colour": "cyan",    "weight": 3, "effect": "HASTE",     "ticks": 768, "speedScaleFp": 341, "score": 0, "untouchable": true },
-    { "colour": "magenta", "weight": 3, "effect": "REVERSAL",  "ticks": 768, "speedScaleFp": 256, "score": 0, "untouchable": true },
-    { "colour": "yellow",  "weight": 3, "effect": "KNOCKDOWN", "ticks": 384, "speedScaleFp": 256, "score": 0, "untouchable": true },
+    { "colour": "red",     "weight": 3, "effect": "TORPOR",    "ticks": 384, "speedScaleFp": 171, "score": 0, "untouchable": true },
+    { "colour": "cyan",    "weight": 3, "effect": "HASTE",     "ticks": 384, "speedScaleFp": 341, "score": 0, "untouchable": true },
+    { "colour": "magenta", "weight": 3, "effect": "REVERSAL",  "ticks": 384, "speedScaleFp": 256, "score": 0, "untouchable": true },
+    { "colour": "yellow",  "weight": 3, "effect": "KNOCKDOWN", "ticks": 192, "speedScaleFp": 256, "score": 0, "untouchable": true },
     { "colour": "white",   "weight": 4, "effect": "CURE",      "ticks": 1,   "speedScaleFp": 256, "score": 0, "untouchable": false }
   ],
-  "tint": { "warnTicks": 188, "flashTicks": 32 },
+  "tint": { "warnTicks": 94, "flashTicks": 16 },
 ```
 
 | colour | the original | ours |
@@ -2260,13 +2269,13 @@ six effects M7 invented are §15.4, behind a flag.
   under `--god` no bloom is picked, so none takes him and none is counted
   (`OriginalOrchidTest`). `--debug-effect` still puts him under one.
 - **How long**: the timer `$96B0` starts at `$C0` and counts down every other
-  frame — 384 frames, 768 of our ticks at 2 a frame (§25 Q5). Yellow's is
-  `$60`: 384 ticks.
+  frame — 384 frames, 384 of our ticks at 1 a frame (§12.10). Yellow's is
+  `$60`: 192 ticks.
 - **Odds** (`$A6FD`, sixteen entries): white 4, each other colour 3.
 - **No score** for a flower; the original adds none.
 - **Sitting, he picks nothing** (`$AB01`, `$A68D`: only a Sabreman in a walking or fighting
   frame, `$9702` − `$10` < `$20`, takes a flower). Without this, a yellow bloom grows back
-  (330 ticks) before he can stand (384), and takes him again, for ever — found by the user,
+  (330 ticks) before he could stand (then 384), and took him again, for ever — found by the user,
   2026-10-11. `OriginalOrchidTest.sittingDownHePicksNothing`.
 - `[RECON]` still: the growth cycle of §15.1, and the speed ratios applied to
   our base speed rather than as the original's per-frame clamp.
@@ -2955,9 +2964,8 @@ code in this project.
 
 ### 22.2 Movement feel tests (the important ones)
 
-- `MovementSpeedTest` — from a clear room centre, holding right for 171
-  ticks moves exactly 256 px ±1; holding down for 192 ticks moves exactly
-  192 px ±1.
+- `MovementSpeedTest` — from a clear room centre, at full speed, holding right for 85
+  ticks moves exactly 256 px ±1; holding down for 59 ticks moves 176 px ±1.
 - `WallSlideTest` — against a vertical wall, holding down-right moves the
   player **down** at the full Y rate with X pinned; the player never stops.
   This is the axis-separated resolution contract (§7.4).
@@ -3070,13 +3078,16 @@ hash at every 50th tick. `ReplayRunner` re-executes them. Ship at least:
   6 forges over seeds 300–359 once the bot learned to fence them and to step out of the flame's
   line — a trace before that put 208 of 299 deaths on the flame; and 2026-10-11 at the
   actors' true pace (§12.10): seed 310, 42 059 ticks, no death, 179 rewinds — four seeds of
-  four won, where the faster jungle needed 6 forges)
+  four won, where the faster jungle needed 6 forges; and the same day with Vale at the
+  original's pace, 1 tick a frame (§11.3): seed 300, 48 507 ticks, no death, 101 rewinds — 5
+  of 6 forges over seeds 300–359 won)
 - `replays/wulf_escape.json` — a Wulf pursuit survived across rooms. (**M5, shipped**;
   re-forged 2026-10-08 with the flame: seed 35, chased across 6 rooms,
   parried 8 times, outrun, no life lost; from 2026-10-10 to 2026-10-11 it carried
   `"inventedCreatures": true`, the jungle it was recorded in; re-forged 2026-10-11 at the
   actors' true pace (§12.10), in the original's jungle: seed 5, chased across 4 rooms, parried
-  10 times, outrun, no life lost)
+  10 times, outrun, no life lost; and the same day with Vale at the original's pace: seed 52,
+  chased across 6 rooms, parried 7 times, until it gave up, no life lost)
   It is the roaming Wulf's (§13.1–§13.7, [NEW]), so since 2026-10-03 the file
   carries `"features": { "roamingWulf": true }`: a replay may name the flags it
   was recorded under, and `ReplayRunner` lays them over `game.json`'s, so a
@@ -3100,7 +3111,8 @@ hash at every 50th tick. `ReplayRunner` re-executes them. Ship at least:
   the zone's bottom edge, the head of the way in; and **2026-10-11 at the actors' true pace**
   (§12.10): seed 2030, the same order, 107 967 ticks, no death, score 194 340 — 14 of 20 forges
   over seeds 2000–2199 won with their first seed, where the faster jungle won one seed in 8 or
-  fewer. The lairs are fixed
+  fewer; and **the same day with Vale at the original's pace** (§11.3, §12.10): seed 2002, the
+  same order, 115 400 ticks, no death, score 227 875, 1 645 rewinds. The lairs are fixed
   (`landmarks.json`), but a seed decides every creature, and the bot's luck
   with them varies enormously: seeds 1–60 for `lair_nw` won only in
   108 000–241 000 ticks, and seeds 3000–3159 for the full run in 300 000 and
@@ -3929,8 +3941,8 @@ the source wins.
 | Q1 | The exact creature roster and per-room creature assignment table | 13 invented species, biome-weighted. **Lead 2026-10-03:** the original's room creatures are not per room. Up to `$96BE` (3) at once appear as a puff in the player's room (`$9A68`), then become one of 15 kinds from `$A41A` — spider, scorpion, bat, parrot, monkey, lizard, snake, then rat, bird, frog, mosquito, skunk, flea, earwig — picked from the first `8 + 2 × quarters held` entries (`$A3EC`), so the jungle gets worse as the amulet fills. The fixed ones are in the actor table `$AC77`: rhinos in (8,9) twice, (7,0) and (3,15); tribesmen in (7,10), (4,4), (2,14); a hippo in (3,8); the guardian at the arch (8,8); and the Wulf (Q9). A flame (`$34`) comes for a player who lingers — **built 2026-10-08**, §12.7. **Built 2026-10-10 and now the default**: the small ones (§12.8) and the big ones (§12.9); ours kept as [NEW] `features.inventedCreatures`. In brief: rhinos (`$AD07`) pace a row at 3 px and turn at the scenery, and a blade sends one back at 6 (`$AD69`); tribesmen (`$AB74`) walk a slant, re-steer when stopped, are pushed back by a blade, and follow the player — two rows away, one is set down a row from him (`$A630`) — and flash and beep when level with an amulet quarter (`$9D41`); the hippo sleeps (`$9EB3`), follows the same way, comes back a hippo or a warthog at random (`$9F06`), and touched it wakes, turns and charges until stopped (`$9E72`). | `jungle.json`, `creatures.json`, `room_entities.json` |
 | Q2 | The four guardians' species, colours, and lair rooms | **Rooms partly answered 2026-09-27:** the original has no fixed lairs — it picks one of eight preset four-room sets at random (`$A29D`, `Place Amulet Pieces` `$A255`) and lays each quarter at its room type's object slot 1 (`$DC6C`). Our lairs are fixed (`[RECON]`) at the game's set 3, `5,3 13,4 3,12 9,10`. Guardians' species and colours still open; the game's immortals table (`$AC77`) lists rhinos, spear men, fire, the wolf, a hippo and "guardian" as sprites to look at next. | `landmarks.json`, `guardians.json` |
 | Q3 | The exit's actual location and its guard condition | **Closed 2026-10-11** from the disassembly, and built (§14.4): the exit room is (8,8), the only stone arch, entered only from the south; the win is feet above `$80` there with the amulet whole (`$A18C` → Game Complete `$9F6A`). The actor table's Guardian (`$94`/`$95`, `$ACFB`) stands over the doorway; until all four quarters are held (`$970D` = `$0F`) its touch throws Vale (`$9704` = `$80`) whatever his colour (`$AB3D`); then, with him in the room, it slides away from his half at 2 px an update to `$C0` or `$40` (`$9F40`). | `landmarks.json`, `guardians.json` |
-| Q4 | The orchid colour→effect mapping and durations | 6 colours per §15.2. **Answered and built 2026-10-04** (§15.2, now the default; ours kept as [NEW] `features.inventedOrchids`, §15.4). Touching a flower **in full bloom** (state `$4F`, `$A737`) turns Vale its colour (`$9707`) and sets the timer `$96B0` to `$C0`; it counts down every other frame (`$AE7A`), so an effect lasts **384 frames** (768 of our ticks at 2 a frame, §25 Q5), and for its last `$2F` counts Vale flashes white (`$AF7A`). At zero he is white (`$47`) again. **Five colours** (`$A6FD`, picked when a flower closes, from the frame counter): **red** `$42` — slow, at most 2 px a frame against 3 (`$AFC1`, `$AFE0`); **cyan** `$45` — fast, 4 px a frame (`$AFE4`), footsteps twice as often (`$BF4B`); **magenta** `$43` — every direction reversed (`$AF14`, `XOR %1111`); **yellow** `$46` — knocked down, sitting helpless for `$60` counts, then he gets up (`$AEF5`, `$AE8F`, `$A61B`); **white** `$47` — the cure: clears any effect (`$A757`). Odds of a colour: white 4 in 16, each other 3 in 16. **Every coloured state makes him untouchable**: creatures, the Wulf and the flame all hurt only a white Vale (`$AB36`, `$A880`, `$9DE5`) — so red and magenta are protection with a cost, yellow is protection you cannot use. **No score** for a flower. A death clears the effect (`$AA49`). Ours — haste, torpor, reversal, immunity, delirium, stillness, scored 25–75 — is `[RECON]` that the original does not support. Not traced: the growth timings in our ticks (`$A680`–`$A731`: closed for `$10` counts, open for `$80`–`$BF`). | `orchids.json` |
-| Q5 | Exact player speed in px/frame, and whether it was frame-quantised | **Shape answered 2026-09-30** (§11.3): up to 3 px a frame in whole steps (0–3), with inertia ($AEEF, $AFC1, $B031, $B047); fighting a steady 2 ($ADD0). Still open: the original's frame rate, which fixes px/s — ours assumes 2 ticks a frame, and keeps §11.2's 1.5 / 1.0 px/tick as full speed. **2026-10-11**: Vale runs every frame, but the other actors once a pass of the actor table, about two frames (`$99AA`–`$9A1D`); we count 4 ticks an update for them (§12.10). | `player.json → speed, momentum` |
+| Q4 | The orchid colour→effect mapping and durations | 6 colours per §15.2. **Answered and built 2026-10-04** (§15.2, now the default; ours kept as [NEW] `features.inventedOrchids`, §15.4). Touching a flower **in full bloom** (state `$4F`, `$A737`) turns Vale its colour (`$9707`) and sets the timer `$96B0` to `$C0`; it counts down every other frame (`$AE7A`), so an effect lasts **384 frames** (384 of our ticks at 1 a frame, §12.10), and for its last `$2F` counts Vale flashes white (`$AF7A`). At zero he is white (`$47`) again. **Five colours** (`$A6FD`, picked when a flower closes, from the frame counter): **red** `$42` — slow, at most 2 px a frame against 3 (`$AFC1`, `$AFE0`); **cyan** `$45` — fast, 4 px a frame (`$AFE4`), footsteps twice as often (`$BF4B`); **magenta** `$43` — every direction reversed (`$AF14`, `XOR %1111`); **yellow** `$46` — knocked down, sitting helpless for `$60` counts, then he gets up (`$AEF5`, `$AE8F`, `$A61B`); **white** `$47` — the cure: clears any effect (`$A757`). Odds of a colour: white 4 in 16, each other 3 in 16. **Every coloured state makes him untouchable**: creatures, the Wulf and the flame all hurt only a white Vale (`$AB36`, `$A880`, `$9DE5`) — so red and magenta are protection with a cost, yellow is protection you cannot use. **No score** for a flower. A death clears the effect (`$AA49`). Ours — haste, torpor, reversal, immunity, delirium, stillness, scored 25–75 — is `[RECON]` that the original does not support. Not traced: the growth timings in our ticks (`$A680`–`$A731`: closed for `$10` counts, open for `$80`–`$BF`). | `orchids.json` |
+| Q5 | Exact player speed in px/frame, and whether it was frame-quantised | **Shape answered 2026-09-30** (§11.3): up to 3 px a frame in whole steps (0–3), with inertia ($AEEF, $AFC1, $B031, $B047); fighting a steady 2 ($ADD0). **Answered 2026-10-11** (§12.10): the main loop (`$99AA`–`$9A1D`) runs Sabreman once each time the 50 Hz frame counter moves, so 3 px a frame is 150 px/s — 3 px a tick, `ticksPerFrame` 1 (we had 2, half the pace). The other actors move once a pass of the actor table, about two frames: 2 ticks an update. | `player.json → speed, momentum` |
 | Q6 | Starting lives and extra-life thresholds | **Closed 2026-10-02** from the disassembly: **5 in reserve** (`$B21E`), so six falls — a fall with none left is game over (`$AA27`–`$AA37`); **no extra lives for score** — the lives count's only writers are `$B21E`, `$AA37`, `$9F87` and the treasure life `$A2F8` (up to 9 in reserve). §11.7, §16.3. | `player.json → lives` |
 | Q7 | Whether amulet pieces were lost on death | **Closed 2026-10-02: kept.** The quarters held are bits of `$970D`, written only by the pickup (`$A1E3`); the death path `$AA27`–`$AA57` does not touch it. §11.7. | `player.json → death.keepAmulet` |
 | Q8 | Score values per creature and per piece | **Partly answered 2026-10-01** from `Add Points To Score` (`$B5A9`, BCD) and its callers: a quarter of the amulet is **7500** (`$A1ED`, now in `loot.json`), a treasure **150** (`$A332`, §16.4), and a creature **165, 175, 185 or 195** by its type (`$A4B3`). **Creatures closed 2026-10-10** with Q1: the original's are the default (§12.8), scored as `$A4B3` scores them; the invented roster's 100–500 stay `[RECON]` behind `features.inventedCreatures`. | `creatures.json`, `loot.json` |

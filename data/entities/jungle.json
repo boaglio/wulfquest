@@ -4,10 +4,10 @@
   "swarm": {
     "roomMax": 3,
     "slots": 6,
-    "everyTicks": 4,
-    "appearTicks": 24,
-    "lingerTicks": 256,
-    "quietAfterGettingUpTicks": 64,
+    "everyTicks": 2,
+    "appearTicks": 12,
+    "lingerTicks": 128,
+    "quietAfterGettingUpTicks": 32,
     "area": { "x": 56, "y": 32, "w": 128, "h": 128 },
     "playerClearancePx": 8,
     "pick": {
@@ -37,26 +37,26 @@
       {
         "id": "rhino", "displayName": "Rhino", "sprite": "creature_rhino",
         "size": { "w": 28, "h": 20 }, "collisionBox": { "x": -13, "y": -12, "w": 26, "h": 12 },
-        "speed": { "xFp": 192, "yFp": 0 }, "hp": 1, "score": 0, "ignoresScenery": false,
-        "behaviour": { "kind": "RHINO", "params": { "paceFp": 192, "shovedFp": 384 } }
+        "speed": { "xFp": 384, "yFp": 0 }, "hp": 1, "score": 0, "ignoresScenery": false,
+        "behaviour": { "kind": "RHINO", "params": { "paceFp": 384, "shovedFp": 768 } }
       },
       {
         "id": "tribesman", "displayName": "Tribesman", "sprite": "creature_tribesman",
         "size": { "w": 16, "h": 24 }, "collisionBox": { "x": -6, "y": -10, "w": 12, "h": 10 },
-        "speed": { "xFp": 192, "yFp": 192 }, "hp": 1, "score": 0, "ignoresScenery": false,
-        "behaviour": { "kind": "TRIBESMAN", "params": { "walkSlowFp": 128, "walkFastFp": 192, "shovedFp": 256, "hintPx": 16, "callEveryTicks": 32 } }
+        "speed": { "xFp": 384, "yFp": 384 }, "hp": 1, "score": 0, "ignoresScenery": false,
+        "behaviour": { "kind": "TRIBESMAN", "params": { "walkSlowFp": 256, "walkFastFp": 384, "shovedFp": 512, "hintPx": 16, "callEveryTicks": 16 } }
       },
       {
         "id": "hippo", "displayName": "Hippo", "sprite": "creature_hippo",
         "size": { "w": 30, "h": 22 }, "collisionBox": { "x": -14, "y": -13, "w": 28, "h": 13 },
-        "speed": { "xFp": 128, "yFp": 0 }, "hp": 1, "score": 0, "ignoresScenery": false,
-        "behaviour": { "kind": "SLEEPER", "params": { "chargeFp": 128, "shovedFp": 384, "wakeTicks": 60 } }
+        "speed": { "xFp": 256, "yFp": 0 }, "hp": 1, "score": 0, "ignoresScenery": false,
+        "behaviour": { "kind": "SLEEPER", "params": { "chargeFp": 256, "shovedFp": 768, "wakeTicks": 30 } }
       },
       {
         "id": "warthog", "displayName": "Warthog", "sprite": "creature_boar",
         "size": { "w": 22, "h": 16 }, "collisionBox": { "x": -10, "y": -10, "w": 20, "h": 10 },
-        "speed": { "xFp": 128, "yFp": 0 }, "hp": 1, "score": 0, "ignoresScenery": false,
-        "behaviour": { "kind": "SLEEPER", "params": { "chargeFp": 128, "shovedFp": 384, "wakeTicks": 60 } }
+        "speed": { "xFp": 256, "yFp": 0 }, "hp": 1, "score": 0, "ignoresScenery": false,
+        "behaviour": { "kind": "SLEEPER", "params": { "chargeFp": 256, "shovedFp": 768, "wakeTicks": 30 } }
       }
     ],
     "placed": [
@@ -74,86 +74,86 @@
     {
       "id": "spider", "displayName": "Spider", "sprite": "vermin_spider",
       "size": { "w": 16, "h": 12 }, "collisionBox": { "x": -7, "y": -10, "w": 14, "h": 10 },
-      "speed": { "xFp": 384, "yFp": 384 }, "hp": 1, "score": 165, "ignoresScenery": false,
-      "behaviour": { "kind": "DART", "params": { "speedMinFp": 192, "speedStepFp": 64, "speedSteps": 4, "runTicks": 1024, "pauseMinTicks": 32, "pauseSpanTicks": 32 } }
+      "speed": { "xFp": 768, "yFp": 768 }, "hp": 1, "score": 165, "ignoresScenery": false,
+      "behaviour": { "kind": "DART", "params": { "speedMinFp": 384, "speedStepFp": 128, "speedSteps": 4, "runTicks": 512, "pauseMinTicks": 16, "pauseSpanTicks": 16 } }
     },
     {
       "id": "scorpion", "displayName": "Scorpion", "sprite": "vermin_scorpion",
       "size": { "w": 16, "h": 12 }, "collisionBox": { "x": -7, "y": -10, "w": 14, "h": 10 },
-      "speed": { "xFp": 384, "yFp": 384 }, "hp": 1, "score": 185, "ignoresScenery": false,
-      "behaviour": { "kind": "DART", "params": { "speedMinFp": 192, "speedStepFp": 64, "speedSteps": 4, "runTicks": 1024, "pauseMinTicks": 32, "pauseSpanTicks": 32 } }
+      "speed": { "xFp": 768, "yFp": 768 }, "hp": 1, "score": 185, "ignoresScenery": false,
+      "behaviour": { "kind": "DART", "params": { "speedMinFp": 384, "speedStepFp": 128, "speedSteps": 4, "runTicks": 512, "pauseMinTicks": 16, "pauseSpanTicks": 16 } }
     },
     {
       "id": "bat", "displayName": "Bat", "sprite": "vermin_bat",
       "size": { "w": 16, "h": 12 }, "collisionBox": { "x": -7, "y": -10, "w": 14, "h": 10 },
-      "speed": { "xFp": 192, "yFp": 192 }, "hp": 1, "score": 165, "ignoresScenery": false,
-      "behaviour": { "kind": "HOME_IN", "params": { "accelFp": 8, "maxFp": 192 } }
+      "speed": { "xFp": 384, "yFp": 384 }, "hp": 1, "score": 165, "ignoresScenery": false,
+      "behaviour": { "kind": "HOME_IN", "params": { "accelFp": 32, "maxFp": 384 } }
     },
     {
       "id": "parrot", "displayName": "Parrot", "sprite": "vermin_parrot",
       "size": { "w": 16, "h": 12 }, "collisionBox": { "x": -7, "y": -10, "w": 14, "h": 10 },
-      "speed": { "xFp": 384, "yFp": 384 }, "hp": 1, "score": 185, "ignoresScenery": false,
-      "behaviour": { "kind": "DART", "params": { "speedMinFp": 192, "speedStepFp": 64, "speedSteps": 4, "runTicks": 1024, "pauseMinTicks": 32, "pauseSpanTicks": 32 } }
+      "speed": { "xFp": 768, "yFp": 768 }, "hp": 1, "score": 185, "ignoresScenery": false,
+      "behaviour": { "kind": "DART", "params": { "speedMinFp": 384, "speedStepFp": 128, "speedSteps": 4, "runTicks": 512, "pauseMinTicks": 16, "pauseSpanTicks": 16 } }
     },
     {
       "id": "monkey", "displayName": "Monkey", "sprite": "vermin_monkey",
       "size": { "w": 16, "h": 12 }, "collisionBox": { "x": -7, "y": -10, "w": 14, "h": 10 },
-      "speed": { "xFp": 384, "yFp": 384 }, "hp": 1, "score": 165, "ignoresScenery": false,
-      "behaviour": { "kind": "DART", "params": { "speedMinFp": 192, "speedStepFp": 64, "speedSteps": 4, "runTicks": 1024, "pauseMinTicks": 32, "pauseSpanTicks": 32 } }
+      "speed": { "xFp": 768, "yFp": 768 }, "hp": 1, "score": 165, "ignoresScenery": false,
+      "behaviour": { "kind": "DART", "params": { "speedMinFp": 384, "speedStepFp": 128, "speedSteps": 4, "runTicks": 512, "pauseMinTicks": 16, "pauseSpanTicks": 16 } }
     },
     {
       "id": "lizard", "displayName": "Lizard", "sprite": "vermin_lizard",
       "size": { "w": 16, "h": 12 }, "collisionBox": { "x": -7, "y": -10, "w": 14, "h": 10 },
-      "speed": { "xFp": 192, "yFp": 192 }, "hp": 1, "score": 185, "ignoresScenery": false,
-      "behaviour": { "kind": "HOME_IN", "params": { "accelFp": 8, "maxFp": 192 } }
+      "speed": { "xFp": 384, "yFp": 384 }, "hp": 1, "score": 185, "ignoresScenery": false,
+      "behaviour": { "kind": "HOME_IN", "params": { "accelFp": 32, "maxFp": 384 } }
     },
     {
       "id": "snake", "displayName": "Snake", "sprite": "vermin_snake",
       "size": { "w": 16, "h": 12 }, "collisionBox": { "x": -7, "y": -10, "w": 14, "h": 10 },
-      "speed": { "xFp": 192, "yFp": 192 }, "hp": 1, "score": 165, "ignoresScenery": false,
-      "behaviour": { "kind": "HOME_IN", "params": { "accelFp": 8, "maxFp": 192 } }
+      "speed": { "xFp": 384, "yFp": 384 }, "hp": 1, "score": 165, "ignoresScenery": false,
+      "behaviour": { "kind": "HOME_IN", "params": { "accelFp": 32, "maxFp": 384 } }
     },
     {
       "id": "rat", "displayName": "Rat", "sprite": "vermin_rat",
       "size": { "w": 16, "h": 12 }, "collisionBox": { "x": -7, "y": -10, "w": 14, "h": 10 },
-      "speed": { "xFp": 384, "yFp": 384 }, "hp": 1, "score": 165, "ignoresScenery": false,
-      "behaviour": { "kind": "DART", "params": { "speedMinFp": 192, "speedStepFp": 64, "speedSteps": 4, "runTicks": 1024, "pauseMinTicks": 32, "pauseSpanTicks": 32 } }
+      "speed": { "xFp": 768, "yFp": 768 }, "hp": 1, "score": 165, "ignoresScenery": false,
+      "behaviour": { "kind": "DART", "params": { "speedMinFp": 384, "speedStepFp": 128, "speedSteps": 4, "runTicks": 512, "pauseMinTicks": 16, "pauseSpanTicks": 16 } }
     },
     {
       "id": "bird", "displayName": "Bird", "sprite": "vermin_bird",
       "size": { "w": 16, "h": 12 }, "collisionBox": { "x": -7, "y": -10, "w": 14, "h": 10 },
-      "speed": { "xFp": 384, "yFp": 384 }, "hp": 1, "score": 185, "ignoresScenery": false,
-      "behaviour": { "kind": "DART", "params": { "speedMinFp": 192, "speedStepFp": 64, "speedSteps": 4, "runTicks": 1024, "pauseMinTicks": 32, "pauseSpanTicks": 32 } }
+      "speed": { "xFp": 768, "yFp": 768 }, "hp": 1, "score": 185, "ignoresScenery": false,
+      "behaviour": { "kind": "DART", "params": { "speedMinFp": 384, "speedStepFp": 128, "speedSteps": 4, "runTicks": 512, "pauseMinTicks": 16, "pauseSpanTicks": 16 } }
     },
     {
       "id": "frog", "displayName": "Frog", "sprite": "vermin_frog",
       "size": { "w": 16, "h": 12 }, "collisionBox": { "x": -7, "y": -10, "w": 14, "h": 10 },
-      "speed": { "xFp": 384, "yFp": 384 }, "hp": 1, "score": 165, "ignoresScenery": false,
-      "behaviour": { "kind": "DART", "params": { "speedMinFp": 192, "speedStepFp": 64, "speedSteps": 4, "runTicks": 1024, "pauseMinTicks": 32, "pauseSpanTicks": 32 } }
+      "speed": { "xFp": 768, "yFp": 768 }, "hp": 1, "score": 165, "ignoresScenery": false,
+      "behaviour": { "kind": "DART", "params": { "speedMinFp": 384, "speedStepFp": 128, "speedSteps": 4, "runTicks": 512, "pauseMinTicks": 16, "pauseSpanTicks": 16 } }
     },
     {
       "id": "mosquito", "displayName": "Mosquito", "sprite": "vermin_mosquito",
       "size": { "w": 16, "h": 12 }, "collisionBox": { "x": -7, "y": -10, "w": 14, "h": 10 },
-      "speed": { "xFp": 384, "yFp": 384 }, "hp": 1, "score": 185, "ignoresScenery": false,
-      "behaviour": { "kind": "DART", "params": { "speedMinFp": 192, "speedStepFp": 64, "speedSteps": 4, "runTicks": 1024, "pauseMinTicks": 32, "pauseSpanTicks": 32 } }
+      "speed": { "xFp": 768, "yFp": 768 }, "hp": 1, "score": 185, "ignoresScenery": false,
+      "behaviour": { "kind": "DART", "params": { "speedMinFp": 384, "speedStepFp": 128, "speedSteps": 4, "runTicks": 512, "pauseMinTicks": 16, "pauseSpanTicks": 16 } }
     },
     {
       "id": "skunk", "displayName": "Skunk", "sprite": "vermin_skunk",
       "size": { "w": 16, "h": 12 }, "collisionBox": { "x": -7, "y": -10, "w": 14, "h": 10 },
-      "speed": { "xFp": 384, "yFp": 384 }, "hp": 1, "score": 165, "ignoresScenery": false,
-      "behaviour": { "kind": "DART", "params": { "speedMinFp": 192, "speedStepFp": 64, "speedSteps": 4, "runTicks": 1024, "pauseMinTicks": 32, "pauseSpanTicks": 32 } }
+      "speed": { "xFp": 768, "yFp": 768 }, "hp": 1, "score": 165, "ignoresScenery": false,
+      "behaviour": { "kind": "DART", "params": { "speedMinFp": 384, "speedStepFp": 128, "speedSteps": 4, "runTicks": 512, "pauseMinTicks": 16, "pauseSpanTicks": 16 } }
     },
     {
       "id": "flea", "displayName": "Flea", "sprite": "vermin_flea",
       "size": { "w": 16, "h": 12 }, "collisionBox": { "x": -7, "y": -10, "w": 14, "h": 10 },
-      "speed": { "xFp": 384, "yFp": 384 }, "hp": 1, "score": 185, "ignoresScenery": false,
-      "behaviour": { "kind": "DART", "params": { "speedMinFp": 192, "speedStepFp": 64, "speedSteps": 4, "runTicks": 1024, "pauseMinTicks": 32, "pauseSpanTicks": 32 } }
+      "speed": { "xFp": 768, "yFp": 768 }, "hp": 1, "score": 185, "ignoresScenery": false,
+      "behaviour": { "kind": "DART", "params": { "speedMinFp": 384, "speedStepFp": 128, "speedSteps": 4, "runTicks": 512, "pauseMinTicks": 16, "pauseSpanTicks": 16 } }
     },
     {
       "id": "earwig", "displayName": "Earwig", "sprite": "vermin_earwig",
       "size": { "w": 16, "h": 12 }, "collisionBox": { "x": -7, "y": -10, "w": 14, "h": 10 },
-      "speed": { "xFp": 384, "yFp": 384 }, "hp": 1, "score": 165, "ignoresScenery": false,
-      "behaviour": { "kind": "DART", "params": { "speedMinFp": 192, "speedStepFp": 64, "speedSteps": 4, "runTicks": 1024, "pauseMinTicks": 32, "pauseSpanTicks": 32 } }
+      "speed": { "xFp": 768, "yFp": 768 }, "hp": 1, "score": 165, "ignoresScenery": false,
+      "behaviour": { "kind": "DART", "params": { "speedMinFp": 384, "speedStepFp": 128, "speedSteps": 4, "runTicks": 512, "pauseMinTicks": 16, "pauseSpanTicks": 16 } }
     }
   ]
 }

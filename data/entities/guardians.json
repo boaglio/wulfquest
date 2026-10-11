@@ -19,7 +19,7 @@
       "colour": "brightGreen",
       "size": { "w": 32, "h": 28 },
       "collisionBox": { "x": -15, "y": -12, "w": 30, "h": 12 },
-      "speed": { "xFp": 282, "yFp": 205 }
+      "speed": { "xFp": 564, "yFp": 410 }
     },
     {
       "id": "guardian_rhino",
@@ -29,7 +29,7 @@
       "colour": "brightBlue",
       "size": { "w": 32, "h": 28 },
       "collisionBox": { "x": -15, "y": -12, "w": 30, "h": 12 },
-      "speed": { "xFp": 282, "yFp": 205 }
+      "speed": { "xFp": 564, "yFp": 410 }
     },
     {
       "id": "guardian_boar",
@@ -39,7 +39,7 @@
       "colour": "brightRed",
       "size": { "w": 32, "h": 28 },
       "collisionBox": { "x": -15, "y": -12, "w": 30, "h": 12 },
-      "speed": { "xFp": 282, "yFp": 205 }
+      "speed": { "xFp": 564, "yFp": 410 }
     },
     {
       "id": "guardian_wildebeest",
@@ -49,7 +49,7 @@
       "colour": "brightYellow",
       "size": { "w": 32, "h": 28 },
       "collisionBox": { "x": -15, "y": -12, "w": 30, "h": 12 },
-      "speed": { "xFp": 282, "yFp": 205 }
+      "speed": { "xFp": 564, "yFp": 410 }
     }
   ],
   "keeper": {
@@ -58,7 +58,7 @@
     "sprite": "creature_keeper",
     "size": { "w": 24, "h": 32 },
     "collisionBox": { "x": -10, "y": -14, "w": 20, "h": 14 },
-    "stepAsideFp": 128,
+    "stepAsideFp": 256,
     "asideMinPx": 76,
     "asideMaxPx": 204
   }

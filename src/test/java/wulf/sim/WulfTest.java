@@ -394,7 +394,7 @@ class WulfTest {
         int push = RULES.sabre().repelWulfPx();
         int stun = RULES.sabre().repelWulfStunTicks();
         assertThat(w.body().xFp() - before).as("pushed back along the swing, net of its own step")
-                .isGreaterThanOrEqualTo(Fixed.fp(push - 3));
+                .isGreaterThanOrEqualTo(Fixed.fp(push) - REAL.speed().xFp());
         assertThat(w.body().aux()).isEqualTo(stun);
         assertThat(s.score()).isZero();
 

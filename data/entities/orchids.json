@@ -5,10 +5,10 @@
   "cycle": { "seedTicks": 150, "sproutTicks": 100, "budTicks": 80, "bloomTicks": 250, "wiltTicks": 100, "swayTicks": 20 },
   "anchors": { "perRoom": 3, "minSpacingPx": 40, "attempts": 24, "insetPx": 24 },
   "orchids": [
-    { "colour": "red",     "weight": 3, "effect": "TORPOR",    "ticks": 768, "speedScaleFp": 171, "score": 0, "untouchable": true },
-    { "colour": "cyan",    "weight": 3, "effect": "HASTE",     "ticks": 768, "speedScaleFp": 341, "score": 0, "untouchable": true },
-    { "colour": "magenta", "weight": 3, "effect": "REVERSAL",  "ticks": 768, "speedScaleFp": 256, "score": 0, "untouchable": true },
-    { "colour": "yellow",  "weight": 3, "effect": "KNOCKDOWN", "ticks": 384, "speedScaleFp": 256, "score": 0, "untouchable": true },
+    { "colour": "red",     "weight": 3, "effect": "TORPOR",    "ticks": 384, "speedScaleFp": 171, "score": 0, "untouchable": true },
+    { "colour": "cyan",    "weight": 3, "effect": "HASTE",     "ticks": 384, "speedScaleFp": 341, "score": 0, "untouchable": true },
+    { "colour": "magenta", "weight": 3, "effect": "REVERSAL",  "ticks": 384, "speedScaleFp": 256, "score": 0, "untouchable": true },
+    { "colour": "yellow",  "weight": 3, "effect": "KNOCKDOWN", "ticks": 192, "speedScaleFp": 256, "score": 0, "untouchable": true },
     { "colour": "white",   "weight": 4, "effect": "CURE",      "ticks": 1,   "speedScaleFp": 256, "score": 0, "untouchable": false }
   ],
   "inventedOrchids": [
@@ -19,7 +19,7 @@
     { "colour": "white",   "weight": 15, "effect": "DELIRIUM",  "ticks": 300, "speedScaleFp": 256, "score": 25, "untouchable": false },
     { "colour": "blue",    "weight": 10, "effect": "STILLNESS", "ticks": 250, "speedScaleFp": 256, "score": 75, "untouchable": false }
   ],
-  "tint": { "warnTicks": 188, "flashTicks": 32 },
+  "tint": { "warnTicks": 94, "flashTicks": 16 },
   "delirium": { "everyMinTicks": 20, "everyRandomTicks": 20, "holdTicks": 10 },
   "immunity": { "flashPeriodTicks": 4 }
 }
