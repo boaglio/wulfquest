@@ -1254,6 +1254,10 @@ are moving and neither is pressed against a wall.
   (`[NEW]`, flag `features.distanceDrivenGait`): advance the frame every
   `7` px of distance travelled instead, so the gait stays locked to the
   ground at every speed.
+- **Footsteps** (`sfx.json → cadence.footstepEveryTicks`, 6): two to a stride, on gait frames 2
+  and 0 — the step and the walk count the same ticks moved and both start again when he stops.
+  At 9, from when he took 2 ticks a frame, they fell twice as far apart once he ran at the
+  original's pace (2026-10-11).
 
 ### 11.6 The sabre — fighting **[CANON]** shape, from the disassembly
 
