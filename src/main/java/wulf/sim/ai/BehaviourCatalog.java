@@ -13,7 +13,7 @@ import wulf.data.DataException;
  *
  * <p>GUARD_ORBIT and BLOCK_STATIC belong to the guardians and the Keeper (§14), which
  * are not roster species: {@code guardians.json} names them, so no creature declares
- * them and {@link #validate} never sees them.
+ * them and {@link #validate} never sees them. FLAME is the flame's (§12.7), from {@code flame.json}.
  */
 public final class BehaviourCatalog {
 
@@ -32,7 +32,8 @@ public final class BehaviourCatalog {
             Map.entry("AMBUSH_BURST", new AmbushBurst()),
             Map.entry("HERD_BOUNCE", new HerdBounce()),
             Map.entry("GUARD_ORBIT", new GuardOrbit()),
-            Map.entry("BLOCK_STATIC", new BlockStatic()));
+            Map.entry("BLOCK_STATIC", new BlockStatic()),
+            Map.entry("FLAME", new Flame()));
 
     private BehaviourCatalog() {
     }

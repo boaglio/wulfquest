@@ -362,6 +362,27 @@ def amulet_quarter(q):
     return cv.rows()
 
 
+def flame(f):
+    """The flame that comes for a player who lingers (§12.7): ours, a teardrop of fire, red
+    outside, yellow, then a white heart; the tip leans one way and the other to flicker."""
+    cv = Canvas(16, 16)
+    lean = 1 if f == 0 else -1
+    for y in range(16):
+        t = (y - 1) / 13.0                      # 0 at the tip, 1 at the base
+        if t < 0 or t > 1:
+            continue
+        cx = 8 + lean * (1 - t) * 1.8
+        half = 5.4 * math.sin(t * math.pi * 0.88) + 0.3   # widest low down, rounding off at the base
+        for x in range(16):
+            d = abs(x + 0.5 - cx)
+            if d > half:
+                continue
+            ratio = d / max(half, 0.01)
+            cv.set(x, y, "W" if ratio < 0.3 and t > 0.45 else "Y" if ratio < 0.65 else "R")
+    cv.outline("K")
+    return cv.rows()
+
+
 # A bright letter to its plain twin: a wilted flower keeps its hue and loses its light.
 PLAIN = {"G": "g", "B": "b", "R": "r", "Y": "y", "C": "c", "M": "m", "W": "w"}
 
@@ -509,9 +530,11 @@ def main():
     names.append(flowers["sprite"])
     write_sprite("puff", 12, 12, [("f0", puff(0)), ("f1", puff(1))])
     names.append("puff")
-    update_index(names, lambda n: n.startswith("creature_") or n in ("puff", "amulet_piece", "orchid"))
+    write_sprite("flame", 16, 16, [("walk0", flame(0)), ("walk1", flame(1))])
+    names.append("flame")
+    update_index(names, lambda n: n.startswith("creature_") or n in ("puff", "amulet_piece", "orchid", "flame"))
     print(f"creature forge: drew {len(roster)} creatures, the Wulf, {len(wardens['guardians'])} guardians, "
-          f"the Keeper, the amulet, orchids in {len(colours)} colours and the puff")
+          f"the Keeper, the amulet, orchids in {len(colours)} colours, the puff and the flame")
 
 
 if __name__ == "__main__":

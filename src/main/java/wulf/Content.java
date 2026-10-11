@@ -5,7 +5,9 @@ import wulf.data.AnimationValidator;
 import wulf.data.CreatureData;
 import wulf.data.CreatureRefValidator;
 import wulf.data.CreatureSpriteValidator;
+import wulf.data.DataException;
 import wulf.data.DisplayConfig;
+import wulf.data.FlameData;
 import wulf.data.FontData;
 import wulf.data.GameConfig;
 import wulf.data.InputConfig;
@@ -73,6 +75,7 @@ public record Content(
         LootData loot,
         BiomeResolver biomes,
         WulfData wulf,
+        FlameData flame,
         GuardianData guardians,
         LandmarksData landmarks,
         TreasureData treasures,
@@ -119,6 +122,8 @@ public record Content(
         CreatureRefValidator.check(creatures, roomEntities, biomes.inUse(), scenery.ids());
         WulfData wulf = db.load("entities/wulf", WulfData.class);
         WulfValidator.check(wulf, sprites);
+        FlameData flame = db.load("entities/flame", FlameData.class);
+        checkFlame(flame, sprites);
         GuardianData guardians = db.load("entities/guardians", GuardianData.class);
         GuardianValidator.check(guardians, creatures, palette, sprites);
         OrchidData orchids = db.load("entities/orchids", OrchidData.class);
@@ -131,7 +136,7 @@ public record Content(
         treasures.check(map, palette, CreatureSpriteValidator.framesBySprite(sprites));
 
         return new Content(db, game, display, palette, font, input, map, sprites, scenery, rooms, player,
-                creatures, roomEntities, loot, biomes, wulf, guardians, landmarks, treasures, orchids, shell, sfx, music,
+                creatures, roomEntities, loot, biomes, wulf, flame, guardians, landmarks, treasures, orchids, shell, sfx, music,
                 defaultScores, defaultSettings);
     }
 
@@ -143,7 +148,7 @@ public record Content(
     public Content withSettings(Settings settings) {
         return new Content(db, game.withFeatures(settings.features()), display.withCrt(settings.crt()), palette, font,
                 input.withActive(settings.inputProfile()), map, sprites, scenery, rooms, player, creatures,
-                roomEntities, loot, biomes, wulf, guardians, landmarks, treasures, orchids, shell, sfx, music, defaultScores,
+                roomEntities, loot, biomes, wulf, flame, guardians, landmarks, treasures, orchids, shell, sfx, music, defaultScores,
                 defaultSettings);
     }
 
@@ -161,7 +166,7 @@ public record Content(
             game.feature(name);
         }
         return new Content(db, game.withFeatures(flags), display, palette, font, input, map, sprites,
-                scenery, rooms, player, creatures, roomEntities, loot, biomes, wulf, guardians, landmarks, treasures, orchids,
+                scenery, rooms, player, creatures, roomEntities, loot, biomes, wulf, flame, guardians, landmarks, treasures, orchids,
                 shell, sfx, music, defaultScores, defaultSettings);
     }
 
@@ -185,7 +190,8 @@ public record Content(
                 jungle.populate(spawner, room, seed, visit);
             }
         };
-        return new Ecosystem(creatures, populator, loot.event("roomFirstVisit"), wulfRules(), questRules(), orchids());
+        return new Ecosystem(creatures, populator, loot.event("roomFirstVisit"), wulfRules(), questRules(), orchids(),
+                flame);
     }
 
     /** The quest's rules: each lair's guardian as a species, the Keeper, and the numbers that pace and score it. */
@@ -242,6 +248,17 @@ public record Content(
             }
         }
         return WulfRules.of(wulf, game.transition().wulfArrivalDelayTicks(), loot.event("wulfEvaded"), never);
+    }
+
+    /** §12.7: the flame flickers between two frames, each mirrored, as a creature walks. */
+    private static void checkFlame(FlameData flame, SpriteRepository sprites) {
+        java.util.Set<String> frames = CreatureSpriteValidator.framesBySprite(sprites).get(flame.sprite());
+        for (String needed : java.util.List.of("walk0", "walk1", "walk0_l", "walk1_l")) {
+            if (frames == null || !frames.contains(needed)) {
+                throw new DataException("data/entities/flame.json", "/sprite",
+                        "names sprite '" + flame.sprite() + "', which has no frame '" + needed + "'");
+            }
+        }
     }
 
     /** World-cell solidity straight off the baked masks, for the load-time landmark checks. */

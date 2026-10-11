@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wulfquest.invalid/schema/flame.schema.json",
+  "title": "flame.json — AGENTS.md §12.7 [CANON]: the flame that comes for a player who lingers",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "fidelity", "id", "displayName", "sprite", "size", "collisionBox", "speed",
+               "lingerTicks", "lifeTicks", "steerTicks", "homingPer10k", "spawnInsetPx"],
+  "properties": {
+    "schemaVersion": { "type": "integer", "minimum": 1 },
+    "fidelity": { "enum": ["canon", "recon"] },
+    "id": { "type": "string", "minLength": 1 },
+    "displayName": { "type": "string", "minLength": 1 },
+    "sprite": { "type": "string", "minLength": 1 },
+    "size": {
+      "type": "object", "additionalProperties": false, "required": ["w", "h"],
+      "properties": { "w": { "type": "integer", "minimum": 1 }, "h": { "type": "integer", "minimum": 1 } }
+    },
+    "collisionBox": {
+      "type": "object", "additionalProperties": false, "required": ["x", "y", "w", "h"],
+      "properties": {
+        "x": { "type": "integer" }, "y": { "type": "integer" },
+        "w": { "type": "integer", "minimum": 1 }, "h": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "speed": {
+      "type": "object", "additionalProperties": false, "required": ["xFp", "yFp"],
+      "properties": { "xFp": { "type": "integer", "minimum": 0 }, "yFp": { "type": "integer", "minimum": 0 } }
+    },
+    "lingerTicks": { "type": "integer", "minimum": 0 },
+    "lifeTicks": { "type": "integer", "minimum": 1 },
+    "steerTicks": { "type": "integer", "minimum": 1 },
+    "homingPer10k": { "type": "integer", "minimum": 0, "maximum": 10000 },
+    "spawnInsetPx": { "type": "integer", "minimum": 0, "maximum": 80 }
+  }
+}

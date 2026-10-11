@@ -6,6 +6,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import wulf.data.CreatureData;
+import wulf.data.FlameData;
 import wulf.data.LandmarksData;
 import wulf.data.PlayerData;
 import wulf.data.WulfData;
@@ -84,6 +85,10 @@ public final class Simulation {
     private final Context context = new Context();
     private final Spawns spawns = new Spawns();
     private final Wulf wulf;
+    /** §12.7: the flame's slot in {@link #behaviours}, its species, and the ticks until it comes. */
+    private final int flameIndex;
+    private final CreatureData.Species flameSpecies;
+    private int flameWait;
     /** §13.8: the world with the map's east and west ends joined, for the Wulf that runs off one and on at the other. */
     private final CollisionWorld rowWorld;
     /** Whether the prowling Wulf's growl is on: audio only, never hashed. */
@@ -148,10 +153,15 @@ public final class Simulation {
         this.runSeed = runSeed;
         this.rng = new Rng(runSeed);
         List<CreatureData.Species> roster = eco.creatures().creatures();
-        this.behaviours = new Behaviour[roster.size()];
+        // One behaviour per roster species, and after them the flame's (§12.7).
+        this.behaviours = new Behaviour[roster.size() + 1];
         for (int i = 0; i < roster.size(); i++) {
             behaviours[i] = BehaviourCatalog.of(roster.get(i).behaviour().kind());
         }
+        this.flameIndex = roster.size();
+        behaviours[flameIndex] = BehaviourCatalog.of(FlameData.BEHAVIOUR);
+        this.flameSpecies = eco.flame().asSpecies();
+        this.flameWait = eco.flame().lingerTicks();
         player.xFp = xFp;
         player.yFp = yFp;
         player.entryXFp = xFp;
@@ -273,6 +283,7 @@ public final class Simulation {
         }
         sabre = computeSabre();
         tickCreatures();
+        tickFlame();
         tickWulf();
         tickQuest();
         tickOrchids();
@@ -313,6 +324,7 @@ public final class Simulation {
         sounds.play(SFX_PLAYER_DIE);
         sounds.loop(SFX_WULF_GROWL, false);
         effect.clear();   // §15.2: whatever was in the blood dies with you
+        putOutFlame();   // $9DA2: it goes when he falls
         player.mode = Player.Mode.DYING;
         player.modeTick = 0;
         player.swingTick = -1;
@@ -493,6 +505,7 @@ public final class Simulation {
     }
 
     private void enterRoom(boolean byTransition) {
+        flameWait = eco.flame().lingerTicks();   // $B164: every room entered starts the wait again
         if (byTransition && visits[room.index()] == 0) {
             addScore(eco.roomFirstVisitScore());
         }
@@ -550,6 +563,7 @@ public final class Simulation {
         player.mode = Player.Mode.ALIVE;
         player.modeTick = 0;
         player.invulnTicks = rules.spawn().invulnTicks();
+        flameWait = eco.flame().lingerTicks();   // $AA52: getting up starts the wait again
         player.vx = 0;   // back on his feet, at rest
         player.vy = 0;
         player.levelX = 0;
@@ -639,8 +653,8 @@ public final class Simulation {
         if (!sabre.isEmpty()) {
             for (int i = 0; i < creatures.size(); i++) {
                 Creature c = creatures.get(i);
-                if (c.mode != Creature.Mode.ALIVE || c.lastHitSwing == swingSerial) {
-                    continue;
+                if (c.mode != Creature.Mode.ALIVE || c.lastHitSwing == swingSerial || c.species().hp() <= 0) {
+                    continue;   // hp 0: the flame (§12.7), which no blade can touch
                 }
                 CreatureData.Box b = c.species().collisionBox();
                 if (overlaps(sabre, Fixed.px(c.xFp) + b.x(), Fixed.px(c.yFp) + b.y(), b.w(), b.h())) {
@@ -1161,6 +1175,70 @@ public final class Simulation {
             case LEAVING -> {
                 w.stateTick++;
                 stepOut(pursuit);
+            }
+        }
+    }
+
+    // ---------------------------------------------------------------- the flame (§12.7)
+
+    /**
+     * {@code $9ABC}: once Vale has been {@code lingerTicks} in a room, a flame comes, in line
+     * with him on one axis; it burns {@code lifeTicks} and goes out. The wait is not started
+     * again while he stays, so the next comes as soon as one is out.
+     */
+    private void tickFlame() {
+        FlameData f = eco.flame();
+        if (!f.comes()) {
+            return;
+        }
+        for (int i = 0; i < creatures.size(); i++) {
+            Creature c = creatures.get(i);
+            if (c.speciesIndex() == flameIndex && c.mode == Creature.Mode.ALIVE) {
+                if (c.aux() <= 0) {
+                    c.mode = Creature.Mode.DYING;   // burnt out
+                    c.modeTick = 0;
+                }
+                return;
+            }
+        }
+        if (flameWait > 0) {
+            flameWait--;
+            return;
+        }
+        lightFlame(f);
+    }
+
+    /** {@code $9AE9}: straight above or below him, or level with him; never on him, never in a wall — else next tick. */
+    private void lightFlame(FlameData f) {
+        PlayerData.Box pb = rules.collisionBox();
+        int roomX = room.col() * ROOM_W_PX;
+        int roomY = room.row() * ROOM_H_PX;
+        int px = Fixed.px(player.xFp) - roomX;
+        int py = Fixed.px(player.yFp) - roomY;
+        int inset = f.spawnInsetPx();
+        boolean column = rng.nextInt(2) == 0;
+        int x = column ? px : inset + rng.nextInt(ROOM_W_PX - 2 * inset);
+        int y = column ? inset + rng.nextInt(ROOM_H_PX - 2 * inset) : py;
+        CreatureData.Box b = flameSpecies.collisionBox();
+        int xFp = Fixed.fp(roomX + x);
+        int yFp = Fixed.fp(roomY + y);
+        if (overlaps(Fixed.px(player.xFp) + pb.x(), Fixed.px(player.yFp) + pb.y(), pb.w(), pb.h(),
+                roomX + x + b.x(), roomY + y + b.y(), b.w(), b.h())
+                || Collision.blocked(roomSolid, b.x(), b.y(), b.w(), b.h(), xFp, yFp)) {
+            return;
+        }
+        Creature flame = new Creature(nextEntityId++, flameSpecies, flameIndex, xFp, yFp, Herd.NONE);
+        behaviours[flameIndex].spawn(flame, context, rng);
+        flame.aux(f.lifeTicks());
+        creatures.add(flame);
+    }
+
+    private void putOutFlame() {
+        for (int i = 0; i < creatures.size(); i++) {
+            Creature c = creatures.get(i);
+            if (c.speciesIndex() == flameIndex && c.mode == Creature.Mode.ALIVE) {
+                c.mode = Creature.Mode.DYING;
+                c.modeTick = 0;
             }
         }
     }
@@ -2016,6 +2094,7 @@ public final class Simulation {
         h = mix(h, w.parries);
         h = mix(h, w.evasions);
         h = mix(h, w.followedFlips);
+        h = mix(h, flameWait);
         h = mix(h, w.at.index());
         h = mix(h, w.heading);
         h = mix(h, w.speedFp);

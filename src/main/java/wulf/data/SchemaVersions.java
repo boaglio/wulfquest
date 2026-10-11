@@ -25,6 +25,7 @@ public final class SchemaVersions {
             Map.entry("room_entities", 1),
             Map.entry("loot", 1),
             Map.entry("wulf", 1),
+            Map.entry("flame", 1),
             Map.entry("guardians", 1),
             Map.entry("landmarks", 1),
             Map.entry("treasures", 1),

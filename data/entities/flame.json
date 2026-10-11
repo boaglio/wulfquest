@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "fidelity": "canon",
+  "id": "flame",
+  "displayName": "The Flame",
+  "sprite": "flame",
+  "size": { "w": 16, "h": 16 },
+  "collisionBox": { "x": -6, "y": -12, "w": 12, "h": 12 },
+  "speed": { "xFp": 512, "yFp": 512 },
+  "lingerTicks": 256,
+  "lifeTicks": 512,
+  "steerTicks": 128,
+  "homingPer10k": 5000,
+  "spawnInsetPx": 24
+}

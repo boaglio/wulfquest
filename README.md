@@ -30,7 +30,8 @@ appears anywhere and follows you is still there as an option
 (`features.roamingWulf` in `data/config/game.json`). Lives work as they did
 then too: five in reserve, and none for score. And so do the orchids: red, cyan,
 magenta and yellow each make you untouchable while they last — slow, fast,
-reversed or knocked flat — and white cures you. Our own six flowers stay as an
+reversed or knocked flat — and white cures you. And don't stand about: stay in
+one room too long and a flame comes for you, one no sabre can touch. Our own six flowers stay as an
 option too (`features.inventedOrchids`).
 
 **M10 — the true map.** The jungle is now the original's own layout, checked

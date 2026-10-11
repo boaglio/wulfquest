@@ -1,0 +1,73 @@
+{
+  "schemaVersion": 1,
+  "name": "flame",
+  "size": {
+    "w": 16,
+    "h": 16
+  },
+  "origin": {
+    "x": 8,
+    "y": 16
+  },
+  "legend": {
+    ".": -1,
+    "K": 0,
+    "R": 10,
+    "Y": 14,
+    "W": 15
+  },
+  "frames": [
+    {
+      "id": "walk0",
+      "rows": [
+        "................",
+        "........KKK.....",
+        ".......KRYYK....",
+        "......KRYYYRK...",
+        ".....KRYYYYYRK..",
+        "....KRYYYYYYRRK.",
+        "...KRRYYYYYYRRK.",
+        "...KRYYWWWWYYRK.",
+        "..KRRYYWWWWYYRRK",
+        "..KRRYYWWWYYRRK.",
+        "..KRRYYWWWYYRRK.",
+        "...KRYYWWWYYRK..",
+        "...KRRYWWWYRK...",
+        "....KRYWWYRK....",
+        ".....KRWWRK.....",
+        "......KKKK......"
+      ]
+    },
+    {
+      "id": "walk1",
+      "rows": [
+        "......K.........",
+        ".....KRK........",
+        "....KYYRK.......",
+        "...KRYYYRK......",
+        "..KRYYYYYRK.....",
+        ".KRRYYYYYYRK....",
+        ".KRRYYYYYYRRK...",
+        ".KRYYWWWWYYRK...",
+        "KRRYYWWWWYYRRK..",
+        ".KRRYYWWWYYRRK..",
+        ".KRRYYWWWYYRRK..",
+        "..KRYYWWWYYRK...",
+        "...KRYWWWYRRK...",
+        "....KRYWWYRK....",
+        ".....KRWWRK.....",
+        "......KKKK......"
+      ]
+    }
+  ],
+  "mirror": {
+    "walk0_l": {
+      "from": "walk0",
+      "flipX": true
+    },
+    "walk1_l": {
+      "from": "walk1",
+      "flipX": true
+    }
+  }
+}

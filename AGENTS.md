@@ -294,6 +294,7 @@ wulfquest/
       player.json               Sabreman/Ranger Vale stats + animation (§11)
       creatures.json            full roster (§12)
       wulf.json                 the Sabre Wulf (§13)
+      flame.json                the flame that comes for a player who lingers (§12.7)
       guardians.json            four guardians (§14)
       orchids.json              growth cycle + effect table (§15)
       loot.json                 amulet pieces, score values (§16)
@@ -1580,6 +1581,40 @@ player holds 2 amulet pieces and `+1` again at 4 pieces (cap 6). Store as
 
 ---
 
+### 12.7 The flame **[CANON]** — `data/entities/flame.json`
+
+From the disassembly (2026-10-08, §25 Q1), built at the user's choice as the
+default. The original punishes a player who stays put: linger in a room and a
+flame comes for you.
+
+```json
+{ "lingerTicks": 256, "lifeTicks": 512, "steerTicks": 128, "homingPer10k": 5000,
+  "speed": { "xFp": 512, "yFp": 512 }, "spawnInsetPx": 24, "collisionBox": { "x": -6, "y": -12, "w": 12, "h": 12 } }
+```
+
+- **When** (`$9ABC`): every room entered (`$B164`) and every getting up after
+  a fall (`$AA52`) sets a wait, `$96B4` = `$80` (128 frames, 256 of our ticks
+  at 2 a frame, §25 Q5); it counts down while Vale is alive and no flame
+  burns. At zero a flame appears. The wait is **not** set again while he stays,
+  so when a flame goes out the next comes at once.
+- **Where** (`$9AE9`): in line with him on one axis — straight above or
+  below him at a random height, or level with him at a random x — never on
+  him and never in the scenery; if the spot will not do, it tries again next tick.
+- **How it moves** (`$9D91`, `$9E0E`): at 2 px a tick (the original's 4 px a
+  frame, faster than Vale). Every `steerTicks` it takes a new course: half
+  the time a diagonal straight at him, half one of eight at random. Whatever
+  stops it, it glances off (the original bounces off the room's edges and
+  re-steers at scenery; ours reflects at both, `[RECON]`).
+- **How long** it burns: `lifeTicks` (256 frames), then it goes out in a puff.
+  It goes out too when he falls (`$9DA2`), and is gone when he leaves the room.
+- **Its touch costs a life**, unless he wears a flower's colour (§15.2,
+  `$9DE5`). **No blade can touch it**: it is a creature with `hp` 0, which the
+  sabre skips — it can only be outrun or left behind. No score.
+- **Ours**: a room creature of behaviour `FLAME`, made by the simulation (not
+  the room's population) so drawing, hashing and leaving the room come free;
+  the art is ours (`creature_forge.py → flame`, two flickering frames). The
+  wait is in the state hash. `FlameTest`.
+
 ## 13. The Wulf
 
 The pursuing beast is the game's identity. Get this wrong and nothing else
@@ -2180,8 +2215,7 @@ and the panel all see the same garden.
 | `STILLNESS` | Every creature in the room (not the Wulf) freezes, drawn in its plain colours. |
 
 `OrchidTest` pins these; `OriginalOrchidTest` pins §15.2's. The forge
-(`creature_forge.py`) draws every colour either list grows. `wulf_escape.json`
-carries `inventedOrchids` beside `roamingWulf`, so it still plays M5's rules.
+(`creature_forge.py`) draws every colour either list grows.
 
 ## 16. Loot and scoring
 
@@ -2909,8 +2943,11 @@ hash at every 50th tick. `ReplayRunner` re-executes them. Ship at least:
   map in M10, with inertia on 2026-09-30, and at the equal speeds of
   2026-10-01: seed 202, 35 389 ticks, no death; re-forged 2026-10-03 with the
   original's Wulf (§13.8): seed 202 again, 43 420 ticks, no death; and with the
-  original's orchids (§15.2), 2026-10-04: seed 202, 28 326 ticks, no death)
-- `replays/wulf_escape.json` — a Wulf pursuit survived across 4 rooms. (**M5, shipped**)
+  original's orchids (§15.2), 2026-10-04: seed 202, 28 326 ticks, no death;
+  and with the flame (§12.7), 2026-10-08: seed 190, 25 849 ticks, no death)
+- `replays/wulf_escape.json` — a Wulf pursuit survived across rooms. (**M5, shipped**;
+  re-forged 2026-10-08 with the flame: seed 35, chased across 6 rooms,
+  parried 8 times, outrun, no life lost)
   It is the roaming Wulf's (§13.1–§13.7, [NEW]), so since 2026-10-03 the file
   carries `"features": { "roamingWulf": true }`: a replay may name the flags it
   was recorded under, and `ReplayRunner` lays them over `game.json`'s, so a
@@ -2924,7 +2961,8 @@ hash at every 50th tick. `ReplayRunner` re-executes them. Ship at least:
   seed 2018, lairs SE, SW, NW, NE, 106 638 ticks, no death, found by 20 forges
   over seeds 2000–2159; and **2026-10-04 with the original's orchids** (§15.2):
   seed 2008, the same lair order, 71 179 ticks, no death — the bot, untouchable
-  under every flower but white, wins faster. The lairs are fixed
+  under every flower but white, wins faster; and **2026-10-08 with the flame**
+  (§12.7): seed 2016, the same order, 72 191 ticks, no death. The lairs are fixed
   (`landmarks.json`), but a seed decides every creature, and the bot's luck
   with them varies enormously: seeds 1–60 for `lair_nw` won only in
   108 000–241 000 ticks, and seeds 3000–3159 for the full run in 300 000 and
@@ -3750,7 +3788,7 @@ the source wins.
 
 | # | Question | Currently | Where it lives |
 |---|----------|-----------|----------------|
-| Q1 | The exact creature roster and per-room creature assignment table | 13 invented species, biome-weighted. **Lead 2026-10-03:** the original's room creatures are not per room. Up to `$96BE` (3) at once appear as a puff in the player's room (`$9A68`), then become one of 15 kinds from `$A41A` — spider, scorpion, bat, parrot, monkey, lizard, snake, then rat, bird, frog, mosquito, skunk, flea, earwig — picked from the first `8 + 2 × quarters held` entries (`$A3EC`), so the jungle gets worse as the amulet fills. The fixed ones are in the actor table `$AC77`: rhinos in (8,9) twice, (7,0) and (3,15); tribesmen in (7,10), (4,4), (2,14); a hippo in (3,8); the guardian at the arch (8,8); and the Wulf (Q9). A flame (`$34`) comes for a player who lingers: `$96B4`, set to `$80` on entering a room (`$B164`), counts down (`$9ABC`). | `creatures.json`, `room_entities.json` |
+| Q1 | The exact creature roster and per-room creature assignment table | 13 invented species, biome-weighted. **Lead 2026-10-03:** the original's room creatures are not per room. Up to `$96BE` (3) at once appear as a puff in the player's room (`$9A68`), then become one of 15 kinds from `$A41A` — spider, scorpion, bat, parrot, monkey, lizard, snake, then rat, bird, frog, mosquito, skunk, flea, earwig — picked from the first `8 + 2 × quarters held` entries (`$A3EC`), so the jungle gets worse as the amulet fills. The fixed ones are in the actor table `$AC77`: rhinos in (8,9) twice, (7,0) and (3,15); tribesmen in (7,10), (4,4), (2,14); a hippo in (3,8); the guardian at the arch (8,8); and the Wulf (Q9). A flame (`$34`) comes for a player who lingers — **built 2026-10-08**, §12.7. | `creatures.json`, `room_entities.json` |
 | Q2 | The four guardians' species, colours, and lair rooms | **Rooms partly answered 2026-09-27:** the original has no fixed lairs — it picks one of eight preset four-room sets at random (`$A29D`, `Place Amulet Pieces` `$A255`) and lays each quarter at its room type's object slot 1 (`$DC6C`). Our lairs are fixed (`[RECON]`) at the game's set 3, `5,3 13,4 3,12 9,10`. Guardians' species and colours still open; the game's immortals table (`$AC77`) lists rhinos, spear men, fire, the wolf, a hippo and "guardian" as sprites to look at next. | `landmarks.json`, `guardians.json` |
 | Q3 | The exit's actual location and its guard condition | **Lead 2026-09-27:** the true map has exactly one stone arch, `(8,8)`, the heart of the mirrored temple two rooms north of the start. The exit is placed there; the guard condition is unverified. | `landmarks.json` |
 | Q4 | The orchid colour→effect mapping and durations | 6 colours per §15.2. **Answered and built 2026-10-04** (§15.2, now the default; ours kept as [NEW] `features.inventedOrchids`, §15.4). Touching a flower **in full bloom** (state `$4F`, `$A737`) turns Vale its colour (`$9707`) and sets the timer `$96B0` to `$C0`; it counts down every other frame (`$AE7A`), so an effect lasts **384 frames** (768 of our ticks at 2 a frame, §25 Q5), and for its last `$2F` counts Vale flashes white (`$AF7A`). At zero he is white (`$47`) again. **Five colours** (`$A6FD`, picked when a flower closes, from the frame counter): **red** `$42` — slow, at most 2 px a frame against 3 (`$AFC1`, `$AFE0`); **cyan** `$45` — fast, 4 px a frame (`$AFE4`), footsteps twice as often (`$BF4B`); **magenta** `$43` — every direction reversed (`$AF14`, `XOR %1111`); **yellow** `$46` — knocked down, sitting helpless for `$60` counts, then he gets up (`$AEF5`, `$AE8F`, `$A61B`); **white** `$47` — the cure: clears any effect (`$A757`). Odds of a colour: white 4 in 16, each other 3 in 16. **Every coloured state makes him untouchable**: creatures, the Wulf and the flame all hurt only a white Vale (`$AB36`, `$A880`, `$9DE5`) — so red and magenta are protection with a cost, yellow is protection you cannot use. **No score** for a flower. A death clears the effect (`$AA49`). Ours — haste, torpor, reversal, immunity, delirium, stillness, scored 25–75 — is `[RECON]` that the original does not support. Not traced: the growth timings in our ticks (`$A680`–`$A731`: closed for `$10` counts, open for `$80`–`$BF`). | `orchids.json` |
