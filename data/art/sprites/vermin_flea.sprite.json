@@ -1,0 +1,64 @@
+{
+  "schemaVersion": 1,
+  "name": "vermin_flea",
+  "size": {
+    "w": 16,
+    "h": 12
+  },
+  "origin": {
+    "x": 8,
+    "y": 12
+  },
+  "legend": {
+    ".": -1,
+    "K": 0,
+    "w": 7,
+    "W": 15
+  },
+  "frames": [
+    {
+      "id": "walk0",
+      "rows": [
+        "................",
+        "................",
+        "................",
+        "......KKKK......",
+        ".....KwwwwK.....",
+        "....KWwWWWWK....",
+        "....KWWWWWWK....",
+        "....KWWWWWWK....",
+        "....KWWWWWWK....",
+        "...KKwwWWwK.....",
+        "..KwwKKKKKwK....",
+        "..KwK.....KwK..."
+      ]
+    },
+    {
+      "id": "walk1",
+      "rows": [
+        "......KKKK......",
+        ".....KwwwwK.....",
+        "....KWwWWWWK....",
+        "....KWWWWWWK....",
+        "....KWWWWWWK....",
+        "....KWWWWWWK....",
+        "....KwwWWwK.....",
+        "....KwKKKwK.....",
+        "...KwK..KwwK....",
+        "..KwwK...KwK....",
+        "..KwK....KwK....",
+        "..KwK.....KwK..."
+      ]
+    }
+  ],
+  "mirror": {
+    "walk0_l": {
+      "from": "walk0",
+      "flipX": true
+    },
+    "walk1_l": {
+      "from": "walk1",
+      "flipX": true
+    }
+  }
+}

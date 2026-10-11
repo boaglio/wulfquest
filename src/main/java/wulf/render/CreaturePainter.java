@@ -38,6 +38,7 @@ public final class CreaturePainter {
     private final CreatureData roster;
     private final Sprite puff;
     private final int flash;
+    private final int outline;
     private final int thread;
     private final int shaft;
     private final int point;
@@ -52,6 +53,7 @@ public final class CreaturePainter {
         this.roster = roster;
         this.puff = sprites.get(CreatureSpriteValidator.PUFF);
         this.flash = palette.indexOf("brightWhite");
+        this.outline = palette.indexOf("black");
         this.thread = palette.indexOf("white");
         this.shaft = palette.indexOf("white");
         this.point = palette.indexOf("brightCyan");
@@ -152,6 +154,16 @@ public final class CreaturePainter {
     private void paintCreature(Framebuffer fb, Creature c, long tick, int ox, int oy) {
         int x = Fixed.px(c.xFp()) + ox;
         int y = Fixed.px(c.yFp()) + oy;
+        if (c.appearing()) {
+            // §12.8: the original's puff, forming — ours is the death puff run backwards, in the colour it will be.
+            String frame = "f0".equals(puffFrame(c, roster.puffTicks())) ? "f1" : "f0";
+            if (c.tint() >= 0) {
+                puff.blitTinted(fb, frame, x, y, c.tint());
+            } else {
+                puff.blit(fb, frame, x, y);
+            }
+            return;
+        }
         if (!c.alive()) {
             puff.blit(fb, puffFrame(c, roster.puffTicks()), x, y);
             return;
@@ -170,6 +182,8 @@ public final class CreaturePainter {
         }
         if (flashing(c)) {
             sprite.blitTinted(fb, frame, x, y, flash);
+        } else if (c.tint() >= 0) {
+            sprite.blitInked(fb, frame, x, y, c.tint() - 8, c.tint(), outline);   // §12.8: the colour it came in
         } else {
             sprite.blit(fb, frame, x, y);
         }

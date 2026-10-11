@@ -68,6 +68,20 @@
     "scenery_955d",
     "scenery_95cd",
     "scenery_9673",
-    "treasure"
+    "treasure",
+    "vermin_bat",
+    "vermin_bird",
+    "vermin_earwig",
+    "vermin_flea",
+    "vermin_frog",
+    "vermin_lizard",
+    "vermin_monkey",
+    "vermin_mosquito",
+    "vermin_parrot",
+    "vermin_rat",
+    "vermin_scorpion",
+    "vermin_skunk",
+    "vermin_snake",
+    "vermin_spider"
   ]
 }

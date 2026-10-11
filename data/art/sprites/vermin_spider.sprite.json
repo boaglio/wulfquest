@@ -1,0 +1,64 @@
+{
+  "schemaVersion": 1,
+  "name": "vermin_spider",
+  "size": {
+    "w": 16,
+    "h": 12
+  },
+  "origin": {
+    "x": 8,
+    "y": 12
+  },
+  "legend": {
+    ".": -1,
+    "K": 0,
+    "w": 7,
+    "W": 15
+  },
+  "frames": [
+    {
+      "id": "walk0",
+      "rows": [
+        "................",
+        "................",
+        "...K...KK...K...",
+        "..KwK.KWWK.KwK..",
+        "..KwwKWWWWKwwK..",
+        ".KwwKwWWWWwKwwK.",
+        ".KwwwWWWWWWwwwK.",
+        ".KwKKWWWWWWKKwK.",
+        ".KwKwwWWWWwwKwK.",
+        "KwKKwKKWWKKwKKwK",
+        ".K.KwK.KK.KwK.K.",
+        "....K......K...."
+      ]
+    },
+    {
+      "id": "walk1",
+      "rows": [
+        "................",
+        "................",
+        "...K...KK...K...",
+        "..KwKKKWWKKKwK..",
+        ".KwwwwWWWWwwwwK.",
+        ".KwKKwWWWWwKKwK.",
+        "KwKwwWWWWWWwwKwK",
+        ".KKwwWWWWWWwwKK.",
+        ".KwwKKWWWWKKwwK.",
+        ".KwK.KwWWwK.KwK.",
+        "..K..KwKKwK..K..",
+        "....KwwKKwwK...."
+      ]
+    }
+  ],
+  "mirror": {
+    "walk0_l": {
+      "from": "walk0",
+      "flipX": true
+    },
+    "walk1_l": {
+      "from": "walk1",
+      "flipX": true
+    }
+  }
+}

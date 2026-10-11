@@ -1,0 +1,64 @@
+{
+  "schemaVersion": 1,
+  "name": "vermin_lizard",
+  "size": {
+    "w": 16,
+    "h": 12
+  },
+  "origin": {
+    "x": 8,
+    "y": 12
+  },
+  "legend": {
+    ".": -1,
+    "K": 0,
+    "w": 7,
+    "W": 15
+  },
+  "frames": [
+    {
+      "id": "walk0",
+      "rows": [
+        "................",
+        "................",
+        "................",
+        "................",
+        "................",
+        "....K......K....",
+        "...KwKKKKKKwKK..",
+        "KKKKKwWWWWwwWWK.",
+        "wwwwWWwWWWwWWKWK",
+        "KKKwWWWWWWWWWWK.",
+        "...KKKwWWwwKKK..",
+        "......KwwwK....."
+      ]
+    },
+    {
+      "id": "walk1",
+      "rows": [
+        "................",
+        "................",
+        "................",
+        "................",
+        "................",
+        ".......KK.......",
+        "......KwwK..KK..",
+        "...KKKwwWwKKWWK.",
+        "KKKwWWwWWWwWWKWK",
+        "wwwwWWWWWWWWWWK.",
+        "KKKKKwwWWWwKKK..",
+        "...KwwKKKKKwK..."
+      ]
+    }
+  ],
+  "mirror": {
+    "walk0_l": {
+      "from": "walk0",
+      "flipX": true
+    },
+    "walk1_l": {
+      "from": "walk1",
+      "flipX": true
+    }
+  }
+}

@@ -1,0 +1,64 @@
+{
+  "schemaVersion": 1,
+  "name": "vermin_scorpion",
+  "size": {
+    "w": 16,
+    "h": 12
+  },
+  "origin": {
+    "x": 8,
+    "y": 12
+  },
+  "legend": {
+    ".": -1,
+    "K": 0,
+    "w": 7,
+    "W": 15
+  },
+  "frames": [
+    {
+      "id": "walk0",
+      "rows": [
+        "................",
+        ".KKKKK..........",
+        "KWWWWWK.........",
+        "KWWWWWK.........",
+        "WWKKKWK.........",
+        "WK...K..........",
+        "WWKKKKKKK...KKKK",
+        "WWWWWWWWWKKKwwww",
+        "WWWWWWWWwwwwKKKK",
+        "KWwwwwwwwKKKKKKK",
+        ".Kwwwwwwwwwwwwww",
+        "..KwwKKwwKKKKKKK"
+      ]
+    },
+    {
+      "id": "walk1",
+      "rows": [
+        "................",
+        ".KKKKK..........",
+        "KWWWWWK.........",
+        "KWWWWWK.........",
+        "WWKKKKWK........",
+        "WK....K.........",
+        "WWKKKKKKK.......",
+        "WWWWWWWWWKKKKKKK",
+        "WWWWWWWWwwwwwwww",
+        "KWwwwwwwwwwwwwww",
+        "KwwwwwwwwKKKKKKK",
+        "KwwKKwwKK......."
+      ]
+    }
+  ],
+  "mirror": {
+    "walk0_l": {
+      "from": "walk0",
+      "flipX": true
+    },
+    "walk1_l": {
+      "from": "walk1",
+      "flipX": true
+    }
+  }
+}

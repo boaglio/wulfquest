@@ -13,7 +13,8 @@ import wulf.data.DataException;
  *
  * <p>GUARD_ORBIT and BLOCK_STATIC belong to the guardians and the Keeper (§14), which
  * are not roster species: {@code guardians.json} names them, so no creature declares
- * them and {@link #validate} never sees them. FLAME is the flame's (§12.7), from {@code flame.json}.
+ * them and {@link #validate} never sees them. FLAME is the flame's (§12.7), from {@code flame.json};
+ * DART and HOME_IN are the original's small creatures' (§12.8), from {@code jungle.json}.
  */
 public final class BehaviourCatalog {
 
@@ -33,7 +34,9 @@ public final class BehaviourCatalog {
             Map.entry("HERD_BOUNCE", new HerdBounce()),
             Map.entry("GUARD_ORBIT", new GuardOrbit()),
             Map.entry("BLOCK_STATIC", new BlockStatic()),
-            Map.entry("FLAME", new Flame()));
+            Map.entry("FLAME", new Flame()),
+            Map.entry("DART", new Dart()),
+            Map.entry("HOME_IN", new HomeIn()));
 
     private BehaviourCatalog() {
     }
@@ -51,24 +54,29 @@ public final class BehaviourCatalog {
     }
 
     public static void validate(CreatureData data) {
+        validate(data, SOURCE);
+    }
+
+    /** The same check for a roster from another file: the original's, in {@code jungle.json} (§12.8). */
+    public static void validate(CreatureData data, String source) {
         List<CreatureData.Species> roster = data.creatures();
         for (int i = 0; i < roster.size(); i++) {
             CreatureData.Behaviour declared = roster.get(i).behaviour();
             String at = "/creatures/" + i + "/behaviour";
             Behaviour kind = KINDS.get(declared.kind());
             if (kind == null) {
-                throw new DataException(SOURCE, at + "/kind",
+                throw new DataException(source, at + "/kind",
                         "is '" + declared.kind() + "', which is not one of " + kinds());
             }
             for (String needed : kind.params()) {
                 if (!declared.params().containsKey(needed)) {
-                    throw new DataException(SOURCE, at + "/params",
+                    throw new DataException(source, at + "/params",
                             "is missing '" + needed + "', which " + declared.kind() + " needs");
                 }
             }
             for (String given : declared.params().keySet()) {
                 if (!kind.params().contains(given)) {
-                    throw new DataException(SOURCE, at + "/params/" + given,
+                    throw new DataException(source, at + "/params/" + given,
                             "is not a parameter of " + declared.kind() + ", which takes " + kind.params());
                 }
             }

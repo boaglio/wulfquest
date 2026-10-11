@@ -295,6 +295,7 @@ wulfquest/
       creatures.json            full roster (§12)
       wulf.json                 the Sabre Wulf (§13)
       flame.json                the flame that comes for a player who lingers (§12.7)
+      jungle.json               the original's creatures: the swarm and its 14 kinds (§12.8)
       guardians.json            four guardians (§14)
       orchids.json              growth cycle + effect table (§15)
       loot.json                 amulet pieces, score values (§16)
@@ -1614,6 +1615,54 @@ flame comes for you.
   the room's population) so drawing, hashing and leaving the room come free;
   the art is ours (`creature_forge.py → flame`, two flickering frames). The
   wait is in the state hash. `FlameTest`.
+
+### 12.8 The original's creatures **[CANON]** — `data/entities/jungle.json`
+
+From the disassembly (2026-10-10, §25 Q1). Built in stages: **the small ones are in**,
+behind `features.inventedCreatures` — on (the default, for now) it is still §12.3–§12.6's
+invented jungle; off, the original's. The big ones (rhinos, tribesmen, the sleeping hippo or
+warthog: the actor table `$AC77`) come next, and then the default flips.
+
+**The swarm.** The original fills no room on entry. Once an update while Vale is on his feet
+(`$9A3C`), if his room holds fewer than **3** (`$96BE`) — puffs and bursts counted — and all
+rooms fewer than **6** (the slots at `$9792`), a puff comes at a random spot (`$9B0D`: `$30` +
+0..127 each way; ours `swarm.area`, room-local feet) clear of him (`$AB01`) and of the scenery
+(`$B81C`), or none this update. So a room you stand in keeps topping up as you kill.
+
+- **Its colour** is one of red, magenta, cyan, yellow (`$9AB8`), kept for life; ours inks the
+  sprite in it, keeping only its black outline.
+- **It forms** over 6 updates (sprites `$01`–`$06`, 12 ticks): harmless, but a blade can take
+  it (`$A3B7`), scoring 165–185 by the frame.
+- **What it becomes** (`$A3E0`, `$A41A`): a roll of 0..15 into spider, scorpion, bat, parrot,
+  monkey, lizard, snake, spider, rat, bird, frog, mosquito, skunk, flea, earwig, rat; a roll at
+  or past `8 + 2 × quarters held` folds into the first eight (`AND 7`). So the last eight open
+  two at a time as the amulet fills, and with it whole every kind is out.
+- **How it moves** — two ways:
+  - `DART` (`$A54F`, `$A5CD`), all but three: a straight line at a random speed per axis,
+    3–6 px an update each way (`$A601`: ±`$30`..`$60`, ÷16; ours 1.5–3 px a tick), so always
+    slanting; for up to 256 updates, or until the scenery stops it dead (`$AAED`), when it
+    stands 8–15 updates and sets off again. A room edge turns it about (`$A44B`).
+  - `HOME_IN` (`$A4D7`), the bat, the lizard and the snake: each axis leans towards Vale by
+    `$08` an update up to `$30` (3 px), stopping dead when level with him — so it swings in,
+    overshoots and comes round. Edges turn it; scenery it slides along.
+- **Its touch** (`$AB36`), only on a white Vale (§15.2): it **bursts either way**. Walking,
+  it takes a life with it. Fencing, one on the side he faces is simply struck (`$AB68`); one
+  behind him still takes him.
+- **Its score** (`$A4B3`): 165 + 20 for scorpion, parrot, lizard, bird, mosquito and flea (bit
+  2 of the sprite), + 10 if it faced right as it burst (bit 1). **Every burst scores** —
+  blade, touch, or his fall.
+- **When he falls**, or the yellow flower sits him down, every small creature in the room
+  bursts (`$A54F` sees him not on his feet), and none come for 16 updates after he gets up
+  (`$96B1`, `$AA4D`).
+- **Left behind**, it waits where it was: walk back within 64 updates all told (`$A493`,
+  `IX+$08` never reset) and it is still there; it keeps its slot meanwhile, so leaving a full
+  room and coming straight back brings back the same three.
+- **Ours**: the species are ordinary roster entries (`Content.originalCreatures()`, with
+  `creatures.json`'s shared puff and gait numbers); the swarm is `SwarmRules`, run by
+  `Simulation.tickSwarm`; the art is ours (`creature_forge.py → vermin_*`, two tones for the
+  ink). `[RECON]`: the spot's mapping to our feet, the box against him and the scenery (ours
+  14×10, the original tests `$1313` and `$1717`), and one puff struck in its sixth update.
+  `SwarmTest`.
 
 ## 13. The Wulf
 
@@ -3788,9 +3837,9 @@ the source wins.
 
 | # | Question | Currently | Where it lives |
 |---|----------|-----------|----------------|
-| Q1 | The exact creature roster and per-room creature assignment table | 13 invented species, biome-weighted. **Lead 2026-10-03:** the original's room creatures are not per room. Up to `$96BE` (3) at once appear as a puff in the player's room (`$9A68`), then become one of 15 kinds from `$A41A` — spider, scorpion, bat, parrot, monkey, lizard, snake, then rat, bird, frog, mosquito, skunk, flea, earwig — picked from the first `8 + 2 × quarters held` entries (`$A3EC`), so the jungle gets worse as the amulet fills. The fixed ones are in the actor table `$AC77`: rhinos in (8,9) twice, (7,0) and (3,15); tribesmen in (7,10), (4,4), (2,14); a hippo in (3,8); the guardian at the arch (8,8); and the Wulf (Q9). A flame (`$34`) comes for a player who lingers — **built 2026-10-08**, §12.7. | `creatures.json`, `room_entities.json` |
+| Q1 | The exact creature roster and per-room creature assignment table | 13 invented species, biome-weighted. **Lead 2026-10-03:** the original's room creatures are not per room. Up to `$96BE` (3) at once appear as a puff in the player's room (`$9A68`), then become one of 15 kinds from `$A41A` — spider, scorpion, bat, parrot, monkey, lizard, snake, then rat, bird, frog, mosquito, skunk, flea, earwig — picked from the first `8 + 2 × quarters held` entries (`$A3EC`), so the jungle gets worse as the amulet fills. The fixed ones are in the actor table `$AC77`: rhinos in (8,9) twice, (7,0) and (3,15); tribesmen in (7,10), (4,4), (2,14); a hippo in (3,8); the guardian at the arch (8,8); and the Wulf (Q9). A flame (`$34`) comes for a player who lingers — **built 2026-10-08**, §12.7. **The small ones built 2026-10-10** (§12.8), behind `features.inventedCreatures` while the big ones are built. Traced too: rhinos (`$AD07`) pace a row at 3 px and turn at the scenery, and a blade sends one back at 6 (`$AD69`); tribesmen (`$AB74`) walk a slant, re-steer when stopped, are pushed back by a blade, and follow the player — two rows away, one is set down a row from him (`$A630`) — and flash and beep when level with an amulet quarter (`$9D41`); the hippo sleeps (`$9EB3`), follows the same way, comes back a hippo or a warthog at random (`$9F06`), and touched it wakes, turns and charges until stopped (`$9E72`). | `jungle.json`, `creatures.json`, `room_entities.json` |
 | Q2 | The four guardians' species, colours, and lair rooms | **Rooms partly answered 2026-09-27:** the original has no fixed lairs — it picks one of eight preset four-room sets at random (`$A29D`, `Place Amulet Pieces` `$A255`) and lays each quarter at its room type's object slot 1 (`$DC6C`). Our lairs are fixed (`[RECON]`) at the game's set 3, `5,3 13,4 3,12 9,10`. Guardians' species and colours still open; the game's immortals table (`$AC77`) lists rhinos, spear men, fire, the wolf, a hippo and "guardian" as sprites to look at next. | `landmarks.json`, `guardians.json` |
-| Q3 | The exit's actual location and its guard condition | **Lead 2026-09-27:** the true map has exactly one stone arch, `(8,8)`, the heart of the mirrored temple two rooms north of the start. The exit is placed there; the guard condition is unverified. | `landmarks.json` |
+| Q3 | The exit's actual location and its guard condition | **Lead 2026-09-27:** the true map has exactly one stone arch, `(8,8)`, the heart of the mirrored temple two rooms north of the start. The exit is placed there. **Guard condition traced 2026-10-10** (`$9F16`, not yet built): the actor table puts "the Guardian" (sprites `$94`/`$95`) at the arch, (8,8). Until all four quarters are held (`$970D` = `$0F`) it stands there and its touch throws Vale back (`$9704` = `$80`) — whatever his colour (`$AB3D`, no white check); with the amulet whole it steps aside at 2 px an update, right if he is on the room's left half and left if on its right, until it is past `$C0` or `$40`. | `landmarks.json` |
 | Q4 | The orchid colour→effect mapping and durations | 6 colours per §15.2. **Answered and built 2026-10-04** (§15.2, now the default; ours kept as [NEW] `features.inventedOrchids`, §15.4). Touching a flower **in full bloom** (state `$4F`, `$A737`) turns Vale its colour (`$9707`) and sets the timer `$96B0` to `$C0`; it counts down every other frame (`$AE7A`), so an effect lasts **384 frames** (768 of our ticks at 2 a frame, §25 Q5), and for its last `$2F` counts Vale flashes white (`$AF7A`). At zero he is white (`$47`) again. **Five colours** (`$A6FD`, picked when a flower closes, from the frame counter): **red** `$42` — slow, at most 2 px a frame against 3 (`$AFC1`, `$AFE0`); **cyan** `$45` — fast, 4 px a frame (`$AFE4`), footsteps twice as often (`$BF4B`); **magenta** `$43` — every direction reversed (`$AF14`, `XOR %1111`); **yellow** `$46` — knocked down, sitting helpless for `$60` counts, then he gets up (`$AEF5`, `$AE8F`, `$A61B`); **white** `$47` — the cure: clears any effect (`$A757`). Odds of a colour: white 4 in 16, each other 3 in 16. **Every coloured state makes him untouchable**: creatures, the Wulf and the flame all hurt only a white Vale (`$AB36`, `$A880`, `$9DE5`) — so red and magenta are protection with a cost, yellow is protection you cannot use. **No score** for a flower. A death clears the effect (`$AA49`). Ours — haste, torpor, reversal, immunity, delirium, stillness, scored 25–75 — is `[RECON]` that the original does not support. Not traced: the growth timings in our ticks (`$A680`–`$A731`: closed for `$10` counts, open for `$80`–`$BF`). | `orchids.json` |
 | Q5 | Exact player speed in px/frame, and whether it was frame-quantised | **Shape answered 2026-09-30** (§11.3): up to 3 px a frame in whole steps (0–3), with inertia ($AEEF, $AFC1, $B031, $B047); fighting a steady 2 ($ADD0). Still open: the original's frame rate, which fixes px/s — ours assumes 2 ticks a frame, and keeps §11.2's 1.5 / 1.0 px/tick as full speed. | `player.json → speed, momentum` |
 | Q6 | Starting lives and extra-life thresholds | **Closed 2026-10-02** from the disassembly: **5 in reserve** (`$B21E`), so six falls — a fall with none left is game over (`$AA27`–`$AA37`); **no extra lives for score** — the lives count's only writers are `$B21E`, `$AA37`, `$9F87` and the treasure life `$A2F8` (up to 9 in reserve). §11.7, §16.3. | `player.json → lives` |

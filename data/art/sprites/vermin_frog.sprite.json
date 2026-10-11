@@ -1,0 +1,64 @@
+{
+  "schemaVersion": 1,
+  "name": "vermin_frog",
+  "size": {
+    "w": 16,
+    "h": 12
+  },
+  "origin": {
+    "x": 8,
+    "y": 12
+  },
+  "legend": {
+    ".": -1,
+    "K": 0,
+    "w": 7,
+    "W": 15
+  },
+  "frames": [
+    {
+      "id": "walk0",
+      "rows": [
+        "................",
+        "................",
+        "................",
+        "..........KK....",
+        ".....KKKKKWWK...",
+        "....KWWWWWWK....",
+        "...KWWWWWWWWK...",
+        "..KWWWWWWWWWWK..",
+        "..KWWWWWWWWWWK..",
+        "..KwwwwWWWWWK...",
+        "..KwwwwWWWWK....",
+        "...KKKKKKKK....."
+      ]
+    },
+    {
+      "id": "walk1",
+      "rows": [
+        "................",
+        "................",
+        ".......KKKKK....",
+        ".....KKWWWWWK...",
+        "....KWWWWWWKWK..",
+        "....KWWWWWWWWK..",
+        "....KwwWWWWWWK..",
+        "..KKwwwWWWWWWK..",
+        ".KwwwKKWWWWKK...",
+        "KwwwK..KKKK.....",
+        "wwKK............",
+        "KK.............."
+      ]
+    }
+  ],
+  "mirror": {
+    "walk0_l": {
+      "from": "walk0",
+      "flipX": true
+    },
+    "walk1_l": {
+      "from": "walk1",
+      "flipX": true
+    }
+  }
+}

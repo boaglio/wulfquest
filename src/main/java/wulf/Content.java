@@ -8,6 +8,7 @@ import wulf.data.CreatureSpriteValidator;
 import wulf.data.DataException;
 import wulf.data.DisplayConfig;
 import wulf.data.FlameData;
+import wulf.data.JungleData;
 import wulf.data.FontData;
 import wulf.data.GameConfig;
 import wulf.data.InputConfig;
@@ -43,6 +44,7 @@ import java.util.List;
 import wulf.sim.QuestRules;
 import wulf.sim.Treasures;
 import wulf.sim.RoomPopulator;
+import wulf.sim.SwarmRules;
 import wulf.data.OrchidData;
 import wulf.data.OrchidValidator;
 import wulf.data.HighScores;
@@ -76,6 +78,7 @@ public record Content(
         BiomeResolver biomes,
         WulfData wulf,
         FlameData flame,
+        JungleData jungle,
         GuardianData guardians,
         LandmarksData landmarks,
         TreasureData treasures,
@@ -124,6 +127,8 @@ public record Content(
         WulfValidator.check(wulf, sprites);
         FlameData flame = db.load("entities/flame", FlameData.class);
         checkFlame(flame, sprites);
+        JungleData jungle = db.load("entities/jungle", JungleData.class);
+        checkJungle(jungle, creatures, palette, sprites);
         GuardianData guardians = db.load("entities/guardians", GuardianData.class);
         GuardianValidator.check(guardians, creatures, palette, sprites);
         OrchidData orchids = db.load("entities/orchids", OrchidData.class);
@@ -136,7 +141,7 @@ public record Content(
         treasures.check(map, palette, CreatureSpriteValidator.framesBySprite(sprites));
 
         return new Content(db, game, display, palette, font, input, map, sprites, scenery, rooms, player,
-                creatures, roomEntities, loot, biomes, wulf, flame, guardians, landmarks, treasures, orchids, shell, sfx, music,
+                creatures, roomEntities, loot, biomes, wulf, flame, jungle, guardians, landmarks, treasures, orchids, shell, sfx, music,
                 defaultScores, defaultSettings);
     }
 
@@ -148,7 +153,7 @@ public record Content(
     public Content withSettings(Settings settings) {
         return new Content(db, game.withFeatures(settings.features()), display.withCrt(settings.crt()), palette, font,
                 input.withActive(settings.inputProfile()), map, sprites, scenery, rooms, player, creatures,
-                roomEntities, loot, biomes, wulf, flame, guardians, landmarks, treasures, orchids, shell, sfx, music, defaultScores,
+                roomEntities, loot, biomes, wulf, flame, jungle, guardians, landmarks, treasures, orchids, shell, sfx, music, defaultScores,
                 defaultSettings);
     }
 
@@ -166,7 +171,7 @@ public record Content(
             game.feature(name);
         }
         return new Content(db, game.withFeatures(flags), display, palette, font, input, map, sprites,
-                scenery, rooms, player, creatures, roomEntities, loot, biomes, wulf, flame, guardians, landmarks, treasures, orchids,
+                scenery, rooms, player, creatures, roomEntities, loot, biomes, wulf, flame, jungle, guardians, landmarks, treasures, orchids,
                 shell, sfx, music, defaultScores, defaultSettings);
     }
 
@@ -179,8 +184,15 @@ public record Content(
         return game.feature("inventedOrchids") ? orchids.invented() : orchids;
     }
 
-    /** The living jungle: creatures, how rooms are populated, what exploring scores, the Wulf, and the quest. */
+    /**
+     * The living jungle: creatures, how rooms are populated, what exploring scores, the Wulf, and the quest.
+     * The creatures are the original's (§12.8), or with {@code features.inventedCreatures} our own [NEW].
+     */
     public Ecosystem ecosystem() {
+        if (!game.feature("inventedCreatures")) {
+            return new Ecosystem(originalCreatures(), RoomPopulator.NONE, loot.event("roomFirstVisit"), wulfRules(),
+                    questRules(), orchids(), flame, swarmRules());
+        }
         RoomPopulator jungle = new BiomePopulator(creatures, roomEntities, biomes, game.difficulty());
         // §14.3: a lair is a single clean puzzle — its guardian and nothing else. The way out is kept clear too.
         Set<RoomAddress> clear = new LinkedHashSet<>(landmarks.lairRooms());
@@ -248,6 +260,62 @@ public record Content(
             }
         }
         return WulfRules.of(wulf, game.transition().wulfArrivalDelayTicks(), loot.event("wulfEvaded"), never);
+    }
+
+    /**
+     * The original's roster (§12.8) as the simulation reads a roster: {@code jungle.json}'s creatures
+     * with {@code creatures.json}'s shared numbers — the puff, the hit flash, the gait.
+     */
+    public CreatureData originalCreatures() {
+        return new CreatureData(jungle.schemaVersion(), jungle.fidelity(), creatures.diagonalScaleFp(),
+                creatures.puffTicks(), creatures.hurtFlashTicks(), creatures.walkTicksPerFrame(), jungle.creatures(),
+                creatures.projectiles());
+    }
+
+    /** How the original's small creatures come (§12.8), its names resolved to roster and palette indices. */
+    public SwarmRules swarmRules() {
+        JungleData.Swarm s = jungle.swarm();
+        CreatureData roster = originalCreatures();
+        int[] pick = s.pick().table().stream().mapToInt(roster::indexOf).toArray();
+        int[] tints = s.tints().stream().mapToInt(palette::indexOf).toArray();
+        int[] appear = s.appearScores().stream().mapToInt(Integer::intValue).toArray();
+        return new SwarmRules(true, s.roomMax(), s.slots(), s.everyTicks(), s.appearTicks(), s.lingerTicks(),
+                s.quietAfterGettingUpTicks(), s.area(), s.playerClearancePx(), pick, s.pick().open(),
+                s.pick().openPerQuarter(), s.pick().fold(), tints, appear, s.facingRightBonus());
+    }
+
+    /**
+     * §12.8: every behaviour known with its parameters, every sprite drawn, every name in the pick
+     * table a creature of the roster, the fold inside the table, and every tint a bright colour.
+     */
+    private static void checkJungle(JungleData jungle, CreatureData shared, Palette palette, SpriteRepository sprites) {
+        String source = "data/entities/jungle.json";
+        CreatureData roster = new CreatureData(jungle.schemaVersion(), jungle.fidelity(), shared.diagonalScaleFp(),
+                shared.puffTicks(), shared.hurtFlashTicks(), shared.walkTicksPerFrame(), jungle.creatures(), List.of());
+        BehaviourCatalog.validate(roster, source);
+        CreatureSpriteValidator.check(roster, CreatureSpriteValidator.framesBySprite(sprites), source);
+        Set<String> ids = new LinkedHashSet<>();
+        for (int i = 0; i < jungle.creatures().size(); i++) {
+            if (!ids.add(jungle.creatures().get(i).id())) {
+                throw new DataException(source, "/creatures/" + i + "/id", "repeats '" + jungle.creatures().get(i).id() + "'");
+            }
+        }
+        JungleData.Pick pick = jungle.swarm().pick();
+        for (int i = 0; i < pick.table().size(); i++) {
+            if (!ids.contains(pick.table().get(i))) {
+                throw new DataException(source, "/swarm/pick/table/" + i,
+                        "is '" + pick.table().get(i) + "', which is not a creature of /creatures");
+            }
+        }
+        if (pick.fold() > pick.table().size() || pick.open() > pick.table().size()) {
+            throw new DataException(source, "/swarm/pick", "folds or opens past the end of its table of " + pick.table().size());
+        }
+        for (int i = 0; i < jungle.swarm().tints().size(); i++) {
+            String tint = jungle.swarm().tints().get(i);
+            if (!palette.has(tint) || palette.indexOf(tint) < 9) {
+                throw new DataException(source, "/swarm/tints/" + i, "is '" + tint + "', which is not a bright colour of the palette");
+            }
+        }
     }
 
     /** §12.7: the flame flickers between two frames, each mirrored, as a creature walks. */

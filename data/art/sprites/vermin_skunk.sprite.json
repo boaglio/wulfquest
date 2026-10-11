@@ -1,0 +1,64 @@
+{
+  "schemaVersion": 1,
+  "name": "vermin_skunk",
+  "size": {
+    "w": 16,
+    "h": 12
+  },
+  "origin": {
+    "x": 8,
+    "y": 12
+  },
+  "legend": {
+    ".": -1,
+    "K": 0,
+    "w": 7,
+    "W": 15
+  },
+  "frames": [
+    {
+      "id": "walk0",
+      "rows": [
+        "..KKK...........",
+        ".KWWWK..........",
+        "KWWWWWK.........",
+        "KWWWWWK.........",
+        "KWWWWWKKKKKK....",
+        "KWWWWWWWWWWWKKK.",
+        ".KWWWwwwwwwwwwwK",
+        "..KKwwwwwwwwwWwK",
+        "....KwwwwwwwwwwK",
+        "....KwwwwwwKKKK.",
+        ".....KwwwwK.....",
+        ".....KwwwwK....."
+      ]
+    },
+    {
+      "id": "walk1",
+      "rows": [
+        "................",
+        "..KKK...........",
+        ".KWWWK..........",
+        "KWWWWWK.........",
+        "KWWWWWKKKKKK....",
+        "KWWWWWWWWWWWKKK.",
+        "KWWWWWwwwwwwwwwK",
+        ".KWWWwwwwwwwwWwK",
+        "..KKKwwwwwwwwwwK",
+        "....KwwwwwwKKKK.",
+        "...KwwKKKKwwK...",
+        "...KwwK..KwwK..."
+      ]
+    }
+  ],
+  "mirror": {
+    "walk0_l": {
+      "from": "walk0",
+      "flipX": true
+    },
+    "walk1_l": {
+      "from": "walk1",
+      "flipX": true
+    }
+  }
+}

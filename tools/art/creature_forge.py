@@ -13,6 +13,9 @@ creature white while it is hurt.
 
 The puff sprite, two frames, is what a creature leaves for 12 ticks when it dies.
 
+The original's 14 small creatures (§12.8) are drawn here too, from data/entities/jungle.json,
+as vermin_<id>: two tones only, since the game inks each in the colour it came in.
+
 The guardians, the Keeper of the Arch, the amulet quarters (§14) and the orchids
 (§15) are drawn here too, from data/entities/guardians.json: each guardian is its roster sibling's
 silhouette grown into a 32x28 box and recoloured to its quarter's accent, so the
@@ -247,6 +250,144 @@ DRAW = {
 
 BRIGHT = {"brightGreen": "G", "brightBlue": "B", "brightRed": "R", "brightYellow": "Y", "brightCyan": "C",
           "brightMagenta": "M", "brightWhite": "W"}
+
+# ------------------------------------------------------------- the original's swarm (§12.8)
+#
+# Ours, not the original's: each small creature in two strokes of light and shade, bright
+# ("W") for the body and plain ("w") for what is behind. The game inks the whole sprite in
+# the colour the creature came in, keeping only the black outline, so the shapes must read
+# on their own — as the Spectrum's one-colour sprites did.
+
+def v_parrot(cv, f, w, h):
+    base = h - 1
+    cv.ellipse(7, base - 5, 3.5, 3, "W")                                       # body
+    cv.ellipse(10, base - 8, 2.3, 2.2, "W")                                    # head
+    cv.poly([(12, base - 9), (14.5, base - 8), (12, base - 6.5)], "w")          # hooked beak
+    cv.set(10, base - 9, "K")
+    cv.poly([(4, base - 4), (0, base - 2 + f), (4, base - 2)], "w")             # tail
+    wing = -2 if f == 0 else 1
+    cv.poly([(5, base - 6), (9, base - 6), (6, base - 9 + wing)], "w")
+    cv.stroke(7, base - 2, 7, base, "w", 0.5)
+
+
+def v_monkey(cv, f, w, h):
+    base = h - 1
+    legs(cv, [5, 9], base - 4, base, f, "w", 1)
+    cv.ellipse(7, base - 5, 3, 2.5, "W")                                       # body
+    cv.ellipse(11, base - 8, 2.5, 2.4, "W")                                    # head
+    cv.set(9, base - 9, "w")                                                   # ear
+    cv.set(12, base - 9, "K")
+    cv.stroke(4, base - 5, 1, base - 9 + 2 * f, "w", 0.6)                       # tail, curled up
+    cv.stroke(1, base - 9 + 2 * f, 2.5, base - 11 + 2 * f, "w", 0.5)
+    cv.stroke(9, base - 5, 13, base - 3 - 2 * f, "W", 0.6)                      # a reaching arm
+
+
+def v_lizard(cv, f, w, h):
+    base = h - 2
+    cv.ellipse(8, base - 1, 4.5, 1.6, "W")                                     # body
+    cv.ellipse(13, base - 1.5, 2, 1.3, "W")                                    # head
+    cv.set(13, base - 2, "K")
+    cv.stroke(4, base - 1, 0, base - 2 + f, "w", 0.7, 0.4)                      # tail
+    for i, x in enumerate((6, 10)):
+        swing = 1.5 if (i + f) % 2 == 0 else -1.5
+        cv.stroke(x, base, x + swing, base + 1.5, "w", 0.5)
+        cv.stroke(x, base - 2, x - swing, base - 3.5, "w", 0.5)
+
+
+def v_rat(cv, f, w, h):
+    base = h - 1
+    legs(cv, [6, 9], base - 2, base, f, "w", 1)
+    cv.ellipse(8, base - 3, 4, 2.4, "W")                                       # body
+    cv.ellipse(12.5, base - 3.5, 2, 1.6, "W")                                  # snout
+    cv.set(11, base - 6, "w")                                                  # ear
+    cv.set(13, base - 4, "K")
+    cv.stroke(4, base - 3, 0, base - 1 - f, "w", 0.4)                          # tail
+
+
+def v_bird(cv, f, w, h):
+    cy = h / 2
+    tip = -4 if f == 0 else 3
+    cv.ellipse(8, cy + 1, 3.5, 2, "W")                                         # body
+    cv.ellipse(11.5, cy, 1.8, 1.6, "W")                                        # head
+    cv.stroke(13, cy, 15, cy + 0.5, "w", 0.4)                                  # beak
+    cv.set(12, cy - 0.5, "K")
+    cv.poly([(5, cy + 1), (3, cy + 1 + tip), (9, cy)], "w")                    # wing
+    cv.poly([(5, cy + 1), (1, cy), (2, cy + 2.5)], "w")                       # tail
+
+
+def v_mosquito(cv, f, w, h):
+    cy = h / 2
+    lift = -3 if f == 0 else 1
+    cv.ellipse(7, cy + 1, 3.5, 1.2, "W")                                       # body
+    cv.ellipse(11, cy, 1.4, 1.4, "W")                                          # head
+    cv.stroke(12, cy + 0.5, 15, cy + 2, "w", 0.4)                              # proboscis
+    cv.poly([(6, cy), (4, cy - 3 + lift), (9, cy - 1)], "w")                   # wings
+    cv.poly([(8, cy), (8, cy - 4 + lift), (10, cy - 1)], "w")
+    for x in (6, 8, 10):
+        cv.stroke(x, cy + 2, x - 1 + f, h - 1, "w", 0.4)                        # long legs
+
+
+def v_skunk(cv, f, w, h):
+    base = h - 1
+    legs(cv, [6, 10], base - 2, base, f, "w", 1)
+    cv.ellipse(8.5, base - 3.5, 4, 2.5, "w")                                   # body, dark
+    cv.stroke(6, base - 6, 11, base - 6, "W", 0.6)                             # the white stripe
+    cv.ellipse(13, base - 3.5, 2, 1.8, "w")                                    # head
+    cv.set(13.5, base - 4, "W")
+    cv.ellipse(3.5, base - 7 + f, 2.6, 3.4, "W")                               # the great plumed tail
+
+
+def v_flea(cv, f, w, h):
+    base = h - 1
+    lift = 0 if f == 0 else -3
+    cv.ellipse(8, base - 4 + lift, 3.5, 3, "W")                                # a round armoured back
+    cv.stroke(6, base - 6 + lift, 9, base - 7 + lift, "w", 0.5)
+    cv.set(11, base - 4 + lift, "K")
+    cv.stroke(6, base - 2 + lift, 3, base, "w", 0.6)                           # the jumping legs
+    cv.stroke(9, base - 2 + lift, 11, base, "w", 0.5)
+
+
+def v_earwig(cv, f, w, h):
+    base = h - 2
+    for i in range(3):
+        cv.ellipse(5 + i * 2.6, base - 1, 1.6, 1.4, "W")                        # segments
+    cv.ellipse(12.5, base - 1.3, 1.6, 1.3, "W")                                # head
+    cv.stroke(14, base - 2, 15.5, base - 3.5 - f, "w", 0.3)                    # feelers
+    cv.stroke(3.5, base - 1, 1, base - 3, "w", 0.4)                            # pincers
+    cv.stroke(3.5, base - 0.5, 1, base + 1, "w", 0.4)
+    for x in (6, 9, 11):
+        cv.stroke(x, base, x - 1 + 2 * f, base + 1.5, "w", 0.4)
+
+
+def inked(draw):
+    """One of our roster's drawings redrawn for the swarm: every bright colour bright, every plain one plain."""
+    def redraw(cv, f, w, h):
+        draw(cv, f, w, h)
+        for y in range(cv.h):
+            for x in range(cv.w):
+                c = cv.px[y][x]
+                if c not in (".", "K"):
+                    cv.px[y][x] = "W" if LEGEND[c] >= 9 else "w"
+    return redraw
+
+
+VERMIN = {
+    "spider": inked(spider),
+    "scorpion": inked(scorpion),
+    "bat": inked(bat),
+    "parrot": v_parrot,
+    "monkey": v_monkey,
+    "lizard": v_lizard,
+    "snake": inked(snake),
+    "rat": v_rat,
+    "bird": v_bird,
+    "frog": inked(frog),
+    "mosquito": v_mosquito,
+    "skunk": v_skunk,
+    "flea": v_flea,
+    "earwig": v_earwig,
+}
+
 
 def upscale(rows, w, h, colour):
     """A creature's own frame, grown to fill a bigger box and recoloured to one accent.
@@ -532,9 +673,24 @@ def main():
     names.append("puff")
     write_sprite("flame", 16, 16, [("walk0", flame(0)), ("walk1", flame(1))])
     names.append("flame")
-    update_index(names, lambda n: n.startswith("creature_") or n in ("puff", "amulet_piece", "orchid", "flame"))
+    jungle = json.loads((ROOT / "data/entities/jungle.json").read_text(encoding="utf-8"))["creatures"]
+    for species in jungle:
+        sid, w, h = species["id"], species["size"]["w"], species["size"]["h"]
+        if sid not in VERMIN:
+            raise SystemExit(f"no drawing for the original's creature '{sid}'")
+        frames = []
+        for f in range(2):
+            cv = Canvas(w, h)
+            VERMIN[sid](cv, f, w, h)
+            cv.outline("K")
+            frames.append((f"walk{f}", cv.rows()))
+        write_sprite(species["sprite"], w, h, frames)
+        names.append(species["sprite"])
+    update_index(names, lambda n: n.startswith("creature_") or n.startswith("vermin_")
+                 or n in ("puff", "amulet_piece", "orchid", "flame"))
     print(f"creature forge: drew {len(roster)} creatures, the Wulf, {len(wardens['guardians'])} guardians, "
-          f"the Keeper, the amulet, orchids in {len(colours)} colours, the puff and the flame")
+          f"the Keeper, the amulet, orchids in {len(colours)} colours, the puff, the flame and the original's "
+          f"{len(jungle)} small creatures")
 
 
 if __name__ == "__main__":

@@ -13,7 +13,8 @@ import wulf.engine.Fixed;
  */
 public final class Creature {
 
-    public enum Mode { ALIVE, DYING }
+    /** APPEARING: the original's puff, still forming (§12.8) — harmless, but a blade can still take it. */
+    public enum Mode { ALIVE, DYING, APPEARING }
 
     private final int id;
     private final CreatureData.Species species;
@@ -31,6 +32,12 @@ public final class Creature {
     int hurtTicks;
     int lastHitSwing = -1;
     int moveTicks;
+    /** §12.8: a swarm creature's colour, a palette index; -1 draws it in its own. */
+    int tint = -1;
+    /** §12.8: the room a swarm creature belongs to, by {@link wulf.world.RoomAddress#index()}; -1 for any other creature. */
+    int homeRoom = -1;
+    /** §12.8: how long it has waited, all told, in a room the player was not in ({@code $A493}). */
+    int awayTicks;
     private int timer;
     private int phase;
     private int aux;
@@ -100,6 +107,16 @@ public final class Creature {
 
     public Mode mode() {
         return mode;
+    }
+
+    /** A puff still forming (§12.8). */
+    public boolean appearing() {
+        return mode == Mode.APPEARING;
+    }
+
+    /** The palette index it is drawn in, or -1 for its own colours (§12.8). */
+    public int tint() {
+        return tint;
     }
 
     public boolean alive() {

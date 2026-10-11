@@ -89,6 +89,10 @@ public final class Simulation {
     private final int flameIndex;
     private final CreatureData.Species flameSpecies;
     private int flameWait;
+    /** §12.8: the original's small creatures left behind in other rooms, keeping their slots a while ({@code $A493}). */
+    private final ArrayList<Creature> away = new ArrayList<>();
+    /** §12.8: ticks before the swarm may come again after a fall ({@code $96B1}). */
+    private int swarmQuiet;
     /** §13.8: the world with the map's east and west ends joined, for the Wulf that runs off one and on at the other. */
     private final CollisionWorld rowWorld;
     /** Whether the prowling Wulf's growl is on: audio only, never hashed. */
@@ -283,6 +287,7 @@ public final class Simulation {
         }
         sabre = computeSabre();
         tickCreatures();
+        tickSwarm();
         tickFlame();
         tickWulf();
         tickQuest();
@@ -524,11 +529,32 @@ public final class Simulation {
 
     /** The room's creatures, rolled afresh: on every entry and after every respawn (§7.6, §11.7). */
     private void repopulate() {
+        if (eco.swarm().on()) {
+            // §12.8: the swarm is not rolled afresh. Those here wait where they are; any waiting in the new room are back.
+            for (int i = 0; i < creatures.size(); i++) {
+                Creature c = creatures.get(i);
+                if (c.homeRoom >= 0 && c.mode != Creature.Mode.DYING) {
+                    away.add(c);
+                }
+            }
+        }
         creatures.clear();
         spears.clear();
         reach = null;
         int visit = visits[room.index()]++;
         eco.populator().populate(spawns, room, runSeed, visit);
+        int keep = 0;
+        for (int i = 0; i < away.size(); i++) {
+            Creature c = away.get(i);
+            if (c.homeRoom == room.index()) {
+                creatures.add(c);
+            } else {
+                away.set(keep++, c);
+            }
+        }
+        while (away.size() > keep) {
+            away.remove(away.size() - 1);
+        }
     }
 
     static int roomColOf(PlayerData.Box box, int xFp) {
@@ -564,6 +590,7 @@ public final class Simulation {
         player.modeTick = 0;
         player.invulnTicks = rules.spawn().invulnTicks();
         flameWait = eco.flame().lingerTicks();   // $AA52: getting up starts the wait again
+        swarmQuiet = eco.swarm().quietAfterGettingUpTicks();   // $AA4D
         player.vx = 0;   // back on his feet, at rest
         player.vy = 0;
         player.levelX = 0;
@@ -584,10 +611,25 @@ public final class Simulation {
     // ---------------------------------------------------------------- creatures and spears
 
     private void tickCreatures() {
+        // §12.8, $A54F/$A4D7: with Vale down — fallen, or sat by the yellow flower — every small creature in the room bursts.
+        boolean valeDown = player.mode != Player.Mode.ALIVE || effect.kind().holdsStill();
         for (int i = 0; i < creatures.size(); i++) {
             Creature c = creatures.get(i);
             if (c.mode == Creature.Mode.DYING) {
                 c.modeTick++;
+                continue;
+            }
+            if (c.mode == Creature.Mode.APPEARING) {
+                // $A3C5: a frame each update, then it is whatever it is ($A3E0), and on its way.
+                if (++c.modeTick >= eco.swarm().appearTicks()) {
+                    c.mode = Creature.Mode.ALIVE;
+                    c.modeTick = 0;
+                    behaviours[c.speciesIndex()].spawn(c, context, rng);
+                }
+                continue;
+            }
+            if (valeDown && c.homeRoom >= 0) {
+                burst(c);
                 continue;
             }
             if (c.hurtTicks > 0) {
@@ -622,6 +664,101 @@ public final class Simulation {
             }
         }
         removeFinished();
+        ageAway();
+    }
+
+    /** {@code $A493}: one left behind waits {@code lingerTicks} in all for the player to come back, then is gone. */
+    private void ageAway() {
+        int keep = 0;
+        for (int i = 0; i < away.size(); i++) {
+            Creature c = away.get(i);
+            if (++c.awayTicks < eco.swarm().lingerTicks()) {
+                away.set(keep++, c);
+            }
+        }
+        while (away.size() > keep) {
+            away.remove(away.size() - 1);
+        }
+    }
+
+    // ---------------------------------------------------------------- the original's swarm (§12.8)
+
+    /**
+     * {@code $9A3C}, {@code $9A68}, {@code $9B0D}: once an update, while Vale is on his feet, a puff
+     * comes at a random spot of the room — clear of him and of the scenery, or not at all this
+     * time — as long as the room holds fewer than {@code roomMax} and all the rooms fewer than
+     * {@code slots}. What it becomes is rolled now, from the kinds the amulet has opened.
+     */
+    private void tickSwarm() {
+        SwarmRules s = eco.swarm();
+        if (!s.on()) {
+            return;
+        }
+        if (swarmQuiet > 0) {
+            swarmQuiet--;
+            return;
+        }
+        if (effect.kind().holdsStill() || tick % s.everyTicks() != 0) {
+            return;
+        }
+        int here = 0;
+        for (int i = 0; i < creatures.size(); i++) {
+            if (creatures.get(i).homeRoom >= 0) {
+                here++;
+            }
+        }
+        if (here >= s.roomMax() || here + away.size() >= s.slots()) {
+            return;
+        }
+        int lx = s.area().x() + rng.nextInt(s.area().w());
+        int ly = s.area().y() + rng.nextInt(s.area().h());
+        int index = s.pick(rng.nextInt(s.pick().length), quest.piecesHeld);
+        int tint = s.tints()[rng.nextInt(s.tints().length)];
+        CreatureData.Species species = eco.creatures().creatures().get(index);
+        int xFp = Fixed.fp(room.col() * ROOM_W_PX + lx);
+        int yFp = Fixed.fp(room.row() * ROOM_H_PX + ly);
+        CreatureData.Box b = species.collisionBox();
+        if (Collision.blocked(roomSolid, b.x(), b.y(), b.w(), b.h(), xFp, yFp)) {
+            return;
+        }
+        PlayerData.Box pb = rules.collisionBox();
+        int clear = s.playerClearancePx();
+        if (overlaps(Fixed.px(player.xFp) + pb.x() - clear, Fixed.px(player.yFp) + pb.y() - clear, pb.w() + 2 * clear,
+                pb.h() + 2 * clear, Fixed.px(xFp) + b.x(), Fixed.px(yFp) + b.y(), b.w(), b.h())) {
+            return;
+        }
+        Creature c = new Creature(nextEntityId++, species, index, xFp, yFp, Herd.NONE);
+        c.mode = Creature.Mode.APPEARING;
+        c.tint = tint;
+        c.homeRoom = room.index();
+        creatures.add(c);
+    }
+
+    /** {@code $A4B3}: by its frame while it forms; after, by its kind, and a little more facing right. */
+    private int swarmScore(Creature c) {
+        SwarmRules s = eco.swarm();
+        if (c.mode == Creature.Mode.APPEARING) {
+            return s.appearScore(c.modeTick);
+        }
+        return c.species().score() + (c.faceX > 0 ? s.facingRightBonus() : 0);
+    }
+
+    /** {@code $A4A6}: a small creature bursts, and scores, however it went — blade, touch, or Vale's fall. */
+    private void burst(Creature c) {
+        addScore(swarmScore(c));
+        c.mode = Creature.Mode.DYING;
+        c.modeTick = 0;
+        sounds.play(SFX_CREATURE_DIE);
+    }
+
+    /** {@code $AB4E}: fencing, a creature on the side he faces is struck; one behind him is not. */
+    private boolean inFront(Creature c) {
+        int gapX = c.centreXPx() - context.playerCentreXPx();
+        if (player.facing.dx() != 0) {
+            return Integer.signum(gapX) != -player.facing.dx();
+        }
+        int gapY = c.centreYPx() - context.playerCentreYPx();
+        return Integer.signum(gapY) != -player.facing.dy();
     }
 
     private void removeFinished() {
@@ -653,17 +790,22 @@ public final class Simulation {
         if (!sabre.isEmpty()) {
             for (int i = 0; i < creatures.size(); i++) {
                 Creature c = creatures.get(i);
-                if (c.mode != Creature.Mode.ALIVE || c.lastHitSwing == swingSerial || c.species().hp() <= 0) {
-                    continue;   // hp 0: the flame (§12.7), which no blade can touch
+                boolean struck = c.mode == Creature.Mode.ALIVE || (c.mode == Creature.Mode.APPEARING && c.homeRoom >= 0);
+                if (!struck || c.lastHitSwing == swingSerial || c.species().hp() <= 0) {
+                    continue;   // hp 0: the flame (§12.7), which no blade can touch; a forming puff can be ($A3B7)
                 }
                 CreatureData.Box b = c.species().collisionBox();
                 if (overlaps(sabre, Fixed.px(c.xFp) + b.x(), Fixed.px(c.yFp) + b.y(), b.w(), b.h())) {
                     c.lastHitSwing = swingSerial;
                     if (--c.hp <= 0) {
-                        c.mode = Creature.Mode.DYING;   // a harmless puff (§12.2)
-                        c.modeTick = 0;
                         kills++;
                         killsBySpecies.merge(c.species().id(), 1, Integer::sum);
+                        if (c.homeRoom >= 0) {
+                            burst(c);   // §12.8: scored by its frame, kind and facing
+                            continue;
+                        }
+                        c.mode = Creature.Mode.DYING;   // a harmless puff (§12.2)
+                        c.modeTick = 0;
                         sounds.play(SFX_CREATURE_DIE);
                         addScore(c.species().score());
                     } else {
@@ -735,6 +877,17 @@ public final class Simulation {
             CreatureData.Box b = c.species().collisionBox();
             if (c.mode == Creature.Mode.ALIVE
                     && overlaps(px, py, pb.w(), pb.h(), Fixed.px(c.xFp) + b.x(), Fixed.px(c.yFp) + b.y(), b.w(), b.h())) {
+                if (c.homeRoom >= 0) {
+                    // §12.8, $AB36: a small creature that touches him bursts either way. Fencing and facing it,
+                    // that is all; otherwise it takes him with it.
+                    if (player.swingTick >= 0 && inFront(c)) {
+                        kills++;
+                        killsBySpecies.merge(c.species().id(), 1, Integer::sum);
+                        burst(c);
+                        continue;
+                    }
+                    burst(c);
+                }
                 kill(c.species().id());
                 return;
             }
@@ -2068,6 +2221,28 @@ public final class Simulation {
             h = mix(h, c.anchorXFp());
             h = mix(h, c.anchorYFp());
             h = mix(h, ((long) c.herd().dirX() << 32) ^ (c.herd().dirY() & 0xFFFFFFFFL));
+            if (eco.swarm().on()) {
+                h = mix(h, ((long) c.tint << 32) ^ (c.homeRoom & 0xFFFFFFFFL));
+            }
+        }
+        if (eco.swarm().on()) {
+            // §12.8: only with the swarm, so the invented jungle's runs keep their hashes.
+            h = mix(h, swarmQuiet);
+            for (int i = 0; i < away.size(); i++) {
+                Creature c = away.get(i);
+                h = mix(h, c.id());
+                h = mix(h, c.speciesIndex());
+                h = mix(h, c.xFp);
+                h = mix(h, c.yFp);
+                h = mix(h, c.mode.ordinal());
+                h = mix(h, c.modeTick);
+                h = mix(h, c.timer());
+                h = mix(h, c.phase());
+                h = mix(h, c.aux());
+                h = mix(h, c.faceX);
+                h = mix(h, ((long) c.tint << 32) ^ (c.homeRoom & 0xFFFFFFFFL));
+                h = mix(h, c.awayTicks);
+            }
         }
         for (int i = 0; i < spears.size(); i++) {
             Spear s = spears.get(i);

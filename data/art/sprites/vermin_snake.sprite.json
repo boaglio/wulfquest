@@ -1,0 +1,63 @@
+{
+  "schemaVersion": 1,
+  "name": "vermin_snake",
+  "size": {
+    "w": 16,
+    "h": 12
+  },
+  "origin": {
+    "x": 8,
+    "y": 12
+  },
+  "legend": {
+    ".": -1,
+    "K": 0,
+    "W": 15
+  },
+  "frames": [
+    {
+      "id": "walk0",
+      "rows": [
+        "................",
+        "................",
+        "................",
+        "................",
+        "......KK........",
+        ".....KWWKK......",
+        "KK..KWWWWWK.KK..",
+        "WWKKWWWWWWWKWWK.",
+        "WWWWWWKKWWWWWWWK",
+        "WWWWWK..KWWWWWWW",
+        "KKWWK....KKWWKKK",
+        "..KK.......KK..."
+      ]
+    },
+    {
+      "id": "walk1",
+      "rows": [
+        "................",
+        "................",
+        "................",
+        "................",
+        "..KK.......KK...",
+        "KKWWK....KKWWK..",
+        "WWWWWK..KWWWWWKK",
+        "WWWWWWKKWWWWWWWW",
+        "WWKKWWWWWWWKWWWW",
+        "WK..KWWWWWK.KKKK",
+        "K....KWWKK......",
+        "......KK........"
+      ]
+    }
+  ],
+  "mirror": {
+    "walk0_l": {
+      "from": "walk0",
+      "flipX": true
+    },
+    "walk1_l": {
+      "from": "walk1",
+      "flipX": true
+    }
+  }
+}

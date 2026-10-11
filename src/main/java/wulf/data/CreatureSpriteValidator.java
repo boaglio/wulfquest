@@ -42,17 +42,22 @@ public final class CreatureSpriteValidator {
 
     /** @param framesBySprite sprite name to its frame ids, mirrors included */
     public static void check(CreatureData creatures, Map<String, Set<String>> framesBySprite) {
+        check(creatures, framesBySprite, CREATURES);
+    }
+
+    /** The same check for a roster from another file: the original's, in {@code jungle.json} (§12.8). */
+    public static void check(CreatureData creatures, Map<String, Set<String>> framesBySprite, String source) {
         List<CreatureData.Species> roster = creatures.creatures();
         for (int i = 0; i < roster.size(); i++) {
             String sprite = roster.get(i).sprite();
             String at = "/creatures/" + i + "/sprite";
             Set<String> frames = framesBySprite.get(sprite);
             if (frames == null) {
-                throw new DataException(CREATURES, at, "names sprite '" + sprite + "', which is not in " + INDEX);
+                throw new DataException(source, at, "names sprite '" + sprite + "', which is not in " + INDEX);
             }
             for (String needed : WALK_FRAMES) {
                 if (!frames.contains(needed)) {
-                    throw new DataException(CREATURES, at,
+                    throw new DataException(source, at,
                             "names sprite '" + sprite + "', which has no frame '" + needed + "'; creatures need " + WALK_FRAMES);
                 }
             }

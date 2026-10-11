@@ -1,0 +1,64 @@
+{
+  "schemaVersion": 1,
+  "name": "vermin_mosquito",
+  "size": {
+    "w": 16,
+    "h": 12
+  },
+  "origin": {
+    "x": 8,
+    "y": 12
+  },
+  "legend": {
+    ".": -1,
+    "K": 0,
+    "w": 7,
+    "W": 15
+  },
+  "frames": [
+    {
+      "id": "walk0",
+      "rows": [
+        "...KwK.KwK......",
+        "...KwwKKwK......",
+        "....KwwKwK......",
+        "....KwwwwwK.....",
+        "....KwwwwwKK....",
+        "....KKwwwKWWK...",
+        "...KWWWWWWWWwKK.",
+        "...KWWWWWWKKKwwK",
+        "....KwwwwwwK.KKw",
+        "....KwKwKwK....K",
+        "....KwKwKwK.....",
+        "....KwKwKwK....."
+      ]
+    },
+    {
+      "id": "walk1",
+      "rows": [
+        "................",
+        "................",
+        "........K.......",
+        "....KKKKwK......",
+        "...KwwwKwwKK....",
+        "....KwwwwKWWK...",
+        "...KWWWWWWWWwKK.",
+        "...KWWWWWWKKKwwK",
+        "....KKwKwKwK.KKw",
+        ".....KwKwKwK...K",
+        ".....KwKwKwK....",
+        ".....KwKwKwK...."
+      ]
+    }
+  ],
+  "mirror": {
+    "walk0_l": {
+      "from": "walk0",
+      "flipX": true
+    },
+    "walk1_l": {
+      "from": "walk1",
+      "flipX": true
+    }
+  }
+}

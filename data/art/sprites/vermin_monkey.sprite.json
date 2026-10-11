@@ -1,0 +1,64 @@
+{
+  "schemaVersion": 1,
+  "name": "vermin_monkey",
+  "size": {
+    "w": 16,
+    "h": 12
+  },
+  "origin": {
+    "x": 8,
+    "y": 12
+  },
+  "legend": {
+    ".": -1,
+    "K": 0,
+    "w": 7,
+    "W": 15
+  },
+  "frames": [
+    {
+      "id": "walk0",
+      "rows": [
+        ".KwK.....KKKK...",
+        "KwK.....KWWWWK..",
+        "KwK.....KwWWK...",
+        "KwwK.KKKKWWWWK..",
+        ".KwKKWWWWWWWWK..",
+        "..KwWWWWWWKKK...",
+        "...KwWWWWWWKK...",
+        "...KwWWWWwKWWK..",
+        "....KwKKwK.KKWK.",
+        "....KwKKwK...K..",
+        "....KwwwwK......",
+        "....KwwwwK......"
+      ]
+    },
+    {
+      "id": "walk1",
+      "rows": [
+        ".........KKKK...",
+        "..K.....KWWWWK..",
+        ".KwK....KwWWK...",
+        "KwK..KKKKWWWWK..",
+        "KwwKKWWWWWWWWK..",
+        ".KwwWWWWWWKKKK..",
+        "..KKwWWWWWWWWWK.",
+        "...KwWWWWwKKKK..",
+        "...KwKKKKwK.....",
+        "...KwK..KwK.....",
+        "..KwwK..KwwK....",
+        "..KwwK..KwwK...."
+      ]
+    }
+  ],
+  "mirror": {
+    "walk0_l": {
+      "from": "walk0",
+      "flipX": true
+    },
+    "walk1_l": {
+      "from": "walk1",
+      "flipX": true
+    }
+  }
+}

@@ -26,6 +26,16 @@ public record Palette(int schemaVersion, int transparent, List<Entry> entries) {
         return argb;
     }
 
+    /** Whether the palette has a colour of this name. */
+    public boolean has(String name) {
+        for (Entry e : entries) {
+            if (e.name().equals(name)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     /** Index of a named colour, for data files that refer to colours by name. */
     public int indexOf(String name) {
         for (Entry e : entries) {
