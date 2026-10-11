@@ -4,7 +4,8 @@
   "channels": 2,
   "bufferFrames": 2048,
   "cadence": {
-    "footstepEveryTicks": 6
+    "footstepEveryTicks": 6,
+    "hasteFootstepStep": 2
   },
   "sfx": {
     "footstep": {

@@ -23,8 +23,13 @@ public record SfxData(
         sfx = java.util.Collections.unmodifiableMap(new java.util.LinkedHashMap<>(sfx));
     }
 
-    /** How often a repeating sound repeats while the thing making it keeps happening. */
-    public record Cadence(int footstepEveryTicks) {
+    /**
+     * How often a repeating sound repeats while the thing making it keeps happening.
+     *
+     * @param footstepEveryTicks walking, a step every this many ticks
+     * @param hasteFootstepStep  how much each tick counts towards a step in haste ($BF4B: 2)
+     */
+    public record Cadence(int footstepEveryTicks, int hasteFootstepStep) {
     }
 
     /**

@@ -176,7 +176,7 @@ public final class Boot {
             fresh.god(parsed.god());
             return fresh;
         };
-        java.util.function.Consumer<Simulation> voice = sim -> sim.sounds(mixer, c.sfx().cadence().footstepEveryTicks());
+        java.util.function.Consumer<Simulation> voice = sim -> sim.sounds(mixer, c.sfx().cadence());
         Supplier<Simulation> newGame = () -> {
             Simulation fresh = silentGame.apply(nextSeed.getAndIncrement());
             voice.accept(fresh);

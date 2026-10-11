@@ -13,8 +13,11 @@
     "cadence": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["footstepEveryTicks"],
-      "properties": { "footstepEveryTicks": { "type": "integer", "minimum": 1, "maximum": 100 } }
+      "required": ["footstepEveryTicks", "hasteFootstepStep"],
+      "properties": {
+        "footstepEveryTicks": { "type": "integer", "minimum": 1, "maximum": 100 },
+        "hasteFootstepStep": { "type": "integer", "minimum": 1, "maximum": 100 }
+      }
     },
     "sfx": {
       "type": "object",

@@ -10,6 +10,7 @@ import java.util.Map;
 import org.junit.jupiter.api.Test;
 import wulf.Content;
 import wulf.data.JsonDb;
+import wulf.data.OrchidData;
 import wulf.data.PlayerData;
 import wulf.data.SfxData;
 import wulf.engine.Fixed;
@@ -55,7 +56,7 @@ class SoundTest {
     private static Simulation sim(Ear ear) {
         Simulation s = Simulation.at(RULES, OPEN, 0, Fixed.fp(1000), Fixed.fp(1000));
         if (ear != null) {
-            s.sounds(ear, SFX.cadence().footstepEveryTicks());
+            s.sounds(ear, SFX.cadence());
         }
         return s;
     }
@@ -81,6 +82,35 @@ class SoundTest {
             s.play(InputState.NONE, false);
         }
         assertThat(ear.count("footstep")).isZero();
+    }
+
+    @Test
+    void inCyanHisFootstepsComeTwiceAsOften() {
+        // $BF4B: a cyan Sabreman's step counter goes up twice a frame.
+        int[] steps = new int[2];
+        for (int haste = 0; haste < 2; haste++) {
+            Ear ear = new Ear();
+            OrchidData o = Content.load(Path.of("data")).orchids();
+            OrchidData bare = new OrchidData(o.schemaVersion(), o.fidelity(), o.sprite(), o.cycle(),
+                    new OrchidData.Anchors(0, o.anchors().minSpacingPx(), o.anchors().attempts(), o.anchors().insetPx()),
+                    o.orchids(), o.inventedOrchids(), o.tint(), o.delirium(), o.immunity());   // the colours, no flowers to pick
+            Ecosystem eco = new Ecosystem(EcoFixtures.CREATURES, RoomPopulator.NONE, 0, WulfRules.NONE, QuestRules.NONE, bare);
+            Simulation s = Simulation.at(RULES, OPEN, 0, Fixed.fp(1000), Fixed.fp(1000), eco, 5L);
+            s.sounds(ear, SFX.cadence());
+            if (haste == 1) {
+                assertThat(s.giveEffect("HASTE")).isTrue();
+            }
+            for (int i = 0; i < 40; i++) {   // up to full speed
+                s.play(InputState.of(1, 0, false, false), false);
+            }
+            ear.heard.clear();
+            for (int i = 0; i < SFX.cadence().footstepEveryTicks() * 8; i++) {
+                s.play(InputState.of(1, 0, false, false), false);
+            }
+            steps[haste] = ear.count("footstep");
+        }
+        assertThat(steps[0]).isEqualTo(8);
+        assertThat(steps[1]).isEqualTo(8 * SFX.cadence().hasteFootstepStep());
     }
 
     @Test
@@ -118,7 +148,7 @@ class SoundTest {
             Ear ear = new Ear();
             Simulation s = Simulation.startingIn(c.player(), grid, c.game().transition().freezeTicks(), room,
                     c.ecosystem(), 7L);
-            s.sounds(ear, SFX.cadence().footstepEveryTicks());
+            s.sounds(ear, SFX.cadence());
             if (!s.summonWulf()) {
                 continue;
             }
@@ -148,7 +178,7 @@ class SoundTest {
         Replay replay = Replay.read(Path.of("replays/lair_nw.json"));
         Simulation s = Simulation.startingIn(c.player(), new WorldGrid(c.rooms()),
                 c.game().transition().freezeTicks(), replay.start(), c.ecosystem(), replay.seed());
-        s.sounds(ear, SFX.cadence().footstepEveryTicks());
+        s.sounds(ear, SFX.cadence());
         RecordedInput.Cursor in = replay.recorded().cursor();
         for (int i = 0; i < 20_000 && in.hasNext(); i++) {
             s.play(in.next(), replay.dev());
@@ -167,7 +197,7 @@ class SoundTest {
         Ear ear = new Ear();
         Simulation loud = Simulation.startingIn(c.player(), new WorldGrid(c.rooms()),
                 c.game().transition().freezeTicks(), replay.start(), c.ecosystem(), replay.seed());
-        loud.sounds(ear, SFX.cadence().footstepEveryTicks());
+        loud.sounds(ear, SFX.cadence());
         Simulation quiet = Simulation.startingIn(c.player(), new WorldGrid(c.rooms()),
                 c.game().transition().freezeTicks(), replay.start(), c.ecosystem(), replay.seed());
 

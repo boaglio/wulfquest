@@ -1257,7 +1257,8 @@ are moving and neither is pressed against a wall.
 - **Footsteps** (`sfx.json → cadence.footstepEveryTicks`, 6): two to a stride, on gait frames 2
   and 0 — the step and the walk count the same ticks moved and both start again when he stops.
   At 9, from when he took 2 ticks a frame, they fell twice as far apart once he ran at the
-  original's pace (2026-10-11).
+  original's pace (2026-10-11). In haste (cyan, §15.2) each tick counts
+  `cadence.hasteFootstepStep` (2) towards the next step, so they come twice as often (`$BF4B`).
 
 ### 11.6 The sabre — fighting **[CANON]** shape, from the disassembly
 
@@ -2253,7 +2254,7 @@ six effects M7 invented are §15.4, behind a flag.
 | colour | the original | ours |
 |--------|--------------|------|
 | red | slow: at most 2 px a frame against 3 (`$AFC1`, `$AFE0`) | `TORPOR`, speed ×2/3 |
-| cyan | fast: 4 px a frame (`$AFE4`), footsteps twice as often | `HASTE`, speed ×4/3 |
+| cyan | fast: 4 px a frame (`$AFE4`), footsteps twice as often (`$BF4B`) | `HASTE`, speed ×4/3, footsteps twice as often (§11.5) |
 | magenta | every direction reversed (`$AF14`) | `REVERSAL` |
 | yellow | knocked down, sitting helpless (`$AEF5`, `$AE8F`, `$A61B`) | `KNOCKDOWN`: no walking, no fighting; he sits on the ground, legs out (`side_sit`, facing his way; no stars round his head — the original has none) |
 | white | the cure: whatever was on is gone (`$A757`) | `CURE`: clears the effect, leaves none |

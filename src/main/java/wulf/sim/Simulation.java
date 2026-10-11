@@ -9,6 +9,7 @@ import wulf.data.CreatureData;
 import wulf.data.FlameData;
 import wulf.data.LandmarksData;
 import wulf.data.PlayerData;
+import wulf.data.SfxData;
 import wulf.data.WulfData;
 import wulf.engine.Fixed;
 import wulf.engine.Rng;
@@ -20,6 +21,7 @@ import wulf.world.CollisionMask;
 import wulf.world.CollisionWorld;
 import wulf.world.RoomAddress;
 import wulf.data.OrchidData;
+import wulf.sim.effects.EffectKind;
 import wulf.sim.effects.EffectState;
 
 /**
@@ -146,6 +148,7 @@ public final class Simulation {
     private SoundSink sounds = SoundSink.NONE;
     private int footstepTicks;
     private int footstepEveryTicks = Integer.MAX_VALUE;
+    private int hasteFootstepStep = 1;
     /**
      * §16.4: what lies in each room's two places, {@code room.index() * 2 + place}: a kind
      * plus one, or 0 for nothing or already taken. Laid at the start of the game from the
@@ -493,7 +496,8 @@ public final class Simulation {
         // A step every few ticks while the feet are actually going somewhere (§18.2).
         if (!moved) {
             footstepTicks = 0;
-        } else if (++footstepTicks >= footstepEveryTicks) {
+        } else if ((footstepTicks += effect.kind() == EffectKind.HASTE ? hasteFootstepStep : 1) >= footstepEveryTicks) {
+            // $BF4B: in cyan the step counter goes up twice a frame, so the steps come twice as often.
             footstepTicks = 0;
             sounds.play(SFX_FOOTSTEP);
         }
@@ -2443,11 +2447,12 @@ public final class Simulation {
      * Hands the simulation somewhere to announce noises (§18.1). Sound never
      * changes what happens: the sink is write-only, and the default is silence.
      *
-     * @param everyTicks how often walking makes a footstep
+     * @param cadence how often walking makes a footstep, and how much sooner in haste
      */
-    public void sounds(SoundSink sink, int everyTicks) {
+    public void sounds(SoundSink sink, SfxData.Cadence cadence) {
         this.sounds = sink == null ? SoundSink.NONE : sink;
-        this.footstepEveryTicks = Math.max(1, everyTicks);
+        this.footstepEveryTicks = Math.max(1, cadence.footstepEveryTicks());
+        this.hasteFootstepStep = Math.max(1, cadence.hasteFootstepStep());
     }
 
     /** Puts the player under an effect outright: {@code --debug-effect}, and the tests. */
