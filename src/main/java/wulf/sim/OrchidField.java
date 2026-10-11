@@ -15,19 +15,30 @@ public final class OrchidField {
     public enum Stage { SEED, SPROUT, BUD, BLOOM, WILT }
 
     private final OrchidData data;
+    private final OrchidSpots spots;
 
     public OrchidField(OrchidData data) {
+        this(data, OrchidSpots.NONE);
+    }
+
+    /** @param spots the original's one spot a room (§15.2), or {@link OrchidSpots#NONE} to find anchors */
+    public OrchidField(OrchidData data, OrchidSpots spots) {
         this.data = data;
+        this.spots = spots;
     }
 
     /**
      * The anchors of a room, as room-local feet positions, packed {@code x, y} pairs.
-     * Deterministic from the run seed and the room: the same jungle every time.
+     * The original's spot for the room when there are spots; otherwise found deterministically
+     * from the run seed and the room: the same jungle every time.
      */
     public int[] anchors(RoomAddress room, CollisionWorld world, long runSeed) {
         OrchidData.Anchors rules = data.anchors();
         if (rules.perRoom() == 0 || data.orchids().isEmpty()) {
             return new int[0];
+        }
+        if (spots.on()) {
+            return spots.anchors(room.index());
         }
         Rng rng = new Rng(Rng.hash(runSeed, room.col(), room.row(), 0x0F10));
         int[] found = new int[rules.perRoom() * 2];

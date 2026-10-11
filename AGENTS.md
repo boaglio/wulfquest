@@ -2218,8 +2218,17 @@ One orchid per anchor point, cycling forever:
   the player gets ~80 ticks of warning to decide whether to approach. This
   is essential: the mechanic must be a *choice*, not a lottery.
 - Touching a bloom consumes it: it jumps straight to `SEED`.
-- A room's orchid anchors are **derived**, not authored: up to
-  `anchors.perRoom` (3) spots at least `anchors.minSpacingPx` (40) apart, no
+- **Where — the original's** (**[CANON]**, the default since 2026-10-11): **one orchid a room**,
+  at its room type's spot (`$D6A6`, through `$A7D4`, which looks the room's type up in `$6066`)
+  — the same 48-entry table the beasts stand at, `jungle.json → beasts.spots`. The spot's x is
+  the sprite's left edge (ours adds half the flower's 16 px) and its y the feet, counted from the
+  top of the screen (ours takes `screenTopPx` off). Type 1's spot is `0, 0`, no flower; no room of
+  the map is that type, so every room flowers, and every spot is on open ground
+  (`OriginalOrchidSpotsTest`). `Content.orchidSpots()` → `OrchidSpots` → `OrchidField`.
+  Not copied: the original keeps one flower's state per room *type* (`$A7F8`, saved on leaving,
+  `$A79F`), so rooms of a type share a flower; ours keeps one per room.
+- **Where — ours** (with `features.inventedOrchids`, §15.4): a room's orchid anchors are
+  **derived**, not authored: up to `anchors.perRoom` (3) spots at least `anchors.minSpacingPx` (40) apart, no
   nearer the edges than `anchors.insetPx` (24) so a bloom is never half in the
   next room, each with its whole 16x16 footprint clear of scenery, drawn from
   `hash(runSeed, col, row)`. The same jungle every run, and no data file to keep
@@ -3085,14 +3094,16 @@ hash at every 50th tick. `ReplayRunner` re-executes them. Ship at least:
   actors' true pace (§12.10): seed 310, 42 059 ticks, no death, 179 rewinds — four seeds of
   four won, where the faster jungle needed 6 forges; and the same day with Vale at the
   original's pace, 1 tick a frame (§11.3): seed 300, 48 507 ticks, no death, 101 rewinds — 5
-  of 6 forges over seeds 300–359 won)
+  of 6 forges over seeds 300–359 won; and with the original's orchid spots (§15.1): seed 331,
+  70 084 ticks, no death, 2 303 rewinds — 5 of 6 forges won, slower)
 - `replays/wulf_escape.json` — a Wulf pursuit survived across rooms. (**M5, shipped**;
   re-forged 2026-10-08 with the flame: seed 35, chased across 6 rooms,
   parried 8 times, outrun, no life lost; from 2026-10-10 to 2026-10-11 it carried
   `"inventedCreatures": true`, the jungle it was recorded in; re-forged 2026-10-11 at the
   actors' true pace (§12.10), in the original's jungle: seed 5, chased across 4 rooms, parried
   10 times, outrun, no life lost; and the same day with Vale at the original's pace: seed 52,
-  chased across 6 rooms, parried 7 times, until it gave up, no life lost)
+  chased across 6 rooms, parried 7 times, until it gave up, no life lost; and with the
+  original's orchid spots: seed 1145, chased across 5 rooms, parried 7 times, no life lost)
   It is the roaming Wulf's (§13.1–§13.7, [NEW]), so since 2026-10-03 the file
   carries `"features": { "roamingWulf": true }`: a replay may name the flags it
   was recorded under, and `ReplayRunner` lays them over `game.json`'s, so a
@@ -3117,7 +3128,9 @@ hash at every 50th tick. `ReplayRunner` re-executes them. Ship at least:
   (§12.10): seed 2030, the same order, 107 967 ticks, no death, score 194 340 — 14 of 20 forges
   over seeds 2000–2199 won with their first seed, where the faster jungle won one seed in 8 or
   fewer; and **the same day with Vale at the original's pace** (§11.3, §12.10): seed 2002, the
-  same order, 115 400 ticks, no death, score 227 875, 1 645 rewinds. The lairs are fixed
+  same order, 115 400 ticks, no death, score 227 875, 1 645 rewinds; and **with the original's orchid spots** (§15.1): seed 2015, lairs SE, NE, NW,
+  SW, 160 471 ticks, no death, score 355 850, 792 rewinds — the only win of 20 forges in about
+  20 minutes; a flower in every room is in the bot's way more often. The lairs are fixed
   (`landmarks.json`), but a seed decides every creature, and the bot's luck
   with them varies enormously: seeds 1–60 for `lair_nw` won only in
   108 000–241 000 ticks, and seeds 3000–3159 for the full run in 300 000 and
@@ -3946,7 +3959,7 @@ the source wins.
 | Q1 | The exact creature roster and per-room creature assignment table | 13 invented species, biome-weighted. **Lead 2026-10-03:** the original's room creatures are not per room. Up to `$96BE` (3) at once appear as a puff in the player's room (`$9A68`), then become one of 15 kinds from `$A41A` — spider, scorpion, bat, parrot, monkey, lizard, snake, then rat, bird, frog, mosquito, skunk, flea, earwig — picked from the first `8 + 2 × quarters held` entries (`$A3EC`), so the jungle gets worse as the amulet fills. The fixed ones are in the actor table `$AC77`: rhinos in (8,9) twice, (7,0) and (3,15); tribesmen in (7,10), (4,4), (2,14); a hippo in (3,8); the guardian at the arch (8,8); and the Wulf (Q9). A flame (`$34`) comes for a player who lingers — **built 2026-10-08**, §12.7. **Built 2026-10-10 and now the default**: the small ones (§12.8) and the big ones (§12.9); ours kept as [NEW] `features.inventedCreatures`. In brief: rhinos (`$AD07`) pace a row at 3 px and turn at the scenery, and a blade sends one back at 6 (`$AD69`); tribesmen (`$AB74`) walk a slant, re-steer when stopped, are pushed back by a blade, and follow the player — two rows away, one is set down a row from him (`$A630`) — and flash and beep when level with an amulet quarter (`$9D41`); the hippo sleeps (`$9EB3`), follows the same way, comes back a hippo or a warthog at random (`$9F06`), and touched it wakes, turns and charges until stopped (`$9E72`). | `jungle.json`, `creatures.json`, `room_entities.json` |
 | Q2 | The four guardians' species, colours, and lair rooms | **Rooms partly answered 2026-09-27:** the original has no fixed lairs — it picks one of eight preset four-room sets at random (`$A29D`, `Place Amulet Pieces` `$A255`) and lays each quarter at its room type's object slot 1 (`$DC6C`). Our lairs are fixed (`[RECON]`) at the game's set 3, `5,3 13,4 3,12 9,10`. Guardians' species and colours still open; the game's immortals table (`$AC77`) lists rhinos, spear men, fire, the wolf, a hippo and "guardian" as sprites to look at next. | `landmarks.json`, `guardians.json` |
 | Q3 | The exit's actual location and its guard condition | **Closed 2026-10-11** from the disassembly, and built (§14.4): the exit room is (8,8), the only stone arch, entered only from the south; the win is feet above `$80` there with the amulet whole (`$A18C` → Game Complete `$9F6A`). The actor table's Guardian (`$94`/`$95`, `$ACFB`) stands over the doorway; until all four quarters are held (`$970D` = `$0F`) its touch throws Vale (`$9704` = `$80`) whatever his colour (`$AB3D`); then, with him in the room, it slides away from his half at 2 px an update to `$C0` or `$40` (`$9F40`). | `landmarks.json`, `guardians.json` |
-| Q4 | The orchid colour→effect mapping and durations | 6 colours per §15.2. **Answered and built 2026-10-04** (§15.2, now the default; ours kept as [NEW] `features.inventedOrchids`, §15.4). Touching a flower **in full bloom** (state `$4F`, `$A737`) turns Vale its colour (`$9707`) and sets the timer `$96B0` to `$C0`; it counts down every other frame (`$AE7A`), so an effect lasts **384 frames** (384 of our ticks at 1 a frame, §12.10), and for its last `$2F` counts Vale flashes white (`$AF7A`). At zero he is white (`$47`) again. **Five colours** (`$A6FD`, picked when a flower closes, from the frame counter): **red** `$42` — slow, at most 2 px a frame against 3 (`$AFC1`, `$AFE0`); **cyan** `$45` — fast, 4 px a frame (`$AFE4`), footsteps twice as often (`$BF4B`); **magenta** `$43` — every direction reversed (`$AF14`, `XOR %1111`); **yellow** `$46` — knocked down, sitting helpless for `$60` counts, then he gets up (`$AEF5`, `$AE8F`, `$A61B`); **white** `$47` — the cure: clears any effect (`$A757`). Odds of a colour: white 4 in 16, each other 3 in 16. **Every coloured state makes him untouchable**: creatures, the Wulf and the flame all hurt only a white Vale (`$AB36`, `$A880`, `$9DE5`) — so red and magenta are protection with a cost, yellow is protection you cannot use. **No score** for a flower. A death clears the effect (`$AA49`). Ours — haste, torpor, reversal, immunity, delirium, stillness, scored 25–75 — is `[RECON]` that the original does not support. Not traced: the growth timings in our ticks (`$A680`–`$A731`: closed for `$10` counts, open for `$80`–`$BF`). | `orchids.json` |
+| Q4 | The orchid colour→effect mapping and durations | 6 colours per §15.2. **Answered and built 2026-10-04** (§15.2, now the default; ours kept as [NEW] `features.inventedOrchids`, §15.4). Touching a flower **in full bloom** (state `$4F`, `$A737`) turns Vale its colour (`$9707`) and sets the timer `$96B0` to `$C0`; it counts down every other frame (`$AE7A`), so an effect lasts **384 frames** (384 of our ticks at 1 a frame, §12.10), and for its last `$2F` counts Vale flashes white (`$AF7A`). At zero he is white (`$47`) again. **Five colours** (`$A6FD`, picked when a flower closes, from the frame counter): **red** `$42` — slow, at most 2 px a frame against 3 (`$AFC1`, `$AFE0`); **cyan** `$45` — fast, 4 px a frame (`$AFE4`), footsteps twice as often (`$BF4B`); **magenta** `$43` — every direction reversed (`$AF14`, `XOR %1111`); **yellow** `$46` — knocked down, sitting helpless for `$60` counts, then he gets up (`$AEF5`, `$AE8F`, `$A61B`); **white** `$47` — the cure: clears any effect (`$A757`). Odds of a colour: white 4 in 16, each other 3 in 16. **Every coloured state makes him untouchable**: creatures, the Wulf and the flame all hurt only a white Vale (`$AB36`, `$A880`, `$9DE5`) — so red and magenta are protection with a cost, yellow is protection you cannot use. **No score** for a flower. A death clears the effect (`$AA49`). Ours — haste, torpor, reversal, immunity, delirium, stillness, scored 25–75 — is `[RECON]` that the original does not support. Where it grows: one a room, at its type's spot (`$D6A6`), §15.1 — built 2026-10-11. Not built: the growth timings (`$A680`–`$A731`, read 2026-10-11): it opens a stage every other pass to full bloom, stays open `$10` counts, closes, takes a new colour, and stays shut `$80`–`$BF` counts — and the counts go down only while Sabreman walks or fights (`$A68D`). Ours keeps §15.1's clock. | `orchids.json` |
 | Q5 | Exact player speed in px/frame, and whether it was frame-quantised | **Shape answered 2026-09-30** (§11.3): up to 3 px a frame in whole steps (0–3), with inertia ($AEEF, $AFC1, $B031, $B047); fighting a steady 2 ($ADD0). **Answered 2026-10-11** (§12.10): the main loop (`$99AA`–`$9A1D`) runs Sabreman once each time the 50 Hz frame counter moves, so 3 px a frame is 150 px/s — 3 px a tick, `ticksPerFrame` 1 (we had 2, half the pace). The other actors move once a pass of the actor table, about two frames: 2 ticks an update. | `player.json → speed, momentum` |
 | Q6 | Starting lives and extra-life thresholds | **Closed 2026-10-02** from the disassembly: **5 in reserve** (`$B21E`), so six falls — a fall with none left is game over (`$AA27`–`$AA37`); **no extra lives for score** — the lives count's only writers are `$B21E`, `$AA37`, `$9F87` and the treasure life `$A2F8` (up to 9 in reserve). §11.7, §16.3. | `player.json → lives` |
 | Q7 | Whether amulet pieces were lost on death | **Closed 2026-10-02: kept.** The quarters held are bits of `$970D`, written only by the pickup (`$A1E3`); the death path `$AA27`–`$AA57` does not touch it. §11.7. | `player.json → death.keepAmulet` |

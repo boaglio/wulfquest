@@ -11,12 +11,18 @@ import wulf.data.OrchidData;
  */
 public record Ecosystem(CreatureData creatures, RoomPopulator populator, int roomFirstVisitScore, WulfRules wulf,
                         QuestRules quest, OrchidData orchids, FlameData flame,
-                        SwarmRules swarm, BeastRules beasts) {
+                        SwarmRules swarm, BeastRules beasts, OrchidSpots orchidSpots) {
 
     /** No creatures, no Wulf, no quest: M3's empty jungle. */
     public static final Ecosystem NONE = new Ecosystem(CreatureData.EMPTY, RoomPopulator.NONE, 0, WulfRules.NONE,
             QuestRules.NONE, OrchidData.NONE, FlameData.NONE, SwarmRules.NONE,
-            BeastRules.NONE);
+            BeastRules.NONE, OrchidSpots.NONE);
+
+    /** The original's jungle, its orchids finding their own anchors (§15.1). */
+    public Ecosystem(CreatureData creatures, RoomPopulator populator, int roomFirstVisitScore, WulfRules wulf,
+                     QuestRules quest, OrchidData orchids, FlameData flame, SwarmRules swarm, BeastRules beasts) {
+        this(creatures, populator, roomFirstVisitScore, wulf, quest, orchids, flame, swarm, beasts, OrchidSpots.NONE);
+    }
 
     /** Everything but the flame (§12.7): a jungle that lets you stand still, as most tests want. */
     public Ecosystem(CreatureData creatures, RoomPopulator populator, int roomFirstVisitScore, WulfRules wulf,

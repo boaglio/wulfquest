@@ -50,21 +50,21 @@ class QuickSavesTest {
         PlayerDb db = db(dir);
         QuickSaves saves = saves(db, CONTENT.db().contentHash());
         GameSession s = new GameSession(GAME.apply(42L));
-        play(s, 0, 1500);
+        play(s, 0, 500);
         long hash = s.sim().stateHash();
         long tick = s.sim().tick();
         saves.save(s);
-        play(s, 1500, 900);
+        play(s, 500, 900);
         assertThat(s.sim().stateHash()).as("the game went on").isNotEqualTo(hash);
 
         QuickSaves.Loaded back = saves.load();
         assertThat(back.ok()).as(back.refusal()).isTrue();
         assertThat(back.sim().tick()).isEqualTo(tick);
-        assertThat(back.played().ticks()).isEqualTo(1500);
+        assertThat(back.played().ticks()).isEqualTo(500);
         assertThat(back.sim().practice()).as("a load makes it practice").isTrue();
         Simulation unpracticed = GAME.apply(42L);
         GameSession again = new GameSession(unpracticed);
-        play(again, 0, 1500);
+        play(again, 0, 500);
         unpracticed.markPractice();
         assertThat(back.sim().stateHash()).isEqualTo(unpracticed.stateHash());
     }

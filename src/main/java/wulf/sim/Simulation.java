@@ -194,7 +194,7 @@ public final class Simulation {
         }
         Creature keeper = new Creature(Quest.KEEPER_ID, eco.quest().keeperSpecies(), -1, xFp, yFp, Herd.NONE);
         this.quest = new Quest(keeper, keeper);   // the guardian is seated on entering a lair
-        this.orchids = new OrchidField(eco.orchids());
+        this.orchids = new OrchidField(eco.orchids(), eco.orchidSpots());
         this.orchidCycleStart = new long[RoomAddress.GRID_W * RoomAddress.GRID_H
                 * Math.max(1, eco.orchids().anchors().perRoom())];
         java.util.Arrays.fill(orchidCycleStart, Long.MIN_VALUE);

@@ -47,6 +47,7 @@ import wulf.sim.RoomPopulator;
 import wulf.sim.SwarmRules;
 import wulf.sim.Beast;
 import wulf.sim.BeastRules;
+import wulf.sim.OrchidSpots;
 import wulf.sim.Simulation;
 import wulf.data.OrchidData;
 import wulf.data.OrchidValidator;
@@ -194,7 +195,7 @@ public record Content(
     public Ecosystem ecosystem() {
         if (!game.feature("inventedCreatures")) {
             return new Ecosystem(originalCreatures(), RoomPopulator.NONE, loot.event("roomFirstVisit"), wulfRules(),
-                    questRules(), orchids(), flame, swarmRules(), beastRules());
+                    questRules(), orchids(), flame, swarmRules(), beastRules(), orchidSpots());
         }
         RoomPopulator jungle = new BiomePopulator(creatures, roomEntities, biomes, game.difficulty());
         // §14.3: a lair is a single clean puzzle — its guardian and nothing else. The way out is kept clear too.
@@ -319,6 +320,33 @@ public record Content(
             placings.add(new BeastRules.Placing(k, room, x, y, p.heading(), palette.indexOf(p.tint()), p.asleep()));
         }
         return new BeastRules(true, b.followRows(), b.followColumns(), kinds, kindOf, spotX, spotY, sleepers, placings);
+    }
+
+    /**
+     * The original's orchid spots (§15.2): one a room, its type's from {@code $D6A6} — the table
+     * the beasts stand at — turned to our feet: half the flower's width right of the sprite's left
+     * edge, and the screen's top taken off. A spot of {@code 0, 0} grows nothing. With
+     * {@code features.inventedOrchids} our own flowers find their own anchors instead.
+     */
+    public OrchidSpots orchidSpots() {
+        if (game.feature("inventedOrchids")) {
+            return OrchidSpots.NONE;
+        }
+        JungleData.Beasts b = jungle.beasts();
+        int halfW = sprites.get(orchids.sprite()).size().w() / 2;
+        int rooms = map.gridW() * map.gridH();
+        int[] x = new int[rooms];
+        int[] y = new int[rooms];
+        for (int row = 0; row < map.gridH(); row++) {
+            for (int col = 0; col < map.gridW(); col++) {
+                List<Integer> spot = b.spots().get(map.roomType(col, row));
+                int i = new RoomAddress(col, row).index();
+                boolean none = spot.get(0) == 0 && spot.get(1) == 0;
+                x[i] = none ? OrchidSpots.NO_SPOT : spot.get(0) + halfW;
+                y[i] = spot.get(1) - b.screenTopPx();
+            }
+        }
+        return new OrchidSpots(x, y);
     }
 
     private static int indexOfKind(List<CreatureData.Species> kinds, String id) {

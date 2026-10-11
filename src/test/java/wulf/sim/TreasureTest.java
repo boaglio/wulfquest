@@ -151,7 +151,7 @@ class TreasureTest {
                 q.stepAsideFp(), q.asideMinPx(), q.asideMaxPx(), q.nudgeZonePx(), q.nudgePx(), q.pieceScore(), q.escapeBonus(),
                 q.timeBonusMax(), q.timeBonusTicksDivisor(), q.lifeRemainingBonus(), q.caveHints(), Treasures.NONE);
         return new Ecosystem(e.creatures(), e.populator(), e.roomFirstVisitScore(), e.wulf(), bare, e.orchids(), e.flame(),
-                e.swarm(), e.beasts());
+                e.swarm(), e.beasts(), e.orchidSpots());
     }
 
     @Test
