@@ -49,8 +49,8 @@ class QuestTest {
                     new CreatureData.Speed(0, 0), s.hp(), s.score(), s.ignoresScenery(),
                     new CreatureData.Behaviour(s.behaviour().kind(), params)));
         }
-        return new QuestRules(true, real.landmarks(), pinned, real.keeperSpecies(), real.orbit(), real.stepAsidePx(),
-                real.stepAsideTicks(), real.nudgeZonePx(), real.nudgePx(), real.pieceScore(), real.escapeBonus(),
+        return new QuestRules(true, real.landmarks(), pinned, real.keeperSpecies(), real.orbit(), real.stepAsideFp(),
+                real.asideMinPx(), real.asideMaxPx(), real.nudgeZonePx(), real.nudgePx(), real.pieceScore(), real.escapeBonus(),
                 real.timeBonusMax(), real.timeBonusTicksDivisor(), real.lifeRemainingBonus(), real.caveHints(),
                 Treasures.NONE);
     }
@@ -331,21 +331,32 @@ class QuestTest {
     }
 
     @Test
-    void theKeeperNudgesYouBackFromTheFrontButKillsFromTheSide() {
+    void theKeeperBarsTheDoorwayAndItsTouchKills() {
+        // $9F2F: no grace in the original — walk into it from below and it throws him ($9704 = $80).
         LandmarksData.Point keeper = marks.exit().keeper();
         Simulation front = sim(OPEN, real, marks.exitRoom(), keeper.x(), keeper.y() + 14);
+        for (int t = 0; t < 80 && front.player().mode() == Player.Mode.ALIVE; t++) {
+            front.tick(InputState.of(0, -1, false, false));
+        }
+        assertThat(front.player().mode()).isEqualTo(Player.Mode.DYING);
+        assertThat(front.quest().keeperState()).isEqualTo(Quest.Keeper.BLOCKING);
+    }
+
+    @Test
+    void theGraceIsStillThereForAnyoneWhoAsksForIt() {
+        // §14.4 [RECON]: a nudge zone in game.json turns the front of it into a push instead.
+        QuestRules graced = new QuestRules(true, real.landmarks(), real.guardianSpecies(), real.keeperSpecies(),
+                real.orbit(), real.stepAsideFp(), real.asideMinPx(), real.asideMaxPx(), 16, 8, real.pieceScore(),
+                real.escapeBonus(), real.timeBonusMax(), real.timeBonusTicksDivisor(), real.lifeRemainingBonus(),
+                real.caveHints(), real.treasures());
+        LandmarksData.Point keeper = marks.exit().keeper();
+        Simulation front = sim(OPEN, graced, marks.exitRoom(), keeper.x(), keeper.y() + 14);
         for (int t = 0; t < 80; t++) {
             front.tick(InputState.of(0, -1, false, false));
             assertThat(front.player().mode()).as("tick %d", t).isEqualTo(Player.Mode.ALIVE);
         }
         assertThat(Fixed.px(front.player().yFp()) - wy(marks.exitRoom(), 0)).as("never got past it")
                 .isGreaterThan(keeper.y());
-
-        Simulation side = sim(OPEN, real, marks.exitRoom(), keeper.x() - 28, keeper.y() - 2);
-        for (int t = 0; t < 60 && side.player().mode() == Player.Mode.ALIVE; t++) {
-            side.tick(InputState.of(1, 0, false, false));
-        }
-        assertThat(side.player().mode()).isEqualTo(Player.Mode.DYING);
     }
 
     @Test
@@ -412,7 +423,13 @@ class QuestTest {
         walkY(s, wy(s.room(), 150));
         walkX(s, wx(s.room(), 60));
         walkY(s, wy(exit, 170));
+        walkX(s, wx(exit, 60));
+        // $9F40: only now, with him in its room and on its left, does it slide away right.
+        for (int t = 0; t < 300 && q.keeperState() != Quest.Keeper.ASIDE; t++) {
+            s.tick(STILL);
+        }
         assertThat(q.keeperState()).isEqualTo(Quest.Keeper.ASIDE);
+        assertThat(Fixed.px(q.keeper().xFp()) - wx(exit, 0)).isEqualTo(real.asideMaxPx());
         walkX(s, wx(exit, zone.x() + zone.w() / 2));
         int lives = s.player().lives();
         for (int t = 0; t < 200 && s.player().mode() == Player.Mode.ALIVE; t++) {

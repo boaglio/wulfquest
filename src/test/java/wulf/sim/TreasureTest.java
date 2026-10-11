@@ -148,7 +148,7 @@ class TreasureTest {
         Ecosystem e = C.ecosystem();
         QuestRules q = e.quest();
         QuestRules bare = new QuestRules(q.enabled(), q.landmarks(), q.guardianSpecies(), q.keeperSpecies(), q.orbit(),
-                q.stepAsidePx(), q.stepAsideTicks(), q.nudgeZonePx(), q.nudgePx(), q.pieceScore(), q.escapeBonus(),
+                q.stepAsideFp(), q.asideMinPx(), q.asideMaxPx(), q.nudgeZonePx(), q.nudgePx(), q.pieceScore(), q.escapeBonus(),
                 q.timeBonusMax(), q.timeBonusTicksDivisor(), q.lifeRemainingBonus(), q.caveHints(), Treasures.NONE);
         return new Ecosystem(e.creatures(), e.populator(), e.roomFirstVisitScore(), e.wulf(), bare, e.orchids(), e.flame(),
                 e.swarm(), e.beasts());

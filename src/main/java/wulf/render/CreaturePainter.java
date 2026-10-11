@@ -90,7 +90,7 @@ public final class CreaturePainter {
                 paintBody(fb, quest.guardian(), frameFor(quest.guardian(), sim.tick(), roster.walkTicksPerFrame()), ox, oy);
             }
             if (quest.keeperHere()) {
-                paintBody(fb, quest.keeper(), keeperFrame(quest, sim.ecosystem().quest().stepAsideTicks()), ox, oy);
+                paintBody(fb, quest.keeper(), keeperFrame(quest, roster.walkTicksPerFrame()), ox, oy);
             }
             Wulf wulf = sim.wulf();
             if (wulf.visible()) {
@@ -235,15 +235,12 @@ public final class CreaturePainter {
         }
     }
 
-    /** Standing; then its four-frame step aside once the amulet is whole (§14.4); then aside. */
-    static String keeperFrame(Quest quest, int stepAsideTicks) {
+    /** Standing; once the amulet is whole, stepping as it slides aside (§14.4); then aside. */
+    static String keeperFrame(Quest quest, int ticksPerFrame) {
         return switch (quest.keeperState()) {
             case BLOCKING -> "stand";
             case ASIDE -> "aside";
-            case STEPPING_ASIDE -> {
-                int i = Math.min(3, quest.keeperTick() * 4 / Math.max(1, stepAsideTicks));
-                yield List.of("stand", "step0", "step1", "aside").get(i);
-            }
+            case STEPPING_ASIDE -> (quest.keeper().moveTicks() / ticksPerFrame) % 2 == 0 ? "step0" : "step1";
         };
     }
 

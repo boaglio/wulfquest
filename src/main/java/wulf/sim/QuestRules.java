@@ -18,8 +18,9 @@ public record QuestRules(
         List<CreatureData.Species> guardianSpecies,
         CreatureData.Species keeperSpecies,
         GuardianData.Orbit orbit,
-        int stepAsidePx,
-        int stepAsideTicks,
+        int stepAsideFp,
+        int asideMinPx,
+        int asideMaxPx,
         int nudgeZonePx,
         int nudgePx,
         int pieceScore,
@@ -32,7 +33,7 @@ public record QuestRules(
 
     /** No quest: M5's jungle, and most tests. */
     public static final QuestRules NONE = new QuestRules(false, LandmarksData.NONE, List.of(), WulfData.NONE.asSpecies(),
-            new GuardianData.Orbit(8, 8, 0, 1, 0, 0, 0), 0, 1, 0, 0, 0, 0, 0, 1, 0, false, Treasures.NONE);
+            new GuardianData.Orbit(8, 8, 0, 1, 0, 0, 0), 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, false, Treasures.NONE);
 
     public QuestRules {
         guardianSpecies = List.copyOf(guardianSpecies);

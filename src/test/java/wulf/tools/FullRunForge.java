@@ -72,7 +72,6 @@ public final class FullRunForge {
     private static final int IGNORE_TICKS = 90;
     /** Routes keep this far from every pedestal but the one being fetched: a guardian's ground (ring + body). */
     private static final int GUARDIAN_GROUND_PX = 56;
-
     /** Ticks spent standing ground, and ticks left of ignoring a guardian that cannot come. Bot state, not game state. */
     private static int standing;
     private static int ignoring;
@@ -517,11 +516,11 @@ public final class FullRunForge {
         return new int[] {Math.floorDiv(room.col() * 256 + p.x() - 8, 8), Math.floorDiv(room.row() * Simulation.ROOM_H_PX + p.y() - 13, 8)};
     }
 
-    /** The route block in the bottom of the exit zone: the arch's own cells above it are solid. */
+    /** The route block on the bottom edge of the exit zone, at the head of the way in: the arch above it is solid. */
     private static int[] exitBlock(LandmarksData marks) {
         RoomAddress room = marks.exitRoom();
         LandmarksData.Rect z = marks.exit().zone();
-        int feetY = z.y() + z.h() - 11;
+        int feetY = z.y() + z.h() - 2;
         return new int[] {Math.floorDiv(room.col() * 256 + z.x() + z.w() / 2 - 8, 8), Math.floorDiv(room.row() * Simulation.ROOM_H_PX + feetY - 13, 8)};
     }
 
@@ -642,7 +641,7 @@ public final class FullRunForge {
         int bx = Fixed.px(sim.player().xFp() + dx * rules.speed().xFp()) + pb.x();
         int by = Fixed.px(sim.player().yFp() + dy * rules.speed().yFp()) + pb.y();
         List<Creature> near = threats(sim);
-        if (sim.quest().keeperHere() && sim.quest().keeperState() != Quest.Keeper.ASIDE) {
+        if (sim.quest().keeperHere() && sim.quest().keeperState() == Quest.Keeper.BLOCKING) {
             near.add(sim.quest().keeper());
         }
         for (Creature cr : near) {

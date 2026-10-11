@@ -1123,7 +1123,7 @@ public final class Simulation {
                 return;
             }
         }
-        if (quest.keeperHere && quest.keeperState != Quest.Keeper.ASIDE) {
+        if (quest.keeperHere && quest.keeperState == Quest.Keeper.BLOCKING) {   // $9F16: harmless once the amulet is whole
             Creature k = quest.keeper;
             CreatureData.Box kb = k.species().collisionBox();
             if (overlaps(px, py, pb.w(), pb.h(), Fixed.px(k.xFp) + kb.x(), Fixed.px(k.yFp) + kb.y(), kb.w(), kb.h())) {
@@ -1281,13 +1281,33 @@ public final class Simulation {
     private void seatKeeper() {
         QuestRules rules = eco.quest();
         LandmarksData.Point at = rules.landmarks().exit().keeper();
-        int aside = switch (quest.keeperState) {
-            case BLOCKING -> 0;
-            case STEPPING_ASIDE -> rules.stepAsidePx() * quest.keeperTick / rules.stepAsideTicks();
-            case ASIDE -> rules.stepAsidePx();
-        };
-        LandmarksData.Point p = at;
-        quest.keeper.place(Fixed.fp(room.col() * ROOM_W_PX + p.x() + aside), Fixed.fp(room.row() * ROOM_H_PX + p.y()));
+        if (quest.keeperLocalXFp == Integer.MIN_VALUE) {
+            quest.keeperLocalXFp = Fixed.fp(at.x());
+        }
+        quest.keeper.place(Fixed.fp(room.col() * ROOM_W_PX) + quest.keeperLocalXFp, Fixed.fp(room.row() * ROOM_H_PX + at.y()));
+    }
+
+    /**
+     * {@code $9F40}: once the amulet is whole, with the player in its room, the Keeper slides away
+     * from his half — right while he is on the left, left while he is on the right — and stops at
+     * {@code asideMaxPx} or {@code asideMinPx}. Crossing to its side sends it back across the doorway.
+     */
+    private void stepKeeperAside(QuestRules rules) {
+        Quest q = quest;
+        int playerLocalX = context.playerCentreXPx() - room.col() * ROOM_W_PX;
+        boolean right = playerLocalX < ROOM_W_PX / 2;
+        int limit = Fixed.fp(right ? rules.asideMaxPx() : rules.asideMinPx());
+        int was = q.keeperLocalXFp;
+        int step = rules.stepAsideFp();
+        q.keeperLocalXFp = right ? Math.min(limit, was + step) : Math.max(limit, was - step);
+        boolean moving = q.keeperLocalXFp != was;
+        q.keeper.moveTicks = moving ? q.keeper.moveTicks + 1 : 0;
+        Quest.Keeper next = moving ? Quest.Keeper.STEPPING_ASIDE : Quest.Keeper.ASIDE;
+        if (next != q.keeperState && next == Quest.Keeper.ASIDE) {
+            sounds.play(SFX_KEEPER_MOVES);
+        }
+        q.keeperState = next;
+        seatKeeper();
     }
 
     private void tickQuest() {
@@ -1316,14 +1336,8 @@ public final class Simulation {
             orbit.tick(g, context);
             g.moveTicks = g.xFp != ox || g.yFp != oy ? g.moveTicks + 1 : 0;
         }
-        if (q.keeperState == Quest.Keeper.STEPPING_ASIDE) {
-            if (++q.keeperTick >= rules.stepAsideTicks()) {
-                q.keeperState = Quest.Keeper.ASIDE;
-                sounds.play(SFX_KEEPER_MOVES);
-            }
-            if (q.keeperHere) {
-                seatKeeper();
-            }
+        if (q.keeperState != Quest.Keeper.BLOCKING && q.keeperHere && player.mode == Player.Mode.ALIVE) {
+            stepKeeperAside(rules);
         }
         PlayerData.Box pb = this.rules.collisionBox();
         int px = Fixed.px(player.xFp) + pb.x();
@@ -1353,8 +1367,8 @@ public final class Simulation {
             q.hintTicks = marks.hint().messageTicks();
             pointTheWay(marks);
         }
-        if (inZone && room.equals(marks.exitRoom()) && q.keeperState == Quest.Keeper.ASIDE
-                && q.piecesHeld >= marks.exit().requiresPieces()) {
+        // $A18C: with the amulet whole, past the Keeper and above the doorway, he is out.
+        if (inZone && room.equals(marks.exitRoom()) && q.piecesHeld >= marks.exit().requiresPieces()) {
             player.mode = Player.Mode.ESCAPING;
             player.modeTick = 0;
             player.swingTick = -1;
@@ -1436,7 +1450,7 @@ public final class Simulation {
         q.flyFromYPx = centreYPx;
         addScore(rules.pieceScore());
         if (q.piecesHeld >= rules.landmarks().exit().requiresPieces() && q.keeperState == Quest.Keeper.BLOCKING) {
-            q.keeperState = Quest.Keeper.STEPPING_ASIDE;   // wherever the player is: it is aside by the time they get there
+            q.keeperState = Quest.Keeper.STEPPING_ASIDE;   // harmless now; it moves only while he is in its room ($9F16)
             q.keeperTick = 0;
         }
     }
@@ -2589,6 +2603,9 @@ public final class Simulation {
         h = mix(h, q.lair);
         h = mix(h, q.keeperState.ordinal());
         h = mix(h, q.keeperTick);
+        if (q.keeperLocalXFp != Integer.MIN_VALUE) {
+            h = mix(h, q.keeperLocalXFp);   // once seated: games that never reach the arch keep their hashes
+        }
         h = mix(h, q.keeperHere ? 1 : 0);
         h = mix(h, q.pickupFlash);
         h = mix(h, q.flyTicks);

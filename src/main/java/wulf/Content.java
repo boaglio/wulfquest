@@ -216,7 +216,8 @@ public record Content(
             wardens.add(guardians.asSpecies(guardians.guardian(lair.guardian())));
         }
         return new QuestRules(true, landmarks, wardens, guardians.keeperSpecies(), guardians.orbit(),
-                guardians.keeper().stepAsidePx(), game.exit().keeperStepAsideTicks(), game.exit().keeperNudgeZonePx(),
+                guardians.keeper().stepAsideFp(), guardians.keeper().asideMinPx(), guardians.keeper().asideMaxPx(),
+                game.exit().keeperNudgeZonePx(),
                 game.exit().keeperNudgePx(), loot.event("amuletPiece"), loot.event("escapeBonus"),
                 loot.event("timeBonusMax"), loot.event("timeBonusTicksDivisor"), loot.event("lifeRemainingBonus"),
                 game.feature("caveHints"), treasurePlaces());

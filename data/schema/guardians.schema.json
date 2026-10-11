@@ -53,7 +53,7 @@
     },
     "keeper": {
       "type": "object", "additionalProperties": false,
-      "required": ["id", "displayName", "sprite", "size", "collisionBox", "stepAsidePx"],
+      "required": ["id", "displayName", "sprite", "size", "collisionBox", "stepAsideFp", "asideMinPx", "asideMaxPx"],
       "properties": {
         "id": { "type": "string", "pattern": "^[a-z][a-z0-9_]*$" },
         "displayName": { "type": "string", "minLength": 1 },
@@ -70,7 +70,9 @@
             "h": { "type": "integer", "minimum": 1, "maximum": 64 }
           }
         },
-        "stepAsidePx": { "type": "integer", "minimum": 0, "maximum": 128 }
+        "stepAsideFp": { "type": "integer", "minimum": 1, "maximum": 2048 },
+        "asideMinPx": { "type": "integer", "minimum": 0, "maximum": 255 },
+        "asideMaxPx": { "type": "integer", "minimum": 0, "maximum": 255 }
       }
     }
   }

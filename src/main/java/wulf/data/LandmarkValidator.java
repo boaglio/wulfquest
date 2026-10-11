@@ -60,10 +60,11 @@ public final class LandmarkValidator {
             throw new DataException(FILE, "/exit/keeper",
                     "is (" + keeper.x() + "," + keeper.y() + "), where the Keeper does not fit");
         }
-        int asideX = keeper.x() + wardens.keeper().stepAsidePx();
-        if (blocked(solid, exit, keeperBox, asideX, keeper.y())) {
-            throw new DataException(FILE, "/exit/keeper", "leaves the Keeper nowhere to step aside to: ("
-                    + asideX + "," + keeper.y() + ") is solid (guardians.json /keeper/stepAsidePx)");
+        for (int asideX : new int[] {wardens.keeper().asideMinPx(), wardens.keeper().asideMaxPx()}) {
+            if (blocked(solid, exit, keeperBox, asideX, keeper.y())) {
+                throw new DataException(FILE, "/exit/keeper", "leaves the Keeper nowhere to step aside to: ("
+                        + asideX + "," + keeper.y() + ") is solid (guardians.json /keeper/asideMinPx, asideMaxPx)");
+            }
         }
 
         Set<String> lairIds = new HashSet<>();

@@ -13,11 +13,11 @@ public final class Quest {
     static final int ROOMS = 256;
 
     public enum Keeper {
-        /** In front of the arch, lethal but for the nudge zone. */
+        /** In the doorway under the arch, lethal ($9F2F). */
         BLOCKING,
-        /** The amulet is whole: moving aside over {@code keeperStepAsideTicks}. */
+        /** The amulet is whole, so it is harmless: sliding away from the player's half of the room ($9F40). */
         STEPPING_ASIDE,
-        /** Aside for good, and harmless. */
+        /** The amulet is whole, and it stands at the end it slid to — until the player crosses to that half. */
         ASIDE
     }
 
@@ -28,6 +28,8 @@ public final class Quest {
     int lair = -1;
     Creature guardian;
     final Creature keeper;
+    /** Where the Keeper stands, as room-local feet x in 8.8: it keeps its place when the player leaves (§14.4). */
+    int keeperLocalXFp = Integer.MIN_VALUE;
     boolean keeperHere;
     Keeper keeperState = Keeper.BLOCKING;
     int keeperTick;

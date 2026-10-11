@@ -5,8 +5,8 @@
   "exit": {
     "room": "8,8",
     "arch": "85C8",
-    "zone": { "x": 108, "y": 88, "w": 40, "h": 24 },
-    "keeper": { "x": 128, "y": 104 },
+    "zone": { "x": 0, "y": 0, "w": 256, "h": 103 },
+    "keeper": { "x": 128, "y": 119 },
     "requiresPieces": 4,
     "escapeWalkTicks": 40
   },

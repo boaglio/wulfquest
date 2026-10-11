@@ -33,9 +33,14 @@ public record GuardianData(int schemaVersion, String fidelity, Orbit orbit, List
                            CreatureData.Size size, CreatureData.Box collisionBox, CreatureData.Speed speed) {
     }
 
-    /** @param stepAsidePx how far it moves aside once the amulet is whole (§14.4) */
+    /**
+     * @param stepAsideFp how fast it slides aside, once the amulet is whole and the player is in its room
+     *                    (§14.4, {@code $9F40}: 2 px an update)
+     * @param asideMinPx  how far left it goes, as room-local feet ({@code $40}, the sprite's left edge)
+     * @param asideMaxPx  how far right ({@code $C0})
+     */
     public record Keeper(String id, String displayName, String sprite, CreatureData.Size size,
-                         CreatureData.Box collisionBox, int stepAsidePx) {
+                         CreatureData.Box collisionBox, int stepAsideFp, int asideMinPx, int asideMaxPx) {
     }
 
     public Guardian guardian(String id) {

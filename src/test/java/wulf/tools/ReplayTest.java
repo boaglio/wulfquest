@@ -218,7 +218,7 @@ class ReplayTest {
         assertThat(sim.player().mode()).as("won").isEqualTo(wulf.sim.Player.Mode.WON);
         assertThat(sim.quest().piecesHeld()).isEqualTo(4);
         assertThat(sim.quest().slotMask()).isEqualTo(0b1111);
-        assertThat(sim.quest().keeperState()).isEqualTo(wulf.sim.Quest.Keeper.ASIDE);
+        assertThat(sim.quest().keeperState()).isNotEqualTo(wulf.sim.Quest.Keeper.BLOCKING);
         assertThat(sim.score()).isGreaterThan(4L * content.loot().event("amuletPiece"));
         assertThat(deaths).as("forged clean").isZero();
     }

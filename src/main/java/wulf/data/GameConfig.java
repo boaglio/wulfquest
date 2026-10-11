@@ -25,8 +25,11 @@ public record GameConfig(
         }
     }
 
-    /** §14.4: in front of the Keeper, a push of {@code keeperNudgePx} instead of a death. */
-    public record Exit(int keeperNudgeZonePx, int keeperStepAsideTicks, int keeperNudgePx) {
+    /**
+     * §14.4: in front of the Keeper, within {@code keeperNudgeZonePx}, a push of {@code keeperNudgePx}
+     * instead of a death. The original has none ($9F2F): 0, the default, turns it off.
+     */
+    public record Exit(int keeperNudgeZonePx, int keeperNudgePx) {
     }
 
     /**

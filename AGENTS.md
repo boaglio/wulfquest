@@ -1958,8 +1958,8 @@ pass the Keeper of the Arch and escape. That is the whole game.
   "startFacing": "N",
   "exit": {
     "room": "8,8", "arch": "85C8",
-    "zone": { "x": 108, "y": 88, "w": 40, "h": 24 },
-    "keeper": { "x": 128, "y": 104 },
+    "zone": { "x": 0, "y": 0, "w": 256, "h": 103 },
+    "keeper": { "x": 128, "y": 119 },
     "requiresPieces": 4, "escapeWalkTicks": 40
   },
   "lairs": [
@@ -2047,17 +2047,25 @@ this section was prose, the roster's numbers are the contract.
   appears in them **and never follows into them** (§13.4) — a chase ends at a
   sanctuary's door, unscored.
 
-### 14.4 The Keeper of the Arch
+### 14.4 The Keeper of the Arch **[CANON]** since 2026-10-11
 
-- A `BLOCK_STATIC` figure standing in the exit zone in front of the arch,
-  `24x32 px`, lethal to touch.
-- While `piecesHeld < 4` it stands there. Walking into it kills you — except
-  from the front, within `game.json → exit.keeperNudgeZonePx` (16 px), where you
-  are pushed back `exit.keeperNudgePx` (8 px) instead, so brushing the way out in
-  your first minute is not a death.
-- When the last quarter is taken — wherever the player is — it **steps aside**
-  over `exit.keeperStepAsideTicks` (60) and `guardians.json → keeper.stepAsidePx`
-  (36 px), through a four-frame animation, and is harmless from then on.
+From the disassembly (`$9F16`, `$A18C`, §25 Q3). Room (8,8) opens only to the south, through a
+gap in its bottom wall; the arch is scenery, and **the way out is the room itself**: with the
+whole amulet, feet above y 112 (`$A18C`: `$80` on the original's screen) and he is out.
+
+- The actor table sets the Keeper ("the Guardian", sprites `$94`/`$95`) over that gap:
+  `landmarks.json → exit.keeper`, feet (128, 119). `exit.zone` is everything above y 112.
+- **While the amulet is not whole** it stands there, and its touch throws him (`$9704` = `$80`,
+  `$A9AB`: flying straight down) — a life, **whatever his colour** (`$AB3D` skips the white
+  check), though only while he is on his feet. There is no grace: `game.json →
+  exit.keeperNudgeZonePx` is 0. Set it (16, with `keeperNudgePx` 8, was ours before) and the
+  front of it pushes instead of killing — `[RECON]`, kept for anyone who wants it.
+- **With the amulet whole** it is harmless, and while he is in its room it slides away from his
+  half at 2 px an update (`guardians.json → keeper.stepAsideFp`, 1 px a tick): right while he is
+  on the room's left, left while he is on its right, stopping at `asideMaxPx` 204 or `asideMinPx`
+  76 (the original's `$C0` and `$40`, the sprite's left edge; ours adds half its width). Cross
+  to its side and it slides back across the doorway. It keeps its place when he leaves.
+- Its frames: `stand`, then `step0`/`step1` as it slides, `aside` when it stops.
 - Standing in the zone with the whole amulet then starts the escape (§14.7).
 
 ### 14.5 Shrines **[NEW]**
@@ -2137,7 +2145,7 @@ once something has been, so a game that finds nothing hashes as before.
 ### 14.7 The win sequence
 
 ```
-stand in the exit zone with 4 pieces
+feet above the Keeper's doorway in the exit room, with 4 pieces
   ──► control locked (mode ESCAPING)
   ──► Vale walks up into the arch over escapeWalkTicks (40), the playfield
       going black a row at a time
@@ -3059,7 +3067,11 @@ hash at every 50th tick. `ReplayRunner` re-executes them. Ship at least:
   under every flower but white, wins faster; and **2026-10-08 with the flame**
   (§12.7): seed 2016, the same order, 72 191 ticks, no death; and **2026-10-10 with the
   original's creatures** (§12.8, §12.9): seed 2050, the same order, 112 295 ticks, no death,
-  score 277 950 — every burst scores — found by 16 forges over seeds 2000–2079. The lairs are fixed
+  score 277 950 — every burst scores — found by 16 forges over seeds 2000–2079; and **2026-10-11
+  with the original's Keeper** (§14.4): seed 2310, the same order, 110 063 ticks, no death, score
+  269 995. The wider exit zone first put the bot's target block inside the solid arch, so every run
+  holding the whole amulet stood still in room 8,8 — 276 seeds, no win — until `exitBlock` aimed at
+  the zone's bottom edge, the head of the way in. The lairs are fixed
   (`landmarks.json`), but a seed decides every creature, and the bot's luck
   with them varies enormously: seeds 1–60 for `lair_nw` won only in
   108 000–241 000 ticks, and seeds 3000–3159 for the full run in 300 000 and
@@ -3887,7 +3899,7 @@ the source wins.
 |---|----------|-----------|----------------|
 | Q1 | The exact creature roster and per-room creature assignment table | 13 invented species, biome-weighted. **Lead 2026-10-03:** the original's room creatures are not per room. Up to `$96BE` (3) at once appear as a puff in the player's room (`$9A68`), then become one of 15 kinds from `$A41A` — spider, scorpion, bat, parrot, monkey, lizard, snake, then rat, bird, frog, mosquito, skunk, flea, earwig — picked from the first `8 + 2 × quarters held` entries (`$A3EC`), so the jungle gets worse as the amulet fills. The fixed ones are in the actor table `$AC77`: rhinos in (8,9) twice, (7,0) and (3,15); tribesmen in (7,10), (4,4), (2,14); a hippo in (3,8); the guardian at the arch (8,8); and the Wulf (Q9). A flame (`$34`) comes for a player who lingers — **built 2026-10-08**, §12.7. **Built 2026-10-10 and now the default**: the small ones (§12.8) and the big ones (§12.9); ours kept as [NEW] `features.inventedCreatures`. In brief: rhinos (`$AD07`) pace a row at 3 px and turn at the scenery, and a blade sends one back at 6 (`$AD69`); tribesmen (`$AB74`) walk a slant, re-steer when stopped, are pushed back by a blade, and follow the player — two rows away, one is set down a row from him (`$A630`) — and flash and beep when level with an amulet quarter (`$9D41`); the hippo sleeps (`$9EB3`), follows the same way, comes back a hippo or a warthog at random (`$9F06`), and touched it wakes, turns and charges until stopped (`$9E72`). | `jungle.json`, `creatures.json`, `room_entities.json` |
 | Q2 | The four guardians' species, colours, and lair rooms | **Rooms partly answered 2026-09-27:** the original has no fixed lairs — it picks one of eight preset four-room sets at random (`$A29D`, `Place Amulet Pieces` `$A255`) and lays each quarter at its room type's object slot 1 (`$DC6C`). Our lairs are fixed (`[RECON]`) at the game's set 3, `5,3 13,4 3,12 9,10`. Guardians' species and colours still open; the game's immortals table (`$AC77`) lists rhinos, spear men, fire, the wolf, a hippo and "guardian" as sprites to look at next. | `landmarks.json`, `guardians.json` |
-| Q3 | The exit's actual location and its guard condition | **Lead 2026-09-27:** the true map has exactly one stone arch, `(8,8)`, the heart of the mirrored temple two rooms north of the start. The exit is placed there. **Guard condition traced 2026-10-10** (`$9F16`, not yet built): the actor table puts "the Guardian" (sprites `$94`/`$95`) at the arch, (8,8). Until all four quarters are held (`$970D` = `$0F`) it stands there and its touch throws Vale back (`$9704` = `$80`) — whatever his colour (`$AB3D`, no white check); with the amulet whole it steps aside at 2 px an update, right if he is on the room's left half and left if on its right, until it is past `$C0` or `$40`. | `landmarks.json` |
+| Q3 | The exit's actual location and its guard condition | **Closed 2026-10-11** from the disassembly, and built (§14.4): the exit room is (8,8), the only stone arch, entered only from the south; the win is feet above `$80` there with the amulet whole (`$A18C` → Game Complete `$9F6A`). The actor table's Guardian (`$94`/`$95`, `$ACFB`) stands over the doorway; until all four quarters are held (`$970D` = `$0F`) its touch throws Vale (`$9704` = `$80`) whatever his colour (`$AB3D`); then, with him in the room, it slides away from his half at 2 px an update to `$C0` or `$40` (`$9F40`). | `landmarks.json`, `guardians.json` |
 | Q4 | The orchid colour→effect mapping and durations | 6 colours per §15.2. **Answered and built 2026-10-04** (§15.2, now the default; ours kept as [NEW] `features.inventedOrchids`, §15.4). Touching a flower **in full bloom** (state `$4F`, `$A737`) turns Vale its colour (`$9707`) and sets the timer `$96B0` to `$C0`; it counts down every other frame (`$AE7A`), so an effect lasts **384 frames** (768 of our ticks at 2 a frame, §25 Q5), and for its last `$2F` counts Vale flashes white (`$AF7A`). At zero he is white (`$47`) again. **Five colours** (`$A6FD`, picked when a flower closes, from the frame counter): **red** `$42` — slow, at most 2 px a frame against 3 (`$AFC1`, `$AFE0`); **cyan** `$45` — fast, 4 px a frame (`$AFE4`), footsteps twice as often (`$BF4B`); **magenta** `$43` — every direction reversed (`$AF14`, `XOR %1111`); **yellow** `$46` — knocked down, sitting helpless for `$60` counts, then he gets up (`$AEF5`, `$AE8F`, `$A61B`); **white** `$47` — the cure: clears any effect (`$A757`). Odds of a colour: white 4 in 16, each other 3 in 16. **Every coloured state makes him untouchable**: creatures, the Wulf and the flame all hurt only a white Vale (`$AB36`, `$A880`, `$9DE5`) — so red and magenta are protection with a cost, yellow is protection you cannot use. **No score** for a flower. A death clears the effect (`$AA49`). Ours — haste, torpor, reversal, immunity, delirium, stillness, scored 25–75 — is `[RECON]` that the original does not support. Not traced: the growth timings in our ticks (`$A680`–`$A731`: closed for `$10` counts, open for `$80`–`$BF`). | `orchids.json` |
 | Q5 | Exact player speed in px/frame, and whether it was frame-quantised | **Shape answered 2026-09-30** (§11.3): up to 3 px a frame in whole steps (0–3), with inertia ($AEEF, $AFC1, $B031, $B047); fighting a steady 2 ($ADD0). Still open: the original's frame rate, which fixes px/s — ours assumes 2 ticks a frame, and keeps §11.2's 1.5 / 1.0 px/tick as full speed. | `player.json → speed, momentum` |
 | Q6 | Starting lives and extra-life thresholds | **Closed 2026-10-02** from the disassembly: **5 in reserve** (`$B21E`), so six falls — a fall with none left is game over (`$AA27`–`$AA37`); **no extra lives for score** — the lives count's only writers are `$B21E`, `$AA37`, `$9F87` and the treasure life `$A2F8` (up to 9 in reserve). §11.7, §16.3. | `player.json → lives` |
