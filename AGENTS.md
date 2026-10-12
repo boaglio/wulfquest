@@ -269,6 +269,7 @@ wulfquest/
     art/character_forge.py      generates Ranger Vale's frames, §10.5 (dev-time only)
     art/creature_forge.py       generates the 13 creature sprites and the puff, §10.5 (dev-time only)
     art/item_forge.py           draws the map scroll, the eyes, the map's diamond and the treasures, §14.8, §16.4, §17.7 (dev-time only)
+    art/ending_forge.py         draws Mr Jones for the closing scene, §14.7 (dev-time only)
     art/font_forge.py           generates the 8x8 display set in font.json, §10.4 (dev-time only)
     audio/music_forge.py        writes music.json from phrases of note tokens, §18.3 (dev-time only)
     check-no-binaries.sh        CI gate, §2.4 — bound to the verify phase
@@ -2223,16 +2224,50 @@ feet above the Keeper's doorway in the exit room, with 4 pieces
   ──► control locked (mode ESCAPING)
   ──► Vale walks up into the arch over escapeWalkTicks (40), the playfield
       going black a row at a time
-  ──► mode WON, and the tally:
+  ──► mode WON, and the closing scene (ENDING, below)
+  ──► fire: the tally (TALLY):
         collected score
         + escape bonus            10000
         + time bonus              max(0, 30000 - ticksElapsed / 2)
         + lives remaining bonus   lives * 2500
-  ──► fire starts a new game (hi-score entry and the title screen: M8)
+  ──► fire: the credits roll (ROLL)
+  ──► the roll ends, or fire cuts it short: hi-score entry if the run earns a
+      place (§21.2), else the title
 ```
 
 The tally holds fire for 100 ticks first, so the press that won the game cannot
-skip it.
+skip it. Its words, colours and the beat between its lines are
+`shell.json → tally`'s. Escape at any point of the three banks the run as an
+escape and leaves, as Escape does everywhere (§17.1).
+
+**The closing scene [NEW]** (`shell.json → ending`, `EndingScreen`), asked for
+by the user (2026-10-12). The original ends on its tally; this is ours. On the
+whole screen, a clearing drawn from scenery sprites (`backdrop`). Vale walks in
+from the left carrying the amulet, whole and at half size, to **Mr Jones** — an
+old jungle hand in a fedora, grey-bearded, leaning on a cane (sprite
+`ending_jones`, drawn by `tools/art/ending_forge.py`) — and hands it over. What
+they say types out under them, a character every `ticksPerChar`, each line
+from its own tick:
+
+> \- I FOUND IT, MR JONES.
+>
+> \- THANK YOU SO MUCH. THIS AMULET BELONGS TO THE WORLD. I WILL PUT IT BACK
+> IN THE MUSEUM.
+
+The scene is silent until its tune, `ending`, comes in on `tuneAt`, after the
+words; `PRESS FIRE` shows from `promptAt`, and fire before it is ignored. The
+user asked for "a few notes of the famous movie Indiana Jones" there. That
+melody is not ours to use: §2.1 forbids audio we did not write, and the
+attribution of §2.5 says all of it is original. So `ending` is a short
+original march in the same mood (§18.3). `ShellValidator.checkEnding` checks
+every sprite, frame, colour and the tune exist, and that every line fits the
+screen in the display font.
+
+**The credits roll [NEW]** (`shell.json → credits.roll`, `CreditsRoll`): the
+credits page's heading and lines, between `before` (`THE END`) and `after`
+(`THANK YOU FOR PLAYING`), rising a pixel every `ticksPerPx` from `fromY`
+until the last row is gone; then the run is banked. The credits name the
+game's author (2026-10-12).
 
 ---
 
@@ -2503,7 +2538,7 @@ BOOT ──► TITLE ──► (key) ──► PLAYING ──► ...
  │           │        ├─► CREDITS          ├─► PAUSED  (P; sim frozen, panel dims)
  │           │        ├─► HISCORES         ├─► DYING   (§11.7)
  │           │        ├─► STATS  [NEW]     ├─► GAME_OVER ──► HISCORE_ENTRY ──► TITLE
- │           │        ├─► SOUND  [NEW]     └─► WON ──► TALLY ──► HISCORE_ENTRY ──► TITLE
+ │           │        ├─► SOUND  [NEW]     └─► WON ──► ENDING ──► TALLY ──► ROLL ──► HISCORE_ENTRY ──► TITLE
  │           │        └─► KEY_CONFIG
  │           └─► ATTRACT (after `attract.idleTicks` idle; any key returns)
  └─► fatal data error ──► DATA_ERROR (renders the failing file and the reason, exits on key)
@@ -2515,7 +2550,10 @@ of §21.3 are actually reachable — a setting the player cannot change is not a
 setting. Both hang off the title like `CREDITS`, and both are named by
 `shell.json`, not by Java.
 
-`HISCORE_ENTRY` is entered from `GAME_OVER` and from `TALLY` alike, and only
+`ENDING` and `ROLL` were added on 2026-10-12, at the user's asking: the
+closing scene and the credits after a win (§14.7).
+
+`HISCORE_ENTRY` is entered from `GAME_OVER` and from `ROLL` alike, and only
 when the run qualifies (§21.2); otherwise the way back to the title is direct.
 Escape leaves the jungle for the title, banking the run; Escape on the title
 quits the game. There is no key you have to know.
@@ -2712,6 +2750,10 @@ else. With two channels, a higher-priority event steals channel 0.
 - `game_over` — 4-bar descending figure.
 - `reveal` — 4 bars in E minor, once, under the amulet reveal (§14.6); done
   before the reveal is. The original plays a tune there too.
+- `ending` — 4 bars in C major, once, a short march as Mr Jones takes the
+  amulet (§14.7). Asked for as a quote of a famous film theme; it is our own
+  tune instead, because a recognisable melody someone else wrote is exactly
+  what §2.1 rule 2 and §2.5 rule out.
 - **No in-game music.** During play there is only the jungle: footsteps,
   creature noises, and the growl. Silence is the tension. Do not add
   background music to `PLAYING`. The one exception is `reveal`, which plays

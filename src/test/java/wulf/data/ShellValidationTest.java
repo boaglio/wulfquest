@@ -22,7 +22,7 @@ class ShellValidationTest {
 
     private static ShellConfig withTitle(ShellConfig.Title title) {
         ShellConfig s = c.shell();
-        return new ShellConfig(s.schemaVersion(), s.screenHoldTicks(), title, s.attract(), s.gameOver(), s.tally(),
+        return new ShellConfig(s.schemaVersion(), s.screenHoldTicks(), title, s.attract(), s.gameOver(), s.ending(), s.tally(),
                 s.hiScores(), s.keyConfig(), s.sound(), s.stats(), s.amuletReveal(), s.map(), s.quickSave(), s.credits());
     }
 
@@ -73,7 +73,7 @@ class ShellValidationTest {
         ShellConfig s = c.shell();
         ShellConfig.HiScores h = s.hiScores();
         ShellConfig broken = new ShellConfig(s.schemaVersion(), s.screenHoldTicks(), s.title(), s.attract(),
-                s.gameOver(), s.tally(),
+                s.gameOver(), s.ending(), s.tally(),
                 new ShellConfig.HiScores(h.heading(), h.entryHeading(), h.entryPrompt(), h.size(), h.nameLength(),
                         "AABC", h.cursorBlinkTicks(), h.repeatDelayTicks(), h.repeatEveryTicks()),
                 s.keyConfig(), s.sound(), s.stats(), s.amuletReveal(), s.map(), s.quickSave(), s.credits());
@@ -84,7 +84,7 @@ class ShellValidationTest {
 
     private static ShellConfig withReveal(ShellConfig.AmuletReveal reveal) {
         ShellConfig s = c.shell();
-        return new ShellConfig(s.schemaVersion(), s.screenHoldTicks(), s.title(), s.attract(), s.gameOver(), s.tally(),
+        return new ShellConfig(s.schemaVersion(), s.screenHoldTicks(), s.title(), s.attract(), s.gameOver(), s.ending(), s.tally(),
                 s.hiScores(), s.keyConfig(), s.sound(), s.stats(), reveal, s.map(), s.quickSave(), s.credits());
     }
 
@@ -134,5 +134,46 @@ class ShellValidationTest {
         String joined = String.join(" ", c.shell().credits().lines()).toLowerCase(java.util.Locale.ROOT);
         assertThat(joined).contains("clean-room").contains("all artwork").contains("original")
                 .contains("no assets from any").contains("not affiliated with");
+    }
+
+    private static ShellConfig withEnding(ShellConfig.Ending ending) {
+        ShellConfig s = c.shell();
+        return new ShellConfig(s.schemaVersion(), s.screenHoldTicks(), s.title(), s.attract(), s.gameOver(), ending, s.tally(),
+                s.hiScores(), s.keyConfig(), s.sound(), s.stats(), s.amuletReveal(), s.map(), s.quickSave(), s.credits());
+    }
+
+    private static DataException endingError(ShellConfig.Ending ending) {
+        return catchThrowableOfType(DataException.class, () -> ShellValidator.checkEnding(withEnding(ending), c.palette(),
+                c.display(), c.font(), c.sprites().all(), c.music()));
+    }
+
+    private static ShellConfig.Ending ending(List<ShellConfig.Line> lines, String tune, ShellConfig.Jones jones) {
+        ShellConfig.Ending e = c.shell().ending();
+        return new ShellConfig.Ending(e.backdrop(), e.groundY(), e.vale(), jones, e.amulet(), lines, e.ticksPerChar(),
+                tune, e.tuneAt(), e.prompt(), e.promptAt(), e.promptColour());
+    }
+
+    @Test
+    void theClosingSceneMustFitTheScreenAndNameWhatExists() {
+        // §14.7: a line too long, a tune that is not written, a frame Mr Jones has not got.
+        ShellConfig.Ending e = c.shell().ending();
+        ShellValidator.checkEnding(c.shell(), c.palette(), c.display(), c.font(), c.sprites().all(), c.music());
+        List<ShellConfig.Line> lines = new ArrayList<>(e.lines());
+        ShellConfig.Line first = lines.get(0);
+        lines.set(0, new ShellConfig.Line(first.speaker(), first.at(), first.y(), first.colour(),
+                List.of("- I FOUND IT, MR JONES, AND IT TOOK ME A VERY LONG TIME")));
+        assertThat(endingError(ending(lines, e.tune(), e.jones())).pointer()).isEqualTo("/ending/lines/0/text/0");
+        assertThat(endingError(ending(e.lines(), "raiders", e.jones())).pointer()).isEqualTo("/ending/tune");
+        ShellConfig.Jones j = e.jones();
+        ShellConfig.Jones noFrame = new ShellConfig.Jones(j.sprite(), j.x(), j.stand(), "wink", j.hold(), j.holdTalk(),
+                j.talkTicksPerFrame());
+        assertThat(endingError(ending(e.lines(), e.tune(), noFrame)).pointer()).isEqualTo("/ending/jones");
+    }
+
+    @Test
+    void theCreditsNameWhoMadeTheGame() {
+        assertThat(c.shell().credits().lines()).anyMatch(l -> l.contains("FERNANDO BOAGLIO"));
+        assertThat(c.shell().credits().rollRows()).containsSubsequence(c.shell().credits().heading(),
+                c.shell().credits().lines().get(0));
     }
 }

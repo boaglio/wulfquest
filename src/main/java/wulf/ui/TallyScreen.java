@@ -1,54 +1,62 @@
 package wulf.ui;
 
 import wulf.data.Palette;
+import wulf.data.ShellConfig;
 import wulf.render.FontSet;
 import wulf.render.Framebuffer;
 import wulf.sim.Quest;
 
 /**
- * The {@code TALLY} state (AGENTS.md §14.7, §17.1): the escape, added up. Hi-score
- * entry and the title screen that follow it arrive in M8; until then fire starts a
- * new game.
+ * The {@code TALLY} state (AGENTS.md §14.7, §17.1): the escape, added up. It comes after
+ * the closing scene and before the credits roll; every word and colour is
+ * {@code shell.json → tally}'s.
  */
 public final class TallyScreen {
 
+    /** Layout, not a game number: the heading's line, the columns either side of centre, the prompt's line. */
+    private static final int TOP_PX = 48;
+    private static final int HALF_COLUMNS_PX = 80;
+    private static final int PROMPT_FROM_BOTTOM_PX = 24;
+
     private final FontSet font;
+    private final ShellConfig.Tally config;
     private final int ground;
     private final int heading;
     private final int label;
     private final int figure;
 
-    public TallyScreen(FontSet font, Palette palette) {
+    public TallyScreen(FontSet font, Palette palette, ShellConfig.Tally config) {
         this.font = font;
+        this.config = config;
         this.ground = palette.indexOf("black");
-        this.heading = palette.indexOf("brightYellow");
-        this.label = palette.indexOf("white");
-        this.figure = palette.indexOf("brightWhite");
+        this.heading = palette.indexOf(config.headingColour());
+        this.label = palette.indexOf(config.labelColour());
+        this.figure = palette.indexOf(config.figureColour());
     }
 
     /** @param reveal ticks since the tally began: lines appear one at a time */
     public void paint(Framebuffer fb, Quest quest, long total, long best, int reveal) {
         fb.clear(ground);
         int w = fb.width();
-        int y = 48;
-        font.drawCentred(fb, "YOU ESCAPED THE JUNGLE", 0, w, y, heading);
+        int y = TOP_PX;
+        font.drawCentred(fb, config.heading(), 0, w, y, heading);
         y += font.lineHeight() * 3;
-        String[] labels = {"COLLECTED", "ESCAPE BONUS", "TIME BONUS", "LIVES BONUS"};
         long[] values = {quest.scoreBeforeBonuses(), quest.escapeBonus(), quest.timeBonus(), quest.livesBonus()};
-        int left = w / 2 - 80;
-        int right = w / 2 + 80;
-        for (int i = 0; i < labels.length && reveal >= i * 25; i++) {
-            line(fb, labels[i], values[i], left, right, y, label);
+        int left = w / 2 - HALF_COLUMNS_PX;
+        int right = w / 2 + HALF_COLUMNS_PX;
+        int every = config.lineEveryTicks();
+        for (int i = 0; i < values.length && reveal >= i * every; i++) {
+            line(fb, config.labels().get(i), values[i], left, right, y, label);
             y += font.lineHeight() * 2;
         }
-        if (reveal >= labels.length * 25) {
+        if (reveal >= values.length * every) {
             y += font.lineHeight();
-            line(fb, "TOTAL", total, left, right, y, heading);
+            line(fb, config.total(), total, left, right, y, heading);
             y += font.lineHeight() * 2;
             if (total >= best) {
-                font.drawCentred(fb, "A NEW BEST", 0, w, y, figure);
+                font.drawCentred(fb, config.newBest(), 0, w, y, figure);
             }
-            font.drawCentred(fb, "PRESS FIRE", 0, w, fb.height() - 24, figure);
+            font.drawCentred(fb, config.prompt(), 0, w, fb.height() - PROMPT_FROM_BOTTOM_PX, figure);
         }
     }
 

@@ -23,7 +23,8 @@ import wulf.sim.Simulation;
 public final class Shell {
 
     public enum State {
-        TITLE, ATTRACT, CREDITS, HISCORES, STATS, KEY_CONFIG, SOUND, PLAYING, GAME_OVER, TALLY, HISCORE_ENTRY
+        TITLE, ATTRACT, CREDITS, HISCORES, STATS, KEY_CONFIG, SOUND, PLAYING, GAME_OVER, ENDING, TALLY, ROLL,
+        HISCORE_ENTRY
     }
 
     /** The sounds the shell itself makes; the jungle's own are the simulation's (§18.2). */
@@ -98,7 +99,9 @@ public final class Shell {
             case SOUND -> sound(in, menu);
             case PLAYING -> playing(in, menu, dev);
             case GAME_OVER -> gameOver(in);
+            case ENDING -> ending(in);
             case TALLY -> tally(in);
+            case ROLL -> roll(in);
             case HISCORE_ENTRY -> hiScoreEntry(in);
         }
     }
@@ -215,7 +218,7 @@ public final class Shell {
             jukebox.tune(session.revealing() ? wulf.data.MusicData.REVEAL : tuneFor(State.PLAYING));
         }
         if (session.won()) {
-            go(State.TALLY);
+            go(State.ENDING);
         } else if (session.over()) {
             go(State.GAME_OVER);
         }
@@ -250,9 +253,35 @@ public final class Shell {
         }
     }
 
+    /**
+     * §14.7: the closing scene. Its tune comes in on its own tick, after the words; fire goes on
+     * to the tally once the prompt is up. Escape banks the run, as everywhere else.
+     */
+    private void ending(InputState in) {
+        ShellConfig.Ending e = config.ending();
+        if (stateTick == Math.max(1, e.tuneAt())) {
+            jukebox.tune(e.tune());
+        }
+        if (in.quitPressed()) {
+            endRun();
+        } else if (stateTick >= e.promptAt() && in.firePressed()) {
+            go(State.TALLY);
+        }
+    }
+
     private void tally(InputState in) {
         // A beat before fire counts, so the press that won the game cannot skip the tally.
-        if (stateTick >= config.tally().holdTicks() && in.firePressed()) {
+        if (in.quitPressed()) {
+            endRun();
+        } else if (stateTick >= config.tally().holdTicks() && in.firePressed()) {
+            go(State.ROLL);
+        }
+    }
+
+    /** §14.7: the credits roll up and away; fire, after a beat, cuts them short. */
+    private void roll(InputState in) {
+        boolean skipped = stateTick >= config.screenHoldTicks() && in.firePressed();
+        if (skipped || in.quitPressed() || stateTick >= config.credits().rollTicks()) {
             endRun();
         }
     }
@@ -349,11 +378,12 @@ public final class Shell {
     /**
      * §18.3: the title's theme over every menu screen, a fanfare for the arch, a
      * descending figure for the end — and in the jungle, nothing. Silence is the
-     * tension; do not put music behind {@code PLAYING}.
+     * tension; do not put music behind {@code PLAYING}. The closing scene starts silent
+     * too: its own tune comes in on its tick (§14.7).
      */
     static String tuneFor(State state) {
         return switch (state) {
-            case PLAYING -> null;
+            case PLAYING, ENDING -> null;
             case GAME_OVER -> wulf.data.MusicData.GAME_OVER;
             case TALLY -> wulf.data.MusicData.WIN;
             default -> wulf.data.MusicData.TITLE;

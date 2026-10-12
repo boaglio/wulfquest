@@ -212,6 +212,77 @@ class ShellTest {
         assertThat(shell.state()).isEqualTo(Shell.State.TITLE);
     }
 
+    /** A shell whose game is won on the first tick of play, with a jukebox that writes down what it is asked for. */
+    private Shell won(PlayerDb db, List<String> tunes) {
+        Shell shell = shell(db);
+        shell.jukebox(new Jukebox() {
+            @Override
+            public void tune(String id) {
+                tunes.add(id);
+            }
+
+            @Override
+            public void sfx(String id) {
+                // not listened for
+            }
+        });
+        shell.tick(FIRE, MenuInput.NONE, false);
+        wulf.sim.WonGames.win(shell.session().sim());
+        shell.tick(InputState.NONE, MenuInput.NONE, false);
+        return shell;
+    }
+
+    @Test
+    void aWonGameGoesToTheClosingSceneThenTheTallyThenTheCredits(@TempDir Path dir) {
+        // §14.7: the scene, the sums, the roll — and then, as from any run, the table or the title.
+        PlayerDb db = db(dir);
+        List<String> tunes = new java.util.ArrayList<>();
+        Shell shell = won(db, tunes);
+        assertThat(shell.state()).isEqualTo(Shell.State.ENDING);
+        assertThat(tunes.get(tunes.size() - 1)).as("the scene opens in silence").isNull();
+
+        ShellConfig.Ending ending = CONFIG.ending();
+        idle(shell, ending.tuneAt() - 1);
+        assertThat(tunes.get(tunes.size() - 1)).as("not yet").isNull();
+        idle(shell, 1);
+        assertThat(tunes.get(tunes.size() - 1)).as("its tune comes in on its tick").isEqualTo(ending.tune());
+        shell.tick(FIRE, MenuInput.NONE, false);
+        assertThat(shell.state()).as("fire waits for the prompt").isEqualTo(Shell.State.ENDING);
+        idle(shell, ending.promptAt());
+        shell.tick(FIRE, MenuInput.NONE, false);
+        assertThat(shell.state()).isEqualTo(Shell.State.TALLY);
+
+        idle(shell, CONFIG.tally().holdTicks());
+        shell.tick(FIRE, MenuInput.NONE, false);
+        assertThat(shell.state()).isEqualTo(Shell.State.ROLL);
+        assertThat(db.stats().gamesPlayed()).as("not banked until it is all over").isZero();
+
+        idle(shell, CONFIG.credits().rollTicks());
+        assertThat(shell.state()).as("the roll ends on its own").isIn(Shell.State.TITLE, Shell.State.HISCORE_ENTRY);
+        assertThat(db.stats().gamesPlayed()).isEqualTo(1);
+        assertThat(db.stats().escapes()).isEqualTo(1);
+    }
+
+    @Test
+    void fireCutsTheRollShortAndEscapeLeavesTheEndingAtAnyPoint(@TempDir Path dir) {
+        Shell shell = won(db(dir), new java.util.ArrayList<>());
+        idle(shell, CONFIG.ending().promptAt());
+        shell.tick(FIRE, MenuInput.NONE, false);
+        idle(shell, CONFIG.tally().holdTicks());
+        shell.tick(FIRE, MenuInput.NONE, false);
+        assertThat(shell.state()).isEqualTo(Shell.State.ROLL);
+        idle(shell, CONFIG.screenHoldTicks());
+        shell.tick(FIRE, MenuInput.NONE, false);
+        assertThat(shell.state()).isIn(Shell.State.TITLE, Shell.State.HISCORE_ENTRY);
+
+        PlayerDb other = db(dir.resolve("other"));
+        Shell left = won(other, new java.util.ArrayList<>());
+        idle(left, 5);
+        left.tick(QUIT, MenuInput.NONE, false);
+        assertThat(left.state()).as("escape banks the run").isIn(Shell.State.TITLE, Shell.State.HISCORE_ENTRY);
+        assertThat(other.stats().escapes()).as("and it still counts as an escape").isEqualTo(1);
+    }
+
     @Test
     void thereIsNoTuneForTheJungleItself() {
         // §18.3 and §27 rule 8: during play there is only the jungle. Silence is the tension.
@@ -219,6 +290,7 @@ class ShellTest {
         assertThat(Shell.tuneFor(Shell.State.TITLE)).isEqualTo(wulf.data.MusicData.TITLE);
         assertThat(Shell.tuneFor(Shell.State.ATTRACT)).isEqualTo(wulf.data.MusicData.TITLE);
         assertThat(Shell.tuneFor(Shell.State.TALLY)).isEqualTo(wulf.data.MusicData.WIN);
+        assertThat(Shell.tuneFor(Shell.State.ENDING)).as("the scene's own tune waits for its tick").isNull();
         assertThat(Shell.tuneFor(Shell.State.GAME_OVER)).isEqualTo(wulf.data.MusicData.GAME_OVER);
     }
 

@@ -56,8 +56,50 @@
     "progress": "{percent}% OF THE QUEST DONE",
     "holdTicks": 150
   },
+  "ending": {
+    "backdrop": [
+      { "sprite": "scenery_7c0c", "frame": "f0", "x": 76, "y": 72 },
+      { "sprite": "scenery_7bb7", "frame": "f0", "x": 176, "y": 72 },
+      { "sprite": "scenery_90a8", "frame": "f0", "x": 0, "y": 62 },
+      { "sprite": "scenery_785e", "frame": "f0", "x": 62, "y": 118 },
+      { "sprite": "scenery_8e18", "frame": "f0", "x": 226, "y": 110 },
+      { "sprite": "scenery_9673", "frame": "f0", "x": 112, "y": 126 },
+      { "sprite": "scenery_9673", "frame": "f0", "x": 286, "y": 126 },
+      { "sprite": "scenery_9673", "frame": "f0", "x": 300, "y": 126 }
+    ],
+    "groundY": 150,
+    "vale": {
+      "sprite": "player", "walk": ["side_walk0", "side_walk1", "side_walk2", "side_walk3"], "ticksPerFrame": 3,
+      "stand": "side_walk1", "fromX": -10, "toX": 150, "walkTicks": 160
+    },
+    "jones": {
+      "sprite": "ending_jones", "x": 196, "stand": "stand", "talk": "talk", "hold": "hold", "holdTalk": "hold_talk",
+      "talkTicksPerFrame": 6
+    },
+    "amulet": { "carry": { "dx": 10, "dy": -14 }, "hold": { "dx": -14, "dy": -12 }, "handOverAt": 230, "handOverTicks": 24 },
+    "lines": [
+      { "speaker": "vale", "at": 170, "y": 168, "colour": "brightYellow", "text": ["- I FOUND IT, MR JONES."] },
+      { "speaker": "jones", "at": 270, "y": 186, "colour": "brightCyan",
+        "text": ["- THANK YOU SO MUCH.", "THIS AMULET BELONGS TO THE WORLD.", "I WILL PUT IT BACK IN THE MUSEUM."] }
+    ],
+    "ticksPerChar": 2,
+    "tune": "ending",
+    "tuneAt": 450,
+    "prompt": "PRESS FIRE",
+    "promptAt": 500,
+    "promptColour": "brightWhite"
+  },
   "tally": {
-    "holdTicks": 100
+    "holdTicks": 100,
+    "heading": "YOU ESCAPED THE JUNGLE",
+    "labels": ["COLLECTED", "ESCAPE BONUS", "TIME BONUS", "LIVES BONUS"],
+    "total": "TOTAL",
+    "newBest": "A NEW BEST",
+    "prompt": "PRESS FIRE",
+    "lineEveryTicks": 25,
+    "headingColour": "brightYellow",
+    "labelColour": "white",
+    "figureColour": "brightWhite"
   },
   "hiScores": {
     "heading": "HALL OF RANGERS",
@@ -121,6 +163,8 @@
     "lines": [
       "WULF QUEST",
       "",
+      "A GAME BY FERNANDO BOAGLIO",
+      "",
       "DESIGN, CODE, ART AND AUDIO",
       "WRITTEN FOR THIS PROJECT ALONE",
       "",
@@ -132,9 +176,17 @@
       "DOCUMENTED MAP DATA. NO ASSETS FROM ANY",
       "COMMERCIAL GAME ARE INCLUDED. NOT",
       "AFFILIATED WITH, ENDORSED BY, OR DERIVED",
-      "FROM THE CODE OF ANY PRIOR WORK.",
-      "",
-      "PRESS FIRE TO RETURN"
-    ]
+      "FROM THE CODE OF ANY PRIOR WORK."
+    ],
+    "prompt": "PRESS FIRE TO RETURN",
+    "roll": {
+      "before": ["THE END", "", "", ""],
+      "after": ["", "", "", "THANK YOU FOR PLAYING"],
+      "fromY": 256,
+      "lineHeightPx": 12,
+      "ticksPerPx": 2,
+      "headingColour": "brightYellow",
+      "bodyColour": "white"
+    }
   }
 }

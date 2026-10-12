@@ -1,0 +1,165 @@
+{
+  "schemaVersion": 1,
+  "name": "ending_jones",
+  "size": {
+    "w": 16,
+    "h": 26
+  },
+  "origin": {
+    "x": 8,
+    "y": 26
+  },
+  "legend": {
+    ".": -1,
+    "K": 0,
+    "r": 2,
+    "g": 4,
+    "y": 6,
+    "w": 7,
+    "W": 15
+  },
+  "frames": [
+    {
+      "id": "stand",
+      "rows": [
+        "......KKKK......",
+        ".....KyyyyK.....",
+        "....KyywyyyK....",
+        "....KyyyyyyK....",
+        "..KKKrrrrrrKKK..",
+        ".KyyyyyyyyyyyyK.",
+        "..KKWKWWWWwwKK..",
+        "..KWWWWWWWwwK...",
+        "...KWWWWWWwwK...",
+        "...KwwwwwwwwK...",
+        "...KwwwwwwKK....",
+        "....KwwwwKKK....",
+        "....KgWWWgggK...",
+        "...KggggggggK...",
+        "...KggggggggK...",
+        "...KggggggggK...",
+        "..KyggggggggK...",
+        ".KyWggggggggK...",
+        ".KyKKyyyyyyyK...",
+        ".KyKKyyyKyyyK...",
+        ".KyKKyyyKyyyK...",
+        ".KyKKyyyKyyyK...",
+        ".KyKKyyyKyyyK...",
+        ".KyKKyyyKyyyK...",
+        ".KyKrrrrKrrrrK..",
+        ".KyKrrrrKrrrrK.."
+      ]
+    },
+    {
+      "id": "talk",
+      "rows": [
+        "......KKKK......",
+        ".....KyyyyK.....",
+        "....KyywyyyK....",
+        "....KyyyyyyK....",
+        "..KKKrrrrrrKKK..",
+        ".KyyyyyyyyyyyyK.",
+        "..KKWKWWWWwwKK..",
+        "..KWWWWWWWwwK...",
+        "...KWWWWWWwwK...",
+        "....KwwwwwwwK...",
+        "...KwwwwwwKK....",
+        "....KwwwwKKK....",
+        "....KgWWWgggK...",
+        "...KggggggggK...",
+        "...KggggggggK...",
+        "...KggggggggK...",
+        "..KyggggggggK...",
+        ".KyWggggggggK...",
+        ".KyKKyyyyyyyK...",
+        ".KyKKyyyKyyyK...",
+        ".KyKKyyyKyyyK...",
+        ".KyKKyyyKyyyK...",
+        ".KyKKyyyKyyyK...",
+        ".KyKKyyyKyyyK...",
+        ".KyKrrrrKrrrrK..",
+        ".KyKrrrrKrrrrK.."
+      ]
+    },
+    {
+      "id": "hold",
+      "rows": [
+        "......KKKK......",
+        ".....KyyyyK.....",
+        "....KyywyyyK....",
+        "....KyyyyyyK....",
+        "..KKKrrrrrrKKK..",
+        ".KyyyyyyyyyyyyK.",
+        "..KKWKWWWWwwKK..",
+        "..KWWWWWWWwwK...",
+        "...KWWWWWWwwK...",
+        "...KwwwwwwwwK...",
+        "...KwwwwwwKK....",
+        "....KwwwwKKK....",
+        "....KgWWWgggK...",
+        "KKKKKgggggggK...",
+        "WWggggggggggK...",
+        "WWggggggggggK...",
+        "KKKKKgggggggK...",
+        "....KgggggggK...",
+        "....KyyyyyyyK...",
+        "....KyyyKyyyK...",
+        "....KyyyKyyyK...",
+        "....KyyyKyyyK...",
+        "....KyyyKyyyK...",
+        "....KyyyKyyyK...",
+        "...KrrrrKrrrrK..",
+        "...KrrrrKrrrrK.."
+      ]
+    },
+    {
+      "id": "hold_talk",
+      "rows": [
+        "......KKKK......",
+        ".....KyyyyK.....",
+        "....KyywyyyK....",
+        "....KyyyyyyK....",
+        "..KKKrrrrrrKKK..",
+        ".KyyyyyyyyyyyyK.",
+        "..KKWKWWWWwwKK..",
+        "..KWWWWWWWwwK...",
+        "...KWWWWWWwwK...",
+        "....KwwwwwwwK...",
+        "...KwwwwwwKK....",
+        "....KwwwwKKK....",
+        "....KgWWWgggK...",
+        "KKKKKgggggggK...",
+        "WWggggggggggK...",
+        "WWggggggggggK...",
+        "KKKKKgggggggK...",
+        "....KgggggggK...",
+        "....KyyyyyyyK...",
+        "....KyyyKyyyK...",
+        "....KyyyKyyyK...",
+        "....KyyyKyyyK...",
+        "....KyyyKyyyK...",
+        "....KyyyKyyyK...",
+        "...KrrrrKrrrrK..",
+        "...KrrrrKrrrrK.."
+      ]
+    }
+  ],
+  "mirror": {
+    "stand_l": {
+      "from": "stand",
+      "flipX": true
+    },
+    "talk_l": {
+      "from": "talk",
+      "flipX": true
+    },
+    "hold_l": {
+      "from": "hold",
+      "flipX": true
+    },
+    "hold_talk_l": {
+      "from": "hold_talk",
+      "flipX": true
+    }
+  }
+}

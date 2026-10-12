@@ -23,6 +23,10 @@ The builds are not signed yet, so Windows warns on the first launch: click
 
 ## Status
 
+**An ending.** Get out through the arch with all four quarters and you walk
+the amulet to old Mr Jones, who knows where it belongs. Then the sums, then
+the credits roll.
+
 **The amulet hides somewhere new every game.** Like the original, each game
 picks one of its eight sets of four rooms for the quarters, so the map you
 learned last game is only half the answer. Each quarter's guardian goes with it.
@@ -57,7 +61,7 @@ swinging; and game over says how much of the adventure you got through.
 with the original's own treasures — a crate, a ring, a sword, now and then a
 spare life, about two hundred and fifty of them a game, worth 150 each.
 
-A complete winning run — all four quarters and out through the arch, about 36
+A complete winning run — all four quarters and out through the arch, about 25
 minutes of play — is recorded and replayed on every build.
 
 **Milestone M9 complete.** M9 was the hardening pass:

@@ -29,6 +29,8 @@ public final class ShellPainter {
     private final SoundScreen sound;
     private final GameOverScreen gameOver;
     private final TallyScreen tally;
+    private final EndingScreen ending;
+    private final CreditsRoll roll;
     private final AmuletRevealScreen reveal;
     private final MapScreen map;
     private final Content content;
@@ -50,12 +52,15 @@ public final class ShellPainter {
         this.keys = new KeyConfigScreen(chrome, config.keyConfig());
         this.sound = new SoundScreen(chrome, config.sound());
         this.gameOver = new GameOverScreen(chrome, config.gameOver());
-        this.tally = new TallyScreen(fonts.small(), content.palette());
-        this.reveal = new AmuletRevealScreen(chrome, display,
-                new wulf.render.SpriteBank(content.sprites()).get(content.landmarks().amulet().sprite()),
-                wulf.render.QuestPainter.framesBySlot(content.landmarks()), config.amuletReveal());
+        this.tally = new TallyScreen(fonts.small(), content.palette(), config.tally());
+        wulf.render.SpriteBank sprites = new wulf.render.SpriteBank(content.sprites());
+        wulf.render.Sprite amulet = sprites.get(content.landmarks().amulet().sprite());
+        java.util.List<String> framesBySlot = wulf.render.QuestPainter.framesBySlot(content.landmarks());
+        this.reveal = new AmuletRevealScreen(chrome, display, amulet, framesBySlot, config.amuletReveal());
+        this.ending = new EndingScreen(config.ending(), chrome.big(), content.palette(), sprites, amulet, framesBySlot);
+        this.roll = new CreditsRoll(config.credits(), chrome.big(), chrome.small(), content.palette());
         this.map = new MapScreen(display, content.rooms(), content.landmarks(), content.palette(), config.map(),
-                new wulf.render.SpriteBank(content.sprites()).get(config.map().quarterIcon().sprite()));
+                sprites.get(config.map().quarterIcon().sprite()));
     }
 
     public GamePainter game() {
@@ -79,6 +84,8 @@ public final class ShellPainter {
                         GameOverScreen.percentDone(sim.roomsVisited(), sim.quest().piecesHeld(),
                                 content.map().roomCount(), content.landmarks().lairs().size()));
             }
+            case ENDING -> ending.paint(fb, shell.stateTick());
+            case ROLL -> roll.paint(fb, shell.stateTick());
             case TALLY -> {
                 Simulation sim = shell.session().sim();
                 tally.paint(fb, sim.quest(), sim.score(), db.scores().best(), (int) shell.stateTick());

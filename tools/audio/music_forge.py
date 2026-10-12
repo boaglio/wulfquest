@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Music Forge — the three tunes, written as text (AGENTS.md §18.3).
+Music Forge — the tunes, written as text (AGENTS.md §18.3).
 
 Original compositions only. Each tune is authored below as phrases of note
 tokens, and this expands them into the flat note list music.json stores:
@@ -14,6 +14,9 @@ that, so a mistyped length is caught here and not in your ears.
   win        8 bars, A major — the arch, and out
   game_over  4 bars, descending — it did not work out
   reveal     4 bars, E minor, once — a quarter of the amulet, chiming (§14.6)
+  ending     4 bars, C major, once — a short march as Mr Jones takes the amulet (§14.7).
+             Asked for as "a few notes of the famous film theme"; that melody is not
+             ours to use (§2.1), so this is our own: same mood, its own tune.
 
 Outputs data/audio/music.json.  Run:  python3 tools/audio/music_forge.py
 """
@@ -62,6 +65,16 @@ TUNES = {
         "phrases": [
             "E4:2 G4:2 B4:2 E5:2  D5:2 B4:2 G4:2 B4:2  C5:2 E5:2 G5:2 E5:2  F#5:4 D5:4",
             "E5:2 B4:2 G4:2 E4:2  F#4:2 A4:2 C5:2 E5:2  D#5:4 B4:4  E5:8",
+        ],
+    },
+    "ending": {
+        "bpm": 120,
+        "loop": False,
+        # 4 bars: a dotted call that leaps up a fifth, an answer that climbs to the octave,
+        # and a cadence home — brass played on a buzzer.
+        "phrases": [
+            "C4:3 C4:1 G4:4  E4:3 F4:1 G4:4  A4:2 G4:2 F4:2 E4:2  D4:4 G3:4",
+            "C4:3 E4:1 G4:4  C5:4 B4:2 A4:2  G4:2 E4:2 D4:2 E4:2  C4:8",
         ],
     },
     "game_over": {

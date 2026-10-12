@@ -24,5 +24,7 @@ public final class CreditsScreen {
             chrome.small().drawCentred(fb, line, 0, fb.width(), y, chrome.body());
             y += chrome.small().lineHeight();
         }
+        y += chrome.small().lineHeight();
+        chrome.small().drawCentred(fb, credits.prompt(), 0, fb.width(), y, chrome.body());
     }
 }

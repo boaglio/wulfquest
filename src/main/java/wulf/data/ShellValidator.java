@@ -128,6 +128,87 @@ public final class ShellValidator {
         }
     }
 
+    /**
+     * The end of a won game (§14.7): the closing scene's sprites, frames, colours and tune
+     * all exist and every line of it fits the canvas in the display font; the tally's and the
+     * roll's colours exist, and the roll's lines fit in the small one.
+     */
+    public static void checkEnding(ShellConfig shell, Palette palette, DisplayConfig display, FontData font,
+                                   Map<String, SpriteData> sprites, MusicData music) {
+        ShellConfig.Ending e = shell.ending();
+        int width = display.canvas().w();
+        int big = font.sets().get("big").advance();
+        int small = font.sets().get("small").advance();
+        for (int i = 0; i < e.backdrop().size(); i++) {
+            ShellConfig.Placed p = e.backdrop().get(i);
+            frame(sprites, p.sprite(), p.frame(), "/ending/backdrop/" + i);
+        }
+        for (String f : e.vale().walk()) {
+            frame(sprites, e.vale().sprite(), f, "/ending/vale/walk");
+        }
+        frame(sprites, e.vale().sprite(), e.vale().stand(), "/ending/vale/stand");
+        ShellConfig.Jones j = e.jones();
+        for (String f : List.of(j.stand(), j.talk(), j.hold(), j.holdTalk())) {
+            frame(sprites, j.sprite(), f, "/ending/jones");
+        }
+        if (!music.tunes().containsKey(e.tune())) {
+            throw new DataException(SOURCE, "/ending/tune", "names '" + e.tune() + "', which music.json has not got");
+        }
+        colour(palette, e.promptColour(), "/ending/promptColour");
+        fits(e.prompt(), big, width, "/ending/prompt");
+        for (int i = 0; i < e.lines().size(); i++) {
+            ShellConfig.Line line = e.lines().get(i);
+            colour(palette, line.colour(), "/ending/lines/" + i + "/colour");
+            for (int t = 0; t < line.text().size(); t++) {
+                fits(line.text().get(t), big, width, "/ending/lines/" + i + "/text/" + t);
+            }
+        }
+        ShellConfig.Tally tally = shell.tally();
+        colour(palette, tally.headingColour(), "/tally/headingColour");
+        colour(palette, tally.labelColour(), "/tally/labelColour");
+        colour(palette, tally.figureColour(), "/tally/figureColour");
+        ShellConfig.Roll roll = shell.credits().roll();
+        colour(palette, roll.headingColour(), "/credits/roll/headingColour");
+        colour(palette, roll.bodyColour(), "/credits/roll/bodyColour");
+        for (String line : shell.credits().lines()) {
+            fits(line, small, width, "/credits/lines");
+        }
+        for (String line : roll.before()) {
+            fits(line, big, width, "/credits/roll/before");
+        }
+        for (String line : roll.after()) {
+            fits(line, big, width, "/credits/roll/after");
+        }
+        if (roll.lineHeightPx() < font.sets().get("big").lineHeight()) {
+            throw new DataException(SOURCE, "/credits/roll/lineHeightPx", "is less than the display font's line");
+        }
+        if (roll.fromY() > display.canvas().h()) {
+            throw new DataException(SOURCE, "/credits/roll/fromY", "starts below the screen");
+        }
+    }
+
+    private static void frame(Map<String, SpriteData> sprites, String sprite, String frame, String pointer) {
+        SpriteData data = sprites.get(sprite);
+        if (data == null) {
+            throw new DataException(SOURCE, pointer, "names sprite '" + sprite + "', which does not exist");
+        }
+        if (data.frames().stream().noneMatch(f -> f.id().equals(frame)) && !data.mirror().containsKey(frame)) {
+            throw new DataException(SOURCE, pointer, "names frame '" + frame + "', which '" + sprite + "' has not got");
+        }
+    }
+
+    private static void colour(Palette palette, String name, String pointer) {
+        if (!inPalette(palette, name)) {
+            throw new DataException(SOURCE, pointer, "names '" + name + "', which is not a palette entry");
+        }
+    }
+
+    private static void fits(String text, int advance, int width, String pointer) {
+        if (text.length() * advance > width) {
+            throw new DataException(SOURCE, pointer, "\"" + text + "\" is wider than the screen");
+        }
+    }
+
     /** The space the reveal keeps above the amulet, between it and the verse, and below. Layout, not a game number. */
     private static final int REVEAL_MARGINS_PX = 16;
 

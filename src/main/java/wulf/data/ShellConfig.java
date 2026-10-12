@@ -16,6 +16,7 @@ public record ShellConfig(
         Title title,
         Attract attract,
         GameOver gameOver,
+        Ending ending,
         Tally tally,
         HiScores hiScores,
         KeyConfig keyConfig,
@@ -97,7 +98,87 @@ public record ShellConfig(
         public static final AmuletReveal NONE = new AmuletReveal(0, 1, "", List.of());
     }
 
-    public record Tally(int holdTicks) {
+    /**
+     * The tally (§14.7): {@code heading}, then one line of {@code labels} every
+     * {@code lineEveryTicks} — collected, escape bonus, time bonus, lives bonus — then
+     * {@code total}, {@code newBest} when it is one, and {@code prompt}. Fire counts only
+     * from {@code holdTicks}.
+     */
+    public record Tally(int holdTicks, String heading, List<String> labels, String total, String newBest,
+                        String prompt, int lineEveryTicks, String headingColour, String labelColour,
+                        String figureColour) {
+        public Tally {
+            labels = List.copyOf(labels);
+        }
+    }
+
+    /**
+     * The closing scene (§14.7, {@code [NEW]}), played on the whole canvas once Vale is
+     * through the arch: a clearing drawn from {@code backdrop}; Vale walks in carrying the
+     * amulet to Mr Jones, who takes it; the {@code lines} type out, each from its own tick;
+     * {@code tune} plays from {@code tuneAt}; fire goes on from {@code promptAt}.
+     */
+    public record Ending(List<Placed> backdrop, int groundY, Walker vale, Jones jones, Amulet amulet,
+                         List<Line> lines, int ticksPerChar, String tune, int tuneAt, String prompt,
+                         int promptAt, String promptColour) {
+        public Ending {
+            backdrop = List.copyOf(backdrop);
+            lines = List.copyOf(lines);
+        }
+
+        /** The tick the scene is finished by: the last line typed, the tune started, the prompt up. */
+        public int lastTick() {
+            int last = Math.max(tuneAt, promptAt);
+            for (Line line : lines) {
+                last = Math.max(last, line.at() + line.length() * ticksPerChar);
+            }
+            return last;
+        }
+    }
+
+    /** A sprite's frame drawn top-left at ({@code x}, {@code y}) on the canvas. */
+    public record Placed(String sprite, String frame, int x, int y) {
+    }
+
+    /** Vale: walking frames in turn from {@code fromX} to {@code toX} over {@code walkTicks}, then {@code stand}. */
+    public record Walker(String sprite, List<String> walk, int ticksPerFrame, String stand, int fromX, int toX,
+                         int walkTicks) {
+        public Walker {
+            walk = List.copyOf(walk);
+        }
+    }
+
+    /** Mr Jones, standing at {@code x}; his mouth moves every {@code talkTicksPerFrame} while his line types. */
+    public record Jones(String sprite, int x, String stand, String talk, String hold, String holdTalk,
+                        int talkTicksPerFrame) {
+    }
+
+    /**
+     * The amulet, whole, drawn at half size: its centre {@code carry} from Vale's feet, until
+     * {@code handOverAt}, then over {@code handOverTicks} to {@code hold} from Mr Jones's.
+     */
+    public record Amulet(Offset carry, Offset hold, int handOverAt, int handOverTicks) {
+    }
+
+    public record Offset(int dx, int dy) {
+    }
+
+    /** One speech: {@code text} typed out from tick {@code at}, top line at {@code y}; {@code speaker} is vale or jones. */
+    public record Line(String speaker, int at, int y, String colour, List<String> text) {
+        public static final String VALE = "vale";
+        public static final String JONES = "jones";
+
+        public Line {
+            text = List.copyOf(text);
+        }
+
+        public int length() {
+            int n = 0;
+            for (String t : text) {
+                n += t.length();
+            }
+            return n;
+        }
     }
 
     public record HiScores(String heading, String entryHeading, String entryPrompt, int size, int nameLength,
@@ -118,9 +199,42 @@ public record ShellConfig(
     public record Stats(String heading, String emptyLine) {
     }
 
-    public record Credits(String heading, List<String> lines) {
+    /**
+     * The credits (§17.2): the page the title opens, {@code heading} over {@code lines} and
+     * {@code prompt}; and after a win the same lines rolled up the screen (§14.7).
+     */
+    public record Credits(String heading, List<String> lines, String prompt, Roll roll) {
         public Credits {
             lines = List.copyOf(lines);
+        }
+
+        /** Everything the roll shows, a row each: {@code before}, the heading, a gap, the lines, {@code after}. */
+        public List<String> rollRows() {
+            List<String> rows = new java.util.ArrayList<>(roll.before());
+            rows.add(heading);
+            rows.add("");
+            rows.addAll(lines);
+            rows.addAll(roll.after());
+            return List.copyOf(rows);
+        }
+
+        /** How long the roll takes: from its first row at {@code fromY} until its last is off the top. */
+        public int rollTicks() {
+            return (roll.fromY() + rollRows().size() * roll.lineHeightPx()) * roll.ticksPerPx();
+        }
+    }
+
+    /**
+     * The roll after a win: {@code before}, the heading and lines, {@code after}, a row every
+     * {@code lineHeightPx}, starting with its first row at {@code fromY} and rising a pixel every
+     * {@code ticksPerPx}. The rows of {@code before} and {@code after}, and the heading, are in
+     * the display font and {@code headingColour}; the lines in the small one and {@code bodyColour}.
+     */
+    public record Roll(List<String> before, List<String> after, int fromY, int lineHeightPx, int ticksPerPx,
+                       String headingColour, String bodyColour) {
+        public Roll {
+            before = List.copyOf(before);
+            after = List.copyOf(after);
         }
     }
 }

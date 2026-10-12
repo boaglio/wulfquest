@@ -3,8 +3,16 @@
   "$id": "https://wulfquest.invalid/schema/shell.schema.json",
   "title": "shell.json — AGENTS.md §17.1, §17.2, §17.5",
   "type": "object",
+  "$defs": {
+    "offset": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["dx", "dy"],
+      "properties": { "dx": { "type": "integer" }, "dy": { "type": "integer" } }
+    }
+  },
   "additionalProperties": false,
-  "required": ["schemaVersion", "screenHoldTicks", "title", "attract", "gameOver", "tally", "hiScores",
+  "required": ["schemaVersion", "screenHoldTicks", "title", "attract", "gameOver", "ending", "tally", "hiScores",
                "keyConfig", "sound", "stats", "amuletReveal", "map", "quickSave", "credits"],
   "properties": {
     "schemaVersion": { "type": "integer", "minimum": 1 },
@@ -65,11 +73,108 @@
         "holdTicks": { "type": "integer", "minimum": 1, "maximum": 1000 }
       }
     },
+    "ending": {
+      "description": "AGENTS.md §14.7 [NEW]: the closing scene, Vale bringing the amulet to Mr Jones",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["backdrop", "groundY", "vale", "jones", "amulet", "lines", "ticksPerChar", "tune", "tuneAt",
+                   "prompt", "promptAt", "promptColour"],
+      "properties": {
+        "backdrop": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["sprite", "frame", "x", "y"],
+            "properties": {
+              "sprite": { "type": "string", "minLength": 1 },
+              "frame": { "type": "string", "minLength": 1 },
+              "x": { "type": "integer" },
+              "y": { "type": "integer" }
+            }
+          }
+        },
+        "groundY": { "type": "integer", "minimum": 0 },
+        "vale": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["sprite", "walk", "ticksPerFrame", "stand", "fromX", "toX", "walkTicks"],
+          "properties": {
+            "sprite": { "type": "string", "minLength": 1 },
+            "walk": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } },
+            "ticksPerFrame": { "type": "integer", "minimum": 1 },
+            "stand": { "type": "string", "minLength": 1 },
+            "fromX": { "type": "integer" },
+            "toX": { "type": "integer" },
+            "walkTicks": { "type": "integer", "minimum": 1 }
+          }
+        },
+        "jones": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["sprite", "x", "stand", "talk", "hold", "holdTalk", "talkTicksPerFrame"],
+          "properties": {
+            "sprite": { "type": "string", "minLength": 1 },
+            "x": { "type": "integer" },
+            "stand": { "type": "string", "minLength": 1 },
+            "talk": { "type": "string", "minLength": 1 },
+            "hold": { "type": "string", "minLength": 1 },
+            "holdTalk": { "type": "string", "minLength": 1 },
+            "talkTicksPerFrame": { "type": "integer", "minimum": 1 }
+          }
+        },
+        "amulet": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["carry", "hold", "handOverAt", "handOverTicks"],
+          "properties": {
+            "carry": { "$ref": "#/$defs/offset" },
+            "hold": { "$ref": "#/$defs/offset" },
+            "handOverAt": { "type": "integer", "minimum": 0 },
+            "handOverTicks": { "type": "integer", "minimum": 1 }
+          }
+        },
+        "lines": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["speaker", "at", "y", "colour", "text"],
+            "properties": {
+              "speaker": { "enum": ["vale", "jones"] },
+              "at": { "type": "integer", "minimum": 0 },
+              "y": { "type": "integer", "minimum": 0 },
+              "colour": { "type": "string", "minLength": 1 },
+              "text": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } }
+            }
+          }
+        },
+        "ticksPerChar": { "type": "integer", "minimum": 1 },
+        "tune": { "type": "string", "minLength": 1 },
+        "tuneAt": { "type": "integer", "minimum": 0 },
+        "prompt": { "type": "string", "minLength": 1, "maxLength": 40 },
+        "promptAt": { "type": "integer", "minimum": 0 },
+        "promptColour": { "type": "string", "minLength": 1 }
+      }
+    },
     "tally": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["holdTicks"],
-      "properties": { "holdTicks": { "type": "integer", "minimum": 0, "maximum": 1000 } }
+      "required": ["holdTicks", "heading", "labels", "total", "newBest", "prompt", "lineEveryTicks",
+                   "headingColour", "labelColour", "figureColour"],
+      "properties": {
+        "holdTicks": { "type": "integer", "minimum": 0, "maximum": 1000 },
+        "heading": { "type": "string", "minLength": 1, "maxLength": 40 },
+        "labels": { "type": "array", "minItems": 4, "maxItems": 4, "items": { "type": "string", "minLength": 1, "maxLength": 20 } },
+        "total": { "type": "string", "minLength": 1, "maxLength": 20 },
+        "newBest": { "type": "string", "minLength": 1, "maxLength": 40 },
+        "prompt": { "type": "string", "minLength": 1, "maxLength": 40 },
+        "lineEveryTicks": { "type": "integer", "minimum": 1 },
+        "headingColour": { "type": "string", "minLength": 1 },
+        "labelColour": { "type": "string", "minLength": 1 },
+        "figureColour": { "type": "string", "minLength": 1 }
+      }
     },
     "hiScores": {
       "type": "object",
@@ -178,10 +283,26 @@
     "credits": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["heading", "lines"],
+      "required": ["heading", "lines", "prompt", "roll"],
       "properties": {
         "heading": { "type": "string", "minLength": 1, "maxLength": 32 },
-        "lines": { "type": "array", "minItems": 1, "maxItems": 24, "items": { "type": "string", "maxLength": 48 } }
+        "lines": { "type": "array", "minItems": 1, "maxItems": 24, "items": { "type": "string", "maxLength": 48 } },
+        "prompt": { "type": "string", "minLength": 1, "maxLength": 48 },
+        "roll": {
+          "description": "AGENTS.md §14.7 [NEW]: the credits rolled up the screen after a win",
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["before", "after", "fromY", "lineHeightPx", "ticksPerPx", "headingColour", "bodyColour"],
+          "properties": {
+            "before": { "type": "array", "items": { "type": "string", "maxLength": 40 } },
+            "after": { "type": "array", "items": { "type": "string", "maxLength": 40 } },
+            "fromY": { "type": "integer", "minimum": 0 },
+            "lineHeightPx": { "type": "integer", "minimum": 1 },
+            "ticksPerPx": { "type": "integer", "minimum": 1 },
+            "headingColour": { "type": "string", "minLength": 1 },
+            "bodyColour": { "type": "string", "minLength": 1 }
+          }
+        }
       }
     }
   }
