@@ -480,4 +480,53 @@ class QuestTest {
         assertThat(s.score()).as("nothing moves once won").isEqualTo(before + q.escapeBonus() + q.timeBonus() + q.livesBonus());
         assertThat(frozen).isNotZero();
     }
+
+    /**
+     * §14.9: the first of Mr Jones's later jobs breaks the amulet in two. Each half fills two
+     * slots of the panel; with both, the amulet is whole and the Keeper steps aside.
+     */
+    @Test
+    void aLaterJobsHalvesFillTwoSlotsEachAndTogetherMakeTheAmuletWhole() {
+        wulf.data.GameConfig.Level halves = content.game().newGamePlus().level(1);
+        QuestRules job = pinnedGuardians(80, 0).atLevel(1, halves);
+        List<LandmarksData.Lair> kept = sim(OPEN, job, marks.exitRoom(), 60, 150).landmarks().lairs();
+        assertThat(kept).hasSize(2);
+        LandmarksData.Lair first = kept.get(0);
+        RoomAddress firstRoom = LandmarksData.room(first.room());
+        Simulation s = sim(OPEN, job, firstRoom, first.pedestal().x(), first.pedestal().y());
+        assertThat(s.level()).isEqualTo(1);
+        assertThat(s.ramp()).as("the jungle starts as if two quarters were held").isEqualTo(halves.rampHeadStart());
+        s.tick(STILL);
+        Quest q = s.quest();
+        assertThat(q.piecesHeld()).isEqualTo(1);
+        assertThat(q.quarters()).isEqualTo(2);
+        assertThat(q.slotMask()).isEqualTo(halves.slotMask(0));
+        assertThat(q.flyMask()).as("both quarters fly to the panel").isEqualTo(halves.slotMask(0));
+        assertThat(s.score()).isEqualTo(real.pieceScore());
+        assertThat(q.keeperState()).as("half an amulet is not enough").isEqualTo(Quest.Keeper.BLOCKING);
+        assertThat(s.ramp()).isEqualTo(Quest.SLOTS);
+
+        LandmarksData.Lair second = kept.get(1);
+        RoomAddress next = LandmarksData.room(second.room());
+        walkY(s, wy(firstRoom, 150));
+        walkX(s, wx(firstRoom, 60));
+        walkY(s, wy(next, 150));
+        walkX(s, wx(next, second.pedestal().x()));
+        walkY(s, wy(next, second.pedestal().y()));
+        assertThat(q.piecesHeld()).isEqualTo(2);
+        assertThat(q.slotMask()).isEqualTo(0b1111);
+        assertThat(q.keeperState()).isEqualTo(Quest.Keeper.STEPPING_ASIDE);
+    }
+
+    @Test
+    void theGameItselfRampsUpOnlyAsTheQuartersComeIn() {
+        QuestRules pinned = pinnedGuardians(80, 0);
+        LandmarksData.Lair lair = marks.lairs().get(0);
+        Simulation s = sim(OPEN, pinned, lairRoom(0), lair.pedestal().x(), lair.pedestal().y());
+        assertThat(s.level()).isZero();
+        assertThat(s.landmarks().lairs()).hasSize(4);
+        assertThat(s.ramp()).isZero();
+        s.tick(STILL);
+        assertThat(s.ramp()).isEqualTo(1);
+    }
 }

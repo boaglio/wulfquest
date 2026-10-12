@@ -11,6 +11,8 @@ public final class Quest {
     static final int GUARDIAN_ID = -2;
     static final int KEEPER_ID = -3;
     static final int ROOMS = 256;
+    /** The panel's places for the amulet: four quarters, however many pieces a job breaks it into (§14.9). */
+    public static final int SLOTS = 4;
 
     public enum Keeper {
         /** In the doorway under the arch, lethal ($9F2F). */
@@ -21,7 +23,7 @@ public final class Quest {
         ASIDE
     }
 
-    final boolean[] taken = new boolean[4];
+    final boolean[] taken = new boolean[SLOTS];
     int piecesHeld;
     int slotMask;
     /** The lair the player is in, by index into {@code landmarks.lairs()}, or -1. */
@@ -36,6 +38,8 @@ public final class Quest {
     int pickupFlash;
     int flyTicks;
     int flySlot = -1;
+    /** Every slot the flying piece fills: one quarter, or a later job's half or whole (§14.9). */
+    int flyMask;
     int flyFromXPx;
     int flyFromYPx;
     final boolean[] hintUsed = new boolean[ROOMS];
@@ -70,6 +74,14 @@ public final class Quest {
 
     public int piecesHeld() {
         return piecesHeld;
+    }
+
+    /**
+     * How much of the amulet is held, in quarters: the pieces held in the game itself, twice
+     * that for halves, four for a whole (§14.9).
+     */
+    public int quarters() {
+        return Integer.bitCount(slotMask);
     }
 
     /** Bit {@code slot} set for every quarter held: the panel draws from this (§17.3). */
@@ -123,6 +135,11 @@ public final class Quest {
 
     public int flySlot() {
         return flySlot;
+    }
+
+    /** Every slot the flying piece fills. */
+    public int flyMask() {
+        return flyMask;
     }
 
     /** Where the flying quarter started, in world pixels. */

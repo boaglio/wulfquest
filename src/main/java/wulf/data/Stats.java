@@ -24,11 +24,21 @@ public record Stats(
         long bestEscapeTicks,
         Map<String, Long> killsBySpecies,
         Map<String, Long> deathsByCause,
-        Map<String, Long> orchidsByColour) {
+        Map<String, Long> orchidsByColour,
+        Integer newGamePlus) {
 
     public static final int SCHEMA_VERSION = 1;
 
+    /** A ledger from before the jobs after the first (§14.9): none unlocked. */
+    public Stats(int schemaVersion, long gamesPlayed, long escapes, long deaths, long roomsVisited, long amuletPieces,
+                 long wulfEncounters, long wulfEvaded, long bestScore, long bestEscapeTicks,
+                 Map<String, Long> killsBySpecies, Map<String, Long> deathsByCause, Map<String, Long> orchidsByColour) {
+        this(schemaVersion, gamesPlayed, escapes, deaths, roomsVisited, amuletPieces, wulfEncounters, wulfEvaded,
+                bestScore, bestEscapeTicks, killsBySpecies, deathsByCause, orchidsByColour, 0);
+    }
+
     public Stats {
+        newGamePlus = newGamePlus == null ? 0 : newGamePlus;
         // Sorted, so a written file diffs cleanly whatever order the game met things in (§20.9).
         killsBySpecies = Map.copyOf(new TreeMap<>(killsBySpecies));
         deathsByCause = Map.copyOf(new TreeMap<>(deathsByCause));
@@ -66,7 +76,20 @@ public record Stats(
                 bestTicks,
                 merge(killsBySpecies, kills),
                 merge(deathsByCause, causes),
-                merge(orchidsByColour, orchids));
+                merge(orchidsByColour, orchids),
+                newGamePlus);
+    }
+
+    /** §14.9: the highest job Mr Jones has offered; 0 until the game itself is won. */
+    public int unlocked() {
+        return newGamePlus;
+    }
+
+    /** The same ledger with job {@code level} offered, if it is further than any before. */
+    public Stats unlocking(int level) {
+        return new Stats(schemaVersion, gamesPlayed, escapes, deaths, roomsVisited, amuletPieces, wulfEncounters,
+                wulfEvaded, bestScore, bestEscapeTicks, killsBySpecies, deathsByCause, orchidsByColour,
+                Math.max(newGamePlus, level));
     }
 
     private static Map<String, Long> merge(Map<String, Long> into, Map<String, Long> more) {

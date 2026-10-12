@@ -83,7 +83,9 @@ Game options (play, browse and jar):
   --god                       nothing can kill you
   --amulet-set N              hide the amulet in the original's set N (0-7) every
                               game, instead of a set picked at random
-                              (any of these four makes a practice run: kept off
+  --new-game-plus N           start at Mr Jones's job N (1: the amulet in two
+                              halves, 2: whole), as if it were unlocked
+                              (any of these five makes a practice run: kept off
                               the hi-score table and the ledger, and not
                               allowed with --record)
 

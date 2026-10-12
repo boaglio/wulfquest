@@ -1,5 +1,6 @@
 package wulf.ui;
 
+import java.util.function.IntFunction;
 import java.util.function.Supplier;
 import wulf.data.HighScores;
 import wulf.data.PlayerDb;
@@ -24,7 +25,7 @@ public final class Shell {
 
     public enum State {
         TITLE, ATTRACT, CREDITS, HISCORES, STATS, KEY_CONFIG, SOUND, PLAYING, GAME_OVER, ENDING, TALLY, ROLL,
-        HISCORE_ENTRY
+        OFFER, HISCORE_ENTRY
     }
 
     /** The sounds the shell itself makes; the jungle's own are the simulation's (§18.2). */
@@ -37,7 +38,8 @@ public final class Shell {
 
     private final ShellConfig config;
     private final PlayerDb db;
-    private final Supplier<Simulation> newGame;
+    /** A new game of job {@code n} (§14.9): 0 for the game itself. */
+    private final IntFunction<Simulation> newGame;
     private final Supplier<Demo> newDemo;
     private final Supplier<String> today;
     /** The input profiles the keys page offers, in the order it shows them (§19.1). */
@@ -61,8 +63,19 @@ public final class Shell {
     /** Edge detection for the sound page's arrows; the sim's own input has no left/right edge. */
     private boolean heldLeft;
     private boolean heldRight;
+    /** §14.9: the furthest job offered — from the ledger, or this session's practice — and the one the title starts. */
+    private int unlocked;
+    private int level;
+    /** The job Mr Jones offers after this win's credits, or 0 for none. */
+    private int offered;
 
+    /** A shell whose every game is the game itself. */
     public Shell(ShellConfig config, PlayerDb db, java.util.List<String> profiles, Supplier<Simulation> newGame,
+                 Supplier<Demo> newDemo, Supplier<String> today) {
+        this(config, db, profiles, n -> newGame.get(), newDemo, today);
+    }
+
+    public Shell(ShellConfig config, PlayerDb db, java.util.List<String> profiles, IntFunction<Simulation> newGame,
                  Supplier<Demo> newDemo, Supplier<String> today) {
         this.config = config;
         this.profiles = java.util.List.copyOf(profiles);
@@ -71,6 +84,8 @@ public final class Shell {
         this.newDemo = newDemo;
         this.today = today;
         this.notice = db.notices().isEmpty() ? null : db.notices().get(0);
+        this.unlocked = Math.min(db.stats().unlocked(), config.newGamePlus().levels().size() - 1);
+        this.level = unlocked;   // the next game is the newest job; the title's key goes back
     }
 
     /**
@@ -80,6 +95,12 @@ public final class Shell {
     public void jukebox(Jukebox box) {
         this.jukebox = box == null ? Jukebox.SILENT : box;
         this.jukebox.tune(tuneFor(state));
+    }
+
+    /** §17.6, {@code --new-game-plus}: job {@code n} open and chosen, for this session only. */
+    public void practiseJob(int n) {
+        level = Math.min(n, config.newGamePlus().levels().size() - 1);
+        unlocked = Math.max(unlocked, level);
     }
 
     /** §21.4: turns quick save and load on, with what they need. Off unless called. */
@@ -102,6 +123,7 @@ public final class Shell {
             case ENDING -> ending(in);
             case TALLY -> tally(in);
             case ROLL -> roll(in);
+            case OFFER -> offer(in);
             case HISCORE_ENTRY -> hiScoreEntry(in);
         }
     }
@@ -115,12 +137,18 @@ public final class Shell {
             QuickSaves.Loaded loaded = quick.load();
             if (loaded.ok()) {
                 jukebox.sfx(SFX_PICK);
-                session = new GameSession(loaded.sim(), config.amuletReveal(), loaded.played());
+                session = new GameSession(loaded.sim(), revealFor(loaded.sim()), loaded.played());
                 session.note("LOADED", config.quickSave().noteTicks());
                 go(State.PLAYING);
             } else {
                 notice = loaded.refusal();
             }
+            return;
+        }
+        if (unlocked > 0 && menu.typed(config.newGamePlus().key())) {
+            level = (level + 1) % (unlocked + 1);   // §14.9: through the jobs unlocked, and back to the first
+            jukebox.sfx(SFX_MOVE);
+            idleTicks = 0;
             return;
         }
         String screen = TitleScreen.screenFor(config.title().menu(), menu);
@@ -218,6 +246,7 @@ public final class Shell {
             jukebox.tune(session.revealing() ? wulf.data.MusicData.REVEAL : tuneFor(State.PLAYING));
         }
         if (session.won()) {
+            unlock(session.sim());
             go(State.ENDING);
         } else if (session.over()) {
             go(State.GAME_OVER);
@@ -237,7 +266,7 @@ public final class Shell {
         } else if (menu.typed(keys.loadKey())) {
             QuickSaves.Loaded loaded = quick.load();
             if (loaded.ok()) {
-                session = new GameSession(loaded.sim(), config.amuletReveal(), loaded.played());
+                session = new GameSession(loaded.sim(), revealFor(loaded.sim()), loaded.played());
                 session.note("LOADED", keys.noteTicks());
                 jukebox.sfx(SFX_PICK);
             } else {
@@ -281,7 +310,21 @@ public final class Shell {
     /** §14.7: the credits roll up and away; fire, after a beat, cuts them short. */
     private void roll(InputState in) {
         boolean skipped = stateTick >= config.screenHoldTicks() && in.firePressed();
-        if (skipped || in.quitPressed() || stateTick >= config.credits().rollTicks()) {
+        if (in.quitPressed()) {
+            endRun();
+        } else if (skipped || stateTick >= config.credits().rollTicks()) {
+            if (offered > 0) {
+                go(State.OFFER);
+            } else {
+                endRun();
+            }
+        }
+    }
+
+    /** §14.9: Mr Jones has a new job; fire, once his words are out, banks the run. */
+    private void offer(InputState in) {
+        int promptAt = config.newGamePlus().levels().get(offered).offer().promptAt();
+        if (in.quitPressed() || stateTick >= promptAt && in.firePressed()) {
             endRun();
         }
     }
@@ -310,8 +353,37 @@ public final class Shell {
     // ---------------------------------------------------------------- transitions
 
     private void startGame() {
-        session = new GameSession(newGame.get(), config.amuletReveal());
+        Simulation sim = newGame.apply(level);
+        session = new GameSession(sim, revealFor(sim));
         go(State.PLAYING);
+    }
+
+    /** The reveal's verses for {@code sim}'s job: the game's own, or one a piece of a later job's (§14.9). */
+    private ShellConfig.AmuletReveal revealFor(Simulation sim) {
+        ShellConfig.AmuletReveal r = config.amuletReveal();
+        java.util.List<ShellConfig.Job> jobs = config.newGamePlus().levels();
+        if (sim.level() <= 0 || sim.level() >= jobs.size()) {
+            return r;
+        }
+        return new ShellConfig.AmuletReveal(r.skipAfterTicks(), r.scale(), r.prompt(), jobs.get(sim.level()).verses());
+    }
+
+    /**
+     * §14.9: winning a job opens the next, if there is one not yet open. It is kept in the ledger
+     * — but a practice win opens it for this session only — and the next game from the title is it.
+     */
+    private void unlock(Simulation sim) {
+        int next = sim.level() + 1;
+        offered = 0;
+        if (next >= config.newGamePlus().levels().size() || next <= unlocked) {
+            return;
+        }
+        unlocked = next;
+        level = next;
+        offered = next;
+        if (!sim.practice()) {
+            db.putStats(db.stats().unlocking(next));
+        }
     }
 
     private void startDemo() {
@@ -335,6 +407,7 @@ public final class Shell {
      * back to the title (§21.2, §21.5).
      */
     private void endRun() {
+        offered = 0;
         Simulation sim = session.sim();
         boolean escaped = session.won();
         if (sim.practice()) {
@@ -344,7 +417,7 @@ public final class Shell {
             return;
         }
         db.putStats(recordGame(db.stats(), sim, escaped));
-        HighScores.Entry row = new HighScores.Entry("", sim.score(), sim.quest().piecesHeld(), sim.tick(), today.get());
+        HighScores.Entry row = new HighScores.Entry("", sim.score(), sim.quest().quarters(), sim.tick(), today.get());
         session = null;
         if (db.scores().qualifies(row.score(), row.ticks(), config.hiScores().size())) {
             pending = row;
@@ -358,7 +431,7 @@ public final class Shell {
 
     /** The counters this run adds to the ledger (§21.5). */
     static Stats recordGame(Stats before, Simulation sim, boolean escaped) {
-        return before.afterGame(sim.score(), escaped, sim.tick(), sim.roomsEntered(), sim.quest().piecesHeld(),
+        return before.afterGame(sim.score(), escaped, sim.tick(), sim.roomsEntered(), sim.quest().quarters(),
                 sim.deaths(), sim.wulf().appearances(), sim.wulf().evasions(),
                 counts(sim.killsBySpecies()), counts(sim.deathsByCause()), counts(sim.orchidsByColour()));
     }
@@ -383,7 +456,7 @@ public final class Shell {
      */
     static String tuneFor(State state) {
         return switch (state) {
-            case PLAYING, ENDING -> null;
+            case PLAYING, ENDING, OFFER -> null;
             case GAME_OVER -> wulf.data.MusicData.GAME_OVER;
             case TALLY -> wulf.data.MusicData.WIN;
             default -> wulf.data.MusicData.TITLE;
@@ -422,6 +495,20 @@ public final class Shell {
 
     public int highlight() {
         return highlight;
+    }
+
+    /** §14.9: the job the title starts, and the furthest one open. */
+    public int level() {
+        return level;
+    }
+
+    public int unlocked() {
+        return unlocked;
+    }
+
+    /** The job Mr Jones is offering on the {@link State#OFFER} screen; 0 otherwise. */
+    public int offered() {
+        return offered;
     }
 
     public String notice() {

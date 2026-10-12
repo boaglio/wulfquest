@@ -24,6 +24,7 @@ import wulf.world.RoomAddress;
  *
  * @param features    feature flags the run was recorded under, laid over {@code game.json}'s
  *                    (§1.1) — so a replay of a [NEW] rule keeps playing it. Usually empty
+ * @param newGamePlus which job the run is (§14.9): 0, and left out of the file, for the game itself
  * @param contentHash the content database's hash when recorded. Informational: a
  *                    replay may survive a content change that does not touch the
  *                    simulation, and its hashes decide
@@ -39,7 +40,8 @@ public record Replay(
         int checkpointEvery,
         List<int[]> input,
         List<String> hashes,
-        Map<String, Boolean> features) {
+        Map<String, Boolean> features,
+        Integer newGamePlus) {
 
     public static final int SCHEMA_VERSION = 1;
 
@@ -52,6 +54,14 @@ public record Replay(
         input = List.copyOf(input);
         hashes = List.copyOf(hashes);
         features = features == null ? Map.of() : Map.copyOf(features);
+        newGamePlus = newGamePlus == null ? 0 : newGamePlus;
+    }
+
+    /** A run of the game itself, under flags of its own (§1.1). */
+    public Replay(int schemaVersion, String name, String note, String contentHash, long seed, String startRoom,
+                  boolean dev, int checkpointEvery, List<int[]> input, List<String> hashes,
+                  Map<String, Boolean> features) {
+        this(schemaVersion, name, note, contentHash, seed, startRoom, dev, checkpointEvery, input, hashes, features, 0);
     }
 
     /** The same run under no flags of its own. */
@@ -149,6 +159,9 @@ public record Replay(
         sb.append("  \"startRoom\": ").append(quote(startRoom)).append(",\n");
         sb.append("  \"dev\": ").append(dev).append(",\n");
         sb.append("  \"checkpointEvery\": ").append(checkpointEvery).append(",\n");
+        if (newGamePlus > 0) {
+            sb.append("  \"newGamePlus\": ").append(newGamePlus).append(",\n");
+        }
         if (!features.isEmpty()) {
             sb.append("  \"features\": {");
             String sep = " ";

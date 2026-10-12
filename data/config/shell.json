@@ -188,5 +188,39 @@
       "headingColour": "brightYellow",
       "bodyColour": "white"
     }
+  },
+  "newGamePlus": {
+    "key": "N",
+    "labelColour": "brightCyan",
+    "levels": [
+      { "label": "N  THE FIRST JOB: FOUR QUARTERS" },
+      { "label": "N  NEW GAME+: THE AMULET IN TWO",
+        "verses": [
+          ["HALF A MOON IN YOUR HAND,", "THE OTHER HALF IN THE DARK.", "THE JUNGLE KNOWS YOUR FACE NOW,", "AND IT IS NOT GLAD TO SEE YOU."],
+          ["THE HALVES ARE ONE AGAIN.", "ITS LIGHT RUNS IN YOUR BONES.", "GO NOW TO THE ARCH OF STONE:", "THE KEEPER WILL STEP ASIDE."]
+        ],
+        "offer": {
+          "lines": [
+            { "speaker": "jones", "at": 30, "y": 168, "colour": "brightCyan",
+              "text": ["- I HAVE A NEW JOB FOR YOU...", "ANOTHER AMULET, BROKEN IN TWO,", "DEEPER IN THE JUNGLE."] },
+            { "speaker": "vale", "at": 220, "y": 208, "colour": "brightYellow", "text": ["- I'M ON MY WAY."] }
+          ],
+          "promptAt": 290
+        }
+      },
+      { "label": "N  NEW GAME+2: THE AMULET WHOLE",
+        "verses": [
+          ["THE AMULET, WHOLE AT LAST,", "WARM AS A HAND IN YOURS.", "GO NOW TO THE ARCH OF STONE:", "THE KEEPER WILL STEP ASIDE."]
+        ],
+        "offer": {
+          "lines": [
+            { "speaker": "jones", "at": 30, "y": 168, "colour": "brightCyan",
+              "text": ["- I HAVE ONE LAST JOB FOR YOU...", "THIS AMULET IS IN ONE PIECE,", "AND THE JUNGLE GUARDS IT WELL."] },
+            { "speaker": "vale", "at": 230, "y": 208, "colour": "brightYellow", "text": ["- THEN I'LL BRING IT BACK."] }
+          ],
+          "promptAt": 310
+        }
+      }
+    ]
   }
 }

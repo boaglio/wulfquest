@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import wulf.data.CreatureData;
 import wulf.data.FlameData;
+import wulf.data.GameConfig;
 import wulf.data.LandmarksData;
 import wulf.data.PlayerData;
 import wulf.data.SfxData;
@@ -74,6 +75,8 @@ public final class Simulation {
     private static final long TREASURE_STREAM = 0x7EA5_0BE5L;
     /** Salt for the pick of where the amulet lies (§14.2): a stream name. */
     private static final long AMULET_STREAM = 0xA29DL;
+    /** §14.9: which of the set's lairs a later job keeps, by a stream of its own. */
+    private static final long JOB_STREAM = 0x10B5L;
 
     private final PlayerData rules;
     private final CollisionWorld world;
@@ -212,11 +215,46 @@ public final class Simulation {
      */
     private static Ecosystem hideAmulet(Ecosystem eco, long runSeed) {
         QuestRules q = eco.quest();
-        if (!q.enabled() || q.landmarks().placed()) {
+        if (!q.enabled()) {
             return eco;
         }
-        int set = new Rng(Rng.hash(runSeed, AMULET_STREAM)).nextInt(q.landmarks().amuletSets().sets().size());
-        return eco.withQuest(q.withLandmarks(q.landmarks().withAmuletSet(set)));
+        if (!q.landmarks().placed()) {
+            int set = new Rng(Rng.hash(runSeed, AMULET_STREAM)).nextInt(q.landmarks().amuletSets().sets().size());
+            q = q.withLandmarks(q.landmarks().withAmuletSet(set));
+        }
+        return eco.withQuest(shareOut(q, runSeed));
+    }
+
+    /**
+     * §14.9 [NEW]: a later job breaks the amulet into fewer pieces, so it keeps only that many of
+     * the set's lairs — picked from the run seed by a stream of their own — each with its guardian,
+     * the first kept holding the job's first piece. The game itself keeps them all.
+     */
+    private static QuestRules shareOut(QuestRules q, long runSeed) {
+        GameConfig.Level job = q.levelRules();
+        int n = q.landmarks().lairs().size();
+        int k = job.pieces().size();
+        if (k == 0 || k >= n) {
+            return q;
+        }
+        Rng draw = new Rng(Rng.hash(runSeed, JOB_STREAM));
+        int[] order = new int[n];
+        for (int i = 0; i < n; i++) {
+            order[i] = i;
+        }
+        for (int j = 0; j < k; j++) {
+            int pick = j + draw.nextInt(n - j);
+            int t = order[j];
+            order[j] = order[pick];
+            order[pick] = t;
+        }
+        int[] kept = java.util.Arrays.copyOf(order, k);
+        java.util.Arrays.sort(kept);
+        int[] masks = new int[k];
+        for (int j = 0; j < k; j++) {
+            masks[j] = job.slotMask(j);
+        }
+        return q.keeping(kept, masks);
     }
 
     /**
@@ -754,7 +792,7 @@ public final class Simulation {
         }
         int lx = s.area().x() + rng.nextInt(s.area().w());
         int ly = s.area().y() + rng.nextInt(s.area().h());
-        int index = s.pick(rng.nextInt(s.pick().length), quest.piecesHeld);
+        int index = s.pick(rng.nextInt(s.pick().length), ramp());
         int tint = s.tints()[rng.nextInt(s.tints().length)];
         CreatureData.Species species = eco.creatures().creatures().get(index);
         int xFp = Fixed.fp(room.col() * ROOM_W_PX + lx);
@@ -1406,7 +1444,7 @@ public final class Simulation {
             pointTheWay(marks);
         }
         // $A18C: with the amulet whole, past the Keeper and above the doorway, he is out.
-        if (inZone && room.equals(marks.exitRoom()) && q.piecesHeld >= marks.exit().requiresPieces()) {
+        if (inZone && room.equals(marks.exitRoom()) && q.quarters() >= marks.exit().requiresPieces()) {
             player.mode = Player.Mode.ESCAPING;
             player.modeTick = 0;
             player.swingTick = -1;
@@ -1479,15 +1517,16 @@ public final class Simulation {
         Quest q = quest;
         q.taken[q.lair] = true;
         q.piecesHeld++;
-        q.slotMask |= 1 << lair.piece().slot();
+        q.slotMask |= lair.slotMask();
         q.pickupFlash = amulet.pickupFlashTicks();
         sounds.play(SFX_AMULET_PIECE);
         q.flyTicks = amulet.flyToPanelTicks();
-        q.flySlot = lair.piece().slot();
+        q.flySlot = Integer.numberOfTrailingZeros(lair.slotMask());
+        q.flyMask = lair.slotMask();
         q.flyFromXPx = centreXPx;
         q.flyFromYPx = centreYPx;
         addScore(rules.pieceScore());
-        if (q.piecesHeld >= rules.landmarks().exit().requiresPieces() && q.keeperState == Quest.Keeper.BLOCKING) {
+        if (q.quarters() >= rules.landmarks().exit().requiresPieces() && q.keeperState == Quest.Keeper.BLOCKING) {
             q.keeperState = Quest.Keeper.STEPPING_ASIDE;   // harmless now; it moves only while he is in its room ($9F16)
             q.keeperTick = 0;
         }
@@ -1736,7 +1775,7 @@ public final class Simulation {
         Wulf w = wulf;
         w.state = Wulf.State.PROWLING;
         w.at = start;
-        w.speedFp = p.speedFp();
+        w.speedFp = paced(p.speedFp());
         w.latch = Wulf.Latch.FREE;
         w.body.xFp = Fixed.fp(start.col() * ROOM_W_PX + p.xPx());
         w.body.yFp = Fixed.fp(start.row() * ROOM_H_PX + p.yPx());
@@ -1758,7 +1797,7 @@ public final class Simulation {
             } else if (w.latch == Wulf.Latch.FREE) {
                 // $A922: by room along the row, or within the room by which side the player is on.
                 w.latch = Wulf.Latch.STEERED;
-                w.speedFp = p.speedFp();
+                w.speedFp = paced(p.speedFp());
                 head(w, room.col() != w.at.col() ? Integer.signum(room.col() - w.at.col())
                         : context.playerCentreXPx() < w.body.centreXPx() ? -1 : 1);
             }
@@ -1786,7 +1825,7 @@ public final class Simulation {
                     w.state = Wulf.State.PROWLING;
                     w.stateTick = 0;
                     w.latch = Wulf.Latch.SPENT;
-                    w.speedFp = p.risenSpeedFp();
+                    w.speedFp = paced(p.risenSpeedFp());
                 }
             }
             default -> stepProwler(w);
@@ -1854,6 +1893,20 @@ public final class Simulation {
         return hunt.neverIn().contains(at) || hunt.neverInLairs() && eco.quest().landmarks().lairIndexIn(at) >= 0;
     }
 
+    /**
+     * §14.9: how far on the jungle thinks the quest is, for the creatures it sends and how often
+     * the Wulf comes — the quarters held, and in a later job the head start it gives.
+     */
+    int ramp() {
+        return Math.min(Quest.SLOTS, quest.quarters() + eco.quest().levelRules().rampHeadStart());
+    }
+
+    /** §14.9: the prowler's pace in this job; the game itself keeps the original's. */
+    private int paced(int speedFp) {
+        int percent = eco.quest().levelRules().wulfSpeedPercent();
+        return percent == 100 ? speedFp : speedFp * percent / 100;
+    }
+
     /** The appearance roll (§13.3): on entering a room, and every {@code rollEveryTicks} while in one. */
     private void rollForWulf() {
         WulfRules hunt = eco.wulf();
@@ -1864,7 +1917,7 @@ public final class Simulation {
                 || barred(hunt, room)) {
             return;
         }
-        int pieces = quest.piecesHeld;
+        int pieces = ramp();
         int chance = a.baseChancePer10k() + a.chancePerAmuletPiecePer10k() * pieces
                 + a.chancePerQuietRoomPer10k() * Math.min(wulf.quietRooms, a.quietRoomsCap());
         if (rng.chance(chance)) {
@@ -2277,7 +2330,7 @@ public final class Simulation {
 
         @Override
         public int amuletPieces() {
-            return quest.piecesHeld;
+            return ramp();
         }
 
         @Override
@@ -2425,6 +2478,11 @@ public final class Simulation {
     /** This game's landmarks: the lairs where it hid the amulet (§14.2). */
     public LandmarksData landmarks() {
         return eco.quest().landmarks();
+    }
+
+    /** Which job this game is (§14.9): 0 for the game itself. */
+    public int level() {
+        return eco.quest().level();
     }
 
     /**

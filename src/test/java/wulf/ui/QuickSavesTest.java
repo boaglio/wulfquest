@@ -4,7 +4,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.nio.file.Path;
 import java.util.List;
-import java.util.function.LongFunction;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import wulf.Content;
@@ -24,8 +23,8 @@ class QuickSavesTest {
     private static final Content CONTENT = Content.load(DB);
     private static final WorldGrid WORLD = new WorldGrid(CONTENT.rooms());
     private static final RoomAddress START = CONTENT.map().startRoom();
-    private static final LongFunction<Simulation> GAME = seed -> Simulation.startingIn(CONTENT.player(), WORLD,
-            CONTENT.game().transition().freezeTicks(), START, CONTENT.ecosystem(), seed);
+    private static final QuickSaves.GameMaker GAME = (seed, job) -> Simulation.startingIn(CONTENT.player(), WORLD,
+            CONTENT.game().transition().freezeTicks(), START, CONTENT.ecosystem(job), seed);
 
     private static PlayerDb db(Path dir) {
         return new PlayerDb(dir, DB, CONTENT.defaultScores(), CONTENT.defaultSettings());
@@ -49,7 +48,7 @@ class QuickSavesTest {
     void aLoadComesBackToExactlyTheMomentSaved(@TempDir Path dir) {
         PlayerDb db = db(dir);
         QuickSaves saves = saves(db, CONTENT.db().contentHash());
-        GameSession s = new GameSession(GAME.apply(42L));
+        GameSession s = new GameSession(GAME.make(42L, 0));
         play(s, 0, 500);
         long hash = s.sim().stateHash();
         long tick = s.sim().tick();
@@ -62,7 +61,7 @@ class QuickSavesTest {
         assertThat(back.sim().tick()).isEqualTo(tick);
         assertThat(back.played().ticks()).isEqualTo(500);
         assertThat(back.sim().practice()).as("a load makes it practice").isTrue();
-        Simulation unpracticed = GAME.apply(42L);
+        Simulation unpracticed = GAME.make(42L, 0);
         GameSession again = new GameSession(unpracticed);
         play(again, 0, 500);
         unpracticed.markPractice();
@@ -70,10 +69,25 @@ class QuickSavesTest {
     }
 
     @Test
+    void aLaterJobComesBackAsThatJob(@TempDir Path dir) {
+        // §14.9: the save says which job it was; a load rebuilds that one, or the hash would not fit.
+        PlayerDb db = db(dir);
+        QuickSaves saves = saves(db, CONTENT.db().contentHash());
+        GameSession s = new GameSession(GAME.make(42L, 1));
+        play(s, 0, 300);
+        saves.save(s);
+        assertThat(db.quickSave().orElseThrow().newGamePlus()).isEqualTo(1);
+        QuickSaves.Loaded back = saves.load();
+        assertThat(back.ok()).as(back.refusal()).isTrue();
+        assertThat(back.sim().level()).isEqualTo(1);
+        assertThat(back.sim().landmarks().lairs()).hasSize(2);
+    }
+
+    @Test
     void aLoadedGameCanBeSavedAndLoadedAgain(@TempDir Path dir) {
         PlayerDb db = db(dir);
         QuickSaves saves = saves(db, CONTENT.db().contentHash());
-        GameSession s = new GameSession(GAME.apply(7L));
+        GameSession s = new GameSession(GAME.make(7L, 0));
         play(s, 0, 600);
         saves.save(s);
         QuickSaves.Loaded first = saves.load();
@@ -95,7 +109,7 @@ class QuickSavesTest {
     @Test
     void anotherVersionsSaveIsRefused(@TempDir Path dir) {
         PlayerDb db = db(dir);
-        GameSession s = new GameSession(GAME.apply(3L));
+        GameSession s = new GameSession(GAME.make(3L, 0));
         play(s, 0, 100);
         saves(db, "an older version").save(s);
         assertThat(saves(db, CONTENT.db().contentHash()).load().refusal()).isEqualTo("SAVE IS FROM ANOTHER VERSION");
@@ -104,13 +118,13 @@ class QuickSavesTest {
     @Test
     void aSaveThatDoesNotReplayToItsHashIsRefused(@TempDir Path dir) {
         PlayerDb db = db(dir);
-        GameSession s = new GameSession(GAME.apply(3L));
+        GameSession s = new GameSession(GAME.make(3L, 0));
         play(s, 0, 300);
         QuickSaves saves = saves(db, CONTENT.db().contentHash());
         saves.save(s);
         QuickSaveData d = db.quickSave().orElseThrow();
         db.putQuickSave(new QuickSaveData(d.schemaVersion(), d.contentHash(), d.seed() + 1, d.startRoom(), d.dev(),
-                d.practiced(), d.ticks(), d.input(), d.stateHash()));
+                d.practiced(), d.ticks(), d.input(), d.stateHash(), d.newGamePlus()));
         assertThat(saves.load().refusal()).isEqualTo("SAVE DOES NOT FIT THIS GAME");
     }
 
@@ -118,7 +132,7 @@ class QuickSavesTest {
     void theShellSavesOnF5AndGoesBackOnF9(@TempDir Path dir) {
         PlayerDb db = db(dir);
         Shell shell = new Shell(CONTENT.shell(), db, List.copyOf(CONTENT.input().profiles().keySet()),
-                () -> GAME.apply(11L), null, () -> "2026-10-04");
+                () -> GAME.make(11L, 0), null, () -> "2026-10-04");
         shell.quickSaves(saves(db, CONTENT.db().contentHash()));
         shell.tick(InputState.of(0, 0, true, true), MenuInput.NONE, false);
         assertThat(shell.state()).isEqualTo(Shell.State.PLAYING);
@@ -134,7 +148,7 @@ class QuickSavesTest {
         shell.tick(InputState.NONE, MenuInput.named(CONTENT.shell().quickSave().loadKey()), false);
         assertThat(shell.session().message(false)).isEqualTo("LOADED");
         assertThat(shell.session().sim().practice()).isTrue();
-        Simulation expected = GAME.apply(11L);
+        Simulation expected = GAME.make(11L, 0);
         GameSession replay = new GameSession(expected);
         // The save key's own tick played too (it was a NONE input), so the moment saved is after it.
         for (int t = 0; t < 200; t++) {
@@ -150,11 +164,11 @@ class QuickSavesTest {
     void theTitlesLoadKeyResumesTheSavedGame(@TempDir Path dir) {
         PlayerDb db = db(dir);
         QuickSaves saves = saves(db, CONTENT.db().contentHash());
-        GameSession s = new GameSession(GAME.apply(5L));
+        GameSession s = new GameSession(GAME.make(5L, 0));
         play(s, 0, 400);
         saves.save(s);
         Shell shell = new Shell(CONTENT.shell(), db, List.copyOf(CONTENT.input().profiles().keySet()),
-                () -> GAME.apply(99L), null, () -> "2026-10-04");
+                () -> GAME.make(99L, 0), null, () -> "2026-10-04");
         shell.quickSaves(saves);
         shell.tick(InputState.NONE, MenuInput.named(CONTENT.shell().quickSave().loadKey()), false);
         assertThat(shell.state()).isEqualTo(Shell.State.PLAYING);
@@ -165,7 +179,7 @@ class QuickSavesTest {
     @Test
     void withoutTheFeatureTheKeysDoNothing(@TempDir Path dir) {
         Shell shell = new Shell(CONTENT.shell(), db(dir), List.copyOf(CONTENT.input().profiles().keySet()),
-                () -> GAME.apply(11L), null, () -> "2026-10-04");
+                () -> GAME.make(11L, 0), null, () -> "2026-10-04");
         shell.tick(InputState.of(0, 0, true, true), MenuInput.NONE, false);
         shell.tick(InputState.NONE, MenuInput.named(CONTENT.shell().quickSave().saveKey()), false);
         assertThat(shell.session().message(false)).isNull();

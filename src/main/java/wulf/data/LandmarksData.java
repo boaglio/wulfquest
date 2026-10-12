@@ -79,6 +79,19 @@ public record LandmarksData(
                 items, hint, temple);
     }
 
+    /**
+     * §14.9: only {@code kept} of the lairs, in their order, the {@code j}-th holding a piece that
+     * fills {@code masks[j]}'s slots. The rest hold nothing this game, and no guardian waits there.
+     */
+    public LandmarksData keeping(int[] kept, int[] masks) {
+        List<Lair> some = new ArrayList<>(kept.length);
+        for (int j = 0; j < kept.length; j++) {
+            some.add(lairs.get(kept[j]).holding(masks[j]));
+        }
+        return new LandmarksData(schemaVersion, fidelity, startFacing, exit, some, amuletSets, amulet, shrines,
+                items, hint, temple);
+    }
+
     /** Whether every lair has its room: false for the data as loaded, before a set is picked. */
     public boolean placed() {
         return lairs.stream().allMatch(l -> l.room() != null);
@@ -89,8 +102,14 @@ public record LandmarksData(
         if (lairs.isEmpty() || !placed()) {
             return -1;
         }
+        // By room alone: a later job (§14.9) keeps only some of the set's lairs.
         for (int k = 0; k < amuletSets.sets().size(); k++) {
-            if (withAmuletSet(k).lairs().equals(lairs)) {
+            List<String> rooms = amuletSets.sets().get(k);
+            boolean all = true;
+            for (Lair lair : lairs) {
+                all &= rooms.get(amuletSets.quarters().indexOf(lair.id())).equals(lair.room());
+            }
+            if (all) {
                 return k;
             }
         }
@@ -149,8 +168,25 @@ public record LandmarksData(
      * are not in the file: they come from the set the game picks ({@link #withAmuletSet(int)}), null before.
      *
      * @param orbitPx the guardian's circle here, when the room is too tight for its usual one; else null
+     * @param slots   the panel slots its piece fills, as a mask, when a later job (§14.9) breaks the amulet
+     *                into fewer pieces; null for its own quarter's one
      */
-    public record Lair(String id, String room, String guardian, Piece piece, Point pedestal, Integer orbitPx) {
+    public record Lair(String id, String room, String guardian, Piece piece, Point pedestal, Integer orbitPx,
+                       Integer slots) {
+
+        public Lair(String id, String room, String guardian, Piece piece, Point pedestal, Integer orbitPx) {
+            this(id, room, guardian, piece, pedestal, orbitPx, null);
+        }
+
+        /** Bit {@code slot} set for every slot of the panel this lair's piece fills. */
+        public int slotMask() {
+            return slots == null ? 1 << piece.slot() : slots;
+        }
+
+        /** The same lair holding a piece that fills {@code mask}'s slots (§14.9). */
+        public Lair holding(int mask) {
+            return new Lair(id, room, guardian, piece, pedestal, orbitPx, mask);
+        }
     }
 
     /**

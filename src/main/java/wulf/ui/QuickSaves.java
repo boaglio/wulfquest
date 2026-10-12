@@ -2,7 +2,6 @@ package wulf.ui;
 
 import java.util.Optional;
 import java.util.function.Consumer;
-import java.util.function.LongFunction;
 import wulf.data.PlayerDb;
 import wulf.data.QuickSaveData;
 import wulf.engine.Replay;
@@ -22,6 +21,12 @@ import wulf.world.RoomAddress;
  */
 public final class QuickSaves {
 
+    /** A new game from a seed, as job {@code level} (§14.9). */
+    @FunctionalInterface
+    public interface GameMaker {
+        Simulation make(long seed, int level);
+    }
+
     /** What a load gave: the game and the input that made it, or why there is none. */
     public record Loaded(Simulation sim, RecordedInput played, String refusal) {
 
@@ -38,7 +43,7 @@ public final class QuickSaves {
     private final String contentHash;
     private final RoomAddress start;
     private final boolean dev;
-    private final LongFunction<Simulation> silentGame;
+    private final GameMaker silentGame;
     private final Consumer<Simulation> voice;
 
     /**
@@ -47,7 +52,7 @@ public final class QuickSaves {
      * @param voice      gives a loaded game its sound
      */
     public QuickSaves(PlayerDb db, String contentHash, RoomAddress start, boolean dev,
-                      LongFunction<Simulation> silentGame, Consumer<Simulation> voice) {
+                      GameMaker silentGame, Consumer<Simulation> voice) {
         this.db = db;
         this.contentHash = contentHash;
         this.start = start;
@@ -60,7 +65,7 @@ public final class QuickSaves {
         Simulation sim = session.sim();
         RecordedInput played = session.played();
         db.putQuickSave(new QuickSaveData(QuickSaveData.SCHEMA_VERSION, contentHash, sim.runSeed(), start.toString(),
-                dev, sim.practice(), played.ticks(), played.runs(), Replay.hex(sim.stateHash())));
+                dev, sim.practice(), played.ticks(), played.runs(), Replay.hex(sim.stateHash()), sim.level()));
     }
 
     public boolean exists() {
@@ -85,7 +90,7 @@ public final class QuickSaves {
         } catch (IllegalArgumentException e) {
             return Loaded.refused("SAVE IS DAMAGED");
         }
-        Simulation sim = silentGame.apply(save.seed());
+        Simulation sim = silentGame.make(save.seed(), save.newGamePlus());
         RecordedInput.Cursor in = played.cursor();
         while (in.hasNext()) {
             sim.play(in.next(), dev);

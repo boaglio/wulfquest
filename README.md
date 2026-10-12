@@ -27,6 +27,11 @@ The builds are not signed yet, so Windows warns on the first launch: click
 the amulet to old Mr Jones, who knows where it belongs. Then the sums, then
 the credits roll.
 
+**New Game+.** Win once and Mr Jones has a new job for you: another amulet,
+broken in two. Win that and there is one last job, an amulet in one piece.
+Fewer pieces, but the jungle starts out angrier and the Wulf runs faster.
+Once a job is open the title starts it, and `N` there switches back.
+
 **The amulet hides somewhere new every game.** Like the original, each game
 picks one of its eight sets of four rooms for the quarters, so the map you
 learned last game is only half the answer. Each quarter's guardian goes with it.
@@ -99,6 +104,7 @@ lives in [AGENTS.md](AGENTS.md) §24.
 ./run.sh --god             # practice: nothing can kill you
 ./run.sh --amulet-set 3    # practice: hide the amulet in the original's set 3 (0-7),
                            # not in a set picked at random each game
+./run.sh --new-game-plus 1 # practice: start at Mr Jones's job 1 (2 halves) or 2 (whole)
                            # (practice runs never reach the hi-score table)
 ./run.sh --user-dir ./save # keep hi-scores, settings and stats somewhere else
 ./run.sh browse            # the room browser: arrows, [ ] or PgUp/PgDn, M
@@ -154,7 +160,8 @@ jungle; find the two eyes and it shows where the four quarters of the amulet lie
 The title screen has the rest: `K` for the keys page, where the period layout
 (`Q`/`A`/`O`/`P` to move, `M` to swing) is one digit away and the choice sticks;
 `A` for sound and volume; `H` for the hi-scores, `C` for the credits, `S` for
-your lifetime ledger. Nothing is hidden behind a key you have to know.
+your lifetime ledger. Once you have won, `N` picks which of Mr Jones's jobs to
+play. Nothing is hidden behind a key you have to know.
 
 **Quick save** (off by default, as the original had none): add
 `"features": { "quickSave": true }` to `settings.json` (below). Then `F5` keeps
@@ -193,7 +200,7 @@ nothing yet.)
 
 ## How it is checked
 
-`mvn -q verify` runs 453 tests and every gate the project has:
+`mvn -q verify` runs 548 tests and every gate the project has:
 
 - **The data validates itself.** Every JSON file is schema-checked at load,
   and the semantic validators go further — a palette colour that does not

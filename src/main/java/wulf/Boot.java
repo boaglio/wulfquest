@@ -8,7 +8,7 @@ import java.nio.file.Path;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.LongFunction;
+import java.util.function.IntFunction;
 import java.util.function.Supplier;
 import wulf.data.DataException;
 import wulf.data.DisplayConfig;
@@ -107,6 +107,12 @@ public final class Boot {
             System.exit(64);
             return;
         }
+        int jobs = c.game().newGamePlus().levels().size();
+        if (parsed.newGamePlus() >= jobs) {
+            System.err.println("wulfquest: --new-game-plus expects 1 to " + (jobs - 1) + ", got " + parsed.newGamePlus());
+            System.exit(64);
+            return;
+        }
         if (parsed.headless()) {
             System.out.println("  --headless: skipping the window");
             return;
@@ -172,9 +178,11 @@ public final class Boot {
         long firstSeed = parsed.seeded() ? parsed.seed() : System.nanoTime();
         AtomicLong nextSeed = new AtomicLong(firstSeed);
         // One way to make a game, so a quick load (§21.4) rebuilds it exactly as it was begun.
-        LongFunction<Simulation> silentGame = seed -> {
+        // §14.9: a game of job n — 0 the game itself — as the title asks for it.
+        QuickSaves.GameMaker silentGame = (seed, job) -> {
+            Ecosystem jobEco = job == 0 ? gameEco : gameEco.atLevel(job, c.game().newGamePlus().level(job));
             Simulation fresh = Simulation.startingIn(c.player(), world, c.game().transition().freezeTicks(), start,
-                    gameEco, seed);
+                    jobEco, seed);
             if (parsed.debugEffect() != null) {
                 fresh.giveEffect(parsed.debugEffect());   // --debug-effect: every game starts under it
             }
@@ -183,19 +191,22 @@ public final class Boot {
             }
             fresh.infiniteLives(parsed.infiniteLives());
             fresh.god(parsed.god());
-            if (parsed.amuletSet() >= 0) {
-                fresh.markPractice();   // knowing where the amulet lies is practice too (§17.6)
+            if (parsed.amuletSet() >= 0 || parsed.newGamePlus() > 0) {
+                fresh.markPractice();   // knowing where the amulet lies, or skipping to a job, is practice too (§17.6)
             }
             return fresh;
         };
         java.util.function.Consumer<Simulation> voice = sim -> sim.sounds(mixer, c.sfx().cadence());
-        Supplier<Simulation> newGame = () -> {
-            Simulation fresh = silentGame.apply(nextSeed.getAndIncrement());
+        IntFunction<Simulation> newGame = job -> {
+            Simulation fresh = silentGame.make(nextSeed.getAndIncrement(), job);
             voice.accept(fresh);
             return fresh;
         };
         Shell shell = new Shell(c.shell(), player, List.copyOf(c.input().profiles().keySet()), newGame,
                 demoSource(c, world, eco), Boot::today);
+        if (parsed.newGamePlus() > 0) {
+            shell.practiseJob(parsed.newGamePlus());   // §17.6: this session only
+        }
         if (c.game().feature("quickSave")) {
             shell.quickSaves(new QuickSaves(player, c.db().contentHash(), start, parsed.dev(), silentGame, voice));
         }
@@ -450,11 +461,11 @@ public final class Boot {
      */
     record Args(Path dataDir, Path userDir, int scale, RoomAddress room, long seed, boolean seeded, Path record,
                 String debugEffect, boolean headless, boolean browse, boolean dev, boolean noAudio, boolean help,
-                int lives, boolean infiniteLives, boolean god, int amuletSet, String error) {
+                int lives, boolean infiniteLives, boolean god, int amuletSet, int newGamePlus, String error) {
 
         /** Any practice option (§17.6). */
         boolean practice() {
-            return lives > 0 || infiniteLives || god || amuletSet >= 0;
+            return lives > 0 || infiniteLives || god || amuletSet >= 0 || newGamePlus > 0;
         }
 
         static Args parse(String[] argv) {
@@ -475,6 +486,7 @@ public final class Boot {
             boolean infiniteLives = false;
             boolean god = false;
             int amuletSet = -1;
+            int newGamePlus = 0;
             try {
                 for (int i = 0; i < argv.length; i++) {
                     switch (argv[i]) {
@@ -497,6 +509,12 @@ public final class Boot {
                                 throw new IllegalArgumentException("--amulet-set expects a set number from 0, got " + amuletSet);
                             }
                         }
+                        case "--new-game-plus" -> {
+                            newGamePlus = number(argv, ++i, "--new-game-plus");
+                            if (newGamePlus < 1) {
+                                throw new IllegalArgumentException("--new-game-plus expects a job from 1, got " + newGamePlus);
+                            }
+                        }
                         case "--scale" -> scale = number(argv, ++i, "--scale");
                         case "--room" -> room = roomArg(argv, ++i);
                         case "--record" -> record = Path.of(value(argv, ++i, "--record"));
@@ -512,16 +530,16 @@ public final class Boot {
                 }
             } catch (IllegalArgumentException e) {
                 return new Args(dataDir, userDir, scale, room, seed, seeded, record, debugEffect, headless, browse,
-                        dev, noAudio, help, lives, infiniteLives, god, amuletSet, e.getMessage());
+                        dev, noAudio, help, lives, infiniteLives, god, amuletSet, newGamePlus, e.getMessage());
             }
-            if (record != null && (lives > 0 || infiniteLives || god || amuletSet >= 0)) {
+            if (record != null && (lives > 0 || infiniteLives || god || amuletSet >= 0 || newGamePlus > 0)) {
                 // A replay file has no room for them, so it would replay a different game.
                 return new Args(dataDir, userDir, scale, room, seed, seeded, record, debugEffect, headless, browse,
-                        dev, noAudio, help, lives, infiniteLives, god, amuletSet,
-                        "--record cannot be combined with --lives, --infinite-lives, --god or --amulet-set");
+                        dev, noAudio, help, lives, infiniteLives, god, amuletSet, newGamePlus,
+                        "--record cannot be combined with --lives, --infinite-lives, --god, --amulet-set or --new-game-plus");
             }
             return new Args(dataDir, userDir, scale, room, seed, seeded, record, debugEffect, headless, browse, dev,
-                    noAudio, help, lives, infiniteLives, god, amuletSet, null);
+                    noAudio, help, lives, infiniteLives, god, amuletSet, newGamePlus, null);
         }
 
         private static String value(String[] argv, int i, String option) {
@@ -585,7 +603,9 @@ public final class Boot {
                       --god            nothing can kill you
                       --amulet-set N   hide the amulet in the original's set N (0-7) every game,
                                        instead of a set picked at random
-                                       (any of these four: a practice run, kept off the
+                      --new-game-plus N  start at Mr Jones's job N (1: the amulet in two
+                                       halves, 2: whole), as if it were unlocked
+                                       (any of these five: a practice run, kept off the
                                        hi-score table and the ledger)
                       --headless       load and validate the data, then exit
                       --dev            developer mode: K kills, N shows collision, room and

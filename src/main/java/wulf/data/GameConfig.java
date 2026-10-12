@@ -10,6 +10,7 @@ public record GameConfig(
         Transition transition,
         Difficulty difficulty,
         Exit exit,
+        NewGamePlus newGamePlus,
         Map<String, Boolean> features) {
 
     public GameConfig {
@@ -33,6 +34,47 @@ public record GameConfig(
     }
 
     /**
+     * §14.9 [NEW]: the jobs Mr Jones has for a ranger who has won. Level 0 is the game itself,
+     * the original's; each level after it is unlocked by winning the one before.
+     */
+    public record NewGamePlus(java.util.List<Level> levels) {
+        public NewGamePlus {
+            levels = java.util.List.copyOf(levels);
+        }
+
+        public Level level(int n) {
+            return levels.get(n);
+        }
+    }
+
+    /**
+     * One job (§14.9).
+     *
+     * @param pieces           one entry per piece hidden, the panel slots (0..3) it fills: four
+     *                         quarters, two halves, or the amulet whole
+     * @param rampHeadStart    quarters counted as held, on top of those that are, when the jungle
+     *                         decides which creatures to send and how often the Wulf comes
+     * @param wulfSpeedPercent the Wulf's pace, against its own
+     */
+    public record Level(java.util.List<java.util.List<Integer>> pieces, int rampHeadStart, int wulfSpeedPercent) {
+        public Level {
+            pieces = pieces.stream().map(java.util.List::copyOf).toList();
+        }
+
+        /** The original's game: every lair its own quarter, nothing added. */
+        public static final Level ORIGINAL = new Level(java.util.List.of(), 0, 100);
+
+        /** Each piece's slots as a mask: bit {@code slot} set for every slot it fills. */
+        public int slotMask(int piece) {
+            int mask = 0;
+            for (int slot : pieces.get(piece)) {
+                mask |= 1 << slot;
+            }
+            return mask;
+        }
+    }
+
+    /**
      * This config with the player's feature choices laid over it (§21.3). Only
      * flags this build knows are taken: a stale name in settings is ignored
      * rather than fatal, because the player DB outlives any one build.
@@ -47,7 +89,7 @@ public record GameConfig(
                 merged.put(e.getKey(), e.getValue());
             }
         }
-        return new GameConfig(schemaVersion, tickHz, maxCatchupTicks, transition, difficulty, exit, merged);
+        return new GameConfig(schemaVersion, tickHz, maxCatchupTicks, transition, difficulty, exit, newGamePlus, merged);
     }
 
     /** A feature flag (AGENTS.md §1.1); unknown names are a programmer error. */

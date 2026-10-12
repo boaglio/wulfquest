@@ -4,7 +4,7 @@
   "title": "game.json — AGENTS.md §6.1, §7.5, §12.6, §14.4, §16.2",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schemaVersion", "tickHz", "maxCatchupTicks", "transition", "difficulty", "exit", "features"],
+  "required": ["schemaVersion", "tickHz", "maxCatchupTicks", "transition", "difficulty", "exit", "newGamePlus", "features"],
   "properties": {
     "schemaVersion": { "type": "integer", "minimum": 1 },
     "tickHz": { "type": "integer", "minimum": 1, "maximum": 240 },
@@ -39,6 +39,33 @@
       "properties": {
         "keeperNudgeZonePx": { "type": "integer", "minimum": 0 },
         "keeperNudgePx": { "type": "integer", "minimum": 0, "maximum": 64 }
+      }
+    },
+    "newGamePlus": {
+      "description": "§14.9 [NEW]: the jobs after the first. Level 0 is the game itself; each level after it is unlocked by winning the one before",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["levels"],
+      "properties": {
+        "levels": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["pieces", "rampHeadStart", "wulfSpeedPercent"],
+            "properties": {
+              "pieces": {
+                "description": "one entry per piece hidden: the panel slots (0..3) it fills. Together they fill all four",
+                "type": "array",
+                "minItems": 1,
+                "items": { "type": "array", "minItems": 1, "items": { "type": "integer", "minimum": 0, "maximum": 3 } }
+              },
+              "rampHeadStart": { "description": "quarters added to those held when the jungle decides how hard to be", "type": "integer", "minimum": 0, "maximum": 4 },
+              "wulfSpeedPercent": { "type": "integer", "minimum": 50, "maximum": 200 }
+            }
+          }
+        }
       }
     },
     "features": {

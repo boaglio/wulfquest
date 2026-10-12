@@ -67,6 +67,36 @@ class ReplayTest {
         assertThat(result.sim().wulf().appearances()).as("the dev key replayed too").isPositive();
     }
 
+    @Test
+    void aLaterJobIsRecordedAndReplayedAsThatJob() {
+        // §14.9: the file says which job the run was; a game of the game itself leaves it out.
+        RoomAddress start = content.map().startRoom();
+        Simulation sim = Simulation.startingIn(content.player(), new wulf.world.WorldGrid(content.rooms()),
+                content.game().transition().freezeTicks(), start, content.ecosystem(1), 8L);
+        ReplayRecorder rec = new ReplayRecorder("job", content.db().contentHash(), 8L, start, false).note("ReplayTest");
+        for (int t = 0; t < 600; t++) {
+            InputState in = script(t);
+            sim.play(in, false);
+            rec.record(in, sim);
+        }
+        Path file = dir.resolve("job.json");
+        rec.replay().write(file);
+        Replay back = Replay.read(file);
+        assertThat(back.newGamePlus()).isEqualTo(1);
+        ReplayRunner.Result result = ReplayRunner.run(content, back);
+        assertThat(result.passed()).as("diverged at %d", result.divergedAtTick()).isTrue();
+        assertThat(result.sim().level()).isEqualTo(1);
+        assertThat(result.sim().landmarks().lairs()).hasSize(2);
+
+        record(5L, 50).write(dir.resolve("itself.json"));
+        assertThat(Replay.read(dir.resolve("itself.json")).newGamePlus()).isZero();
+        try {
+            assertThat(java.nio.file.Files.readString(dir.resolve("itself.json"))).doesNotContain("newGamePlus");
+        } catch (java.io.IOException e) {
+            throw new java.io.UncheckedIOException(e);
+        }
+    }
+
     /**
      * §22.6: every replay in the folder, not just the ones named in a test. A replay added later
      * is covered the moment it lands, and one that quietly stops matching cannot hide behind the

@@ -44,7 +44,7 @@ public final class ShellPainter {
         this.tickHz = content.game().tickHz();
         this.game = new GamePainter(content, fonts);
         this.chrome = new Chrome(fonts, content.palette());
-        this.title = new TitleScreen(chrome, config.title(), content.palette());
+        this.title = new TitleScreen(chrome, config.title(), content.palette(), config.newGamePlus());
         this.credits = new CreditsScreen(chrome, config.credits());
         this.hiScores = new HiScoreScreen(chrome, config.hiScores());
         this.hiScoreEntry = new HiScoreEntryScreen(chrome, config.hiScores());
@@ -69,7 +69,8 @@ public final class ShellPainter {
 
     public void paint(Framebuffer fb, Shell shell, boolean dev) {
         switch (shell.state()) {
-            case TITLE -> title.paint(fb, shell.stateTick(), db.scores().best(), shell.notice());
+            case TITLE -> title.paint(fb, shell.stateTick(), db.scores().best(), shell.notice(),
+                    shell.unlocked() > 0 ? config.newGamePlus().levels().get(shell.level()).label() : null);
             case ATTRACT -> attract(fb, shell);
             case CREDITS -> credits.paint(fb);
             case HISCORES -> hiScores.paint(fb, db.scores(), shell.highlight());
@@ -81,11 +82,13 @@ public final class ShellPainter {
                 playing(fb, shell, dev);
                 Simulation sim = shell.session().sim();
                 gameOver.paint(fb, display.playfield().y(), display.playfield().h(),
-                        GameOverScreen.percentDone(sim.roomsVisited(), sim.quest().piecesHeld(),
+                        GameOverScreen.percentDone(sim.roomsVisited(), sim.quest().quarters(),
                                 content.map().roomCount(), content.landmarks().lairs().size()));
             }
             case ENDING -> ending.paint(fb, shell.stateTick());
             case ROLL -> roll.paint(fb, shell.stateTick());
+            case OFFER -> ending.paintOffer(fb, shell.stateTick(),
+                    config.newGamePlus().levels().get(shell.offered()).offer());
             case TALLY -> {
                 Simulation sim = shell.session().sim();
                 tally.paint(fb, sim.quest(), sim.score(), db.scores().best(), (int) shell.stateTick());

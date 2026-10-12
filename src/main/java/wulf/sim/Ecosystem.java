@@ -2,6 +2,7 @@ package wulf.sim;
 
 import wulf.data.CreatureData;
 import wulf.data.FlameData;
+import wulf.data.GameConfig;
 import wulf.data.OrchidData;
 
 /**
@@ -16,6 +17,11 @@ public record Ecosystem(CreatureData creatures, RoomPopulator populator, int roo
     /** The same jungle with another quest: the game's own lairs, once it has hidden the amulet (§14.2). */
     public Ecosystem withQuest(QuestRules q) {
         return new Ecosystem(creatures, populator, roomFirstVisitScore, wulf, q, orchids, flame, swarm, beasts, orchidSpots);
+    }
+
+    /** The same jungle as job {@code n} (§14.9): fewer pieces, and a harder jungle. */
+    public Ecosystem atLevel(int n, GameConfig.Level rules) {
+        return withQuest(quest.atLevel(n, rules));
     }
 
     /** No creatures, no Wulf, no quest: M3's empty jungle. */

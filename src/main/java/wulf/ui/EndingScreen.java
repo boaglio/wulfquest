@@ -13,6 +13,9 @@ import wulf.render.SpriteBank;
  * screen, a clearing in the jungle; Vale walks in with the amulet to Mr Jones, an old hand
  * in a fedora, and gives it to him; what they say types out under them. Every place, frame,
  * word and tick is {@code shell.json → ending}'s; this only draws the moment it is given.
+ *
+ * <p>The same clearing, later, is where Mr Jones offers the next job (§14.9): Vale stands
+ * before him, the amulet gone to its museum, and they talk.
  */
 final class EndingScreen {
 
@@ -21,6 +24,7 @@ final class EndingScreen {
 
     private final ShellConfig.Ending config;
     private final FontSet font;
+    private final Palette palette;
     private final int ground;
     private final int prompt;
     private final int[] lineColours;
@@ -34,6 +38,7 @@ final class EndingScreen {
                  List<String> framesBySlot) {
         this.config = config;
         this.font = font;
+        this.palette = palette;
         this.ground = palette.indexOf("black");
         this.prompt = palette.indexOf(config.promptColour());
         this.lineColours = config.lines().stream().mapToInt(l -> palette.indexOf(l.colour())).toArray();
@@ -59,8 +64,8 @@ final class EndingScreen {
     }
 
     /** Whether {@code speaker}'s line is still typing at tick {@code t}. */
-    private boolean speaking(String speaker, long t) {
-        for (ShellConfig.Line line : config.lines()) {
+    private boolean speaking(List<ShellConfig.Line> lines, String speaker, long t) {
+        for (ShellConfig.Line line : lines) {
             if (line.speaker().equals(speaker) && t >= line.at()
                     && t < line.at() + (long) line.length() * config.ticksPerChar()) {
                 return true;
@@ -70,15 +75,10 @@ final class EndingScreen {
     }
 
     void paint(Framebuffer fb, long t) {
-        fb.clear(ground);
-        for (int i = 0; i < backdrop.size(); i++) {
-            ShellConfig.Placed p = config.backdrop().get(i);
-            Sprite s = backdrop.get(i);
-            s.blit(fb, p.frame(), p.x() + s.originX(), p.y() + s.originY());
-        }
+        paintBackdrop(fb);
         int gy = config.groundY();
         ShellConfig.Jones j = config.jones();
-        boolean talking = speaking(ShellConfig.Line.JONES, t) && (t / j.talkTicksPerFrame()) % 2 == 1;
+        boolean talking = talking(config.lines(), t);
         boolean holding = handedOver(t);
         String jonesFrame = holding ? (talking ? j.holdTalk() : j.hold()) : (talking ? j.talk() : j.stand());
         jones.blit(fb, jonesFrame, j.x(), gy);
@@ -89,10 +89,40 @@ final class EndingScreen {
         vale.blit(fb, valeFrame, vx, gy);
 
         paintAmulet(fb, t, vx, gy);
-        paintLines(fb, t);
+        paintLines(fb, t, config.lines());
         if (t >= config.promptAt()) {
             font.drawCentred(fb, config.prompt(), 0, fb.width(), fb.height() - PROMPT_FROM_BOTTOM_PX, prompt);
         }
+    }
+
+    /**
+     * §14.9: the next job. The clearing again; Vale standing where he stopped, Mr Jones with his
+     * hands free — the amulet is in its museum — and the offer's lines typing out under them.
+     */
+    void paintOffer(Framebuffer fb, long t, ShellConfig.Offer offer) {
+        paintBackdrop(fb);
+        int gy = config.groundY();
+        ShellConfig.Jones j = config.jones();
+        jones.blit(fb, talking(offer.lines(), t) ? j.talk() : j.stand(), j.x(), gy);
+        vale.blit(fb, config.vale().stand(), config.vale().toX(), gy);
+        paintLines(fb, t, offer.lines());
+        if (t >= offer.promptAt()) {
+            font.drawCentred(fb, config.prompt(), 0, fb.width(), fb.height() - PROMPT_FROM_BOTTOM_PX, prompt);
+        }
+    }
+
+    private void paintBackdrop(Framebuffer fb) {
+        fb.clear(ground);
+        for (int i = 0; i < backdrop.size(); i++) {
+            ShellConfig.Placed p = config.backdrop().get(i);
+            Sprite s = backdrop.get(i);
+            s.blit(fb, p.frame(), p.x() + s.originX(), p.y() + s.originY());
+        }
+    }
+
+    /** Mr Jones's mouth open at {@code t}: on every other beat while his line types. */
+    private boolean talking(List<ShellConfig.Line> lines, long t) {
+        return speaking(lines, ShellConfig.Line.JONES, t) && (t / config.jones().talkTicksPerFrame()) % 2 == 1;
     }
 
     /** The amulet, whole and at half size, centred where it is held — or on its way between them. */
@@ -121,9 +151,10 @@ final class EndingScreen {
     }
 
     /** Each line types out a character every {@code ticksPerChar} from its own tick, row after row. */
-    private void paintLines(Framebuffer fb, long t) {
-        for (int i = 0; i < config.lines().size(); i++) {
-            ShellConfig.Line line = config.lines().get(i);
+    private void paintLines(Framebuffer fb, long t, List<ShellConfig.Line> lines) {
+        for (int i = 0; i < lines.size(); i++) {
+            ShellConfig.Line line = lines.get(i);
+            int colour = lines == config.lines() ? lineColours[i] : palette.indexOf(line.colour());
             if (t < line.at()) {
                 continue;
             }
@@ -136,7 +167,7 @@ final class EndingScreen {
                 String part = row.substring(0, (int) Math.min(row.length(), shown));
                 // Centred on the whole row, so typing grows it left to right instead of from the middle.
                 int left = (fb.width() - font.widthOf(row)) / 2;
-                font.draw(fb, part, left, y, lineColours[i]);
+                font.draw(fb, part, left, y, colour);
                 shown -= row.length();
                 y += font.lineHeight();
             }

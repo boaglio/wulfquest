@@ -54,7 +54,7 @@ public final class QuestPainter {
         LandmarksData.Lair lair = sim.landmarks().lairs().get(q.lair());
         fb.setClip(field.x(), field.y(), field.w(), field.h());
         try {
-            amulet.blit(fb, lair.piece().frame(), field.x() + lair.pedestal().x(), field.y() + lair.pedestal().y());
+            blitPiece(fb, lair.slotMask(), field.x() + lair.pedestal().x(), field.y() + lair.pedestal().y());
         } finally {
             fb.clearClip();
         }
@@ -119,7 +119,10 @@ public final class QuestPainter {
         fb.fillRect(field.x(), field.y(), field.w(), rows, black);
     }
 
-    /** The taken quarter, flying from the pedestal to its slot; drawn last, over the panel. */
+    /**
+     * The taken piece flying from the pedestal to the panel; drawn last, over it. A later job's
+     * half or whole (§14.9) comes apart on the way, each quarter to its own slot.
+     */
     public void paintFlight(Framebuffer fb, Simulation sim, PanelPainter panel) {
         Quest q = sim.quest();
         if (amulet == null || q.flyTicks() <= 0 || q.flySlot() < 0) {
@@ -127,16 +130,72 @@ public final class QuestPainter {
         }
         int total = marks.amulet().flyToPanelTicks();
         int done = total - q.flyTicks();
-        int fromX = field.x() + q.flyFromXPx() - sim.room().col() * Simulation.ROOM_W_PX;
-        int fromY = field.y() + q.flyFromYPx() - sim.room().row() * Simulation.ROOM_H_PX;
-        int toX = panel.slotX(q.flySlot()) + 4;
-        int toY = panel.slotY(q.flySlot()) + 4;
-        int x = fromX + (toX - fromX) * done / total;
-        int y = fromY + (toY - fromY) * done / total;
-        String frame = frameForSlot(q.flySlot());
-        LandmarksData.Amulet a = marks.amulet();
-        // Blit takes the feet origin: bottom-centre of the 16x16 quarter.
-        amulet.blit(fb, frame, x, y + a.size().h() / 2);
+        int centreX = field.x() + q.flyFromXPx() - sim.room().col() * Simulation.ROOM_W_PX;
+        int centreY = field.y() + q.flyFromYPx() - sim.room().row() * Simulation.ROOM_H_PX;
+        int mask = q.flyMask() == 0 ? 1 << q.flySlot() : q.flyMask();
+        Bounds b = new Bounds(mask);
+        int w = amulet.w();
+        int h = amulet.h();
+        for (int slot = 0; slot < Quest.SLOTS; slot++) {
+            if ((mask & 1 << slot) == 0) {
+                continue;
+            }
+            // Where this quarter sits in the piece, from the piece's centre.
+            int fromX = centreX + (slot % 2 - b.minCol) * w - (b.cols - 1) * w / 2;
+            int fromY = centreY + (slot / 2 - b.minRow) * h - (b.rows - 1) * h / 2;
+            int toX = panel.slotX(slot) + 4;
+            int toY = panel.slotY(slot) + 4;
+            int x = fromX + (toX - fromX) * done / total;
+            int y = fromY + (toY - fromY) * done / total;
+            // Blit takes the feet origin: bottom-centre of the 16x16 quarter.
+            amulet.blit(fb, frameForSlot(slot), x, y + marks.amulet().size().h() / 2);
+        }
+    }
+
+    /**
+     * A piece filling {@code mask}'s slots, its quarters where they sit in the amulet, the
+     * piece's feet at ({@code x}, {@code y}): a quarter, or a later job's half or whole (§14.9).
+     */
+    private void blitPiece(Framebuffer fb, int mask, int x, int y) {
+        Bounds b = new Bounds(mask);
+        int w = amulet.w();
+        int h = amulet.h();
+        for (int slot = 0; slot < Quest.SLOTS; slot++) {
+            if ((mask & 1 << slot) != 0) {
+                int fx = x - (b.cols - 1) * w / 2 + (slot % 2 - b.minCol) * w;
+                int fy = y - (b.maxRow - slot / 2) * h;
+                amulet.blit(fb, frameForSlot(slot), fx, fy);
+            }
+        }
+    }
+
+    /** The columns and rows of the panel's 2x2 assembly a piece's slots cover. */
+    private static final class Bounds {
+        final int minCol;
+        final int minRow;
+        final int maxRow;
+        final int cols;
+        final int rows;
+
+        Bounds(int mask) {
+            int c0 = 1;
+            int c1 = 0;
+            int r0 = 1;
+            int r1 = 0;
+            for (int slot = 0; slot < Quest.SLOTS; slot++) {
+                if ((mask & 1 << slot) != 0) {
+                    c0 = Math.min(c0, slot % 2);
+                    c1 = Math.max(c1, slot % 2);
+                    r0 = Math.min(r0, slot / 2);
+                    r1 = Math.max(r1, slot / 2);
+                }
+            }
+            minCol = c0;
+            minRow = r0;
+            maxRow = r1;
+            cols = c1 - c0 + 1;
+            rows = r1 - r0 + 1;
+        }
     }
 
     public String frameForSlot(int slot) {

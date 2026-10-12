@@ -258,7 +258,15 @@ class ShellTest {
         assertThat(db.stats().gamesPlayed()).as("not banked until it is all over").isZero();
 
         idle(shell, CONFIG.credits().rollTicks());
-        assertThat(shell.state()).as("the roll ends on its own").isIn(Shell.State.TITLE, Shell.State.HISCORE_ENTRY);
+        // §14.9: the first win, so Mr Jones has a new job.
+        assertThat(shell.state()).as("the roll ends on its own").isEqualTo(Shell.State.OFFER);
+        assertThat(shell.offered()).isEqualTo(1);
+        assertThat(tunes.get(tunes.size() - 1)).as("he talks in silence").isNull();
+        shell.tick(FIRE, MenuInput.NONE, false);
+        assertThat(shell.state()).as("fire waits for his words").isEqualTo(Shell.State.OFFER);
+        idle(shell, CONFIG.newGamePlus().levels().get(1).offer().promptAt());
+        shell.tick(FIRE, MenuInput.NONE, false);
+        assertThat(shell.state()).isIn(Shell.State.TITLE, Shell.State.HISCORE_ENTRY);
         assertThat(db.stats().gamesPlayed()).isEqualTo(1);
         assertThat(db.stats().escapes()).isEqualTo(1);
     }
@@ -273,7 +281,10 @@ class ShellTest {
         assertThat(shell.state()).isEqualTo(Shell.State.ROLL);
         idle(shell, CONFIG.screenHoldTicks());
         shell.tick(FIRE, MenuInput.NONE, false);
-        assertThat(shell.state()).isIn(Shell.State.TITLE, Shell.State.HISCORE_ENTRY);
+        assertThat(shell.state()).isEqualTo(Shell.State.OFFER);
+        idle(shell, 5);
+        shell.tick(QUIT, MenuInput.NONE, false);
+        assertThat(shell.state()).as("escape leaves the offer too").isIn(Shell.State.TITLE, Shell.State.HISCORE_ENTRY);
 
         PlayerDb other = db(dir.resolve("other"));
         Shell left = won(other, new java.util.ArrayList<>());
@@ -281,6 +292,113 @@ class ShellTest {
         left.tick(QUIT, MenuInput.NONE, false);
         assertThat(left.state()).as("escape banks the run").isIn(Shell.State.TITLE, Shell.State.HISCORE_ENTRY);
         assertThat(other.stats().escapes()).as("and it still counts as an escape").isEqualTo(1);
+        assertThat(other.stats().unlocked()).as("and it still opens the next job").isEqualTo(1);
+    }
+
+    /** A game of job {@code n} (§14.9) in the empty world: only its number matters to the shell. */
+    private static Simulation jobSim(int n) {
+        wulf.sim.Ecosystem eco = new wulf.sim.Ecosystem(wulf.data.CreatureData.EMPTY, wulf.sim.RoomPopulator.NONE, 0);
+        wulf.world.CollisionWorld open = (gx, gy) -> gx < 0 || gy < 0 || gx >= wulf.world.WorldGrid.COLS
+                || gy >= wulf.world.WorldGrid.ROWS;
+        return Simulation.at(CONTENT.player(), open, 0, wulf.engine.Fixed.fp(1000),
+                wulf.engine.Fixed.fp(1000), n == 0 ? eco : eco.atLevel(n, CONTENT.game().newGamePlus().level(n)), 1L);
+    }
+
+    /** A shell whose games are of the job asked for, every request written down. */
+    private Shell jobShell(PlayerDb db, List<Integer> asked) {
+        return new Shell(CONFIG, db, List.copyOf(CONTENT.input().profiles().keySet()), n -> {
+            asked.add(n);
+            return jobSim(n);
+        }, null, () -> "2026-10-12");
+    }
+
+    /** Plays the session's next game to a win and sits through the ending, the sums, the roll and any offer. */
+    private static void winAndSitThrough(Shell shell) {
+        shell.tick(FIRE, MenuInput.NONE, false);
+        wulf.sim.WonGames.win(shell.session().sim());
+        shell.tick(InputState.NONE, MenuInput.NONE, false);
+        for (int i = 0; i < 20_000 && shell.state() != Shell.State.TITLE && shell.state() != Shell.State.HISCORE_ENTRY; i++) {
+            shell.tick(i % 2 == 0 ? FIRE : InputState.NONE, MenuInput.NONE, false);
+        }
+        assertThat(shell.state()).isIn(Shell.State.TITLE, Shell.State.HISCORE_ENTRY);
+        while (shell.state() == Shell.State.HISCORE_ENTRY) {
+            shell.tick(FIRE, MenuInput.NONE, false);
+        }
+        for (int i = 0; i < 1_000 && shell.state() != Shell.State.TITLE; i++) {
+            shell.tick(i % 2 == 0 ? FIRE : InputState.NONE, MenuInput.NONE, false);
+        }
+    }
+
+    @Test
+    void eachWinOpensTheNextJobWhichTheTitleThenStarts(@TempDir Path dir) {
+        // §14.9: the game, then the amulet in two halves, then whole — and after that, no more offers.
+        PlayerDb db = db(dir);
+        List<Integer> asked = new java.util.ArrayList<>();
+        Shell shell = jobShell(db, asked);
+        assertThat(shell.unlocked()).isZero();
+        shell.tick(InputState.NONE, MenuInput.of(CONFIG.newGamePlus().key()), false);
+        assertThat(shell.level()).as("nothing to choose yet").isZero();
+
+        winAndSitThrough(shell);
+        assertThat(db.stats().unlocked()).isEqualTo(1);
+        assertThat(shell.level()).as("the next game is the new job").isEqualTo(1);
+        winAndSitThrough(shell);
+        assertThat(db.stats().unlocked()).isEqualTo(2);
+        assertThat(shell.level()).isEqualTo(2);
+
+        // The last job won: the credits roll, and there is no offer after them.
+        shell.tick(FIRE, MenuInput.NONE, false);
+        wulf.sim.WonGames.win(shell.session().sim());
+        shell.tick(InputState.NONE, MenuInput.NONE, false);
+        assertThat(shell.offered()).isZero();
+        for (int i = 0; i < 20_000 && shell.state() != Shell.State.ROLL; i++) {
+            shell.tick(i % 2 == 0 ? FIRE : InputState.NONE, MenuInput.NONE, false);
+        }
+        idle(shell, CONFIG.credits().rollTicks());
+        assertThat(shell.state()).isIn(Shell.State.TITLE, Shell.State.HISCORE_ENTRY);
+        assertThat(asked).containsExactly(0, 1, 2);
+        assertThat(db.stats().unlocked()).isEqualTo(2);
+    }
+
+    @Test
+    void theTitleKeyStepsThroughTheJobsOpenAndAFreshShellRemembersThem(@TempDir Path dir) {
+        PlayerDb db = db(dir);
+        db.putStats(db.stats().unlocking(1));
+        List<Integer> asked = new java.util.ArrayList<>();
+        Shell shell = jobShell(db, asked);
+        assertThat(shell.level()).as("it starts on the newest").isEqualTo(1);
+        String key = CONFIG.newGamePlus().key();
+        shell.tick(InputState.NONE, MenuInput.of(key), false);
+        assertThat(shell.level()).as("back to the game itself").isZero();
+        shell.tick(InputState.NONE, MenuInput.of(key), false);
+        assertThat(shell.level()).isEqualTo(1);
+        shell.tick(InputState.NONE, MenuInput.of(key), false);
+        shell.tick(FIRE, MenuInput.NONE, false);
+        assertThat(asked).containsExactly(0);
+        assertThat(shell.session().sim().level()).isZero();
+
+        // Winning the game itself again opens nothing new, and offers nothing.
+        wulf.sim.WonGames.win(shell.session().sim());
+        shell.tick(InputState.NONE, MenuInput.NONE, false);
+        assertThat(shell.offered()).isZero();
+    }
+
+    @Test
+    void aPracticeWinOpensTheNextJobForThisSessionOnly(@TempDir Path dir) {
+        PlayerDb db = db(dir);
+        Shell shell = new Shell(CONFIG, db, List.copyOf(CONTENT.input().profiles().keySet()), n -> {
+            Simulation sim = jobSim(n);
+            sim.markPractice();
+            return sim;
+        }, null, () -> "2026-10-12");
+        winAndSitThrough(shell);
+        assertThat(shell.unlocked()).as("this session can play it").isEqualTo(1);
+        assertThat(db.stats().unlocked()).as("but the ledger never heard of it").isZero();
+
+        Shell skipped = jobShell(db(dir.resolve("other")), new java.util.ArrayList<>());
+        skipped.practiseJob(2);
+        assertThat(skipped.level()).isEqualTo(2);
+        assertThat(skipped.unlocked()).isEqualTo(2);
     }
 
     @Test

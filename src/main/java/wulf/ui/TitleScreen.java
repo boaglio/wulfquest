@@ -21,10 +21,16 @@ public final class TitleScreen {
     private final Chrome chrome;
     private final ShellConfig.Title title;
     private final int[] cycle;
+    private final int jobColour;
 
     public TitleScreen(Chrome chrome, ShellConfig.Title title, Palette palette) {
+        this(chrome, title, palette, ShellConfig.NewGamePlus.NONE);
+    }
+
+    public TitleScreen(Chrome chrome, ShellConfig.Title title, Palette palette, ShellConfig.NewGamePlus jobs) {
         this.chrome = chrome;
         this.title = title;
+        this.jobColour = palette.indexOf(jobs.labelColour());
         this.cycle = new int[title.cycle().colours().size()];
         for (int i = 0; i < cycle.length; i++) {
             cycle[i] = palette.indexOf(title.cycle().colours().get(i));
@@ -36,6 +42,11 @@ public final class TitleScreen {
      * @param notice a one-off line about the player database, or null (§20.8)
      */
     public void paint(Framebuffer fb, long tick, long best, String notice) {
+        paint(fb, tick, best, notice, null);
+    }
+
+    /** @param job the job the prompt starts, once a later one is open (§14.9); null before */
+    public void paint(Framebuffer fb, long tick, long best, String notice, String job) {
         fb.clear(chrome.ground());
         int w = fb.width();
         int y = 36;
@@ -45,6 +56,9 @@ public final class TitleScreen {
 
         y += chrome.small().lineHeight() * 4;
         chrome.small().drawCentred(fb, title.prompt(), 0, w, y, chrome.bright());
+        if (job != null) {
+            chrome.small().drawCentred(fb, job, 0, w, y + chrome.small().lineHeight() + 2, jobColour);
+        }
 
         y += chrome.small().lineHeight() * 2;
         for (ShellConfig.MenuItem item : title.menu()) {

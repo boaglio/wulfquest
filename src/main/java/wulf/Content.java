@@ -54,6 +54,7 @@ import wulf.data.OrchidValidator;
 import wulf.data.HighScores;
 import wulf.data.Settings;
 import wulf.data.MusicData;
+import wulf.data.NewGamePlusValidator;
 import wulf.data.SfxData;
 import wulf.data.ShellConfig;
 import wulf.data.ShellValidator;
@@ -143,6 +144,8 @@ public record Content(
         ShellValidator.checkAmuletReveal(shell, landmarks, display, font);
         LandmarkValidator.check(landmarks, guardians, creatures, map, scenery.ids(),
                 CreatureSpriteValidator.framesBySprite(sprites), solidity(rooms));
+        NewGamePlusValidator.check(game, landmarks);
+        NewGamePlusValidator.checkWords(shell, game, palette, display, font);
         TreasureData treasures = db.load("world/treasures", TreasureData.class);
         treasures.check(map, palette, CreatureSpriteValidator.framesBySprite(sprites));
 
@@ -214,6 +217,12 @@ public record Content(
         RoomPopulator populator = new BiomePopulator(creatures, roomEntities, biomes, game.difficulty());
         return new Ecosystem(creatures, populator, loot.event("roomFirstVisit"), wulfRules(), questRules(), orchids(),
                 flame);
+    }
+
+    /** The living jungle as job {@code level} (§14.9): 0 for the game itself. */
+    public Ecosystem ecosystem(int level) {
+        Ecosystem eco = ecosystem();
+        return level == 0 ? eco : eco.atLevel(level, game.newGamePlus().level(level));
     }
 
     /** The quest's rules: each lair's guardian as a species, the Keeper, and the numbers that pace and score it. */

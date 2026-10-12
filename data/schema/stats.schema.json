@@ -20,6 +20,7 @@
     "bestEscapeTicks": { "type": "integer", "minimum": 0 },
     "killsBySpecies": { "type": "object", "additionalProperties": { "type": "integer", "minimum": 0 } },
     "deathsByCause": { "type": "object", "additionalProperties": { "type": "integer", "minimum": 0 } },
-    "orchidsByColour": { "type": "object", "additionalProperties": { "type": "integer", "minimum": 0 } }
+    "orchidsByColour": { "type": "object", "additionalProperties": { "type": "integer", "minimum": 0 } },
+    "newGamePlus": { "description": "§14.9: the highest job unlocked; absent in a ledger from before them", "type": "integer", "minimum": 0 }
   }
 }

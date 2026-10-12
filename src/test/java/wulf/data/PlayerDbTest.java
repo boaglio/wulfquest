@@ -105,4 +105,25 @@ class PlayerDbTest {
         assertThat(text).endsWith("\n").contains("\n  ");
         assertThat(List.of(text.split("\n"))).hasSizeGreaterThan(5);
     }
+
+    @Test
+    void aLedgerFromBeforeTheLaterJobsStillLoadsAndKeepsWhatItOpens(@TempDir Path dir) throws Exception {
+        // §14.9: stats.json gained newGamePlus; one written before it means none open, not a DATA ERROR.
+        Files.writeString(dir.resolve("stats.json"), """
+                { "schemaVersion": 1, "gamesPlayed": 3, "escapes": 1, "deaths": 9, "roomsVisited": 40,
+                  "amuletPieces": 4, "wulfEncounters": 2, "wulfEvaded": 1, "bestScore": 5000, "bestEscapeTicks": 70000,
+                  "killsBySpecies": {}, "deathsByCause": {}, "orchidsByColour": {} }
+                """, StandardCharsets.UTF_8);
+        try (PlayerDb db = open(dir)) {
+            assertThat(db.notices()).isEmpty();
+            assertThat(db.stats().gamesPlayed()).isEqualTo(3);
+            assertThat(db.stats().unlocked()).isZero();
+            db.putStats(db.stats().unlocking(1).unlocking(0));
+        }
+        try (PlayerDb db = open(dir)) {
+            assertThat(db.stats().unlocked()).as("a job once open stays open").isEqualTo(1);
+            assertThat(db.stats().afterGame(1, false, 1, 1, 0, 0, 0, 0, Map.of(), Map.of(), Map.of()).unlocked())
+                    .as("and a game played keeps it").isEqualTo(1);
+        }
+    }
 }

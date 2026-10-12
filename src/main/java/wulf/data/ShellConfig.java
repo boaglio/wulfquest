@@ -25,7 +25,8 @@ public record ShellConfig(
         AmuletReveal amuletReveal,
         MapScreen map,
         QuickSave quickSave,
-        Credits credits) {
+        Credits credits,
+        NewGamePlus newGamePlus) {
 
     public record Title(String wordmark, String tagline, String prompt, Cycle cycle, List<MenuItem> menu,
                         String footer) {
@@ -133,6 +134,44 @@ public record ShellConfig(
                 last = Math.max(last, line.at() + line.length() * ticksPerChar);
             }
             return last;
+        }
+    }
+
+    /**
+     * The jobs after the first (§14.9, {@code [NEW]}): one entry per level of
+     * {@code game.json → newGamePlus}. Once one is unlocked, the title shows the chosen job's
+     * {@code label}, and {@code key} steps through those unlocked.
+     */
+    public record NewGamePlus(String key, String labelColour, List<Job> levels) {
+        public NewGamePlus {
+            levels = List.copyOf(levels);
+        }
+
+        /** Only the game itself: what a test's shell gets. */
+        public static final NewGamePlus NONE = new NewGamePlus("N", "white", List.of(new Job("", null, null)));
+    }
+
+    /**
+     * One job's words (§14.9).
+     *
+     * @param verses the amulet reveal's verses for this job, one per piece; null for the game
+     *               itself, which has {@code amuletReveal.verses}
+     * @param offer  the scene after the credits of the win that unlocks this job; null for the first
+     */
+    public record Job(String label, List<List<String>> verses, Offer offer) {
+        public Job {
+            verses = verses == null ? null : verses.stream().map(List::copyOf).toList();
+        }
+    }
+
+    /**
+     * Mr Jones offers the next job (§14.9): the clearing of the closing scene, Vale standing
+     * before him, the amulet gone to its museum; the {@code lines} type out as the ending's do, and
+     * fire goes on from {@code promptAt}.
+     */
+    public record Offer(List<Line> lines, int promptAt) {
+        public Offer {
+            lines = List.copyOf(lines);
         }
     }
 

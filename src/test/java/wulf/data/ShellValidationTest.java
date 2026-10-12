@@ -23,7 +23,7 @@ class ShellValidationTest {
     private static ShellConfig withTitle(ShellConfig.Title title) {
         ShellConfig s = c.shell();
         return new ShellConfig(s.schemaVersion(), s.screenHoldTicks(), title, s.attract(), s.gameOver(), s.ending(), s.tally(),
-                s.hiScores(), s.keyConfig(), s.sound(), s.stats(), s.amuletReveal(), s.map(), s.quickSave(), s.credits());
+                s.hiScores(), s.keyConfig(), s.sound(), s.stats(), s.amuletReveal(), s.map(), s.quickSave(), s.credits(), s.newGamePlus());
     }
 
     private static ShellConfig.Title titleWith(List<String> colours, List<ShellConfig.MenuItem> menu) {
@@ -76,7 +76,7 @@ class ShellValidationTest {
                 s.gameOver(), s.ending(), s.tally(),
                 new ShellConfig.HiScores(h.heading(), h.entryHeading(), h.entryPrompt(), h.size(), h.nameLength(),
                         "AABC", h.cursorBlinkTicks(), h.repeatDelayTicks(), h.repeatEveryTicks()),
-                s.keyConfig(), s.sound(), s.stats(), s.amuletReveal(), s.map(), s.quickSave(), s.credits());
+                s.keyConfig(), s.sound(), s.stats(), s.amuletReveal(), s.map(), s.quickSave(), s.credits(), s.newGamePlus());
         DataException e = error(broken);
         assertThat(e).isNotNull();
         assertThat(e.pointer()).isEqualTo("/hiScores/alphabet");
@@ -85,7 +85,7 @@ class ShellValidationTest {
     private static ShellConfig withReveal(ShellConfig.AmuletReveal reveal) {
         ShellConfig s = c.shell();
         return new ShellConfig(s.schemaVersion(), s.screenHoldTicks(), s.title(), s.attract(), s.gameOver(), s.ending(), s.tally(),
-                s.hiScores(), s.keyConfig(), s.sound(), s.stats(), reveal, s.map(), s.quickSave(), s.credits());
+                s.hiScores(), s.keyConfig(), s.sound(), s.stats(), reveal, s.map(), s.quickSave(), s.credits(), s.newGamePlus());
     }
 
     private static DataException revealError(ShellConfig.AmuletReveal reveal) {
@@ -139,7 +139,7 @@ class ShellValidationTest {
     private static ShellConfig withEnding(ShellConfig.Ending ending) {
         ShellConfig s = c.shell();
         return new ShellConfig(s.schemaVersion(), s.screenHoldTicks(), s.title(), s.attract(), s.gameOver(), ending, s.tally(),
-                s.hiScores(), s.keyConfig(), s.sound(), s.stats(), s.amuletReveal(), s.map(), s.quickSave(), s.credits());
+                s.hiScores(), s.keyConfig(), s.sound(), s.stats(), s.amuletReveal(), s.map(), s.quickSave(), s.credits(), s.newGamePlus());
     }
 
     private static DataException endingError(ShellConfig.Ending ending) {

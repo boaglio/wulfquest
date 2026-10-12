@@ -17,6 +17,7 @@
       "type": "array",
       "items": { "type": "array", "minItems": 2, "maxItems": 2, "items": { "type": "integer", "minimum": 0 } }
     },
-    "stateHash": { "type": "string", "pattern": "^[0-9a-f]{16}$" }
+    "stateHash": { "type": "string", "pattern": "^[0-9a-f]{16}$" },
+    "newGamePlus": { "description": "§14.9: which job the game is; absent for the game itself", "type": "integer", "minimum": 0 }
   }
 }

@@ -2267,7 +2267,81 @@ screen in the display font.
 credits page's heading and lines, between `before` (`THE END`) and `after`
 (`THANK YOU FOR PLAYING`), rising a pixel every `ticksPerPx` from `fromY`
 until the last row is gone; then the run is banked. The credits name the
-game's author (2026-10-12).
+game's author (2026-10-12). After the first win of a job, the roll is followed
+by Mr Jones's offer of the next (§14.9).
+
+### 14.9 New Game+ — Mr Jones's later jobs **[NEW]**
+
+Asked for by the user (2026-10-12): after the first win, a New Game+ with the
+amulet in two pieces, and after that one in one piece; and, after the credits
+of a first win, a new scene in which Mr Jones says "I have a new job for you".
+The user chose (2026-10-12): the next job starts **from the title**; the
+jungle is **harder** in it as well as shorter; and the pieces lie in
+**random rooms of the set**.
+
+**The jobs** (`game.json → newGamePlus.levels`). Level 0 is the game itself —
+`NewGamePlusValidator` holds it to one quarter a lair, no head start and the
+Wulf at 100%, so nothing here touches the original's game or its replays. Each
+later level names its `pieces`, each the panel slots (0–3) it fills:
+
+| level | pieces | `rampHeadStart` | `wulfSpeedPercent` |
+|-------|--------|-----------------|--------------------|
+| 0 — the game | `[0] [1] [2] [3]` — four quarters | 0 | 100 |
+| 1 — New Game+ | `[0,1] [2,3]` — two halves, top and bottom | 2 | 110 |
+| 2 — New Game+2 | `[0,1,2,3]` — the amulet whole | 3 | 120 |
+
+- **Where they lie.** The game picks its amulet set as always (§14.2); a later
+  job then keeps as many of the set's lairs as it has pieces, picked from the
+  run seed by a stream of its own (`Simulation.shareOut`), each with its own
+  guardian, the first kept holding the first piece. The rest are empty rooms
+  this game: no guardian, no piece, and nothing on the map.
+- **A piece is drawn as its quarters** where they sit in the amulet — a half
+  is two quarters side by side, the whole is all four — on the pedestal, and
+  in flight to the panel, where each quarter flies to its own slot
+  (`QuestPainter`). The panel, the reveal and the closing scene already draw
+  the amulet by slot, and need nothing new.
+- **How much is held** is counted in quarters (`Quest.quarters()`, the bits of
+  `slotMask`): the Keeper steps aside, and the arch lets him out, at four
+  (`exit.requiresPieces`); the ledger, the hi-score row and game over's
+  percentage count quarters too. In the game itself quarters and pieces are
+  the same number.
+- **A harder jungle.** What the jungle bases its pace on — which small
+  creatures the swarm may send (§12.8), the invented jungle's room budget
+  (§12.6), the roaming Wulf's chance to come (§13.3) — reads
+  `Simulation.ramp()`: the quarters held plus the job's `rampHeadStart`, at
+  most four. So New Game+ starts as if half the amulet were already in hand,
+  and New Game+2 as if three quarters were. The prowling Wulf (§13.8) runs at
+  `wulfSpeedPercent` of its speeds.
+- **The verses.** The amulet reveal (§14.6) shows a later job's own verses, one
+  a piece (`shell.json → newGamePlus.levels[n].verses`).
+
+**Unlocking.** Winning job *n* opens job *n + 1*, if there is one. It is kept
+in the ledger (`stats.json → newGamePlus`, §21.5), and the next game from the
+title is the new job. Once one is open, the title shows the chosen job's
+`label` under `PRESS FIRE TO BEGIN`, and **N** (`newGamePlus.key`) steps
+through the jobs open, back to the game itself. A practice win (§17.6) opens
+the next job for the session only; the ledger never hears of it.
+
+**The offer [NEW]** (`shell.json → newGamePlus.levels[n].offer`, state `OFFER`,
+`EndingScreen.paintOffer`). After the credits roll of the win that opens job
+*n*, the clearing of the closing scene again: Vale standing where he stopped,
+Mr Jones with his hands free — the amulet is in its museum — and their lines
+typing out as the ending's do, in silence. Fire, from `promptAt`, banks the
+run; Escape too. The words:
+
+> \- I HAVE A NEW JOB FOR YOU... ANOTHER AMULET, BROKEN IN TWO, DEEPER IN THE
+> JUNGLE. — \- I'M ON MY WAY.
+>
+> \- I HAVE ONE LAST JOB FOR YOU... THIS AMULET IS IN ONE PIECE, AND THE JUNGLE
+> GUARDS IT WELL. — \- THEN I'LL BRING IT BACK.
+
+Winning the last job rolls the credits and offers nothing.
+
+A game's job is in its replay (`newGamePlus`, left out for the game itself,
+§22.6) and in its quick save (§21.4), so both rebuild the same game.
+`--new-game-plus N` starts every game of the session at job N, as practice
+(§17.6). `NewGamePlusTest`, `QuestTest`, `ShellTest` and
+`NewGamePlusValidationTest` check all of it.
 
 ---
 
@@ -2538,7 +2612,7 @@ BOOT ──► TITLE ──► (key) ──► PLAYING ──► ...
  │           │        ├─► CREDITS          ├─► PAUSED  (P; sim frozen, panel dims)
  │           │        ├─► HISCORES         ├─► DYING   (§11.7)
  │           │        ├─► STATS  [NEW]     ├─► GAME_OVER ──► HISCORE_ENTRY ──► TITLE
- │           │        ├─► SOUND  [NEW]     └─► WON ──► ENDING ──► TALLY ──► ROLL ──► HISCORE_ENTRY ──► TITLE
+ │           │        ├─► SOUND  [NEW]     └─► WON ──► ENDING ──► TALLY ──► ROLL ──► (OFFER) ──► HISCORE_ENTRY ──► TITLE
  │           │        └─► KEY_CONFIG
  │           └─► ATTRACT (after `attract.idleTicks` idle; any key returns)
  └─► fatal data error ──► DATA_ERROR (renders the failing file and the reason, exits on key)
@@ -2551,7 +2625,8 @@ setting. Both hang off the title like `CREDITS`, and both are named by
 `shell.json`, not by Java.
 
 `ENDING` and `ROLL` were added on 2026-10-12, at the user's asking: the
-closing scene and the credits after a win (§14.7).
+closing scene and the credits after a win (§14.7). `OFFER` came the same day:
+Mr Jones's next job, after the roll of a win that opens one (§14.9).
 
 `HISCORE_ENTRY` is entered from `GAME_OVER` and from `ROLL` alike, and only
 when the run qualifies (§21.2); otherwise the way back to the title is direct.
@@ -2577,6 +2652,9 @@ data-driven game; build it in M1.
   there is no gamepad code, so offering it would be a lie. The two key layouts
   §19.1 does define are chosen on the `KEY_CONFIG` page, by digit, and the
   choice is written to `settings.json`.
+
+  Once a win has opened one of Mr Jones's later jobs (§14.9), a line under the
+  prompt names the job fire will start, and `N` steps through those open.
 
 ### 17.3 The panel (256×40, in the lower border)
 
@@ -2645,6 +2723,7 @@ kill. Off unless given; they last the whole session (every new game).
 | `--infinite-lives` | deaths still happen — the sequence, the respawn, the ledger's cause — but the count never goes down |
 | `--god` | `Simulation.kill` refuses: no creature, spear, guardian or the Wulf can kill him; and no flower takes him (§15.2) |
 | `--amulet-set N` | every game hides the amulet in the original's set N (0–7, §14.2) instead of one picked at random: knowing where to go is practice too |
+| `--new-game-plus N` | the title starts Mr Jones's job N (1 or 2, §14.9), as if it were open; a practice win opens the next for the session only |
 
 Any of them makes the game a **practice run** (`Simulation.practice()`, in the
 state hash): when it ends it goes straight back to the title — no hi-score
@@ -3025,7 +3104,7 @@ original had no save, so it is off by default: turn it on with
 **A save is the game as it was made, not a snapshot of it**: the run seed, the
 start room, `dev`, and every tick's input since the game began (`GameSession`
 records what it feeds `Simulation.play`), run-length encoded as a replay's
-(§22.6), plus the state hash it reached. Loading builds a fresh game the way a
+(§22.6), plus the state hash it reached and the job it is (§14.9). Loading builds a fresh game the way a
 new game of this session is built (`Boot`'s one `silentGame` function, practice
 options and all), replays the input silently at full speed — an hour of play is
 well under a second — and compares the hash. Nothing is copied field by field,
@@ -3049,7 +3128,8 @@ construction.
 
 Lifetime counters: rooms visited, creatures killed by species, deaths by
 cause, orchids by colour, Wulf encounters, Wulf deaths, best time. Shown on
-a title-screen stats page. Never transmitted anywhere — there is no network
+a title-screen stats page. It also keeps `newGamePlus`, the furthest of Mr
+Jones's jobs open (§14.9); a ledger written before it loads as none open. Never transmitted anywhere — there is no network
 code in this project.
 
 ---
@@ -3167,7 +3247,9 @@ golden file that needs updating.
 ### 22.6 Replay regression
 
 `replays/*.json` hold recorded per-tick input plus the expected sim-state
-hash at every 50th tick. `ReplayRunner` re-executes them. Ship at least:
+hash at every 50th tick. `ReplayRunner` re-executes them. A run of one of Mr
+Jones's later jobs says which in `newGamePlus` (§14.9); the game itself leaves
+it out, so every replay of it reads as before. Ship at least:
 
 - `replays/attract.json` — the title-screen demo (doubles as a test).
   (**M8, shipped**; since M10 cut by `AttractForge` from `lair_nw.json`)

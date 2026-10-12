@@ -10,13 +10,15 @@ import java.util.List;
  * @param contentHash the content database's hash when saved: another version's rules may not replay it
  * @param practiced   whether the game was already a practice run (§17.6), which is in the state hash
  * @param input       run-length {@code [ticks, bits]} pairs, as in a replay (§22.6)
+ * @param newGamePlus which job the game is (§14.9); absent, as in a save from before them, the game itself
  */
 public record QuickSaveData(int schemaVersion, String contentHash, long seed, String startRoom, boolean dev,
-                            boolean practiced, int ticks, List<int[]> input, String stateHash) {
+                            boolean practiced, int ticks, List<int[]> input, String stateHash, Integer newGamePlus) {
 
     public static final int SCHEMA_VERSION = 1;
 
     public QuickSaveData {
         input = List.copyOf(input);
+        newGamePlus = newGamePlus == null ? 0 : newGamePlus;
     }
 }

@@ -23,6 +23,7 @@ public final class ReplayRecorder {
     private final List<String> hashes = new ArrayList<>();
     private String note = "recorded with ./run.sh --record";
     private java.util.Map<String, Boolean> features = java.util.Map.of();
+    private int level;
 
     public ReplayRecorder(String name, String contentHash, long seed, RoomAddress start, boolean dev) {
         this.name = name;
@@ -35,6 +36,7 @@ public final class ReplayRecorder {
     /** Call once per simulated tick, after it, with the input that drove it. */
     public void record(InputState in, Simulation sim) {
         input.append(in);
+        level = sim.level();
         if (input.ticks() % CHECKPOINT_EVERY == 0) {
             hashes.add(Replay.hex(sim.stateHash()));
         }
@@ -57,7 +59,7 @@ public final class ReplayRecorder {
 
     public Replay replay() {
         return new Replay(Replay.SCHEMA_VERSION, name, note, contentHash, seed, start.toString(), dev,
-                CHECKPOINT_EVERY, input.runs(), hashes, features);
+                CHECKPOINT_EVERY, input.runs(), hashes, features, level);
     }
 
     public void write(Path file) {

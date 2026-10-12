@@ -49,6 +49,19 @@ class BootArgsTest {
     }
 
     @Test
+    void aLaterJobCanBeNamedAndIsPractice() {
+        // §14.9: skipping to Mr Jones's job N, before winning the ones before it.
+        Boot.Args a = parse("--new-game-plus", "2");
+        assertThat(a.error()).isNull();
+        assertThat(a.newGamePlus()).isEqualTo(2);
+        assertThat(a.practice()).isTrue();
+        assertThat(parse().newGamePlus()).as("the title decides by default").isZero();
+        assertThat(parse("--new-game-plus", "0").error()).contains("--new-game-plus");
+        assertThat(parse("--new-game-plus").error()).contains("--new-game-plus");
+        assertThat(parse("--record", "x.json", "--new-game-plus", "1").error()).contains("--record");
+    }
+
+    @Test
     void aReplayCannotCarryPracticeOptions() {
         assertThat(parse("--record", "x.json", "--amulet-set", "2").error()).contains("--record");
         assertThat(parse("--record", "x.json", "--god").error()).contains("--record");
