@@ -2,6 +2,7 @@ package wulf.data;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -27,8 +28,7 @@ public final class ShellValidator {
         }
         ShellConfig.MapScreen map = shell.map();
         java.util.List<String> mapColours = new java.util.ArrayList<>(
-                java.util.List.of(map.visited(), map.revealed(), map.here(), map.taken()));
-        mapColours.addAll(map.quarters());
+                java.util.List.of(map.visited(), map.revealed(), map.here()));
         for (String colour : mapColours) {
             if (!inPalette(palette, colour)) {
                 throw new DataException(SOURCE, "/map", "names '" + colour + "', which is not a palette entry");
@@ -97,6 +97,34 @@ public final class ShellValidator {
         String widest = shell.gameOver().progress().replace("{percent}", "100");
         if (widest.length() * font.sets().get("big").advance() > display.playfield().w()) {
             throw new DataException(SOURCE, "/gameOver/progress", "is wider than the playfield at 100%");
+        }
+    }
+
+    /**
+     * The map's quarter mark (§17.7): a sprite that exists, with every frame named, small
+     * enough to sit inside one room of the map.
+     */
+    public static void checkMap(ShellConfig shell, DisplayConfig display, Map<String, SpriteData> sprites) {
+        ShellConfig.QuarterIcon icon = shell.map().quarterIcon();
+        SpriteData sprite = sprites.get(icon.sprite());
+        if (sprite == null) {
+            throw new DataException(SOURCE, "/map/quarterIcon/sprite", "names '" + icon.sprite() + "', which is not a sprite");
+        }
+        Set<String> frames = new HashSet<>();
+        sprite.frames().forEach(f -> frames.add(f.id()));
+        List<String> named = new java.util.ArrayList<>(icon.shiny());
+        named.add(icon.taken());
+        for (String frame : named) {
+            if (!frames.contains(frame)) {
+                throw new DataException(SOURCE, "/map/quarterIcon", "names frame '" + frame + "', which '"
+                        + icon.sprite() + "' has not got");
+            }
+        }
+        int cw = display.playfield().w() / wulf.world.RoomAddress.GRID_W;
+        int ch = display.playfield().h() / wulf.world.RoomAddress.GRID_H;
+        if (sprite.size().w() > cw || sprite.size().h() > ch) {
+            throw new DataException(SOURCE, "/map/quarterIcon/sprite", "is " + sprite.size().w() + "x" + sprite.size().h()
+                    + ", larger than a room on the map (" + cw + "x" + ch + ")");
         }
     }
 

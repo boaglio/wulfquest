@@ -142,16 +142,26 @@
     "map": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["key", "message", "visited", "revealed", "here", "quarters", "taken", "blinkTicks"],
+      "required": ["key", "message", "visited", "revealed", "here", "blinkTicks", "quarterIcon"],
       "properties": {
         "key": { "type": "string", "pattern": "^[A-Z0-9]$" },
         "message": { "type": "string", "minLength": 1, "maxLength": 48 },
         "visited": { "type": "string", "minLength": 1 },
         "revealed": { "type": "string", "minLength": 1 },
         "here": { "type": "string", "minLength": 1 },
-        "quarters": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } },
-        "taken": { "type": "string", "minLength": 1 },
-        "blinkTicks": { "type": "integer", "minimum": 1 }
+        "blinkTicks": { "type": "integer", "minimum": 1 },
+        "quarterIcon": {
+          "description": "AGENTS.md §17.7 [NEW]: the mark on a quarter's room — shiny frames in turn while it waits, one dull frame once taken",
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["sprite", "shiny", "frameTicks", "taken"],
+          "properties": {
+            "sprite": { "type": "string", "minLength": 1 },
+            "shiny": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } },
+            "frameTicks": { "type": "integer", "minimum": 1 },
+            "taken": { "type": "string", "minLength": 1 }
+          }
+        }
       }
     },
     "quickSave": {

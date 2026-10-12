@@ -54,7 +54,8 @@ public final class ShellPainter {
         this.reveal = new AmuletRevealScreen(chrome, display,
                 new wulf.render.SpriteBank(content.sprites()).get(content.landmarks().amulet().sprite()),
                 wulf.render.QuestPainter.framesBySlot(content.landmarks()), config.amuletReveal());
-        this.map = new MapScreen(display, content.rooms(), content.landmarks(), content.palette(), config.map());
+        this.map = new MapScreen(display, content.rooms(), content.landmarks(), content.palette(), config.map(),
+                new wulf.render.SpriteBank(content.sprites()).get(config.map().quarterIcon().sprite()));
     }
 
     public GamePainter game() {

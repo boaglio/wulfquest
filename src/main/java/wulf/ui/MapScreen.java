@@ -6,6 +6,7 @@ import wulf.data.LandmarksData;
 import wulf.data.Palette;
 import wulf.data.ShellConfig;
 import wulf.render.Framebuffer;
+import wulf.render.Sprite;
 import wulf.sim.Simulation;
 import wulf.world.CollisionMask;
 import wulf.world.RoomAddress;
@@ -15,8 +16,8 @@ import wulf.world.RoomBaker;
  * The map (AGENTS.md §17.7, {@code [NEW]}): the whole 16x16 jungle over the playfield,
  * one room to 16x11 pixels — its open ground in miniature, a pixel for every 2x2 cells.
  * Rooms Vale has been in are drawn; once the map scroll is found, every other room is
- * drawn too, dimmer (§14.8). The room he is in blinks. A lair an eye has shown fills its
- * room in its quarter's colour; a lair whose quarter is taken, grey.
+ * drawn too, dimmer (§14.8). The room he is in blinks. A lair an eye has shown carries a
+ * shiny diamond over its own map; a lair whose quarter is taken, a dull one.
  */
 final class MapScreen {
 
@@ -27,12 +28,12 @@ final class MapScreen {
     private final int visited;
     private final int revealed;
     private final int here;
-    private final int[] quarterColours;
-    private final int takenColour;
     private final int blinkTicks;
+    private final Sprite icon;
+    private final ShellConfig.QuarterIcon iconFrames;
 
     MapScreen(DisplayConfig display, RoomBaker rooms, LandmarksData marks, Palette palette,
-              ShellConfig.MapScreen config) {
+              ShellConfig.MapScreen config, Sprite icon) {
         this.field = display.playfield();
         this.rooms = rooms;
         this.marks = marks;
@@ -40,12 +41,9 @@ final class MapScreen {
         this.visited = palette.indexOf(config.visited());
         this.revealed = palette.indexOf(config.revealed());
         this.here = palette.indexOf(config.here());
-        this.quarterColours = new int[config.quarters().size()];
-        for (int i = 0; i < quarterColours.length; i++) {
-            quarterColours[i] = palette.indexOf(config.quarters().get(i));
-        }
-        this.takenColour = palette.indexOf(config.taken());
         this.blinkTicks = config.blinkTicks();
+        this.icon = icon;
+        this.iconFrames = config.quarterIcon();
     }
 
     void paint(Framebuffer fb, Simulation sim, long tick) {
@@ -74,20 +72,21 @@ final class MapScreen {
                 }
             }
         }
-        paintQuarters(fb, sim, cw, ch);
+        paintQuarters(fb, sim, cw, ch, tick);
         if ((tick / blinkTicks) % 2 == 0) {
             fb.drawRect(field.x() + sim.room().col() * cw, field.y() + sim.room().row() * ch, cw, ch, here);
         }
     }
 
     /**
-     * The lairs (§14.8): one an eye has shown fills its room in its quarter's colour, outlined
-     * in black so it stands out from the rooms around it; one whose quarter is taken turns
-     * {@code taken}, shown or not — so the map says where to go and what is done.
+     * The lairs (§14.8): one an eye has shown carries a shiny diamond, twinkling, over the map
+     * of its room; one whose quarter is taken a dull one, shown or not — so the map says where
+     * to go and what is done, and the room underneath still reads.
      */
-    private void paintQuarters(Framebuffer fb, Simulation sim, int cw, int ch) {
+    private void paintQuarters(Framebuffer fb, Simulation sim, int cw, int ch, long tick) {
         List<LandmarksData.Eye> eyes = marks.items().eyes();
         List<LandmarksData.Lair> lairs = sim.landmarks().lairs();   // where this game hid them (§14.2)
+        List<String> shiny = iconFrames.shiny();
         for (int l = 0; l < lairs.size(); l++) {
             LandmarksData.Lair lair = lairs.get(l);
             boolean taken = sim.quest().taken(l);
@@ -98,13 +97,11 @@ final class MapScreen {
             if (!taken && !shown) {
                 continue;
             }
-            int slot = lair.piece().slot();
-            int colour = taken ? takenColour : quarterColours[slot % quarterColours.length];
+            // Each diamond a frame ahead of the last, so they do not all twinkle at once.
+            String frame = taken ? iconFrames.taken()
+                    : shiny.get((int) ((tick / iconFrames.frameTicks() + l) % shiny.size()));
             RoomAddress room = LandmarksData.room(lair.room());
-            int left = field.x() + room.col() * cw;
-            int top = field.y() + room.row() * ch;
-            fb.fillRect(left, top, cw, ch, colour);
-            fb.drawRect(left, top, cw, ch, ground);
+            icon.blit(fb, frame, field.x() + room.col() * cw + cw / 2, field.y() + room.row() * ch + ch);
         }
     }
 }

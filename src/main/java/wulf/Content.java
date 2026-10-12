@@ -115,6 +115,7 @@ public record Content(
         Settings defaultSettings = db.load("config/settings_defaults", Settings.class, "settings");
         OriginalMapRepository map = new OriginalMapRepository(db.load("world/original_map", OriginalMap.class));
         SpriteRepository sprites = new SpriteRepository(db);
+        ShellValidator.checkMap(shell, display, sprites.all());
         SceneryCatalog scenery = new SceneryCatalog(db.load("world/scenery", SceneryData.class), sprites.all());
         RoomBaker rooms = new RoomBaker(map, scenery);
         PlayerData player = db.load("entities/player", PlayerData.class);

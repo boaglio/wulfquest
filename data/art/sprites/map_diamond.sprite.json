@@ -1,0 +1,125 @@
+{
+  "schemaVersion": 1,
+  "name": "map_diamond",
+  "size": {
+    "w": 13,
+    "h": 11
+  },
+  "origin": {
+    "x": 6,
+    "y": 11
+  },
+  "legend": {
+    ".": -1,
+    "K": 0,
+    "b": 1,
+    "w": 7,
+    "B": 9,
+    "C": 13,
+    "W": 15
+  },
+  "frames": [
+    {
+      "id": "shiny0",
+      "rows": [
+        "...........W.",
+        "..........WWW",
+        "...KKKKKKK.W.",
+        "..KWWCWCCBK..",
+        ".KWWCCWCCCBK.",
+        ".KKKKKKKKKKK.",
+        "..KWCCCCCBK..",
+        "...KWCCCBK...",
+        "....KWCBK....",
+        ".....KBK.....",
+        "......K......"
+      ]
+    },
+    {
+      "id": "shiny1",
+      "rows": [
+        ".............",
+        ".............",
+        "...KKKKKKK...",
+        "..KWWCWCCBK..",
+        ".KWWCCWCCCBK.",
+        ".KKKKKKKKKKK.",
+        "..KWCCCCCBK..",
+        "...KWCCCBK...",
+        "....KWCBK....",
+        ".....KBK.....",
+        "......K......"
+      ]
+    },
+    {
+      "id": "shiny2",
+      "rows": [
+        ".W...........",
+        "WWW..........",
+        ".W.KKKKKKK...",
+        "..KWWCWCCBK..",
+        ".KWWCCWCCCBK.",
+        ".KKKKKKKKKKK.",
+        "..KWCCCCCBK..",
+        "...KWCCCBK...",
+        "....KWCBK....",
+        ".....KBK.....",
+        "......K......"
+      ]
+    },
+    {
+      "id": "shiny3",
+      "rows": [
+        ".............",
+        ".............",
+        "...KKKKKKK...",
+        "..KWWCWCCBK..",
+        ".KWWCCWCCCBK.",
+        ".KKKKKKKKKKK.",
+        "..KWCCCCCBK..",
+        "...KWCCCBK...",
+        "....KWCBK....",
+        ".....KBK.....",
+        "......K......"
+      ]
+    },
+    {
+      "id": "dull",
+      "rows": [
+        ".............",
+        ".............",
+        "...KKKKKKK...",
+        "..KwwwwwwbK..",
+        ".KwwwwwwwwbK.",
+        ".KKKKKKKKKKK.",
+        "..KwwwwwwbK..",
+        "...KwwwwbK...",
+        "....KwwbK....",
+        ".....KbK.....",
+        "......K......"
+      ]
+    }
+  ],
+  "mirror": {
+    "shiny0_l": {
+      "from": "shiny0",
+      "flipX": true
+    },
+    "shiny1_l": {
+      "from": "shiny1",
+      "flipX": true
+    },
+    "shiny2_l": {
+      "from": "shiny2",
+      "flipX": true
+    },
+    "shiny3_l": {
+      "from": "shiny3",
+      "flipX": true
+    },
+    "dull_l": {
+      "from": "dull",
+      "flipX": true
+    }
+  }
+}

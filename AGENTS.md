@@ -268,7 +268,7 @@ wulfquest/
     art/scenery_forge.py        generates the 41 scenery sprites, §10.5 (dev-time only)
     art/character_forge.py      generates Ranger Vale's frames, §10.5 (dev-time only)
     art/creature_forge.py       generates the 13 creature sprites and the puff, §10.5 (dev-time only)
-    art/item_forge.py           draws the map scroll, the eyes and the treasures, §14.8, §16.4 (dev-time only)
+    art/item_forge.py           draws the map scroll, the eyes, the map's diamond and the treasures, §14.8, §16.4, §17.7 (dev-time only)
     art/font_forge.py           generates the 8x8 display set in font.json, §10.4 (dev-time only)
     audio/music_forge.py        writes music.json from phrases of note tokens, §18.3 (dev-time only)
     check-no-binaries.sh        CI gate, §2.4 — bound to the verify phase
@@ -2204,11 +2204,12 @@ pick-up sound:
 - **Two eyes** (`item_eye`, glancing about every `glanceTicks`): the north eye
   at `14,6` shows the north-west and north-east quarters on the map, the south
   eye at `11,13` the south-west and south-east — each eye two, both eyes all
-  four. On the map (§17.7) a shown lair fills its room in its quarter's
-  colour (`shell.json → map.quarters`, by panel slot), and once its quarter is
-  taken the room turns `map.taken` (grey) — eye or no eye — so the map says
-  where to go and what is done. Changed 2026-10-07 from half-size amulet
-  pieces, which the user could not see.
+  four. On the map (§17.7) a shown lair carries a shiny diamond over its
+  room, and once its quarter is taken a dull grey one — eye or no eye — so the
+  map says where to go and what is done. Changed 2026-10-07 from half-size
+  amulet pieces, which the user could not see; changed again 2026-10-12 from
+  filling the room in its quarter's colour, which hid the room's own map, at
+  the user's asking.
 
 Drawn by `tools/art/item_forge.py`. `LandmarkValidator` checks the rooms, the
 sprites, clear ground at each spot, and that the eyes name real lairs and
@@ -2627,8 +2628,14 @@ miniature, a pixel for every 2×2 cells, walls left dark, so the ways through
 read as a maze. Rooms Vale has been in are drawn in `visited` (green); once
 the map scroll is found every other room is drawn in `revealed` (blue); the
 rest stays black. The room he is in blinks in `here` every `blinkTicks`.
-A lair an eye has shown fills its room in its quarter's colour, outlined in
-black; a lair whose quarter is taken, grey (§14.8). `MapScreen`,
+A lair an eye has shown carries a diamond (`map.quarterIcon`: sprite
+`map_diamond`, 13×11, drawn by `tools/art/item_forge.py`) sitting in its room
+over the room's own map, which still shows around it. While the quarter waits
+the diamond is shiny and twinkles — `shiny` frames in turn, `frameTicks` each,
+every lair a frame ahead of the last so they do not twinkle together; once the
+quarter is taken it is the `taken` frame, the same gem gone grey, eye or no
+eye (§14.8). `ShellValidator.checkMap` refuses a sprite or frame that does not
+exist, or a sprite larger than a room on the map. `MapScreen`,
 `MapScreenTest`.
 
 ## 18. Audio — procedural 1-bit beeper

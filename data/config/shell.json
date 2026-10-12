@@ -112,9 +112,8 @@
     "visited": "green",
     "revealed": "blue",
     "here": "brightWhite",
-    "quarters": ["brightGreen", "brightBlue", "brightRed", "brightYellow"],
-    "taken": "white",
-    "blinkTicks": 10
+    "blinkTicks": 10,
+    "quarterIcon": { "sprite": "map_diamond", "shiny": ["shiny0", "shiny1", "shiny2", "shiny3"], "frameTicks": 8, "taken": "dull" }
   },
   "quickSave": { "saveKey": "F5", "loadKey": "F9", "noteTicks": 100 },
   "credits": {

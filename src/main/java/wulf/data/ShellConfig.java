@@ -50,13 +50,19 @@ public record ShellConfig(
      * The map screen (§17.7, {@code [NEW]}): {@code key} opens and closes it during play; rooms
      * visited are drawn in {@code visited}, rooms only the map scroll shows in {@code revealed},
      * and the room Vale is in blinks in {@code here} every {@code blinkTicks}. A lair an eye has
-     * shown fills its room in its quarter's colour, {@code quarters} by panel slot; a lair whose
-     * quarter is taken, in {@code taken} (§14.8).
+     * shown, or whose quarter is taken, carries {@code quarterIcon} (§14.8).
      */
     public record MapScreen(String key, String message, String visited, String revealed, String here,
-                            List<String> quarters, String taken, int blinkTicks) {
-        public MapScreen {
-            quarters = List.copyOf(quarters);
+                            int blinkTicks, QuarterIcon quarterIcon) {
+    }
+
+    /**
+     * The mark on the map for a quarter's room (§17.7): {@code shiny} shown in turn, each for
+     * {@code frameTicks}, while the quarter waits there; the {@code taken} frame once it is held.
+     */
+    public record QuarterIcon(String sprite, List<String> shiny, int frameTicks, String taken) {
+        public QuarterIcon {
+            shiny = List.copyOf(shiny);
         }
     }
 

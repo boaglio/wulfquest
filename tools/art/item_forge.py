@@ -7,12 +7,15 @@ origin bottom-centre, so a placement's spot is where the item rests on the groun
 
   item_map   a rolled parchment, tied, half unrolled: the map of the jungle
   item_eye   an eye with a cyan iris: it shows where two quarters of the amulet lie
+  map_diamond the map's mark for a quarter an eye has shown (§17.7): a cut gem, 13x11 to
+             fit a room on the map. shiny0-3 twinkle, a glint at one corner and then the
+             other; dull is the same gem gone grey, once its quarter is taken.
   treasure   the odds and ends lying about the jungle (§16.4, [CANON] in kind, ours in
              drawing): crate, ring, fruit, cap, shield, life, money_bag, sword. One ink
              each, as on the Spectrum: the game tints them, so they are drawn in white.
 
-Outputs data/art/sprites/item_map.sprite.json, item_eye.sprite.json and
-treasure.sprite.json and merges the names into data/art/sprites/index.json.  Run:  python3 tools/art/item_forge.py
+Outputs data/art/sprites/item_map.sprite.json, item_eye.sprite.json,
+map_diamond.sprite.json and treasure.sprite.json and merges the names into data/art/sprites/index.json.  Run:  python3 tools/art/item_forge.py
 """
 import math
 import sys
@@ -68,6 +71,36 @@ def eye(look):
         if (x + look) % 3 != 0:
             cv.set(x, 3, "c")
     cv.outline("K")
+    return cv.rows()
+
+
+# A brilliant cut seen side-on: the crown above the girdle, the pavilion narrowing to the
+# point. W the light facets, C the body, B the shaded side. 11x9, set into a 13x11 frame.
+GEM = [
+    "..KKKKKKK..",
+    ".KWWCWCCBK.",
+    "KWWCCWCCCBK",
+    "KKKKKKKKKKK",
+    ".KWCCCCCBK.",
+    "..KWCCCBK..",
+    "...KWCBK...",
+    "....KBK....",
+    ".....K.....",
+]
+DULL = {"W": "w", "C": "w", "B": "b"}
+
+
+def diamond(glint, dull=False):
+    """The gem, shiny with a four-point glint centred on {@code glint} (or none), or dull."""
+    cv = Canvas(13, 11)
+    for y, row in enumerate(GEM):
+        for x, ch in enumerate(row):
+            if ch != ".":
+                cv.set(x + 1, y + 2, DULL.get(ch, ch) if dull else ch)
+    if glint is not None:
+        gx, gy = glint
+        for dx, dy in ((0, 0), (-1, 0), (1, 0), (0, -1), (0, 1)):
+            cv.set(gx + dx, gy + dy, "W")
     return cv.rows()
 
 
@@ -234,9 +267,14 @@ def treasure(name):
 def main():
     write_sprite("item_map", 16, 16, [("f0", scroll())])
     write_sprite("item_eye", 16, 16, [("f0", eye(0)), ("f1", eye(1)), ("f2", eye(-1))])
+    write_sprite("map_diamond", 13, 11, [("shiny0", diamond((11, 1))), ("shiny1", diamond(None)),
+                                         ("shiny2", diamond((1, 1))), ("shiny3", diamond(None)),
+                                         ("dull", diamond(None, dull=True))])
     write_sprite("treasure", 16, 16, [(name, treasure(name)) for name in TREASURES])
-    update_index(["item_map", "item_eye", "treasure"], lambda n: n.startswith("item_") or n == "treasure")
-    print("item forge: item_map (1 frame), item_eye (3 frames), treasure (%d frames)" % len(TREASURES))
+    update_index(["item_map", "item_eye", "map_diamond", "treasure"],
+                 lambda n: n.startswith("item_") or n in ("map_diamond", "treasure"))
+    print("item forge: item_map (1 frame), item_eye (3 frames), map_diamond (5 frames), treasure (%d frames)"
+          % len(TREASURES))
 
 
 if __name__ == "__main__":
