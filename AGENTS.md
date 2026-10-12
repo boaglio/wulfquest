@@ -156,6 +156,16 @@ In `README.md` and on the title screen credits page:
 > No assets from any commercial game are included. Not affiliated with,
 > endorsed by, or derived from the code of any prior work.
 
+### 2.6 Licence
+
+The whole repository — code, art, music and data — is free software under the
+**GNU General Public License, version 3 or later** (`GPL-3.0-or-later`). The
+full text is `LICENSE` at the root, and it travels with every copy: inside the
+jar (a `pom.xml` resource) and beside the launcher in each release archive
+(`tools/package.sh`). The credits page (§17.2) ends with a short notice of it,
+after the §2.5 text, which stays verbatim. A dependency must stay compatible
+with the GPLv3 (Jackson and the schema validator are Apache-2.0, which is).
+
 ---
 
 ## 3. Toolchain and commands

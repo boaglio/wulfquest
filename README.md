@@ -245,4 +245,12 @@ endorsed by, or derived from the code of any prior work.
 
 ## Licence
 
-To be decided before the first public release.
+Wulf Quest is free software: you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation, either version 3 of the License, or (at your option) any later
+version. It is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+PARTICULAR PURPOSE. See [LICENSE](LICENSE) for the full text.
+
+That covers everything in this repository: the code, and the art, music and
+data, which are all text and all written for this project.

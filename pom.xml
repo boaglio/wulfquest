@@ -16,6 +16,13 @@
   <name>Wulf Quest</name>
   <description>A clean-room homage to the 1984 flip-screen jungle maze. All art, audio and code original.</description>
 
+  <licenses>
+    <license>
+      <name>GPL-3.0-or-later</name>
+      <url>https://www.gnu.org/licenses/gpl-3.0.html</url>
+    </license>
+  </licenses>
+
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <maven.compiler.release>21</maven.compiler.release>
@@ -86,6 +93,11 @@
       </resource>
       <!-- The attract-mode demo travels with the game (§17.2), so a shipped jar
            still plays itself on the title screen. -->
+      <!-- The GPL travels with every copy of the game (README: Licence). -->
+      <resource>
+        <directory>${project.basedir}</directory>
+        <includes><include>LICENSE</include></includes>
+      </resource>
       <resource>
         <directory>replays</directory>
         <targetPath>replays</targetPath>

@@ -47,6 +47,8 @@ jpackage --type app-image --name WulfQuest --app-version "$version" \
          --runtime-image "$work/runtime" --icon "$work/icons/$icon" \
          --dest "$work/app"
 
+cp LICENSE "$work/app/WulfQuest/LICENSE"   # the GPL goes with every copy
+
 archive=WulfQuest-$version-$os-$arch
 case $os in
     linux)   tar -C "$work/app" -czf "$work/$archive.tar.gz" WulfQuest

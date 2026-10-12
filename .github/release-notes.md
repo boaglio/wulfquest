@@ -19,3 +19,7 @@ add `"features": { "quickSave": true }` to `settings.json` in your user folder
 (see the README). Then F5 saves and F9 loads, during play or from the title
 screen. A game you have loaded into gets no hi-score. A save may not load in a
 later version: the game will say so.
+
+Wulf Quest is free software under the GNU General Public License, version 3
+or later; the full text is in `LICENSE` inside every download, and the source
+is in this repository.
