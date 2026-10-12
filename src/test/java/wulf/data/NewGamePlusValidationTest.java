@@ -82,18 +82,27 @@ class NewGamePlusValidationTest {
         assertThat(wordsError(jobs.subList(0, 2)).pointer()).as("one entry a level").isEqualTo("/newGamePlus/levels");
 
         List<ShellConfig.Job> noOffer = new ArrayList<>(jobs);
-        noOffer.set(1, new ShellConfig.Job(jobs.get(1).label(), jobs.get(1).verses(), null));
+        noOffer.set(1, new ShellConfig.Job(jobs.get(1).label(), jobs.get(1).tagline(), jobs.get(1).verses(), null));
         assertThat(wordsError(noOffer).pointer()).isEqualTo("/newGamePlus/levels/1");
 
         List<ShellConfig.Job> oneVerse = new ArrayList<>(jobs);
-        oneVerse.set(1, new ShellConfig.Job(jobs.get(1).label(), jobs.get(1).verses().subList(0, 1), jobs.get(1).offer()));
+        oneVerse.set(1, new ShellConfig.Job(jobs.get(1).label(), jobs.get(1).tagline(), jobs.get(1).verses().subList(0, 1), jobs.get(1).offer()));
         assertThat(wordsError(oneVerse).pointer()).as("a verse a piece").isEqualTo("/newGamePlus/levels/1/verses");
 
         List<ShellConfig.Job> wide = new ArrayList<>(jobs);
         ShellConfig.Line line = jobs.get(2).offer().lines().get(0);
-        wide.set(2, new ShellConfig.Job(jobs.get(2).label(), jobs.get(2).verses(), new ShellConfig.Offer(List.of(
+        wide.set(2, new ShellConfig.Job(jobs.get(2).label(), jobs.get(2).tagline(), jobs.get(2).verses(), new ShellConfig.Offer(List.of(
                 new ShellConfig.Line(line.speaker(), line.at(), line.y(), line.colour(),
                         List.of("- I HAVE ONE LAST JOB FOR YOU, AND IT IS A LONG ONE"))), 10)));
         assertThat(wordsError(wide).pointer()).isEqualTo("/newGamePlus/levels/2/offer/lines/0/text/0");
+
+        List<ShellConfig.Job> noTagline = new ArrayList<>(jobs);
+        noTagline.set(1, new ShellConfig.Job(jobs.get(1).label(), null, jobs.get(1).verses(), jobs.get(1).offer()));
+        assertThat(wordsError(noTagline).pointer()).isEqualTo("/newGamePlus/levels/1");
+
+        List<ShellConfig.Job> wideTagline = new ArrayList<>(jobs);
+        wideTagline.set(2, new ShellConfig.Job(jobs.get(2).label(), "ONE AMULET ".repeat(8),
+                jobs.get(2).verses(), jobs.get(2).offer()));
+        assertThat(wordsError(wideTagline).pointer()).isEqualTo("/newGamePlus/levels/2/tagline");
     }
 }

@@ -6,7 +6,7 @@ import java.util.List;
  * Load-time checks for the jobs after the first (AGENTS.md §14.9, {@code [NEW]}): that
  * {@code game.json} breaks the amulet into pieces that fill the panel's four slots once
  * each, that its level 0 is the game itself, and that {@code shell.json} has words for
- * every level, fitting the screen.
+ * every level (a tagline, verses, an offer), fitting the screen.
  */
 public final class NewGamePlusValidator {
 
@@ -81,14 +81,16 @@ public final class NewGamePlusValidator {
             String at = "/newGamePlus/levels/" + n;
             fits(job.label(), small.advance(), width, at + "/label");
             if (n == 0) {
-                if (job.verses() != null || job.offer() != null) {
-                    throw new DataException(SHELL, at, "is the game itself: its verses are amuletReveal's, and nothing offers it");
+                if (job.tagline() != null || job.verses() != null || job.offer() != null) {
+                    throw new DataException(SHELL, at,
+                            "is the game itself: its tagline is title's, its verses are amuletReveal's, and nothing offers it");
                 }
                 continue;
             }
-            if (job.verses() == null || job.offer() == null) {
-                throw new DataException(SHELL, at, "needs its verses and the offer that unlocks it");
+            if (job.tagline() == null || job.verses() == null || job.offer() == null) {
+                throw new DataException(SHELL, at, "needs its tagline, its verses and the offer that unlocks it");
             }
+            fits(job.tagline(), small.advance(), width, at + "/tagline");
             int pieces = levels.get(n).pieces().size();
             if (job.verses().size() != pieces) {
                 throw new DataException(SHELL, at + "/verses",

@@ -148,17 +148,19 @@ public record ShellConfig(
         }
 
         /** Only the game itself: what a test's shell gets. */
-        public static final NewGamePlus NONE = new NewGamePlus("N", "white", List.of(new Job("", null, null)));
+        public static final NewGamePlus NONE = new NewGamePlus("N", "white", List.of(new Job("", null, null, null)));
     }
 
     /**
      * One job's words (§14.9).
      *
+     * @param tagline the title's tagline while this job is chosen; null for the game itself, which has
+     *                {@code title.tagline}
      * @param verses the amulet reveal's verses for this job, one per piece; null for the game
      *               itself, which has {@code amuletReveal.verses}
      * @param offer  the scene after the credits of the win that unlocks this job; null for the first
      */
-    public record Job(String label, List<List<String>> verses, Offer offer) {
+    public record Job(String label, String tagline, List<List<String>> verses, Offer offer) {
         public Job {
             verses = verses == null ? null : verses.stream().map(List::copyOf).toList();
         }

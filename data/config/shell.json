@@ -195,6 +195,7 @@
     "levels": [
       { "label": "N  THE FIRST JOB: FOUR QUARTERS" },
       { "label": "N  NEW GAME+: THE AMULET IN TWO",
+        "tagline": "TWO HALVES OF A BROKEN AMULET",
         "verses": [
           ["HALF A MOON IN YOUR HAND,", "THE OTHER HALF IN THE DARK.", "THE JUNGLE KNOWS YOUR FACE NOW,", "AND IT IS NOT GLAD TO SEE YOU."],
           ["THE HALVES ARE ONE AGAIN.", "ITS LIGHT RUNS IN YOUR BONES.", "GO NOW TO THE ARCH OF STONE:", "THE KEEPER WILL STEP ASIDE."]
@@ -209,6 +210,7 @@
         }
       },
       { "label": "N  NEW GAME+2: THE AMULET WHOLE",
+        "tagline": "ONE AMULET, WHOLE AND WELL GUARDED",
         "verses": [
           ["THE AMULET, WHOLE AT LAST,", "WARM AS A HAND IN YOURS.", "GO NOW TO THE ARCH OF STONE:", "THE KEEPER WILL STEP ASIDE."]
         ],

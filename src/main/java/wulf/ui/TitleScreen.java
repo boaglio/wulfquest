@@ -45,19 +45,23 @@ public final class TitleScreen {
         paint(fb, tick, best, notice, null);
     }
 
-    /** @param job the job the prompt starts, once a later one is open (§14.9); null before */
-    public void paint(Framebuffer fb, long tick, long best, String notice, String job) {
+    /**
+     * @param job the job the prompt starts, once a later one is open (§14.9): its label goes under
+     *            the prompt, and its tagline, if it has one, replaces the title's; null before
+     */
+    public void paint(Framebuffer fb, long tick, long best, String notice, ShellConfig.Job job) {
         fb.clear(chrome.ground());
         int w = fb.width();
         int y = 36;
         drawWordmark(fb, title.wordmark(), y, tick);
         y += chrome.big().glyphH() * WORDMARK_SCALE + 10;
-        chrome.small().drawCentred(fb, title.tagline(), 0, w, y, chrome.dim());
+        String tagline = job != null && job.tagline() != null ? job.tagline() : title.tagline();
+        chrome.small().drawCentred(fb, tagline, 0, w, y, chrome.dim());
 
         y += chrome.small().lineHeight() * 4;
         chrome.small().drawCentred(fb, title.prompt(), 0, w, y, chrome.bright());
         if (job != null) {
-            chrome.small().drawCentred(fb, job, 0, w, y + chrome.small().lineHeight() + 2, jobColour);
+            chrome.small().drawCentred(fb, job.label(), 0, w, y + chrome.small().lineHeight() + 2, jobColour);
         }
 
         y += chrome.small().lineHeight() * 2;

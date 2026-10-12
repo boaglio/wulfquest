@@ -2318,8 +2318,9 @@ later level names its `pieces`, each the panel slots (0–3) it fills:
 **Unlocking.** Winning job *n* opens job *n + 1*, if there is one. It is kept
 in the ledger (`stats.json → newGamePlus`, §21.5), and the next game from the
 title is the new job. Once one is open, the title shows the chosen job's
-`label` under `PRESS FIRE TO BEGIN`, and **N** (`newGamePlus.key`) steps
-through the jobs open, back to the game itself. A practice win (§17.6) opens
+`label` under `PRESS FIRE TO BEGIN` and its `tagline` in place of the
+title's (the game itself keeps `title.tagline`), and **N** (`newGamePlus.key`)
+steps through the jobs open, back to the game itself. A practice win (§17.6) opens
 the next job for the session only; the ledger never hears of it.
 
 **The offer [NEW]** (`shell.json → newGamePlus.levels[n].offer`, state `OFFER`,
@@ -2654,7 +2655,8 @@ data-driven game; build it in M1.
   choice is written to `settings.json`.
 
   Once a win has opened one of Mr Jones's later jobs (§14.9), a line under the
-  prompt names the job fire will start, and `N` steps through those open.
+  prompt names the job fire will start, the tagline becomes that job's, and `N`
+  steps through those open.
 
 ### 17.3 The panel (256×40, in the lower border)
 

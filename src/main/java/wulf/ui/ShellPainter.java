@@ -70,7 +70,7 @@ public final class ShellPainter {
     public void paint(Framebuffer fb, Shell shell, boolean dev) {
         switch (shell.state()) {
             case TITLE -> title.paint(fb, shell.stateTick(), db.scores().best(), shell.notice(),
-                    shell.unlocked() > 0 ? config.newGamePlus().levels().get(shell.level()).label() : null);
+                    shell.unlocked() > 0 ? config.newGamePlus().levels().get(shell.level()) : null);
             case ATTRACT -> attract(fb, shell);
             case CREDITS -> credits.paint(fb);
             case HISCORES -> hiScores.paint(fb, db.scores(), shell.highlight());

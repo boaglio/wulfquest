@@ -324,6 +324,7 @@
             "required": ["label"],
             "properties": {
               "label": { "type": "string", "minLength": 1, "maxLength": 60 },
+              "tagline": { "description": "the title's tagline while this job is chosen; the game itself keeps title.tagline", "type": "string", "minLength": 1, "maxLength": 48 },
               "verses": { "$ref": "#/$defs/verses" },
               "offer": {
                 "description": "the scene after the credits of the win that unlocks this level",
