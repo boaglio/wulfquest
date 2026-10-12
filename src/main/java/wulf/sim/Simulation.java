@@ -72,6 +72,8 @@ public final class Simulation {
     private static final String SFX_TRIBESMAN_CALL = "tribesman_call";
     /** Salt for the treasures' own random stream (§16.4): not a game number, a stream name. */
     private static final long TREASURE_STREAM = 0x7EA5_0BE5L;
+    /** Salt for the pick of where the amulet lies (§14.2): a stream name. */
+    private static final long AMULET_STREAM = 0xA29DL;
 
     private final PlayerData rules;
     private final CollisionWorld world;
@@ -163,7 +165,7 @@ public final class Simulation {
         this.rules = rules;
         this.world = world;
         this.transitionFreezeTicks = transitionFreezeTicks;
-        this.eco = eco;
+        this.eco = hideAmulet(eco, runSeed);
         this.runSeed = runSeed;
         this.rng = new Rng(runSeed);
         List<CreatureData.Species> roster = eco.creatures().creatures();
@@ -198,13 +200,31 @@ public final class Simulation {
         this.orchidCycleStart = new long[RoomAddress.GRID_W * RoomAddress.GRID_H
                 * Math.max(1, eco.orchids().anchors().perRoom())];
         java.util.Arrays.fill(orchidCycleStart, Long.MIN_VALUE);
-        this.treasure = layTreasures(eco.quest().treasures(), runSeed);
+        this.treasure = layTreasures(this.eco.quest(), runSeed);
         this.room = new RoomAddress(roomColOf(rules.collisionBox(), xFp), roomRowOf(rules.collisionBox(), yFp));
         enterRoom(false);
     }
 
-    /** §16.4, after {@code $A2BD}: each place holds something {@code fillPercent} of the time, of an even pick of kind. */
-    private static byte[] layTreasures(Treasures t, long runSeed) {
+    /**
+     * §14.2, after {@code $A255}: the game hides the four quarters in one of the original's eight
+     * sets of rooms, picked from the run seed by its own stream — unless the landmarks already
+     * name one ({@code --amulet-set}, tests).
+     */
+    private static Ecosystem hideAmulet(Ecosystem eco, long runSeed) {
+        QuestRules q = eco.quest();
+        if (!q.enabled() || q.landmarks().placed()) {
+            return eco;
+        }
+        int set = new Rng(Rng.hash(runSeed, AMULET_STREAM)).nextInt(q.landmarks().amuletSets().sets().size());
+        return eco.withQuest(q.withLandmarks(q.landmarks().withAmuletSet(set)));
+    }
+
+    /**
+     * §16.4, after {@code $A2BD}: each place holds something {@code fillPercent} of the time, of an
+     * even pick of kind — but none in this game's lairs, which hold their quarter and nothing else.
+     */
+    private static byte[] layTreasures(QuestRules q, long runSeed) {
+        Treasures t = q.treasures();
         byte[] laid = new byte[RoomAddress.GRID_W * RoomAddress.GRID_H * Treasures.PLACES_PER_ROOM];
         if (!t.any()) {
             return laid;
@@ -213,7 +233,9 @@ public final class Simulation {
         for (int i = 0; i < laid.length; i++) {
             boolean filled = draw.chance(t.fillPercent() * 100);
             int kind = draw.nextInt(t.kinds());
-            if (filled && t.hasPlace(i)) {
+            if (filled && t.hasPlace(i)
+                    && q.landmarks().lairIndexIn(new RoomAddress(i / Treasures.PLACES_PER_ROOM % RoomAddress.GRID_W,
+                            i / Treasures.PLACES_PER_ROOM / RoomAddress.GRID_W)) < 0) {
                 laid[i] = (byte) (kind + 1);
             }
         }
@@ -559,7 +581,10 @@ public final class Simulation {
         spears.clear();
         reach = null;
         int visit = visits[room.index()]++;
-        eco.populator().populate(spawns, room, runSeed, visit);
+        if (!questRoom(room)) {
+            // §14.3: a lair is a single clean puzzle — its guardian and nothing else. The way out is kept clear too.
+            eco.populator().populate(spawns, room, runSeed, visit);
+        }
         int keep = 0;
         for (int i = 0; i < away.size(); i++) {
             Creature c = away.get(i);
@@ -1200,6 +1225,12 @@ public final class Simulation {
 
     // ---------------------------------------------------------------- the orchids (§15)
 
+    /** Whether {@code at} is one of this game's lairs or the way out: rooms the quest keeps clear (§14.3). */
+    private boolean questRoom(RoomAddress at) {
+        QuestRules q = eco.quest();
+        return q.enabled() && (q.landmarks().lairIndexIn(at) >= 0 || at.equals(q.landmarks().exitRoom()));
+    }
+
     /** The room's anchors, found once on entry; guardian rooms and the way out never flower (§14.3). */
     private void enterOrchidRoom() {
         OrchidData data = eco.orchids();
@@ -1207,10 +1238,7 @@ public final class Simulation {
             roomOrchids = new int[0];
             return;
         }
-        QuestRules q = eco.quest();
-        boolean sacred = q.enabled()
-                && (q.landmarks().lairIndexIn(room) >= 0 || room.equals(q.landmarks().exitRoom()));
-        roomOrchids = sacred ? new int[0] : orchids.anchors(room, world, runSeed);
+        roomOrchids = questRoom(room) ? new int[0] : orchids.anchors(room, world, runSeed);
         orchidBase = room.index() * data.anchors().perRoom();
         for (int i = 0; i < roomOrchids.length / 2; i++) {
             if (orchidCycleStart[orchidBase + i] == Long.MIN_VALUE) {
@@ -1370,7 +1398,8 @@ public final class Simulation {
         boolean inZone = overlaps(px, py, pb.w(), pb.h(), roomX + zone.x(), roomY + zone.y(), zone.w(), zone.h());
         LandmarksData.Rect shrine = marks.shrines().zone();
         boolean atShrine = overlaps(px, py, pb.w(), pb.h(), roomX + shrine.x(), roomY + shrine.y(), shrine.w(), shrine.h());
-        if (rules.caveHints() && atShrine && marks.isShrine(room) && !q.hintUsed[room.index()]) {
+        // A shrine in a room this game hides a quarter in is quiet: the lair is the answer.
+        if (rules.caveHints() && atShrine && marks.isShrine(room) && q.lair < 0 && !q.hintUsed[room.index()]) {
             // §14.5: the shrine in front of the hut door — the same spot in every hut room — points the way.
             q.hintUsed[room.index()] = true;
             q.hintTicks = marks.hint().messageTicks();
@@ -1820,6 +1849,11 @@ public final class Simulation {
         w.here = here;
     }
 
+    /** Whether the roaming Wulf keeps out of {@code at}: its listed rooms, and this game's lairs if it shuns them. */
+    private boolean barred(WulfRules hunt, RoomAddress at) {
+        return hunt.neverIn().contains(at) || hunt.neverInLairs() && eco.quest().landmarks().lairIndexIn(at) >= 0;
+    }
+
     /** The appearance roll (§13.3): on entering a room, and every {@code rollEveryTicks} while in one. */
     private void rollForWulf() {
         WulfRules hunt = eco.wulf();
@@ -1827,7 +1861,7 @@ public final class Simulation {
         if (wulf.state != Wulf.State.ABSENT || player.mode != Player.Mode.ALIVE
                 || wulf.ticksSinceGone < a.minTicksBetweenAppearances()
                 || wulf.ticksSinceRespawn < a.graceTicksAfterPlayerDeath()
-                || hunt.neverIn().contains(room)) {
+                || barred(hunt, room)) {
             return;
         }
         int pieces = quest.piecesHeld;
@@ -1960,7 +1994,7 @@ public final class Simulation {
             }
             case LEAVING -> gone();
             case WARNING, PURSUE, ARRIVING -> {
-                if (hunt.neverIn().contains(room)) {
+                if (barred(hunt, room)) {
                     // Found by the full-run forge: it followed players into lairs, which §14.3 keeps a clean
                     // puzzle. A room it never appears in is one it never enters — the chase ends at the door,
                     // unscored, so a sanctuary cannot be farmed for escapes.
@@ -2386,6 +2420,11 @@ public final class Simulation {
 
     public Quest quest() {
         return quest;
+    }
+
+    /** This game's landmarks: the lairs where it hid the amulet (§14.2). */
+    public LandmarksData landmarks() {
+        return eco.quest().landmarks();
     }
 
     /**

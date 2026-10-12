@@ -13,6 +13,11 @@ public record Ecosystem(CreatureData creatures, RoomPopulator populator, int roo
                         QuestRules quest, OrchidData orchids, FlameData flame,
                         SwarmRules swarm, BeastRules beasts, OrchidSpots orchidSpots) {
 
+    /** The same jungle with another quest: the game's own lairs, once it has hidden the amulet (§14.2). */
+    public Ecosystem withQuest(QuestRules q) {
+        return new Ecosystem(creatures, populator, roomFirstVisitScore, wulf, q, orchids, flame, swarm, beasts, orchidSpots);
+    }
+
     /** No creatures, no Wulf, no quest: M3's empty jungle. */
     public static final Ecosystem NONE = new Ecosystem(CreatureData.EMPTY, RoomPopulator.NONE, 0, WulfRules.NONE,
             QuestRules.NONE, OrchidData.NONE, FlameData.NONE, SwarmRules.NONE,

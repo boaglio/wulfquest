@@ -15,7 +15,8 @@ import wulf.world.WorldGrid;
 /** AGENTS.md §17.7 — the map shows the rooms Vale has been in, and nothing else, until the scroll is found. */
 class MapScreenTest {
 
-    private static final Content C = Content.load(Path.of("data"));
+    /** Set 3 (§14.2): the rooms these tests look at. */
+    private static final Content C = Content.load(Path.of("data")).withAmuletSet(3);
 
     private static boolean anyLit(Framebuffer fb, DisplayConfig.Playfield f, RoomAddress room, int ground) {
         int cw = f.w() / 16;

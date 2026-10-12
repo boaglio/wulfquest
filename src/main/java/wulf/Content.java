@@ -161,6 +161,17 @@ public record Content(
                 defaultSettings);
     }
 
+    /**
+     * The same content with the amulet laid out as the original's set {@code set} (§14.2):
+     * a game started from it hides the quarters there instead of picking a set from its seed.
+     * For tests, tools and {@code --amulet-set}.
+     */
+    public Content withAmuletSet(int set) {
+        return new Content(db, game, display, palette, font, input, map, sprites, scenery, rooms, player, creatures,
+                roomEntities, loot, biomes, wulf, flame, jungle, guardians, landmarks.withAmuletSet(set), treasures,
+                orchids, shell, sfx, music, defaultScores, defaultSettings);
+    }
+
     /** The same content with one feature flag set (§1.1): for tests and tools that need a [NEW] rule on or off. */
     public Content withFeature(String name, boolean on) {
         return withFeatures(java.util.Map.of(name, on));
@@ -197,15 +208,8 @@ public record Content(
             return new Ecosystem(originalCreatures(), RoomPopulator.NONE, loot.event("roomFirstVisit"), wulfRules(),
                     questRules(), orchids(), flame, swarmRules(), beastRules(), orchidSpots());
         }
-        RoomPopulator jungle = new BiomePopulator(creatures, roomEntities, biomes, game.difficulty());
-        // §14.3: a lair is a single clean puzzle — its guardian and nothing else. The way out is kept clear too.
-        Set<RoomAddress> clear = new LinkedHashSet<>(landmarks.lairRooms());
-        clear.add(landmarks.exitRoom());
-        RoomPopulator populator = (spawner, room, seed, visit) -> {
-            if (!clear.contains(room)) {
-                jungle.populate(spawner, room, seed, visit);
-            }
-        };
+        // §14.3: the lairs and the way out are kept clear by the simulation, which knows this game's lairs.
+        RoomPopulator populator = new BiomePopulator(creatures, roomEntities, biomes, game.difficulty());
         return new Ecosystem(creatures, populator, loot.event("roomFirstVisit"), wulfRules(), questRules(), orchids(),
                 flame);
     }
@@ -226,10 +230,11 @@ public record Content(
 
     /**
      * Where the treasures may lie (§16.4): every room's two places, less the rooms the quest
-     * keeps for itself — the lairs, the way out, and the map scroll's and the eyes' rooms.
+     * keeps for itself — the way out, and the map scroll's and the eyes' rooms. This game's
+     * lairs are left out when the game lays them, once it has picked where the amulet lies.
      */
     public Treasures treasurePlaces() {
-        Set<RoomAddress> keepClear = new LinkedHashSet<>(landmarks.lairRooms());
+        Set<RoomAddress> keepClear = new LinkedHashSet<>();
         keepClear.add(landmarks.exitRoom());
         LandmarksData.Items items = landmarks.items();
         if (items.map() != null) {
@@ -256,15 +261,16 @@ public record Content(
             return WulfRules.patrol(wulf);
         }
         Set<RoomAddress> never = new LinkedHashSet<>();
+        boolean lairs = false;
         for (String where : wulf.appearance().neverInRooms()) {
             switch (where) {
                 case WulfData.START -> never.add(map.startRoom());
-                case WulfData.LAIR -> never.addAll(landmarks.lairRooms());
+                case WulfData.LAIR -> lairs = true;
                 case WulfData.EXIT -> never.add(landmarks.exitRoom());
                 default -> throw new IllegalStateException("unknown neverInRooms name '" + where + "'");
             }
         }
-        return WulfRules.of(wulf, game.transition().wulfArrivalDelayTicks(), loot.event("wulfEvaded"), never);
+        return WulfRules.of(wulf, game.transition().wulfArrivalDelayTicks(), loot.event("wulfEvaded"), never, lairs);
     }
 
     /**

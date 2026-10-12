@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "name": "wulf_escape",
   "note": "Forged by WulfEscapeForge: the Wulf appeared in 6,9 at tick 363 and chased across 4 rooms to 6,10, parried 16 times, until it was outrun; no lives lost. Replayed by ReplayTest.",
-  "contentHash": "5a737396f42b6a6f517d66eff019ee0393ecc571728e59cd0eca900b62528a70",
+  "contentHash": "224802bf66ca9385ff6b376adb7d880b8eb5fcee452d998797f7b00dab1ba552",
   "seed": 21,
   "startRoom": "8,10",
   "dev": false,

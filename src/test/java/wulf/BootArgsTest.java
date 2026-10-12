@@ -37,7 +37,20 @@ class BootArgsTest {
     }
 
     @Test
+    void anAmuletSetCanBeNamedAndIsPractice() {
+        // §14.2: the original picks one of eight at random; naming one is knowing where to go.
+        Boot.Args a = parse("--amulet-set", "3");
+        assertThat(a.error()).isNull();
+        assertThat(a.amuletSet()).isEqualTo(3);
+        assertThat(a.practice()).isTrue();
+        assertThat(parse().amuletSet()).as("random by default").isEqualTo(-1);
+        assertThat(parse("--amulet-set", "-1").error()).contains("--amulet-set");
+        assertThat(parse("--amulet-set").error()).contains("--amulet-set");
+    }
+
+    @Test
     void aReplayCannotCarryPracticeOptions() {
+        assertThat(parse("--record", "x.json", "--amulet-set", "2").error()).contains("--record");
         assertThat(parse("--record", "x.json", "--god").error()).contains("--record");
         assertThat(parse("--record", "x.json", "--lives", "3").error()).contains("--record");
         assertThat(parse("--record", "x.json").error()).isNull();

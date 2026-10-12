@@ -37,5 +37,21 @@ public record QuestRules(
 
     public QuestRules {
         guardianSpecies = List.copyOf(guardianSpecies);
+        if (landmarks.placed() && guardianSpecies.size() == landmarks.lairs().size()) {
+            // A lair too tight for the usual circle names its own (§14.2); every other keeps its species' own.
+            List<CreatureData.Species> fitted = new java.util.ArrayList<>(guardianSpecies.size());
+            for (int i = 0; i < guardianSpecies.size(); i++) {
+                Integer r = landmarks.lairs().get(i).orbitPx();
+                fitted.add(r == null ? guardianSpecies.get(i) : guardianSpecies.get(i).withParam("orbitRadiusPx", r));
+            }
+            guardianSpecies = List.copyOf(fitted);
+        }
+    }
+
+    /** The same rules over other landmarks: the lairs laid out as one amulet set (§14.2). */
+    public QuestRules withLandmarks(LandmarksData marks) {
+        return new QuestRules(enabled, marks, guardianSpecies, keeperSpecies, orbit, stepAsideFp, asideMinPx, asideMaxPx,
+                nudgeZonePx, nudgePx, pieceScore, escapeBonus, timeBonusMax, timeBonusTicksDivisor, lifeRemainingBonus,
+                caveHints, treasures);
     }
 }

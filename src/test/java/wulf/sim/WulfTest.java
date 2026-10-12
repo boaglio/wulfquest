@@ -443,10 +443,11 @@ class WulfTest {
     @Test
     void theStartTheLairsAndTheWayOutAreOffLimits() {
         Content c = Content.load(Path.of("data")).withFeature("roamingWulf", true);
-        java.util.Set<RoomAddress> expected = new java.util.HashSet<>(c.landmarks().lairRooms());
+        java.util.Set<RoomAddress> expected = new java.util.HashSet<>();
         expected.add(c.map().startRoom());
         expected.add(c.landmarks().exitRoom());
         assertThat(c.wulfRules().neverIn()).containsExactlyInAnyOrderElementsOf(expected);
+        assertThat(c.wulfRules().neverInLairs()).as("and this game's lairs, wherever they are").isTrue();
         assertThat(c.wulfRules().enabled()).isTrue();
     }
 }

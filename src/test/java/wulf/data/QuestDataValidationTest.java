@@ -54,15 +54,21 @@ class QuestDataValidationTest {
         LandmarksData.Exit e = m.exit();
         return new LandmarksData(m.schemaVersion(), m.fidelity(), m.startFacing(),
                 new LandmarksData.Exit(room, e.arch(), e.zone(), e.keeper(), e.requiresPieces(), e.escapeWalkTicks()),
-                m.lairs(), m.amulet(), m.shrines(), m.items(), m.hint(), m.temple());
+                m.lairs(), m.amuletSets(), m.amulet(), m.shrines(), m.items(), m.hint(), m.temple());
     }
 
-    private static LandmarksData withLairRoom(int i, String room) {
+    /** The shipped landmarks with entry {@code j} of amulet set {@code k} moved to {@code room}. */
+    private static LandmarksData withSetRoom(int k, int j, String room) {
         LandmarksData m = c.landmarks();
-        List<LandmarksData.Lair> lairs = new ArrayList<>(m.lairs());
-        LandmarksData.Lair l = lairs.get(i);
-        lairs.set(i, new LandmarksData.Lair(l.id(), room, l.guardian(), l.piece(), l.pedestal()));
-        return new LandmarksData(m.schemaVersion(), m.fidelity(), m.startFacing(), m.exit(), lairs, m.amulet(),
+        LandmarksData.AmuletSets a = m.amuletSets();
+        List<List<String>> sets = new ArrayList<>(a.sets());
+        List<String> set = new ArrayList<>(sets.get(k));
+        set.set(j, room);
+        sets.set(k, set);
+        Map<String, LandmarksData.Pedestal> pedestals = new java.util.HashMap<>(a.pedestals());
+        pedestals.put(room, new LandmarksData.Pedestal(128, 96, null));
+        return new LandmarksData(m.schemaVersion(), m.fidelity(), m.startFacing(), m.exit(), m.lairs(),
+                new LandmarksData.AmuletSets(a.source(), a.quarters(), sets, pedestals), m.amulet(),
                 m.shrines(), m.items(), m.hint(), m.temple());
     }
 
@@ -76,13 +82,13 @@ class QuestDataValidationTest {
                 new LandmarksData.Eye(first.room(), first.spot(), first.sprite(), List.of("lair_nowhere")),
                 items.eyes().get(1)));
         LandmarksData broken = new LandmarksData(m.schemaVersion(), m.fidelity(), m.startFacing(), m.exit(), m.lairs(),
-                m.amulet(), m.shrines(), wrong, m.hint(), m.temple());
+                m.amuletSets(), m.amulet(), m.shrines(), wrong, m.hint(), m.temple());
         assertThat(landmarkError(broken, solid).pointer()).isEqualTo("/items/eyes/0/reveals/0");
 
         LandmarksData.Items short1 = new LandmarksData.Items(items.pickupBox(), items.glanceTicks(), items.map(),
                 List.of(first));
         LandmarksData missing = new LandmarksData(m.schemaVersion(), m.fidelity(), m.startFacing(), m.exit(), m.lairs(),
-                m.amulet(), m.shrines(), short1, m.hint(), m.temple());
+                m.amuletSets(), m.amulet(), m.shrines(), short1, m.hint(), m.temple());
         assertThat(landmarkError(missing, solid).pointer()).isEqualTo("/items/eyes");
     }
 
@@ -114,17 +120,33 @@ class QuestDataValidationTest {
     }
 
     @Test
-    void twoLairsInOneQuadrantAreReported() {
-        DataException e = landmarkError(withLairRoom(1, "3,6"), solid);
-        assertThat(e.pointer()).isEqualTo("/lairs/1/room");
+    void aQuarterHiddenInTheWayOutIsReported() {
+        DataException e = landmarkError(withSetRoom(2, 1, c.landmarks().exit().room()), solid);
+        assertThat(e.pointer()).isEqualTo("/amuletSets/sets/2/1");
     }
 
     @Test
     void aPedestalInsideTheSceneryIsReported() {
-        RoomAddress first = LandmarksData.room(c.landmarks().lairs().get(0).room());
+        String key = c.landmarks().amuletSets().sets().get(0).get(0);
+        RoomAddress first = LandmarksData.room(key);
         LandmarkValidator.Solid walledLair = (gx, gy) -> solid.at(gx, gy)
                 || (gx / CollisionMask.COLS == first.col() && gy / CollisionMask.ROWS == first.row());
         DataException e = landmarkError(c.landmarks(), walledLair);
-        assertThat(e.pointer()).isEqualTo("/lairs/0/pedestal");
+        assertThat(e.pointer()).isEqualTo("/amuletSets/pedestals/" + key);
+    }
+
+    @Test
+    void everySetLaysEveryQuarterInARoomOfItsOwn() {
+        // §14.2, $A29D: the eight sets, each four rooms, every lair given one.
+        LandmarksData m = c.landmarks();
+        assertThat(m.amuletSets().sets()).hasSize(8);
+        assertThat(m.placed()).as("as loaded, no set is picked").isFalse();
+        for (int k = 0; k < 8; k++) {
+            LandmarksData laid = m.withAmuletSet(k);
+            assertThat(laid.placed()).isTrue();
+            assertThat(laid.amuletSet()).isEqualTo(k);
+            assertThat(laid.lairRooms()).doesNotHaveDuplicates()
+                    .containsExactlyInAnyOrderElementsOf(m.amuletSets().sets().get(k).stream().map(LandmarksData::room).toList());
+        }
     }
 }

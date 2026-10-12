@@ -301,8 +301,9 @@ class OrchidTest {
     @Test
     void lairsAndTheWayOutDoNotFlower() {
         WorldGrid grid = new WorldGrid(content.rooms());
-        Ecosystem eco = content.ecosystem();
-        for (RoomAddress lair : content.landmarks().lairRooms()) {
+        Content set3 = content.withAmuletSet(3);
+        Ecosystem eco = set3.ecosystem();
+        for (RoomAddress lair : set3.landmarks().lairRooms()) {
             Simulation s = Simulation.startingIn(content.player(), grid, 6, lair, eco, 9L);
             assertThat(s.orchidAnchors()).as("%s is a clean puzzle", lair).isEmpty();
         }

@@ -11,11 +11,50 @@
     "escapeWalkTicks": 40
   },
   "lairs": [
-    { "id": "lair_nw", "room": "5,3",  "guardian": "guardian_hippo",      "piece": { "id": "amulet_nw", "frame": "nw", "slot": 0 }, "pedestal": { "x": 102, "y": 84 } },
-    { "id": "lair_ne", "room": "13,4", "guardian": "guardian_rhino",      "piece": { "id": "amulet_ne", "frame": "ne", "slot": 1 }, "pedestal": { "x": 94, "y": 84 } },
-    { "id": "lair_sw", "room": "3,12", "guardian": "guardian_boar",       "piece": { "id": "amulet_sw", "frame": "sw", "slot": 2 }, "pedestal": { "x": 102, "y": 84 } },
-    { "id": "lair_se", "room": "9,10", "guardian": "guardian_wildebeest", "piece": { "id": "amulet_se", "frame": "se", "slot": 3 }, "pedestal": { "x": 102, "y": 84 } }
+    { "id": "lair_nw", "guardian": "guardian_hippo",      "piece": { "id": "amulet_nw", "frame": "nw", "slot": 0 } },
+    { "id": "lair_ne", "guardian": "guardian_rhino",      "piece": { "id": "amulet_ne", "frame": "ne", "slot": 1 } },
+    { "id": "lair_sw", "guardian": "guardian_boar",       "piece": { "id": "amulet_sw", "frame": "sw", "slot": 2 } },
+    { "id": "lair_se", "guardian": "guardian_wildebeest", "piece": { "id": "amulet_se", "frame": "se", "slot": 3 } }
   ],
+  "amuletSets": {
+    "source": "Place Amulet Pieces $A255: one of the eight sets at $A29D, a room byte each, row in the high nibble",
+    "quarters": ["lair_nw", "lair_sw", "lair_ne", "lair_se"],
+    "sets": [
+      ["3,4", "1,9", "13,4", "11,12"],
+      ["13,9", "12,10", "13,2", "6,2"],
+      ["1,14", "3,7", "4,4", "13,2"],
+      ["5,3", "3,12", "13,4", "9,10"],
+      ["10,8", "13,4", "1,14", "2,5"],
+      ["3,4", "8,5", "9,3", "7,14"],
+      ["9,5", "7,10", "2,14", "1,9"],
+      ["6,2", "5,3", "11,12", "3,10"]
+    ],
+    "pedestals": {
+      "3,4": { "x": 106, "y": 84 },
+      "1,9": { "x": 68, "y": 80, "orbitPx": 20 },
+      "13,4": { "x": 98, "y": 84 },
+      "11,12": { "x": 98, "y": 84 },
+      "13,9": { "x": 106, "y": 84 },
+      "12,10": { "x": 106, "y": 84 },
+      "13,2": { "x": 106, "y": 84 },
+      "6,2": { "x": 106, "y": 84 },
+      "1,14": { "x": 98, "y": 84 },
+      "3,7": { "x": 98, "y": 84 },
+      "4,4": { "x": 98, "y": 84 },
+      "5,3": { "x": 106, "y": 84 },
+      "3,12": { "x": 106, "y": 84 },
+      "9,10": { "x": 106, "y": 84 },
+      "10,8": { "x": 106, "y": 84 },
+      "2,5": { "x": 68, "y": 80, "orbitPx": 20 },
+      "8,5": { "x": 106, "y": 84 },
+      "9,3": { "x": 60, "y": 80, "orbitPx": 12 },
+      "7,14": { "x": 60, "y": 80, "orbitPx": 12 },
+      "9,5": { "x": 106, "y": 84 },
+      "7,10": { "x": 106, "y": 84 },
+      "2,14": { "x": 60, "y": 80, "orbitPx": 12 },
+      "3,10": { "x": 60, "y": 80, "orbitPx": 12 }
+    }
+  },
   "amulet": {
     "sprite": "amulet_piece",
     "size": { "w": 16, "h": 16 },

@@ -31,7 +31,7 @@ class QuestTest {
 
     @BeforeAll
     static void load() {
-        content = Content.load(Path.of("data"));
+        content = Content.load(Path.of("data")).withAmuletSet(3);   // set 3: the rooms these tests walk
         real = content.questRules();
         marks = content.landmarks();
     }
@@ -387,6 +387,32 @@ class QuestTest {
         // He gets up where he fell (§11.7) — on the shrine, so the new life's hint comes at once.
         s.tick(STILL);
         assertThat(q.hintTicks()).as("a new life, a new hint").isPositive();
+    }
+
+    @Test
+    void aShrineWhereThisGameHidAQuarterIsQuiet() {
+        // §14.5: set 4 hides a quarter in the hut village at 2,5. Its shrine says nothing: the lair is the answer.
+        Content set4 = Content.load(Path.of("data")).withAmuletSet(4);
+        RoomAddress shrine = new RoomAddress(2, 5);
+        assertThat(set4.landmarks().lairIndexIn(shrine)).isNotNegative();
+        LandmarksData.Rect zone = marks.shrines().zone();
+        Simulation s = sim(OPEN, set4.questRules(), shrine, zone.x() + zone.w() / 2, 160);
+        s.god(true);
+        walkY(s, wy(shrine, zone.y() + zone.h() - 6));
+        assertThat(s.quest().inLair()).isTrue();
+        assertThat(s.quest().hintTicks()).isZero();
+    }
+
+    @Test
+    void aGuardianInATightRoomCirclesCloser() {
+        // §14.2: 9,3 has a rock in the middle; set 5 hides the north-east quarter there, its ring 12 px.
+        // The north-west quarter lies in open 3,4 and keeps the usual ring.
+        QuestRules set5 = Content.load(Path.of("data")).withAmuletSet(5).questRules();
+        int ne = set5.landmarks().lairIndexIn(new RoomAddress(9, 3));
+        int nw = set5.landmarks().lairIndexIn(new RoomAddress(3, 4));
+        assertThat(set5.landmarks().lairs().get(ne).id()).isEqualTo("lair_ne");
+        assertThat(set5.guardianSpecies().get(ne).behaviour().param("orbitRadiusPx")).isEqualTo(12);
+        assertThat(set5.guardianSpecies().get(nw).behaviour().param("orbitRadiusPx")).isEqualTo(real.orbit().radiusPx());
     }
 
     /**

@@ -81,7 +81,9 @@ Game options (play, browse and jar):
   --lives N                   start every game with N lives in reserve (1-99)
   --infinite-lives            you still die, but never run out of lives
   --god                       nothing can kill you
-                              (any of these three makes a practice run: kept off
+  --amulet-set N              hide the amulet in the original's set N (0-7) every
+                              game, instead of a set picked at random
+                              (any of these four makes a practice run: kept off
                               the hi-score table and the ledger, and not
                               allowed with --record)
 

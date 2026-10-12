@@ -51,7 +51,7 @@ public final class QuestPainter {
         if (amulet == null || !q.inLair() || q.taken(q.lair())) {
             return;
         }
-        LandmarksData.Lair lair = marks.lairs().get(q.lair());
+        LandmarksData.Lair lair = sim.landmarks().lairs().get(q.lair());
         fb.setClip(field.x(), field.y(), field.w(), field.h());
         try {
             amulet.blit(fb, lair.piece().frame(), field.x() + lair.pedestal().x(), field.y() + lair.pedestal().y());

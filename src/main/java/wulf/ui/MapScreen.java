@@ -87,8 +87,9 @@ final class MapScreen {
      */
     private void paintQuarters(Framebuffer fb, Simulation sim, int cw, int ch) {
         List<LandmarksData.Eye> eyes = marks.items().eyes();
-        for (int l = 0; l < marks.lairs().size(); l++) {
-            LandmarksData.Lair lair = marks.lairs().get(l);
+        List<LandmarksData.Lair> lairs = sim.landmarks().lairs();   // where this game hid them (§14.2)
+        for (int l = 0; l < lairs.size(); l++) {
+            LandmarksData.Lair lair = lairs.get(l);
             boolean taken = sim.quest().taken(l);
             boolean shown = false;
             for (int i = 0; i < eyes.size() && !shown; i++) {

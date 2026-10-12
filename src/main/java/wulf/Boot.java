@@ -100,6 +100,13 @@ public final class Boot {
                 + c.player().lives().start() + " lives, sprite '" + c.player().sprite() + "'");
         System.out.println("  creatures    : " + c.creatures().creatures().size() + " species across "
                 + c.biomes().inUse().size() + " biomes");
+        int sets = c.landmarks().amuletSets().sets().size();
+        if (parsed.amuletSet() >= sets) {
+            // Only the data knows how many sets there are, so this usage error waits for it (EX_USAGE).
+            System.err.println("wulfquest: --amulet-set expects 0 to " + (sets - 1) + ", got " + parsed.amuletSet());
+            System.exit(64);
+            return;
+        }
         if (parsed.headless()) {
             System.out.println("  --headless: skipping the window");
             return;
@@ -159,13 +166,15 @@ public final class Boot {
         screen.window().canvas().addKeyListener(keys);
         screen.window().canvas().addFocusListener(keys);
         Ecosystem eco = c.ecosystem();
+        // §14.2: every game hides the amulet in a set of its own, unless --amulet-set names one. Demos never do.
+        Ecosystem gameEco = parsed.amuletSet() >= 0 ? c.withAmuletSet(parsed.amuletSet()).ecosystem() : eco;
         // The run seed decides every room's creatures (§6.3). Game n of a session uses seed + n.
         long firstSeed = parsed.seeded() ? parsed.seed() : System.nanoTime();
         AtomicLong nextSeed = new AtomicLong(firstSeed);
         // One way to make a game, so a quick load (§21.4) rebuilds it exactly as it was begun.
         LongFunction<Simulation> silentGame = seed -> {
-            Simulation fresh = Simulation.startingIn(c.player(), world, c.game().transition().freezeTicks(), start, eco,
-                    seed);
+            Simulation fresh = Simulation.startingIn(c.player(), world, c.game().transition().freezeTicks(), start,
+                    gameEco, seed);
             if (parsed.debugEffect() != null) {
                 fresh.giveEffect(parsed.debugEffect());   // --debug-effect: every game starts under it
             }
@@ -174,6 +183,9 @@ public final class Boot {
             }
             fresh.infiniteLives(parsed.infiniteLives());
             fresh.god(parsed.god());
+            if (parsed.amuletSet() >= 0) {
+                fresh.markPractice();   // knowing where the amulet lies is practice too (§17.6)
+            }
             return fresh;
         };
         java.util.function.Consumer<Simulation> voice = sim -> sim.sounds(mixer, c.sfx().cadence());
@@ -438,11 +450,11 @@ public final class Boot {
      */
     record Args(Path dataDir, Path userDir, int scale, RoomAddress room, long seed, boolean seeded, Path record,
                 String debugEffect, boolean headless, boolean browse, boolean dev, boolean noAudio, boolean help,
-                int lives, boolean infiniteLives, boolean god, String error) {
+                int lives, boolean infiniteLives, boolean god, int amuletSet, String error) {
 
         /** Any practice option (§17.6). */
         boolean practice() {
-            return lives > 0 || infiniteLives || god;
+            return lives > 0 || infiniteLives || god || amuletSet >= 0;
         }
 
         static Args parse(String[] argv) {
@@ -462,6 +474,7 @@ public final class Boot {
             int lives = 0;
             boolean infiniteLives = false;
             boolean god = false;
+            int amuletSet = -1;
             try {
                 for (int i = 0; i < argv.length; i++) {
                     switch (argv[i]) {
@@ -478,6 +491,12 @@ public final class Boot {
                         }
                         case "--infinite-lives" -> infiniteLives = true;
                         case "--god" -> god = true;
+                        case "--amulet-set" -> {
+                            amuletSet = number(argv, ++i, "--amulet-set");
+                            if (amuletSet < 0) {
+                                throw new IllegalArgumentException("--amulet-set expects a set number from 0, got " + amuletSet);
+                            }
+                        }
                         case "--scale" -> scale = number(argv, ++i, "--scale");
                         case "--room" -> room = roomArg(argv, ++i);
                         case "--record" -> record = Path.of(value(argv, ++i, "--record"));
@@ -493,16 +512,16 @@ public final class Boot {
                 }
             } catch (IllegalArgumentException e) {
                 return new Args(dataDir, userDir, scale, room, seed, seeded, record, debugEffect, headless, browse,
-                        dev, noAudio, help, lives, infiniteLives, god, e.getMessage());
+                        dev, noAudio, help, lives, infiniteLives, god, amuletSet, e.getMessage());
             }
-            if (record != null && (lives > 0 || infiniteLives || god)) {
+            if (record != null && (lives > 0 || infiniteLives || god || amuletSet >= 0)) {
                 // A replay file has no room for them, so it would replay a different game.
                 return new Args(dataDir, userDir, scale, room, seed, seeded, record, debugEffect, headless, browse,
-                        dev, noAudio, help, lives, infiniteLives, god,
-                        "--record cannot be combined with --lives, --infinite-lives or --god");
+                        dev, noAudio, help, lives, infiniteLives, god, amuletSet,
+                        "--record cannot be combined with --lives, --infinite-lives, --god or --amulet-set");
             }
             return new Args(dataDir, userDir, scale, room, seed, seeded, record, debugEffect, headless, browse, dev,
-                    noAudio, help, lives, infiniteLives, god, null);
+                    noAudio, help, lives, infiniteLives, god, amuletSet, null);
         }
 
         private static String value(String[] argv, int i, String option) {
@@ -564,7 +583,9 @@ public final class Boot {
                       --lives N        start every game with N lives in reserve (1-99)
                       --infinite-lives you still die, but never run out of lives
                       --god            nothing can kill you
-                                       (any of these three: a practice run, kept off the
+                      --amulet-set N   hide the amulet in the original's set N (0-7) every game,
+                                       instead of a set picked at random
+                                       (any of these four: a practice run, kept off the
                                        hi-score table and the ledger)
                       --headless       load and validate the data, then exit
                       --dev            developer mode: K kills, N shows collision, room and

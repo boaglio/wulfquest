@@ -5,8 +5,9 @@ import java.util.List;
 import wulf.world.RoomAddress;
 
 /**
- * Bound view of {@code data/world/landmarks.json} (AGENTS.md §14): where the four
- * lairs and their pieces are, where the way out is, and which rooms hold a shrine.
+ * Bound view of {@code data/world/landmarks.json} (AGENTS.md §14): the four quarters
+ * and their guardians, the rooms the original may hide them in, where the way out is,
+ * and which rooms hold a shrine.
  *
  * <p>The start room itself is not here — it is extracted canon, in
  * {@code original_map.json} (§8) — only the direction Vale faces at the start.
@@ -17,6 +18,7 @@ public record LandmarksData(
         String startFacing,
         Exit exit,
         List<Lair> lairs,
+        AmuletSets amuletSets,
         Amulet amulet,
         Shrines shrines,
         Items items,
@@ -25,6 +27,74 @@ public record LandmarksData(
 
     public LandmarksData {
         lairs = List.copyOf(lairs);
+    }
+
+    /**
+     * Where the original hides the amulet (§14.2, {@code [CANON]}): {@code Place Amulet Pieces}
+     * ({@code $A255}) picks one of eight preset {@code sets} of four rooms ({@code $A29D}) at the
+     * start of every game. Entry {@code j} of a set holds the quarter of lair {@code quarters[j]};
+     * each room's guardian circles its {@code pedestals} spot.
+     *
+     * @param sets      each four {@code "col,row"} rooms, in the original's byte order
+     * @param quarters  the lair id whose quarter each entry of a set holds
+     * @param pedestals by room: where the quarter rests and the guardian circles, room-local feet
+     */
+    public record AmuletSets(String source, List<String> quarters, List<List<String>> sets,
+                             java.util.Map<String, Pedestal> pedestals) {
+        public AmuletSets {
+            quarters = List.copyOf(quarters);
+            sets = sets.stream().map(List::copyOf).toList();
+            pedestals = java.util.Map.copyOf(pedestals);
+        }
+
+        public static final AmuletSets NONE = new AmuletSets("none", List.of(), List.of(), java.util.Map.of());
+    }
+
+    /**
+     * Where a quarter rests, room-local feet, and its guardian circles round it.
+     *
+     * @param orbitPx the circle's radius where the room is too tight for {@code guardians.json → orbit.radiusPx};
+     *                null for that one
+     */
+    public record Pedestal(int x, int y, Integer orbitPx) {
+        public Point point() {
+            return new Point(x, y);
+        }
+    }
+
+    /**
+     * The landmarks with the amulet laid out as set {@code set} lays it: every lair given its
+     * room and pedestal. The game picks the set (§14.2); tests and tools may name one.
+     */
+    public LandmarksData withAmuletSet(int set) {
+        List<String> rooms = amuletSets.sets().get(set);
+        List<Lair> placed = new ArrayList<>(lairs.size());
+        for (Lair lair : lairs) {
+            int entry = amuletSets.quarters().indexOf(lair.id());
+            String room = rooms.get(entry);
+            Pedestal p = amuletSets.pedestals().get(room);
+            placed.add(new Lair(lair.id(), room, lair.guardian(), lair.piece(), p.point(), p.orbitPx()));
+        }
+        return new LandmarksData(schemaVersion, fidelity, startFacing, exit, placed, amuletSets, amulet, shrines,
+                items, hint, temple);
+    }
+
+    /** Whether every lair has its room: false for the data as loaded, before a set is picked. */
+    public boolean placed() {
+        return lairs.stream().allMatch(l -> l.room() != null);
+    }
+
+    /** The set the lairs were laid out from, or -1 before one is picked. */
+    public int amuletSet() {
+        if (lairs.isEmpty() || !placed()) {
+            return -1;
+        }
+        for (int k = 0; k < amuletSets.sets().size(); k++) {
+            if (withAmuletSet(k).lairs().equals(lairs)) {
+                return k;
+            }
+        }
+        return -1;
     }
 
     /**
@@ -74,7 +144,13 @@ public record LandmarksData(
     public record Exit(String room, String arch, Rect zone, Point keeper, int requiresPieces, int escapeWalkTicks) {
     }
 
-    public record Lair(String id, String room, String guardian, Piece piece, Point pedestal) {
+    /**
+     * One quarter of the amulet and its guardian. {@code room}, {@code pedestal} and {@code orbitPx}
+     * are not in the file: they come from the set the game picks ({@link #withAmuletSet(int)}), null before.
+     *
+     * @param orbitPx the guardian's circle here, when the room is too tight for its usual one; else null
+     */
+    public record Lair(String id, String room, String guardian, Piece piece, Point pedestal, Integer orbitPx) {
     }
 
     /**
@@ -148,7 +224,7 @@ public record LandmarksData(
 
     /** No quest: an inert set of landmarks for simulations without one. */
     public static final LandmarksData NONE = new LandmarksData(1, "none", "N",
-            new Exit("0,0", "0000", new Rect(0, 0, 1, 1), new Point(0, 0), 4, 1), List.of(),
+            new Exit("0,0", "0000", new Rect(0, 0, 1, 1), new Point(0, 0), 4, 1), List.of(), AmuletSets.NONE,
             new Amulet("amulet_piece", new CreatureData.Size(1, 1), new CreatureData.Box(0, 0, 1, 1), 0, 1),
             new Shrines("0000", new Rect(0, 0, 1, 1), List.of()), Items.NONE, new Hint(1, true),
             new Temple("none", List.of()));

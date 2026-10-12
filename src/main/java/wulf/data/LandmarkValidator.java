@@ -70,7 +70,6 @@ public final class LandmarkValidator {
         Set<String> lairIds = new HashSet<>();
         Set<String> pieceIds = new HashSet<>();
         Set<Integer> slots = new HashSet<>();
-        Set<String> quadrants = new HashSet<>();
         for (int i = 0; i < marks.lairs().size(); i++) {
             LandmarksData.Lair lair = marks.lairs().get(i);
             String at = "/lairs/" + i;
@@ -84,35 +83,9 @@ public final class LandmarkValidator {
                 throw new DataException(FILE, at + "/piece/slot",
                         "repeats slot " + lair.piece().slot() + "; the four quarters fill four slots");
             }
-            RoomAddress room = room(lair.room(), at + "/room");
-            if (room.isBoundary()) {
-                throw new DataException(FILE, at + "/room", "is " + room + ", a boundary room");
-            }
-            if (room.equals(map.startRoom()) || room.equals(exit)) {
-                throw new DataException(FILE, at + "/room", "is " + room + ", which is already the start or the way out");
-            }
-            String quadrant = (room.col() < RoomAddress.GRID_W / 2 ? "W" : "E")
-                    + (room.row() < RoomAddress.GRID_H / 2 ? "N" : "S");
-            if (!quadrants.add(quadrant)) {
-                throw new DataException(FILE, at + "/room",
-                        "is " + room + ", a second lair in the " + quadrant + " quadrant; §14.1 wants one per quadrant");
-            }
-            GuardianData.Guardian guardian = guardian(wardens, lair.guardian(), at + "/guardian");
-            LandmarksData.Point pedestal = lair.pedestal();
-            if (blocked(solid, room, guardian.collisionBox(), pedestal.x(), pedestal.y())) {
-                throw new DataException(FILE, at + "/pedestal",
-                        "is (" + pedestal.x() + "," + pedestal.y() + "), where " + lair.guardian() + " does not fit");
-            }
-            if (blocked(solid, room, marks.amulet().collisionBox(), pedestal.x(), pedestal.y())) {
-                throw new DataException(FILE, at + "/pedestal", "is solid where the amulet quarter would rest");
-            }
-            int reach = wardens.orbit().radiusPx();
-            if (pedestal.x() - reach < 0 || pedestal.x() + reach >= CollisionMask.COLS * 8
-                    || pedestal.y() - reach < 0 || pedestal.y() + reach >= CollisionMask.ROWS * 8) {
-                throw new DataException(FILE, at + "/pedestal",
-                        "leaves the guardian's " + reach + " px orbit off the room");
-            }
+            guardian(wardens, lair.guardian(), at + "/guardian");
         }
+        Set<RoomAddress> amuletRooms = checkAmuletSets(marks, wardens, map, exit, lairIds, solid);
         if (creatures.creatures().isEmpty()) {
             throw new DataException("data/entities/creatures.json", "/creatures", "is empty");
         }
@@ -124,9 +97,6 @@ public final class LandmarkValidator {
         Set<RoomAddress> taken = new HashSet<>();
         taken.add(exit);
         taken.add(map.startRoom());
-        for (LandmarksData.Lair lair : marks.lairs()) {
-            taken.add(LandmarksData.room(lair.room()));
-        }
         for (int i = 0; i < shrines.rooms().size(); i++) {
             RoomAddress shrine = room(shrines.rooms().get(i), "/shrines/rooms/" + i);
             if (!hasObject(map, shrine, shrines.object())) {
@@ -135,17 +105,97 @@ public final class LandmarkValidator {
             }
             if (taken.contains(shrine)) {
                 throw new DataException(FILE, "/shrines/rooms/" + i,
-                        "is " + shrine + ", already the start, the way out or a lair");
+                        "is " + shrine + ", already the start or the way out");
             }
             if (!anyStandingSpot(solid, shrine, shrineZone)) {
                 throw new DataException(FILE, "/shrines/zone", "is solid everywhere in " + shrine);
             }
         }
+        // A shrine may be where a game hides a quarter: it is quiet in that game (§14.5). Not an item.
+        taken.addAll(amuletRooms);
         checkItems(marks, framesBySprite, solid, taken);
         for (int i = 0; i < marks.temple().rooms().size(); i++) {
             room(marks.temple().rooms().get(i), "/temple/rooms/" + i);
         }
         marks.startFacingName();
+    }
+
+    /**
+     * §14.2: every set is four real rooms — none the start or the way out — each with a pedestal
+     * where the quarter rests and every guardian fits and circles clear of the scenery; every
+     * pedestal belongs to a set's room; and the quarters name each lair once.
+     *
+     * @return every room some set hides a quarter in
+     */
+    private static Set<RoomAddress> checkAmuletSets(LandmarksData marks, GuardianData wardens,
+                                                    OriginalMapRepository map, RoomAddress exit, Set<String> lairIds,
+                                                    Solid solid) {
+        LandmarksData.AmuletSets sets = marks.amuletSets();
+        if (!new HashSet<>(sets.quarters()).equals(lairIds)) {
+            throw new DataException(FILE, "/amuletSets/quarters", "is " + sets.quarters() + ", not each lair once " + lairIds);
+        }
+        Set<RoomAddress> all = new java.util.LinkedHashSet<>();
+        Set<String> used = new HashSet<>();
+        for (int k = 0; k < sets.sets().size(); k++) {
+            for (int j = 0; j < sets.sets().get(k).size(); j++) {
+                String key = sets.sets().get(k).get(j);
+                String at = "/amuletSets/sets/" + k + "/" + j;
+                RoomAddress room = room(key, at);
+                if (room.equals(map.startRoom()) || room.equals(exit)) {
+                    throw new DataException(FILE, at, "is " + room + ", which is already the start or the way out");
+                }
+                LandmarksData.Pedestal pedestal = sets.pedestals().get(key);
+                if (pedestal == null) {
+                    throw new DataException(FILE, "/amuletSets/pedestals", "has no pedestal for room " + key);
+                }
+                used.add(key);
+                if (!all.add(room)) {
+                    continue;
+                }
+                String where = "/amuletSets/pedestals/" + key;
+                int reach = pedestal.orbitPx() != null ? pedestal.orbitPx() : wardens.orbit().radiusPx();
+                if (pedestal.orbitPx() != null && pedestal.orbitPx() >= wardens.orbit().radiusPx()) {
+                    throw new DataException(FILE, where + "/orbitPx", "is no tighter than guardians.json's "
+                            + wardens.orbit().radiusPx() + " px: leave it out");
+                }
+                if (pedestal.x() - reach < 0 || pedestal.x() + reach >= CollisionMask.COLS * 8
+                        || pedestal.y() - reach < 0 || pedestal.y() + reach >= CollisionMask.ROWS * 8) {
+                    throw new DataException(FILE, where, "leaves the guardian's " + reach + " px orbit off the room");
+                }
+                if (blocked(solid, room, marks.amulet().collisionBox(), pedestal.x(), pedestal.y())) {
+                    throw new DataException(FILE, where, "is solid where the amulet quarter would rest");
+                }
+                for (GuardianData.Guardian g : wardens.guardians()) {
+                    if (!orbitClear(solid, room, g.collisionBox(), pedestal.x(), pedestal.y(), reach)) {
+                        throw new DataException(FILE, where, "is (" + pedestal.x() + "," + pedestal.y() + "), where "
+                                + g.id() + " cannot circle clear of the scenery");
+                    }
+                }
+            }
+        }
+        for (String key : sets.pedestals().keySet()) {
+            if (!used.contains(key)) {
+                throw new DataException(FILE, "/amuletSets/pedestals/" + key, "is a room no set hides a quarter in");
+            }
+        }
+        return all;
+    }
+
+    /** Points tried round an orbit by {@link #orbitClear}. */
+    private static final int ORBIT_POINTS = 32;
+
+    /** Whether {@code box} fits at ({@code px}, {@code py}), room-local, and at every point of a circle of radius {@code r} round it. */
+    public static boolean orbitClear(Solid solid, RoomAddress room, CreatureData.Box box, int px, int py, int r) {
+        if (blocked(solid, room, box, px, py)) {
+            return false;
+        }
+        for (int a = 0; a < ORBIT_POINTS; a++) {
+            double t = 2 * Math.PI * a / ORBIT_POINTS;
+            if (blocked(solid, room, box, px + (int) Math.round(r * Math.cos(t)), py + (int) Math.round(r * Math.sin(t)))) {
+                return false;
+            }
+        }
+        return true;
     }
 
     private static List<String> pieceFrames(LandmarksData marks) {
@@ -233,7 +283,7 @@ public final class LandmarkValidator {
         return false;
     }
 
-    static boolean blocked(Solid solid, RoomAddress room, CreatureData.Box box, int px, int py) {
+    public static boolean blocked(Solid solid, RoomAddress room, CreatureData.Box box, int px, int py) {
         int x0 = room.col() * CollisionMask.COLS * 8 + px + box.x();
         int y0 = room.row() * CollisionMask.ROWS * 8 + py + box.y();
         for (int y = y0; y < y0 + box.h(); y++) {

@@ -76,7 +76,16 @@ class TreasureTest {
     @Test
     void theQuestsOwnRoomsHoldNoTreasure() {
         LandmarksData marks = C.landmarks();
-        List<RoomAddress> kept = new java.util.ArrayList<>(marks.lairRooms());
+        // This game's lairs: whichever set it hid the amulet in, nothing is laid there.
+        for (long seed = 1; seed <= 40; seed++) {
+            Simulation s = game(seed);
+            for (RoomAddress lair : s.landmarks().lairRooms()) {
+                for (int place = 0; place < 2; place++) {
+                    assertThat(s.treasureIn(lair.index() * 2 + place)).as("seed %d, lair %s", seed, lair).isEqualTo(-1);
+                }
+            }
+        }
+        List<RoomAddress> kept = new java.util.ArrayList<>();
         kept.add(marks.exitRoom());
         kept.add(LandmarksData.room(marks.items().map().room()));
         for (LandmarksData.Eye eye : marks.items().eyes()) {

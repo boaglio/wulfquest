@@ -52,9 +52,9 @@ import wulf.world.WorldGrid;
  */
 public final class FullRunForge {
 
-    /** Lair visiting orders to try, by index into landmarks.lairs(): nearest first, two ways round. */
-    private static final int[][] ORDERS = {{3, 2, 0, 1}, {3, 1, 0, 2}};
-    private static int[] LAIR_ORDER = ORDERS[0];
+    /** How many ways round the lairs to try (§14.2: each game hides them in a set of its own): see {@link #order}. */
+    private static final int ORDERS = 2;
+    private static int[] LAIR_ORDER = {0, 1, 2, 3};
     /** Which lairs to fetch from, in order, when {@code -Dforge.lairs} names them. Null means the usual two routes. */
     private static final int[] CHOSEN_LAIRS = lairsFromProperty();
     /** How many quarters end the run. Four means play on and win; fewer stops once they are out of the lair. */
@@ -100,7 +100,8 @@ public final class FullRunForge {
         replayName = name;
         for (long seed = first; seed <= last; seed++) {
             LAIR_ORDER = CHOSEN_LAIRS != null ? CHOSEN_LAIRS
-                    : ORDERS[Integer.getInteger("forge.order", (int) (seed % ORDERS.length))];
+                    : order(c, grid, fresh(c, grid, seed).landmarks(),
+                            Integer.getInteger("forge.order", (int) (seed % ORDERS)));
             Attempt a = attempt(c, grid, seed);
             java.util.regex.Matcher m = java.util.regex.Pattern.compile("at goal (\\d)").matcher(a.story());
             if (m.find()) {
@@ -119,6 +120,39 @@ public final class FullRunForge {
         System.err.println("killers: " + KILLERS);
         System.err.println("no win found; furthest goal reached " + bestGoal + "; outcomes: " + outcomes);
         System.exit(1);
+    }
+
+    /**
+     * A way round this game's lairs, by room crossings: always the nearest next, except that
+     * way 1 takes the second nearest second, to come home the other way round.
+     */
+    private static int[] order(Content c, WorldGrid grid, LandmarksData laid, int way) {
+        int n = laid.lairs().size();
+        int[] order = new int[n];
+        boolean[] used = new boolean[n];
+        RoomAddress at = c.map().startRoom();
+        for (int k = 0; k < n; k++) {
+            int[] d = MapAudit.roomDistances(grid, at);
+            int best = -1;
+            int second = -1;
+            for (int l = 0; l < n; l++) {
+                if (used[l]) {
+                    continue;
+                }
+                int dl = d[LandmarksData.room(laid.lairs().get(l).room()).index()];
+                if (best < 0 || dl < d[LandmarksData.room(laid.lairs().get(best).room()).index()]) {
+                    second = best;
+                    best = l;
+                } else if (second < 0 || dl < d[LandmarksData.room(laid.lairs().get(second).room()).index()]) {
+                    second = l;
+                }
+            }
+            int pick = way == 1 && k == 1 && second >= 0 ? second : best;
+            order[k] = pick;
+            used[pick] = true;
+            at = LandmarksData.room(laid.lairs().get(pick).room());
+        }
+        return order;
     }
 
     private static final int MAX_REWINDS = Integer.getInteger("forge.rewinds", 4000);
@@ -160,11 +194,11 @@ public final class FullRunForge {
     }
 
     private static Attempt attempt(Content c, WorldGrid grid, long seed) {
-        LandmarksData marks = c.landmarks();
         PlayerData.Box box = c.player().collisionBox();
         wulf.engine.Rng search = new wulf.engine.Rng(seed * 7919 + 17);
         List<InputState> inputs = new ArrayList<>();
         Simulation sim = fresh(c, grid, seed);
+        LandmarksData marks = sim.landmarks();   // where this game hid the amulet (§14.2)
         int rewinds = 0;
         int furthest = 0;
         int anchor = 0;
@@ -184,14 +218,15 @@ public final class FullRunForge {
             Player.Mode mode = sim.player().mode();
             if (mode == Player.Mode.WON) {
                 ReplayRecorder rec = recordingOf(c, grid, seed, replayName, inputs);
-                return new Attempt(true, rec, "all four quarters (lairs in order " + Arrays.toString(LAIR_ORDER)
+                return new Attempt(true, rec, "amulet set " + marks.amuletSet() + ", all four quarters (lairs in order "
+                        + Arrays.toString(LAIR_ORDER)
                         + ") and out through the arch in " + inputs.size() + " ticks without a death, score "
                         + sim.score() + "; found after " + rewinds + " rewinds.");
             }
             // A shorter acceptance replay: stop once the quarters asked for are out of their lairs (§22.6).
             if (STOP_AFTER_PIECES < 4 && piecesSeen >= STOP_AFTER_PIECES && !sim.quest().inLair()) {
                 ReplayRecorder rec = recordingOf(c, grid, seed, replayName, inputs);
-                return new Attempt(true, rec, "lair" + (STOP_AFTER_PIECES == 1 ? " " : "s ")
+                return new Attempt(true, rec, "amulet set " + marks.amuletSet() + ", lair" + (STOP_AFTER_PIECES == 1 ? " " : "s ")
                         + Arrays.toString(LAIR_ORDER) + ": " + piecesSeen + " quarter(s) carried back out in "
                         + inputs.size() + " ticks without a death, score " + sim.score()
                         + "; found after " + rewinds + " rewinds.");

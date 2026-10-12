@@ -64,6 +64,14 @@ public record CreatureData(
             int score,
             boolean ignoresScenery,
             Behaviour behaviour) {
+
+        /** The same species with one behaviour parameter set to {@code value}. */
+        public Species withParam(String name, int value) {
+            Map<String, Integer> params = new java.util.LinkedHashMap<>(behaviour.params());
+            params.put(name, value);
+            return new Species(id, displayName, sprite, size, collisionBox, speed, hp, score, ignoresScenery,
+                    new Behaviour(behaviour.kind(), params));
+        }
     }
 
     public record Projectile(

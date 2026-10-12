@@ -1981,11 +1981,12 @@ runs beside it on its row; `HeadlessSimTest` checks it never leaves the row.
 
 ### 14.1 The quest **[CANON]** structure
 
-Four amulet pieces are held in four lair rooms, one per map quadrant. Each is
+Four amulet pieces are held in four lair rooms, which the game picks afresh at
+the start of every game from the original's eight sets (§14.2). Each is
 watched by an unkillable guardian beast. With all four pieces the player can
 pass the Keeper of the Arch and escape. That is the whole game.
 
-### 14.2 Lair and landmark placement **[RECON]** — see §25
+### 14.2 Lair and landmark placement — the rooms **[CANON]**, the rest **[RECON]**, see §25
 
 `data/world/landmarks.json`:
 
@@ -2001,11 +2002,18 @@ pass the Keeper of the Arch and escape. That is the whole game.
     "requiresPieces": 4, "escapeWalkTicks": 40
   },
   "lairs": [
-    { "id": "lair_nw", "room": "5,3",  "guardian": "guardian_hippo",      "piece": { "id": "amulet_nw", "frame": "nw", "slot": 0 }, "pedestal": { "x": 102, "y": 84 } },
-    { "id": "lair_ne", "room": "13,4", "guardian": "guardian_rhino",      "piece": { "id": "amulet_ne", "frame": "ne", "slot": 1 }, "pedestal": { "x": 94, "y": 84 } },
-    { "id": "lair_sw", "room": "3,12", "guardian": "guardian_boar",       "piece": { "id": "amulet_sw", "frame": "sw", "slot": 2 }, "pedestal": { "x": 102, "y": 84 } },
-    { "id": "lair_se", "room": "9,10", "guardian": "guardian_wildebeest", "piece": { "id": "amulet_se", "frame": "se", "slot": 3 }, "pedestal": { "x": 102, "y": 84 } }
+    { "id": "lair_nw", "guardian": "guardian_hippo",      "piece": { "id": "amulet_nw", "frame": "nw", "slot": 0 } },
+    { "id": "lair_ne", "guardian": "guardian_rhino",      "piece": { "id": "amulet_ne", "frame": "ne", "slot": 1 } },
+    { "id": "lair_sw", "guardian": "guardian_boar",       "piece": { "id": "amulet_sw", "frame": "sw", "slot": 2 } },
+    { "id": "lair_se", "guardian": "guardian_wildebeest", "piece": { "id": "amulet_se", "frame": "se", "slot": 3 } }
   ],
+  "amuletSets": {
+    "source": "Place Amulet Pieces $A255: one of the eight sets at $A29D, …",
+    "quarters": ["lair_nw", "lair_sw", "lair_ne", "lair_se"],
+    "sets": [ ["3,4", "1,9", "13,4", "11,12"], ["13,9", "12,10", "13,2", "6,2"], "…",
+              ["5,3", "3,12", "13,4", "9,10"], "…" ],
+    "pedestals": { "3,4": { "x": 106, "y": 84 }, "1,9": { "x": 68, "y": 80, "orbitPx": 20 }, "…" }
+  },
   "amulet": { "sprite": "amulet_piece", "size": { "w": 16, "h": 16 }, "collisionBox": { "x": -8, "y": -16, "w": 16, "h": 16 },
               "pickupFlashTicks": 8, "flyToPanelTicks": 24 },
   "shrines": { "object": "8E18", "zone": { "x": 104, "y": 88, "w": 48, "h": 16 },
@@ -2022,23 +2030,40 @@ would let the two disagree. Only the direction Vale faces at the start is.
 12,7, 6,14 and 8,14 and the exit 6,11 on the relabelled grid; none of that
 survives:
 
-- **The lairs are rooms the original hid the amulet in.** The game has no
-  fixed lairs: `Place Amulet Pieces` (`$A255`) picks one of **eight preset
-  sets** of four rooms from `$A29D` at random and lays each quarter at its
-  room type's object slot 1 (`$DC6C`). Our fixed guardian lairs stay
-  `[RECON]`, but their rooms are the game's **set 3**, `$35 $C3 $4D $A9`:
-  `(5,3) (3,12) (13,4) (9,10)`, one per quadrant and the only set whose four
-  rooms all have room for a guardian's orbit.
+- **The lairs are where the original hides the amulet, picked afresh every
+  game** (since 2026-10-12, asked for by the user: "keep it random like the
+  original"). `Place Amulet Pieces` (`$A255`) picks one of **eight preset
+  sets** of four rooms from `$A29D` — a room byte each, the row in the high
+  nibble — and lays each quarter at its room type's first object spot
+  (`$DC6C`). `amuletSets.sets` is that table, in the game's byte order;
+  `quarters` says which lair's quarter each entry holds. Which quarter the
+  game puts first is not known; ours are ordered so that set 3, `$35 $C3 $4D
+  $A9`, lays them where the fixed lairs of 0.5 stood.
+- **The pick is the simulation's.** `Simulation` picks the set from the run
+  seed by a stream of its own (`Rng.hash(seed, 0xA29D)`), so a seed always
+  hides the amulet in the same rooms and a replay needs nothing more than its
+  seed; `Simulation.landmarks()` is the game's landmarks with every lair given
+  its room. `landmarks.json` as loaded has no rooms in its lairs
+  (`LandmarksData.placed()` is false): anything that needs this game's lairs —
+  the map screen, the quest painter, the treasures, the populator, the Wulf's
+  no-go rooms, the forges — asks the simulation, never the content.
+  `Content.withAmuletSet(k)` and `--amulet-set N` (§17.6) name a set instead,
+  for tests and practice.
 - **The ±4 balance is gone.** It was a design wish measured on the wrong map.
   The true map is one long maze, and every one of the game's eight sets
   spreads by 50 rooms or more; set 3's lairs lie 76, 105, 25 and 11 room
-  crossings from the start. `LandmarkBalanceTest` now checks that the lairs
-  are set 3 and that they, and the way out, can be reached.
-- **Pedestals** are the nearest spot to the game's own piece position where
-  the quarter rests, the guardian fits, and its 32 px orbit clears the
-  scenery all the way round — (102, 84) in three rooms, (94, 84) in `13,4`.
-  The game's own spots lie against walls, fine for a quarter lying on the
-  ground and no good for a guardian circling it.
+  crossings from the start, set 6's 142, 56, 7 and 64. `LandmarkBalanceTest`
+  checks that every set's rooms and the way out can be reached, and that 200
+  seeds pick every one of the eight sets, each seed the same set twice.
+- **Pedestals** are by room, `amuletSets.pedestals`: the nearest spot to the
+  game's own piece position where the quarter rests, every guardian fits, and
+  its 32 px orbit clears the scenery at all 32 points round it — (106, 84) or
+  (98, 84) in most of the 23 rooms. The game's own spots lie against walls,
+  fine for a quarter lying on the ground and no good for a guardian circling
+  it. Two room types have a rock in the middle that leaves no room for a
+  32 px ring anywhere: there `orbitPx` names the widest that fits — 20 px in
+  `1,9` and `2,5`, 12 px in `9,3`, `7,14`, `2,14` and `3,10`, where the
+  guardian all but stands guard. `PedestalFinder` (test tools) finds them.
 - **The way out is the map's only arch**, `(8,8)`, at the heart of the temple
   two rooms north of the start — and 132 crossings away on foot, so the
   player meets it late, having walked the whole maze. Whether this is the
@@ -2047,9 +2072,12 @@ survives:
 - **The arch's own cells are solid**, so nobody can stand under it. The exit is
   the `zone` in front of it — where the Keeper stands, and where a shrine is
   touched. The arch stands at cells (13, 6) of the room, the zone below it.
-- `LandmarkValidator` checks the lot at load: the rooms exist and hold an arch,
-  one lair per quadrant, ids and slots unique, and that the guardian, the
-  quarter, the Keeper and its step aside all fit where they are put.
+- `LandmarkValidator` checks the lot at load: the rooms exist and hold an arch;
+  lair ids and slots are unique and `quarters` names each once; no set hides
+  a quarter in the start room or the way out; every room of every set has a
+  pedestal, and no pedestal belongs to no set; and that the guardians, the
+  quarter, the Keeper and its step aside all fit where they are put. A set's
+  rooms need not be one per quadrant — the game's own are not.
 
 ### 14.3 Guardians `data/entities/guardians.json`
 
@@ -2057,12 +2085,15 @@ Four beasts, `GUARD_ORBIT`, unkillable, one per lair, each a larger sibling of a
 roster species recoloured to its quarter's accent, so the player reads the
 family and the scale at once:
 
-| id | based on | colour | lair |
+| id | based on | colour | guards |
 |----|----------|--------|------|
-| `guardian_hippo` | `hippo` | bright green | NW `5,3` |
-| `guardian_rhino` | `rhino` | bright blue | NE `13,4` |
-| `guardian_boar` | `boar` | bright red | SW `3,12` |
-| `guardian_wildebeest` | `wildebeest` | bright yellow | SE `9,10` |
+| `guardian_hippo` | `hippo` | bright green | the NW quarter (`lair_nw`; `5,3` in set 3) |
+| `guardian_rhino` | `rhino` | bright blue | the NE quarter (`lair_ne`; `13,4` in set 3) |
+| `guardian_boar` | `boar` | bright red | the SW quarter (`lair_sw`; `3,12` in set 3) |
+| `guardian_wildebeest` | `wildebeest` | bright yellow | the SE quarter (`lair_se`; `9,10` in set 3) |
+
+A guardian goes with its quarter, wherever the game hides it. The original has
+no guardians at all (§25 Q2); ours stay `[RECON]`.
 
 All four are **32x28** (§12.3's roster line), drawn by `creature_forge.py` as
 their sibling's silhouette grown into that box: "1.4x" in the first draft of
@@ -2077,11 +2108,13 @@ this section was prose, the roster's numbers are the contract.
   in a lair's clear middle that reads as a clean, timeable orbit.
 - **The radius is 32 px, not 56.** The clearest centre any candidate lair has is
   80 px across (§14.2): a 56 px ring puts a 32 px beast through the hedges.
+  A pedestal's `orbitPx` makes it tighter where its room is tighter still
+  (`QuestRules` sets that guardian's `orbitRadiusPx`).
 - Within `lungePx` it breaks off and charges for `lungeTicks`, then returns to
   the ring. A swing never hurts it: `repelPx` back, `stunTicks` stunned, white
   flash, no score — the Wulf's parry (§13.5) by another name.
-- Lair rooms hold **no other creatures** and no orchids: `Content.ecosystem()`
-  keeps the populator out of them and out of the exit room. The Wulf never
+- Lair rooms hold **no other creatures**, no orchids and no treasure: the
+  simulation keeps the populator out of this game's lairs and the exit room. The Wulf never
   appears in them **and never follows into them** (§13.4) — a chase ends at a
   sanctuary's door, unscored.
 
@@ -2113,7 +2146,9 @@ rectangle in every hut room, since all five share template 5 — and the panel
 names the way to the nearest quarter still out there for `hint.messageTicks`
 (90): `AMULET STIRS TO THE NORTH-EAST`. Once the amulet is whole it names the
 way to the arch instead. **Once per room per life** (`hint.oncePerLife`),
-cleared by a death, so it cannot be tapped for a compass. Flag
+cleared by a death, so it cannot be tapped for a compass. A hut room where this
+game hides a quarter (`2,5` in set 4, `1,9` in sets 0 and 6) keeps its shrine
+quiet: the guardian is the answer. Flag
 `features.caveHints`, default on — 256 rooms with no guidance is unfair to a
 player who has no inlay map.
 
@@ -2445,9 +2480,11 @@ disassembly (§25 Q10) and kept in `data/world/treasures.json`:
   of the game, deaths included, and scores **150**. The life (kind 5, one in
   sixteen) is a life as well, while fewer than nine are in reserve (`$A2F8`;
   our `lives.max`). `pickupBox` is 12×12 (`$AB01` is called with `BC=$0C0C`).
-- **Not in the quest's rooms.** Ours keep the lairs, the way out and the
-  rooms of the map scroll and the eyes (§14.8) clear; the original has no
-  such rule, because it has no fixed lairs (§25 Q2).
+- **Not in the quest's rooms.** Ours keep this game's lairs, the way out and
+  the rooms of the map scroll and the eyes (§14.8) clear; the original has no
+  such rule. `Content.treasurePlaces()` leaves out the fixed rooms; the lairs,
+  known only once the game has picked its set, are skipped as the game lays
+  them — on the same draws, so the rest of the jungle is laid alike.
 - **Hashing.** Taken treasures enter the state hash only once one is taken.
 
 The `[NEW]` `features.treasures` and `features.extraLifeIdol` that §16.2 used
@@ -2568,6 +2605,7 @@ kill. Off unless given; they last the whole session (every new game).
 | `--lives N` | start with N lives in reserve, 1–99, instead of `player.json`'s |
 | `--infinite-lives` | deaths still happen — the sequence, the respawn, the ledger's cause — but the count never goes down |
 | `--god` | `Simulation.kill` refuses: no creature, spear, guardian or the Wulf can kill him; and no flower takes him (§15.2) |
+| `--amulet-set N` | every game hides the amulet in the original's set N (0–7, §14.2) instead of one picked at random: knowing where to go is practice too |
 
 Any of them makes the game a **practice run** (`Simulation.practice()`, in the
 state hash): when it ends it goes straight back to the title — no hi-score
@@ -3102,7 +3140,9 @@ hash at every 50th tick. `ReplayRunner` re-executes them. Ship at least:
   original's pace, 1 tick a frame (§11.3): seed 300, 48 507 ticks, no death, 101 rewinds — 5
   of 6 forges over seeds 300–359 won; and with the original's orchid spots (§15.1): seed 331,
   70 084 ticks, no death, 2 303 rewinds — 5 of 6 forges won, slower; and with the original's
-  sabre reach (§11.6): seed 320, 28 798 ticks, no death, 189 rewinds)
+  sabre reach (§11.6): seed 320, 28 798 ticks, no death, 189 rewinds; and 2026-10-12 with the
+  amulet hidden in a set picked by the seed (§14.2): seed 316, amulet set 0 — the north-west
+  quarter in `3,4` — 27 009 ticks, no death, 117 rewinds; 11 of 12 forges over seeds 300–359 won)
 - `replays/wulf_escape.json` — a Wulf pursuit survived across rooms. (**M5, shipped**;
   re-forged 2026-10-08 with the flame: seed 35, chased across 6 rooms,
   parried 8 times, outrun, no life lost; from 2026-10-10 to 2026-10-11 it carried
@@ -3111,7 +3151,8 @@ hash at every 50th tick. `ReplayRunner` re-executes them. Ship at least:
   10 times, outrun, no life lost; and the same day with Vale at the original's pace: seed 52,
   chased across 6 rooms, parried 7 times, until it gave up, no life lost; and with the
   original's orchid spots: seed 1145, chased across 5 rooms, parried 7 times, no life lost;
-  and with the original's sabre reach: seed 21, chased across 4 rooms, parried 16 times, outrun)
+  and with the original's sabre reach: seed 21, chased across 4 rooms, parried 16 times, outrun;
+  and with the amulet set picked by the seed (§14.2): the same seed 21 and the same chase)
   It is the roaming Wulf's (§13.1–§13.7, [NEW]), so since 2026-10-03 the file
   carries `"features": { "roamingWulf": true }`: a replay may name the flags it
   was recorded under, and `ReplayRunner` lays them over `game.json`'s, so a
@@ -3140,8 +3181,12 @@ hash at every 50th tick. `ReplayRunner` re-executes them. Ship at least:
   SW, 160 471 ticks, no death, score 355 850, 792 rewinds — the only win of 20 forges in about
   20 minutes; a flower in every room is in the bot's way more often; and **with the original's sabre
   reach** (§11.6): seed 2003, the same order, 390 490 ticks, no death, score 367 795, 4 250
-  rewinds — the only win of 20 forges in 40 minutes. The lairs are fixed
-  (`landmarks.json`), but a seed decides every creature, and the bot's luck
+  rewinds — the only win of 20 forges in 40 minutes; and **2026-10-12 with the amulet hidden in
+  a set the seed picks** (§14.2): seed 2055, amulet set 6, lairs NE, SE, SW, NW
+  (`2,14`, `1,9`, `7,10`, `9,5` — the first two the tight 12 px and 20 px rings), 75 534 ticks,
+  no death, score 239 915, 455 rewinds — 4 of 12 forges over seeds 2000–2239 won, in sets 6, 5,
+  2 and 3. `FullRunForge` now plans each game's own way round: the nearest lair next, or (way 1,
+  odd seeds) the second nearest second. A seed decides the lairs and every creature, and the bot's luck
   with them varies enormously: seeds 1–60 for `lair_nw` won only in
   108 000–241 000 ticks, and seeds 3000–3159 for the full run in 300 000 and
   more, so search near the seeds that won before. It took three bot fixes, each found by tracing where runs died or
@@ -3967,7 +4012,7 @@ the source wins.
 | # | Question | Currently | Where it lives |
 |---|----------|-----------|----------------|
 | Q1 | The exact creature roster and per-room creature assignment table | 13 invented species, biome-weighted. **Lead 2026-10-03:** the original's room creatures are not per room. Up to `$96BE` (3) at once appear as a puff in the player's room (`$9A68`), then become one of 15 kinds from `$A41A` — spider, scorpion, bat, parrot, monkey, lizard, snake, then rat, bird, frog, mosquito, skunk, flea, earwig — picked from the first `8 + 2 × quarters held` entries (`$A3EC`), so the jungle gets worse as the amulet fills. The fixed ones are in the actor table `$AC77`: rhinos in (8,9) twice, (7,0) and (3,15); tribesmen in (7,10), (4,4), (2,14); a hippo in (3,8); the guardian at the arch (8,8); and the Wulf (Q9). A flame (`$34`) comes for a player who lingers — **built 2026-10-08**, §12.7. **Built 2026-10-10 and now the default**: the small ones (§12.8) and the big ones (§12.9); ours kept as [NEW] `features.inventedCreatures`. In brief: rhinos (`$AD07`) pace a row at 3 px and turn at the scenery, and a blade sends one back at 6 (`$AD69`); tribesmen (`$AB74`) walk a slant, re-steer when stopped, are pushed back by a blade, and follow the player — two rows away, one is set down a row from him (`$A630`) — and flash and beep when level with an amulet quarter (`$9D41`); the hippo sleeps (`$9EB3`), follows the same way, comes back a hippo or a warthog at random (`$9F06`), and touched it wakes, turns and charges until stopped (`$9E72`). | `jungle.json`, `creatures.json`, `room_entities.json` |
-| Q2 | The four guardians' species, colours, and lair rooms | **Rooms partly answered 2026-09-27:** the original has no fixed lairs — it picks one of eight preset four-room sets at random (`$A29D`, `Place Amulet Pieces` `$A255`) and lays each quarter at its room type's object slot 1 (`$DC6C`). Our lairs are fixed (`[RECON]`) at the game's set 3, `5,3 13,4 3,12 9,10`. Guardians' species and colours still open; the game's immortals table (`$AC77`) lists rhinos, spear men, fire, the wolf, a hippo and "guardian" as sprites to look at next. | `landmarks.json`, `guardians.json` |
+| Q2 | The four guardians' species, colours, and lair rooms | **Rooms answered 2026-10-12:** the original has no fixed lairs — it picks one of eight preset four-room sets at random (`$A29D`, `Place Amulet Pieces` `$A255`) and lays each quarter at its room type's first object spot (`$DC6C`). Ours now does the same, the set picked from the run seed (§14.2). Which quarter goes in which entry of a set is still ours. The original has no guardians; ours (`[RECON]`) go with their quarters. Guardians' species and colours still open; the game's immortals table (`$AC77`) lists rhinos, spear men, fire, the wolf, a hippo and "guardian" as sprites to look at next. | `landmarks.json`, `guardians.json` |
 | Q3 | The exit's actual location and its guard condition | **Closed 2026-10-11** from the disassembly, and built (§14.4): the exit room is (8,8), the only stone arch, entered only from the south; the win is feet above `$80` there with the amulet whole (`$A18C` → Game Complete `$9F6A`). The actor table's Guardian (`$94`/`$95`, `$ACFB`) stands over the doorway; until all four quarters are held (`$970D` = `$0F`) its touch throws Vale (`$9704` = `$80`) whatever his colour (`$AB3D`); then, with him in the room, it slides away from his half at 2 px an update to `$C0` or `$40` (`$9F40`). | `landmarks.json`, `guardians.json` |
 | Q4 | The orchid colour→effect mapping and durations | 6 colours per §15.2. **Answered and built 2026-10-04** (§15.2, now the default; ours kept as [NEW] `features.inventedOrchids`, §15.4). Touching a flower **in full bloom** (state `$4F`, `$A737`) turns Vale its colour (`$9707`) and sets the timer `$96B0` to `$C0`; it counts down every other frame (`$AE7A`), so an effect lasts **384 frames** (384 of our ticks at 1 a frame, §12.10), and for its last `$2F` counts Vale flashes white (`$AF7A`). At zero he is white (`$47`) again. **Five colours** (`$A6FD`, picked when a flower closes, from the frame counter): **red** `$42` — slow, at most 2 px a frame against 3 (`$AFC1`, `$AFE0`); **cyan** `$45` — fast, 4 px a frame (`$AFE4`), footsteps twice as often (`$BF4B`); **magenta** `$43` — every direction reversed (`$AF14`, `XOR %1111`); **yellow** `$46` — knocked down, sitting helpless for `$60` counts, then he gets up (`$AEF5`, `$AE8F`, `$A61B`); **white** `$47` — the cure: clears any effect (`$A757`). Odds of a colour: white 4 in 16, each other 3 in 16. **Every coloured state makes him untouchable**: creatures, the Wulf and the flame all hurt only a white Vale (`$AB36`, `$A880`, `$9DE5`) — so red and magenta are protection with a cost, yellow is protection you cannot use. **No score** for a flower. A death clears the effect (`$AA49`). Ours — haste, torpor, reversal, immunity, delirium, stillness, scored 25–75 — is `[RECON]` that the original does not support. Where it grows: one a room, at its type's spot (`$D6A6`), §15.1 — built 2026-10-11. Not built: the growth timings (`$A680`–`$A731`, read 2026-10-11): it opens a stage every other pass to full bloom, stays open `$10` counts, closes, takes a new colour, and stays shut `$80`–`$BF` counts — and the counts go down only while Sabreman walks or fights (`$A68D`). Ours keeps §15.1's clock. | `orchids.json` |
 | Q5 | Exact player speed in px/frame, and whether it was frame-quantised | **Shape answered 2026-09-30** (§11.3): up to 3 px a frame in whole steps (0–3), with inertia ($AEEF, $AFC1, $B031, $B047); fighting a steady 2 ($ADD0). **Answered 2026-10-11** (§12.10): the main loop (`$99AA`–`$9A1D`) runs Sabreman once each time the 50 Hz frame counter moves, so 3 px a frame is 150 px/s — 3 px a tick, `ticksPerFrame` 1 (we had 2, half the pace). The other actors move once a pass of the actor table, about two frames: 2 ticks an update. | `player.json → speed, momentum` |

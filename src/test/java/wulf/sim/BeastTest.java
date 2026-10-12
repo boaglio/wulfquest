@@ -138,8 +138,9 @@ class BeastTest {
     @Test
     void aTribesmanLevelWithAQuarterLightsUp() {
         // $9D41: on the map column of a quarter still lying, and level with it across the room.
-        Ecosystem eco = CONTENT.withFeature("inventedCreatures", false).ecosystem();
-        wulf.data.LandmarksData.Lair lair = CONTENT.landmarks().lairs().get(0);
+        Content set3 = CONTENT.withAmuletSet(3);
+        Ecosystem eco = set3.withFeature("inventedCreatures", false).ecosystem();
+        wulf.data.LandmarksData.Lair lair = set3.landmarks().lairs().get(0);
         RoomAddress lairRoom = wulf.data.LandmarksData.room(lair.room());
         RoomAddress room = new RoomAddress(lairRoom.col(), lairRoom.row() + 2);
         Simulation s = Simulation.at(SimFixtures.RULES, SimFixtures.OPEN, 0,

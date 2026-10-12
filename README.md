@@ -23,6 +23,10 @@ The builds are not signed yet, so Windows warns on the first launch: click
 
 ## Status
 
+**The amulet hides somewhere new every game.** Like the original, each game
+picks one of its eight sets of four rooms for the quarters, so the map you
+learned last game is only half the answer. Each quarter's guardian goes with it.
+
 **The original's creatures.** The jungle is now the original's, read from its
 disassembly: small creatures — spiders, scorpions, bats, parrots and ten more —
 appear as puffs, three to a room, each in a colour of its own, and the later kinds
@@ -89,6 +93,8 @@ lives in [AGENTS.md](AGENTS.md) §24.
 ./run.sh --lives 9         # practice: nine lives in reserve
 ./run.sh --infinite-lives  # practice: die as often as you like
 ./run.sh --god             # practice: nothing can kill you
+./run.sh --amulet-set 3    # practice: hide the amulet in the original's set 3 (0-7),
+                           # not in a set picked at random each game
                            # (practice runs never reach the hi-score table)
 ./run.sh --user-dir ./save # keep hi-scores, settings and stats somewhere else
 ./run.sh browse            # the room browser: arrows, [ ] or PgUp/PgDn, M
