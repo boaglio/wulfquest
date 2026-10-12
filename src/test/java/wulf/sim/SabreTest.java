@@ -47,14 +47,16 @@ class SabreTest {
     }
 
     @Test
-    void theBladeReachesFourteenPixelsAlongTheFacing() {
+    void theBladeReachesSixteenPixelsPastHisTouch() {
+        // $AB0E: fighting, the touch test's reach in front grows from 12 px to 28.
         Simulation sim = facingEast();
         sim.tick(FIRE);
         run(sim, InputState.NONE, 3);
         PixelRect r = sim.sabre();
         int cx = Fixed.px(sim.player().xFp()) + RULES.collisionBox().x() + RULES.collisionBox().w() / 2;
         int cy = Fixed.px(sim.player().yFp()) + RULES.collisionBox().y() + RULES.collisionBox().h() / 2;
-        assertThat(r).isEqualTo(new PixelRect(cx, cy - 6, 14, 12));
+        assertThat(r).isEqualTo(new PixelRect(cx, cy - 6, 21, 12));
+        assertThat(r.x() + r.w() - (cx + RULES.collisionBox().w() / 2)).isEqualTo(16);
     }
 
     @Test

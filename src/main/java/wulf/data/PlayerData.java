@@ -64,7 +64,11 @@ public record PlayerData(
     public record Death(int animTicks, int freezeTicks, boolean keepAmulet) {
     }
 
-    /** @param holdRepeatTicks the gap between swings while fire is held; 0 chains them (§11.6) */
+    /**
+     * @param holdRepeatTicks the gap between swings while fire is held; 0 chains them (§11.6)
+     * @param reachPx         how far the hit box reaches from the feet box's centre ({@code $AB0E})
+     * @param bladePx         how long the blade is drawn, out of the hand: drawing only
+     */
     public record Sabre(
             int windupTicks,
             int activeTicks,
@@ -72,6 +76,7 @@ public record PlayerData(
             int cooldownTicks,
             int holdRepeatTicks,
             int reachPx,
+            int bladePx,
             int thicknessPx,
             int diagonalOffsetPx,
             int repelWulfPx,

@@ -234,7 +234,7 @@ class PlayerPainterTest {
         bare.clear(0);
         vale.blit(bare, strike, feetX, feetY);
         int white = palette.indexOf("brightWhite");
-        int reach = RULES.sabre().reachPx();
+        int reach = RULES.sabre().bladePx();
         int nearest = Integer.MAX_VALUE;
         int farthest = 0;
         for (int y = 0; y < fb.height(); y++) {

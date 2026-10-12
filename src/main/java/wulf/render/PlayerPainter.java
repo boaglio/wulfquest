@@ -184,7 +184,7 @@ public final class PlayerPainter {
         int vx = fx * pose.get(0) - fy * pose.get(1);
         int vy = fy * pose.get(0) + fx * pose.get(1);
         // Straight up or down the blade points into or out of the screen: foreshortened.
-        int reach = d.dx() == 0 ? s.reachPx() * s.fence().towardViewerPercent() / 100 : s.reachPx();
+        int reach = d.dx() == 0 ? s.bladePx() * s.fence().towardViewerPercent() / 100 : s.bladePx();
         boolean flat = Math.abs(vx) >= Math.abs(vy);
         for (int i = 1; i <= reach; i++) {
             int x = hx + Math.floorDiv(vx * i, 16);

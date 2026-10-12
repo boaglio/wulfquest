@@ -1167,7 +1167,7 @@ horizontally than vertically, and sliding along walls.
   "death": { "animTicks": 40, "freezeTicks": 20, "keepAmulet": true },
   "sabre": {
     "windupTicks": 3, "activeTicks": 6, "recoverTicks": 3, "cooldownTicks": 6,
-    "reachPx": 14, "thicknessPx": 12, "diagonalOffsetPx": 4,
+    "reachPx": 21, "bladePx": 14, "thicknessPx": 12, "diagonalOffsetPx": 4,
     "repelWulfPx": 24, "repelWulfStunTicks": 30
   },
   "animations": { "...": "see §10.2" }
@@ -1271,6 +1271,12 @@ entered through `$ADBF`). Fighting:
   (`$AB0E`), no windup and no recovery. Ours: `windupTicks` 0, `activeTicks`
   8, `recoverTicks` 0, `holdRepeatTicks` 0, so held strokes chain with the
   blade never dark; a tap is one 8-tick stroke, then `cooldownTicks` (6).
+- **It reaches 16 px past his touch** (`$AB0E`, 2026-10-11). The original tests a touch by the
+  sprites' left edges: within 12 px either way walking (`HL` = `$0F0C`), but within 28 px in
+  front while fighting (`$0F1C`) — the fighting sprite is wider by the blade. Ours: `reachPx` 21
+  from the feet box's centre, 16 past its 5 px half-width (`SabreTest`). Until then it was 14,
+  ours, and reached 9. The blade is still drawn `bladePx` (14) out of the hand, which stands
+  about 7 px in front, so the drawn tip and the hit box end together.
 - **It fences.** Every fourth frame (`FRAMES & 3`) the sprite changes to one
   of its fighting poses picked by `Rand8` (`$AE4B`). Ours is fencing, the
   whole body: each stroke is **on guard** for `fence.everyTicks` (4) — knees
@@ -3095,7 +3101,8 @@ hash at every 50th tick. `ReplayRunner` re-executes them. Ship at least:
   four won, where the faster jungle needed 6 forges; and the same day with Vale at the
   original's pace, 1 tick a frame (§11.3): seed 300, 48 507 ticks, no death, 101 rewinds — 5
   of 6 forges over seeds 300–359 won; and with the original's orchid spots (§15.1): seed 331,
-  70 084 ticks, no death, 2 303 rewinds — 5 of 6 forges won, slower)
+  70 084 ticks, no death, 2 303 rewinds — 5 of 6 forges won, slower; and with the original's
+  sabre reach (§11.6): seed 320, 28 798 ticks, no death, 189 rewinds)
 - `replays/wulf_escape.json` — a Wulf pursuit survived across rooms. (**M5, shipped**;
   re-forged 2026-10-08 with the flame: seed 35, chased across 6 rooms,
   parried 8 times, outrun, no life lost; from 2026-10-10 to 2026-10-11 it carried
@@ -3103,7 +3110,8 @@ hash at every 50th tick. `ReplayRunner` re-executes them. Ship at least:
   actors' true pace (§12.10), in the original's jungle: seed 5, chased across 4 rooms, parried
   10 times, outrun, no life lost; and the same day with Vale at the original's pace: seed 52,
   chased across 6 rooms, parried 7 times, until it gave up, no life lost; and with the
-  original's orchid spots: seed 1145, chased across 5 rooms, parried 7 times, no life lost)
+  original's orchid spots: seed 1145, chased across 5 rooms, parried 7 times, no life lost;
+  and with the original's sabre reach: seed 21, chased across 4 rooms, parried 16 times, outrun)
   It is the roaming Wulf's (§13.1–§13.7, [NEW]), so since 2026-10-03 the file
   carries `"features": { "roamingWulf": true }`: a replay may name the flags it
   was recorded under, and `ReplayRunner` lays them over `game.json`'s, so a
@@ -3130,7 +3138,9 @@ hash at every 50th tick. `ReplayRunner` re-executes them. Ship at least:
   fewer; and **the same day with Vale at the original's pace** (§11.3, §12.10): seed 2002, the
   same order, 115 400 ticks, no death, score 227 875, 1 645 rewinds; and **with the original's orchid spots** (§15.1): seed 2015, lairs SE, NE, NW,
   SW, 160 471 ticks, no death, score 355 850, 792 rewinds — the only win of 20 forges in about
-  20 minutes; a flower in every room is in the bot's way more often. The lairs are fixed
+  20 minutes; a flower in every room is in the bot's way more often; and **with the original's sabre
+  reach** (§11.6): seed 2003, the same order, 390 490 ticks, no death, score 367 795, 4 250
+  rewinds — the only win of 20 forges in 40 minutes. The lairs are fixed
   (`landmarks.json`), but a seed decides every creature, and the bot's luck
   with them varies enormously: seeds 1–60 for `lair_nw` won only in
   108 000–241 000 ticks, and seeds 3000–3159 for the full run in 300 000 and
@@ -3966,7 +3976,7 @@ the source wins.
 | Q8 | Score values per creature and per piece | **Partly answered 2026-10-01** from `Add Points To Score` (`$B5A9`, BCD) and its callers: a quarter of the amulet is **7500** (`$A1ED`, now in `loot.json`), a treasure **150** (`$A332`, §16.4), and a creature **165, 175, 185 or 195** by its type (`$A4B3`). **Creatures closed 2026-10-10** with Q1: the original's are the default (§12.8), scored as `$A4B3` scores them; the invented roster's 100–500 stay `[RECON]` behind `features.inventedCreatures`. | `creatures.json`, `loot.json` |
 | Q9 | The Wulf's appearance rules and whether the sabre affected it | 12% on entry + bonuses; repel only. **Answered and built 2026-10-03** (§13.8, now the default; ours kept as [NEW] `features.roamingWulf`). Each actor's state byte is also its sprite ID and indexes the jump table `$9B3E`. (1) **One Wulf, on one row.** A new game copies the actor table `$AC77` to `$9702`: one Wulf record (`$976E`, state `$50`) in room **(6,15)**, x 112. Its y velocity is never set, and a side exit changes only the column, wrapping 15↔0 (`$B187`, `$B19F`, `$B193`), so it **never leaves row 15**. Nothing else makes a Wulf: the room's random creatures (`$9A68`, puff `$01`, `$A3E0`) come from `$A41A`, all small fry. (2) **Always moving, on- or off-screen**, 4 px per update in x (`IX+$06` = ±`$40`, ÷16 in `$B031`) against the player's 3; blocked by its own room's scenery, it turns (`$AAED`→`$ADB3`). (3) **It hunts only along the row**: with the player in row 15 it heads for the player's room, east or west by room number, or by x in the same room (`$A922`); otherwise it keeps its heading. (4) **Touch costs a life**, the same throw as any creature (`$9704`, `$A985`, then `$AA0D`→`$AA27`), unless the player's colour is not plain `$47` — under an orchid's tint (`$A880`). (5) **The sabre does not stop the hit**, unlike against small fry, whose touch it blocks when Vale faces them (`$AB3D`). But facing an oncoming Wulf while fighting makes it **stop and sit** (state +8, `$A8B2`/`$A8E4`) for as long as he keeps facing it (`$A8F5`), then it goes on, briefly faster (±`$60`, `$A964`). Our Wulf — appearing anywhere after a warning, following across rooms, giving up — is `[RECON]` that the original does not support. | `wulf.json` |
 | Q10 | Whether anything besides orchids and the amulet was collectable | **Closed 2026-10-01: yes, treasures.** Source: the SkoolKit disassembly (Q14's link) — `Initialise Objects` `$A2BD`, `Room Objects` `$A33B`, the object location table `$DC6C`, the handlers `$A305`/`$A312`/`$A323` and the sprite table `$C084`. Up to two per room, seven kinds of thing and a life, 150 points each. All in §16.4 and `world/treasures.json`; only the fill rate is `[RECON]`. | `world/treasures.json` |
-| Q11 | Sabre swing duration, reach, and whether movement was locked | **Shape answered 2026-09-27** (§11.6): no windup or recovery, live while fire is held (`$AB0E`), a random one of eight poses every 4th frame (`$AE4B`, `Rand8`), movement at 2 px/frame against walking's 3 (`$ADD0`, `$AFC1`). Reach still `[RECON]` 14 px; converting the original's px/frame needs its frame rate, still unmeasured. | `player.json → sabre` |
+| Q11 | Sabre swing duration, reach, and whether movement was locked | **Shape answered 2026-09-27** (§11.6): no windup or recovery, live while fire is held (`$AB0E`), a random one of eight poses every 4th frame (`$AE4B`, `Rand8`), movement at 2 px/frame against walking's 3 (`$ADD0`, `$AFC1`). **Reach answered 2026-10-11** (§11.6): 16 px past his touch, `$AB0E` widening the touch test in front from 12 px to 28 while fighting — `reachPx` 21. The frame rate is answered too (Q5). | `player.json → sabre` |
 | Q12 | Whether creature spawns were fixed per room or random | authored-with-fallback | `room_entities.json` |
 | Q13 | How the original resolved scenery collision — per pixel, per cell, or per object rectangle — and so which rule reproduces its routes | **Answered 2026-09-27: per object rectangle.** `$B873`, called by the player's movement through `$B81C` with `BC=$160E`, tests the player's box (15 px wide at x..x+14, 23 px tall ending at the feet y) against every placement's whole graphic rectangle (header: height in pixel rows, width in bytes ×8), then retries on one axis for a slide. Our art-derived collision (≥25 % painted) is kept as `[RECON]`: over the corrected map it gives exactly the original's room-to-room topology (below), so the routes are the original's. | `world/scenery.json → solidCoveragePercent`, per-object `collisionCells` |
 

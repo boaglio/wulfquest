@@ -72,7 +72,7 @@
     },
     "sabre": {
       "type": "object", "additionalProperties": false,
-      "required": ["windupTicks", "activeTicks", "recoverTicks", "cooldownTicks", "holdRepeatTicks", "reachPx",
+      "required": ["windupTicks", "activeTicks", "recoverTicks", "cooldownTicks", "holdRepeatTicks", "reachPx", "bladePx",
                    "thicknessPx", "diagonalOffsetPx", "repelWulfPx", "repelWulfStunTicks", "fence"],
       "properties": {
         "windupTicks": { "type": "integer", "minimum": 0 },
@@ -81,6 +81,7 @@
         "cooldownTicks": { "type": "integer", "minimum": 0 },
         "holdRepeatTicks": { "type": "integer", "minimum": 0 },
         "reachPx": { "type": "integer", "minimum": 1 },
+        "bladePx": { "type": "integer", "minimum": 1 },
         "thicknessPx": { "type": "integer", "minimum": 1 },
         "diagonalOffsetPx": { "type": "integer", "minimum": 0 },
         "repelWulfPx": { "type": "integer", "minimum": 0 },
