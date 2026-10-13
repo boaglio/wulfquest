@@ -23,6 +23,11 @@ The builds are not signed yet, so Windows warns on the first launch: click
 
 ## Status
 
+**Continues.** Game over is not quite the end: three times a game, in either
+mode, fire on the game-over screen sends you back where you fell with fresh
+lives and everything you found — but your score starts again from zero. The
+hi-score table keeps the run's best.
+
 **Easy and Hard.** The game as the original plays it is Hard. Press `D` on
 the title for Easy: nine lives instead of five, two small creatures in a room
 instead of three and the nastier kinds slower to come, a Wulf you can always
@@ -210,7 +215,7 @@ nothing yet.)
 
 ## How it is checked
 
-`mvn -q verify` runs 566 tests and every gate the project has:
+`mvn -q verify` runs 572 tests and every gate the project has:
 
 - **The data validates itself.** Every JSON file is schema-checked at load,
   and the semantic validators go further — a palette colour that does not

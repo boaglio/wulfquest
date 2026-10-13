@@ -108,6 +108,15 @@ public final class ShellValidator {
         if (widest.length() * font.sets().get("big").advance() > display.playfield().w()) {
             throw new DataException(SOURCE, "/gameOver/progress", "is wider than the playfield at 100%");
         }
+        // §17.5: the continue offer, at its widest.
+        int advance = font.sets().get("big").advance();
+        String left = shell.gameOver().continuesLeft().replace("{n}", "9").replace("{s}", "99");
+        if (left.length() * advance > display.playfield().w()) {
+            throw new DataException(SOURCE, "/gameOver/continuesLeft", "is wider than the playfield");
+        }
+        if (shell.gameOver().continuePrompt().length() * advance > display.playfield().w()) {
+            throw new DataException(SOURCE, "/gameOver/continuePrompt", "is wider than the playfield");
+        }
     }
 
     /**

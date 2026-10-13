@@ -37,6 +37,13 @@ class GameSessionTest {
         return scoringSimIn(null);
     }
 
+    /** The scoring world with {@code n} continues after game over (§17.5). */
+    static Simulation continuingSim(int n) {
+        Ecosystem scoring = new Ecosystem(CreatureData.EMPTY, RoomPopulator.NONE, 10)
+                .withQuest(wulf.sim.QuestRules.NONE.withContinues(n));
+        return Simulation.at(RULES, OPEN, 0, Fixed.fp(1000), Fixed.fp(1000), scoring, 1L);
+    }
+
     /** The same, in Easy mode if {@code easy} is given (§17.8). */
     static Simulation scoringSimIn(wulf.data.GameConfig.Easy easy) {
         Ecosystem scoring = new Ecosystem(CreatureData.EMPTY, RoomPopulator.NONE, 10);

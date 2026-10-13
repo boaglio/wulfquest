@@ -107,6 +107,15 @@ public final class GameSession {
         return revealing() ? reveal.verses().get(piecesSeen - 1) : java.util.List.of();
     }
 
+    /**
+     * §17.5: the game goes on after game over — fire, played into the simulation and kept in
+     * the input like any other tick, so a replay or a quick load takes the continue too.
+     */
+    public void carryOn(InputState fire) {
+        sim.play(fire, false);
+        played.append(fire);
+    }
+
     public boolean over() {
         return sim.player().mode() == Player.Mode.GAME_OVER;
     }

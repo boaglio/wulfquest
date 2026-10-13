@@ -12,6 +12,7 @@ public record GameConfig(
         Exit exit,
         NewGamePlus newGamePlus,
         Easy easy,
+        int continues,
         Map<String, Boolean> features) {
 
     public GameConfig {
@@ -107,7 +108,7 @@ public record GameConfig(
             }
         }
         return new GameConfig(schemaVersion, tickHz, maxCatchupTicks, transition, difficulty, exit, newGamePlus, easy,
-                merged);
+                continues, merged);
     }
 
     /** A feature flag (AGENTS.md §1.1); unknown names are a programmer error. */

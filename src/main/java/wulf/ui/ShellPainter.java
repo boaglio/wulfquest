@@ -83,9 +83,12 @@ public final class ShellPainter {
             case GAME_OVER -> {
                 playing(fb, shell, dev);
                 Simulation sim = shell.session().sim();
+                int left = shell.continuing() ? sim.continuesLeft() : 0;
+                long ticksLeft = Math.max(0, config.gameOver().continueTicks() - shell.stateTick());
                 gameOver.paint(fb, display.playfield().y(), display.playfield().h(),
                         GameOverScreen.percentDone(sim.roomsVisited(), sim.quest().quarters(),
-                                content.map().roomCount(), content.landmarks().lairs().size()));
+                                content.map().roomCount(), content.landmarks().lairs().size()),
+                        left, (int) ((ticksLeft + tickHz - 1) / tickHz));
             }
             case ENDING -> ending.paint(fb, shell.stateTick());
             case ROLL -> roll.paint(fb, shell.stateTick());

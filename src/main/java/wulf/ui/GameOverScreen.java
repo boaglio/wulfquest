@@ -21,12 +21,33 @@ public final class GameOverScreen {
 
     /** Paints over whatever is already in the framebuffer; does not clear it. */
     public void paint(Framebuffer fb, int playfieldY, int playfieldH, int percent) {
+        paint(fb, playfieldY, playfieldH, percent, 0, 0);
+    }
+
+    /**
+     * @param continuesLeft §17.5: how many more times the game may go on; with any, the offer
+     *                      shows under the progress
+     * @param secondsLeft   until the offer is gone
+     */
+    public void paint(Framebuffer fb, int playfieldY, int playfieldH, int percent, int continuesLeft,
+                      int secondsLeft) {
         int textH = chrome.big().glyphH();
         int lineH = chrome.big().lineHeight();
-        int y = playfieldY + (playfieldH - textH - 2 * lineH) / 2;
-        fb.fillRect(0, y - 4, fb.width(), textH + 2 * lineH + 8, chrome.ground());
+        int lines = continuesLeft > 0 ? 6 : 2;
+        int y = playfieldY + (playfieldH - textH - lines * lineH) / 2;
+        fb.fillRect(0, y - 4, fb.width(), textH + lines * lineH + 8, chrome.ground());
         chrome.big().drawCentred(fb, config.text(), 0, fb.width(), y, chrome.heading());
         chrome.big().drawCentred(fb, progress(config, percent), 0, fb.width(), y + 2 * lineH, chrome.body());
+        if (continuesLeft > 0) {
+            chrome.big().drawCentred(fb, config.continuePrompt(), 0, fb.width(), y + 4 * lineH, chrome.bright());
+            chrome.big().drawCentred(fb, left(config, continuesLeft, secondsLeft), 0, fb.width(), y + 6 * lineH,
+                    chrome.body());
+        }
+    }
+
+    static String left(ShellConfig.GameOver config, int continuesLeft, int secondsLeft) {
+        return config.continuesLeft().replace("{n}", Integer.toString(continuesLeft))
+                .replace("{s}", Integer.toString(secondsLeft));
     }
 
     static String progress(ShellConfig.GameOver config, int percent) {

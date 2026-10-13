@@ -87,8 +87,14 @@ public record ShellConfig(
     public record QuickSave(String saveKey, String loadKey, int noteTicks) {
     }
 
-    /** @param progress the line under it, {@code {percent}} standing for how much of the adventure is done (§17.5) */
-    public record GameOver(String text, String progress, int holdTicks) {
+    /**
+     * @param progress       the line under it, {@code {percent}} standing for how much of the adventure is done (§17.5)
+     * @param continuePrompt §17.5: shown while the game may go on; fire takes it
+     * @param continuesLeft  under it, with {@code {n}} the continues left and {@code {s}} the seconds
+     * @param continueTicks  how long the offer stands before the run is banked
+     */
+    public record GameOver(String text, String progress, int holdTicks, String continuePrompt, String continuesLeft,
+                           int continueTicks) {
     }
 
     /**

@@ -2776,6 +2776,23 @@ and the quarters held, on the line `shell.json → gameOver.progress`
 (`{percent}% OF THE QUEST DONE`; the original's own wording is not used). The
 big font gained a `%` for it.
 
+**Continues [NEW]** (asked for by the user, 2026-10-12). A game may go on after
+game over `game.json → continues` times (3), in Easy and Hard alike. While any
+are left the screen adds `gameOver.continuePrompt` (`PRESS FIRE TO CONTINUE`)
+and `continuesLeft` (`CONTINUES LEFT {n}   {s}`, the seconds counting down)
+and stands for `continueTicks` (500, 10 s) instead of 150. Fire, after
+`screenHoldTicks`, goes on: Vale gets up where he fell with a new game's lives
+in reserve (the mode's, §17.8), keeping everything found — the quarters, the
+map, the scroll, eyes and glasses, the treasures taken, the jungle as it is —
+but **the score starts again from 0**. Escape, or the time running out, banks
+the run as before. The hi-score table and the ledger take the run's **best**
+score (`Simulation.bestScore()`): the highest it stood before any continue, or
+after the last. The continue is the fire press played into the simulation in
+its `GAME_OVER` mode (`GameSession.carryOn`), so it is in the recorded input:
+a replay (§22.6) or a quick load (§21.4) takes it too. The continues taken and
+the banked score enter the state hash only once one is taken.
+`ContinueTest`, `ShellTest`.
+
 ---
 
 

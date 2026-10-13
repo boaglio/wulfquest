@@ -297,10 +297,28 @@ public final class Shell {
     }
 
     private void gameOver(InputState in) {
+        if (continuing()) {
+            // §17.5: fire goes on, where he fell; escape, or the time running out, banks the run.
+            if (in.quitPressed() || stateTick >= config.gameOver().continueTicks()) {
+                endRun();
+            } else if (stateTick >= config.screenHoldTicks() && in.firePressed()) {
+                session.carryOn(in);
+                if (!session.over()) {
+                    jukebox.sfx(SFX_PICK);
+                    go(State.PLAYING);
+                }
+            }
+            return;
+        }
         boolean skipped = stateTick >= config.screenHoldTicks() && in.firePressed();
         if (skipped || stateTick >= config.gameOver().holdTicks()) {
             endRun();
         }
+    }
+
+    /** §17.5: whether the game-over screen offers to go on: the game has continues left. */
+    public boolean continuing() {
+        return state == State.GAME_OVER && session != null && session.sim().continuesLeft() > 0;
     }
 
     /**
@@ -438,8 +456,8 @@ public final class Shell {
             return;
         }
         db.putStats(recordGame(db.stats(), sim, escaped));
-        HighScores.Entry row = new HighScores.Entry("", sim.score(), sim.quest().quarters(), sim.tick(), today.get(),
-                sim.easy());
+        HighScores.Entry row = new HighScores.Entry("", sim.bestScore(), sim.quest().quarters(), sim.tick(),
+                today.get(), sim.easy());   // §17.5: the run's best, before or after a continue
         session = null;
         if (db.scores().qualifies(row.score(), row.ticks(), config.hiScores().size())) {
             pending = row;
@@ -453,7 +471,7 @@ public final class Shell {
 
     /** The counters this run adds to the ledger (§21.5). */
     static Stats recordGame(Stats before, Simulation sim, boolean escaped) {
-        return before.afterGame(sim.score(), escaped, sim.tick(), sim.roomsEntered(), sim.quest().quarters(),
+        return before.afterGame(sim.bestScore(), escaped, sim.tick(), sim.roomsEntered(), sim.quest().quarters(),
                 sim.deaths(), sim.wulf().appearances(), sim.wulf().evasions(),
                 counts(sim.killsBySpecies()), counts(sim.deathsByCause()), counts(sim.orchidsByColour()));
     }

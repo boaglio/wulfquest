@@ -136,6 +136,9 @@ public final class Simulation {
     private int swingSerial;
     private int nextEntityId;
     private long score;
+    /** §17.5: continues taken this game, and the best score before the last one, which the table ranks. */
+    private int continuesUsed;
+    private long bankedScore;
     private int kills;
     /**
      * Bookkeeping for the lifetime ledger (§21.5), not game state: what died on the
@@ -309,6 +312,9 @@ public final class Simulation {
         tick++;
         switch (player.mode) {
             case GAME_OVER -> {
+                if (in.firePressed() && continuesLeft() > 0) {
+                    carryOn();   // §17.5: fire on the game-over screen, while continues are left
+                }
                 return;
             }
             case DYING -> {
@@ -660,6 +666,24 @@ public final class Simulation {
             }
             player.lives--;
         }
+        getUp();
+    }
+
+    /**
+     * §17.5 [NEW]: a continue. He gets up where he fell with a new game's lives in reserve,
+     * keeping all he has found — the amulet, the map, the items, the jungle as it is — but the
+     * score starts again from nothing; the best of the run before is kept for the table.
+     */
+    private void carryOn() {
+        continuesUsed++;
+        bankedScore = Math.max(bankedScore, score);
+        score = 0;
+        player.lives = eco.quest().isEasy() ? eco.quest().easy().livesStart() : rules.lives().start();
+        getUp();
+    }
+
+    /** Back on his feet where he fell, after a death or a continue. */
+    private void getUp() {
         // Where he fell, as the original revives him ($AA27 never touches the position) — nudged
         // only to the nearest spot he can walk to that keeps him wholly on screen (§11.7).
         int[] p = SpawnFinder.nearestFree(world, rules.collisionBox(), rules.spawn().insideRoomPx(), room,
@@ -2506,6 +2530,21 @@ public final class Simulation {
         return eco.quest().level();
     }
 
+    /** §17.5: how many more times this game may go on after game over. */
+    public int continuesLeft() {
+        return Math.max(0, eco.quest().continues() - continuesUsed);
+    }
+
+    /** §17.5: how many continues this game has taken. */
+    public int continuesUsed() {
+        return continuesUsed;
+    }
+
+    /** §17.5: the run's best — the score now, or before a continue reset it, whichever is higher. The table ranks this. */
+    public long bestScore() {
+        return Math.max(bankedScore, score);
+    }
+
     /** Whether this game is in Easy mode (§17.8); otherwise Hard, the original's. */
     public boolean easy() {
         return eco.quest().isEasy();
@@ -2756,6 +2795,10 @@ public final class Simulation {
         }
         if (q.wayTicks > 0) {
             h = mix(h, q.wayTicks);   // §14.10, likewise only while a glass shows the way
+        }
+        if (continuesUsed > 0) {
+            h = mix(h, continuesUsed);   // §17.5: only once one is taken
+            h = mix(h, bankedScore);
         }
         h = mix(h, q.hintDirection.ordinal());
         h = mix(h, q.escapeBonus + 31 * q.timeBonus + 961 * q.livesBonus);

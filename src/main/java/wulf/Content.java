@@ -242,7 +242,7 @@ public record Content(
                 game.exit().keeperNudgeZonePx(),
                 game.exit().keeperNudgePx(), loot.event("amuletPiece"), loot.event("escapeBonus"),
                 loot.event("timeBonusMax"), loot.event("timeBonusTicksDivisor"), loot.event("lifeRemainingBonus"),
-                game.feature("caveHints"), treasurePlaces());
+                game.feature("caveHints"), treasurePlaces()).withContinues(game.continues());
     }
 
     /**

@@ -218,6 +218,55 @@ class ShellTest {
     }
 
     @Test
+    void gameOverOffersToGoOnAndFireDoes(@TempDir Path dir) {
+        // §17.5: three continues; fire goes on where he fell, the score from nothing; escape banks the run's best.
+        PlayerDb db = db(dir);
+        db.putScores(HighScores.empty());
+        Shell shell = new Shell(CONFIG, db, List.copyOf(CONTENT.input().profiles().keySet()),
+                () -> GameSessionTest.continuingSim(3), null, () -> "2026-10-12");
+        shell.tick(FIRE, MenuInput.NONE, false);
+        Simulation sim = shell.session().sim();
+        for (int i = 0; i < 40 && sim.score() == 0; i++) {
+            shell.tick(InputState.of(1, 0, false, false), MenuInput.NONE, false);
+        }
+        long scored = sim.score();
+        GameSessionTest.playUntilGameOver(shell.session(), sim);
+        shell.tick(InputState.NONE, MenuInput.NONE, false);
+        assertThat(shell.state()).isEqualTo(Shell.State.GAME_OVER);
+        assertThat(shell.continuing()).isTrue();
+        idle(shell, CONFIG.gameOver().holdTicks());
+        assertThat(shell.state()).as("the offer outlasts the usual hold").isEqualTo(Shell.State.GAME_OVER);
+        shell.tick(FIRE, MenuInput.NONE, false);
+        assertThat(shell.state()).isEqualTo(Shell.State.PLAYING);
+        assertThat(sim.player().mode()).isEqualTo(wulf.sim.Player.Mode.ALIVE);
+        assertThat(sim.score()).isZero();
+        assertThat(sim.continuesLeft()).isEqualTo(2);
+        assertThat(shell.session().played().ticks()).as("the continue is in the input").isEqualTo(sim.tick());
+
+        GameSessionTest.playUntilGameOver(shell.session(), sim);
+        shell.tick(InputState.NONE, MenuInput.NONE, false);
+        assertThat(shell.state()).isEqualTo(Shell.State.GAME_OVER);
+        shell.tick(QUIT, MenuInput.NONE, false);
+        assertThat(shell.state()).as("escape banks it").isEqualTo(Shell.State.HISCORE_ENTRY);
+        for (int i = 0; i < CONFIG.hiScores().nameLength(); i++) {
+            shell.tick(FIRE, MenuInput.NONE, false);
+        }
+        assertThat(db.scores().entries().get(0).score()).as("the run's best").isEqualTo(scored);
+    }
+
+    @Test
+    void theOfferRunsOut(@TempDir Path dir) {
+        Shell shell = new Shell(CONFIG, db(dir), List.copyOf(CONTENT.input().profiles().keySet()),
+                () -> GameSessionTest.continuingSim(3), null, () -> "2026-10-12");
+        shell.tick(FIRE, MenuInput.NONE, false);
+        GameSessionTest.playUntilGameOver(shell.session(), shell.session().sim());
+        shell.tick(InputState.NONE, MenuInput.NONE, false);
+        assertThat(shell.state()).isEqualTo(Shell.State.GAME_OVER);
+        idle(shell, CONFIG.gameOver().continueTicks());
+        assertThat(shell.state()).isNotEqualTo(Shell.State.GAME_OVER);
+    }
+
+    @Test
     void aFinishedRunAlwaysLandsInTheLedger(@TempDir Path dir) {
         PlayerDb db = db(dir);
         Shell shell = shell(db);

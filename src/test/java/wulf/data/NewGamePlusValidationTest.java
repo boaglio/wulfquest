@@ -23,7 +23,7 @@ class NewGamePlusValidationTest {
     private static GameConfig gameWith(List<GameConfig.Level> levels) {
         GameConfig g = c.game();
         return new GameConfig(g.schemaVersion(), g.tickHz(), g.maxCatchupTicks(), g.transition(), g.difficulty(), g.exit(),
-                new GameConfig.NewGamePlus(levels), g.easy(), g.features());
+                new GameConfig.NewGamePlus(levels), g.easy(), g.continues(), g.features());
     }
 
     private static List<GameConfig.Level> levels() {
