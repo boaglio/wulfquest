@@ -38,8 +38,13 @@ public final class Shell {
 
     private final ShellConfig config;
     private final PlayerDb db;
-    /** A new game of job {@code n} (§14.9): 0 for the game itself. */
-    private final IntFunction<Simulation> newGame;
+    /** A new game of job {@code level} (§14.9), 0 for the game itself, in Easy mode or Hard (§17.8). */
+    @FunctionalInterface
+    public interface GameMaker {
+        Simulation make(int level, boolean easy);
+    }
+
+    private final GameMaker newGame;
     private final Supplier<Demo> newDemo;
     private final Supplier<String> today;
     /** The input profiles the keys page offers, in the order it shows them (§19.1). */
@@ -68,6 +73,8 @@ public final class Shell {
     private int level;
     /** The job Mr Jones offers after this win's credits, or 0 for none. */
     private int offered;
+    /** §17.8: whether the next game is in Easy mode; from the settings, switched on the title. */
+    private boolean easy;
 
     /** A shell whose every game is the game itself. */
     public Shell(ShellConfig config, PlayerDb db, java.util.List<String> profiles, Supplier<Simulation> newGame,
@@ -75,7 +82,13 @@ public final class Shell {
         this(config, db, profiles, n -> newGame.get(), newDemo, today);
     }
 
+    /** A shell whose games ignore the mode chosen: Hard, as most tests want. */
     public Shell(ShellConfig config, PlayerDb db, java.util.List<String> profiles, IntFunction<Simulation> newGame,
+                 Supplier<Demo> newDemo, Supplier<String> today) {
+        this(config, db, profiles, (GameMaker) (n, e) -> newGame.apply(n), newDemo, today);
+    }
+
+    public Shell(ShellConfig config, PlayerDb db, java.util.List<String> profiles, GameMaker newGame,
                  Supplier<Demo> newDemo, Supplier<String> today) {
         this.config = config;
         this.profiles = java.util.List.copyOf(profiles);
@@ -86,6 +99,7 @@ public final class Shell {
         this.notice = db.notices().isEmpty() ? null : db.notices().get(0);
         this.unlocked = Math.min(db.stats().unlocked(), config.newGamePlus().levels().size() - 1);
         this.level = unlocked;   // the next game is the newest job; the title's key goes back
+        this.easy = db.settings().easy();
     }
 
     /**
@@ -143,6 +157,13 @@ public final class Shell {
             } else {
                 notice = loaded.refusal();
             }
+            return;
+        }
+        if (menu.typed(config.difficulty().key())) {
+            easy = !easy;   // §17.8: Hard and Easy in turn, kept in the settings
+            db.putSettings(db.settings().withEasy(easy));
+            jukebox.sfx(SFX_MOVE);
+            idleTicks = 0;
             return;
         }
         if (unlocked > 0 && menu.typed(config.newGamePlus().key())) {
@@ -339,7 +360,7 @@ public final class Shell {
         if (committed) {
             jukebox.sfx(SFX_PICK);
             HighScores.Entry row = new HighScores.Entry(entry.name(), pending.score(), pending.pieces(),
-                    pending.ticks(), pending.date());
+                    pending.ticks(), pending.date(), pending.easy());
             HighScores table = db.scores().with(row, config.hiScores().size());
             db.putScores(table);
             db.flush();
@@ -353,7 +374,7 @@ public final class Shell {
     // ---------------------------------------------------------------- transitions
 
     private void startGame() {
-        Simulation sim = newGame.apply(level);
+        Simulation sim = newGame.make(level, easy);
         session = new GameSession(sim, revealFor(sim));
         go(State.PLAYING);
     }
@@ -417,7 +438,8 @@ public final class Shell {
             return;
         }
         db.putStats(recordGame(db.stats(), sim, escaped));
-        HighScores.Entry row = new HighScores.Entry("", sim.score(), sim.quest().quarters(), sim.tick(), today.get());
+        HighScores.Entry row = new HighScores.Entry("", sim.score(), sim.quest().quarters(), sim.tick(), today.get(),
+                sim.easy());
         session = null;
         if (db.scores().qualifies(row.score(), row.ticks(), config.hiScores().size())) {
             pending = row;
@@ -500,6 +522,11 @@ public final class Shell {
     /** §14.9: the job the title starts, and the furthest one open. */
     public int level() {
         return level;
+    }
+
+    /** Whether the next game from the title is in Easy mode (§17.8). */
+    public boolean easy() {
+        return easy;
     }
 
     public int unlocked() {

@@ -416,6 +416,23 @@ class QuestTest {
     }
 
     @Test
+    void inEasyModeAShrineAnswersEveryTime() {
+        // §17.8: hintsOncePerLife false — walk away, come back, and it names the way again.
+        RoomAddress shrine = LandmarksData.room(marks.shrines().rooms().get(1));
+        QuestRules rules = real.withEasy(content.game().easy());
+        LandmarksData.Rect zone = marks.shrines().zone();
+        Simulation s = sim(OPEN, rules, shrine, zone.x() + zone.w() / 2, 160);
+        int inZone = wy(shrine, zone.y() + zone.h() - 6);
+        walkY(s, inZone);
+        assertThat(s.quest().hintTicks()).isPositive();
+        walkY(s, wy(shrine, 160));
+        SimFixtures.run(s, STILL, marks.hint().messageTicks());
+        assertThat(s.quest().hintTicks()).isZero();
+        walkY(s, inZone);
+        assertThat(s.quest().hintTicks()).as("again").isPositive();
+    }
+
+    @Test
     void aShrineWhereThisGameHidAQuarterIsQuiet() {
         // §14.5: set 4 hides a quarter in the hut village at 2,5. Its shrine says nothing: the lair is the answer.
         Content set4 = Content.load(Path.of("data")).withAmuletSet(4);

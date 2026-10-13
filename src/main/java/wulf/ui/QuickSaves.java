@@ -21,10 +21,10 @@ import wulf.world.RoomAddress;
  */
 public final class QuickSaves {
 
-    /** A new game from a seed, as job {@code level} (§14.9). */
+    /** A new game from a seed, as job {@code level} (§14.9), in Easy mode or Hard (§17.8). */
     @FunctionalInterface
     public interface GameMaker {
-        Simulation make(long seed, int level);
+        Simulation make(long seed, int level, boolean easy);
     }
 
     /** What a load gave: the game and the input that made it, or why there is none. */
@@ -65,7 +65,8 @@ public final class QuickSaves {
         Simulation sim = session.sim();
         RecordedInput played = session.played();
         db.putQuickSave(new QuickSaveData(QuickSaveData.SCHEMA_VERSION, contentHash, sim.runSeed(), start.toString(),
-                dev, sim.practice(), played.ticks(), played.runs(), Replay.hex(sim.stateHash()), sim.level()));
+                dev, sim.practice(), played.ticks(), played.runs(), Replay.hex(sim.stateHash()), sim.level(),
+                sim.easy()));
     }
 
     public boolean exists() {
@@ -90,7 +91,7 @@ public final class QuickSaves {
         } catch (IllegalArgumentException e) {
             return Loaded.refused("SAVE IS DAMAGED");
         }
-        Simulation sim = silentGame.make(save.seed(), save.newGamePlus());
+        Simulation sim = silentGame.make(save.seed(), save.newGamePlus(), save.easy());
         RecordedInput.Cursor in = played.cursor();
         while (in.hasNext()) {
             sim.play(in.next(), dev);

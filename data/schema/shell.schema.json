@@ -29,7 +29,8 @@
   },
   "additionalProperties": false,
   "required": ["schemaVersion", "screenHoldTicks", "title", "attract", "gameOver", "ending", "tally", "hiScores",
-               "keyConfig", "sound", "stats", "amuletReveal", "map", "quickSave", "credits", "newGamePlus"],
+               "keyConfig", "sound", "stats", "amuletReveal", "map", "quickSave", "credits", "newGamePlus",
+               "difficulty"],
   "properties": {
     "schemaVersion": { "type": "integer", "minimum": 1 },
     "screenHoldTicks": { "type": "integer", "minimum": 0, "maximum": 600 },
@@ -316,6 +317,20 @@
             "bodyColour": { "type": "string", "minLength": 1 }
           }
         }
+      }
+    },
+    "difficulty": {
+      "description": "§17.8 [NEW]: Easy mode or Hard, switched on the title",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["key", "hard", "easy", "easyColour", "panelLabel", "hiScoreMark"],
+      "properties": {
+        "key": { "type": "string", "pattern": "^[A-Z0-9]$" },
+        "hard": { "type": "string", "minLength": 1, "maxLength": 60 },
+        "easy": { "type": "string", "minLength": 1, "maxLength": 60 },
+        "easyColour": { "type": "string", "minLength": 1 },
+        "panelLabel": { "type": "string", "minLength": 1, "maxLength": 12 },
+        "hiScoreMark": { "type": "string", "minLength": 1, "maxLength": 2 }
       }
     },
     "newGamePlus": {

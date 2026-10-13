@@ -15,6 +15,7 @@ import wulf.data.WulfData;
  *
  * @param level      0 for the game itself; 1, 2… for the jobs Mr Jones has after it (§14.9)
  * @param levelRules what that job changes: how many pieces, and how much harder the jungle is
+ * @param easy       Easy mode's rules (§17.8), or null for Hard: the game as the original plays it
  */
 public record QuestRules(
         boolean enabled,
@@ -35,7 +36,8 @@ public record QuestRules(
         boolean caveHints,
         Treasures treasures,
         int level,
-        GameConfig.Level levelRules) {
+        GameConfig.Level levelRules,
+        GameConfig.Easy easy) {
 
     /** No quest: M5's jungle, and most tests. */
     public static final QuestRules NONE = new QuestRules(false, LandmarksData.NONE, List.of(), WulfData.NONE.asSpecies(),
@@ -48,7 +50,7 @@ public record QuestRules(
                       int timeBonusTicksDivisor, int lifeRemainingBonus, boolean caveHints, Treasures treasures) {
         this(enabled, landmarks, guardianSpecies, keeperSpecies, orbit, stepAsideFp, asideMinPx, asideMaxPx, nudgeZonePx,
                 nudgePx, pieceScore, escapeBonus, timeBonusMax, timeBonusTicksDivisor, lifeRemainingBonus, caveHints,
-                treasures, 0, GameConfig.Level.ORIGINAL);
+                treasures, 0, GameConfig.Level.ORIGINAL, null);
     }
 
     public QuestRules {
@@ -68,7 +70,7 @@ public record QuestRules(
     public QuestRules withLandmarks(LandmarksData marks) {
         return new QuestRules(enabled, marks, guardianSpecies, keeperSpecies, orbit, stepAsideFp, asideMinPx, asideMaxPx,
                 nudgeZonePx, nudgePx, pieceScore, escapeBonus, timeBonusMax, timeBonusTicksDivisor, lifeRemainingBonus,
-                caveHints, treasures, level, levelRules);
+                caveHints, treasures, level, levelRules, easy);
     }
 
     /**
@@ -82,7 +84,7 @@ public record QuestRules(
         }
         return new QuestRules(enabled, landmarks.keeping(kept, masks), some, keeperSpecies, orbit, stepAsideFp,
                 asideMinPx, asideMaxPx, nudgeZonePx, nudgePx, pieceScore, escapeBonus, timeBonusMax,
-                timeBonusTicksDivisor, lifeRemainingBonus, caveHints, treasures, level, levelRules);
+                timeBonusTicksDivisor, lifeRemainingBonus, caveHints, treasures, level, levelRules, easy);
     }
 
     /**
@@ -92,6 +94,18 @@ public record QuestRules(
     public QuestRules atLevel(int n, GameConfig.Level rules) {
         return new QuestRules(enabled, landmarks, guardianSpecies, keeperSpecies, orbit, stepAsideFp, asideMinPx,
                 asideMaxPx, nudgeZonePx, nudgePx, pieceScore, escapeBonus, timeBonusMax, timeBonusTicksDivisor,
-                lifeRemainingBonus, caveHints, treasures, n, rules);
+                lifeRemainingBonus, caveHints, treasures, n, rules, easy);
+    }
+
+    /** The same rules in Easy mode (§17.8); null for Hard. */
+    public QuestRules withEasy(GameConfig.Easy e) {
+        return new QuestRules(enabled, landmarks, guardianSpecies, keeperSpecies, orbit, stepAsideFp, asideMinPx,
+                asideMaxPx, nudgeZonePx, nudgePx, pieceScore, escapeBonus, timeBonusMax, timeBonusTicksDivisor,
+                lifeRemainingBonus, caveHints, treasures, level, levelRules, e);
+    }
+
+    /** Whether this is Easy mode (§17.8). */
+    public boolean isEasy() {
+        return easy != null;
     }
 }

@@ -23,6 +23,13 @@ The builds are not signed yet, so Windows warns on the first launch: click
 
 ## Status
 
+**Easy and Hard.** The game as the original plays it is Hard. Press `D` on
+the title for Easy: nine lives instead of five, two small creatures in a room
+instead of three and the nastier kinds slower to come, a Wulf you can always
+outrun, no flames at all, a looking glass that shows the way for three
+minutes, and shrines that answer every time. Easy runs share the hi-score
+table, marked `E`, and winning one opens New Game+ just the same.
+
 **An ending.** Get out through the arch with all four quarters and you walk
 the amulet to old Mr Jones, who knows where it belongs. Then the sums, then
 the credits roll.
@@ -47,7 +54,7 @@ those can be killed, only pushed back. Our own invented creatures stay as an
 option (`features.inventedCreatures`).
 
 **The original's Wulf.** Read from the original's disassembly: there is one
-Wulf, and it prowls the bottom row of the jungle all game, faster than you. A
+Wulf, and it prowls the bottom row of the jungle all game. A
 sabre held towards it as it comes makes it sit — for a while. The Wulf that
 appears anywhere and follows you is still there as an option
 (`features.roamingWulf` in `data/config/game.json`). Lives work as they did
@@ -163,8 +170,8 @@ whole way there.
 The title screen has the rest: `K` for the keys page, where the period layout
 (`Q`/`A`/`O`/`P` to move, `M` to swing) is one digit away and the choice sticks;
 `A` for sound and volume; `H` for the hi-scores, `C` for the credits, `S` for
-your lifetime ledger. Once you have won, `N` picks which of Mr Jones's jobs to
-play. Nothing is hidden behind a key you have to know.
+your lifetime ledger; `D` switches between Hard and Easy. Once you have won,
+`N` picks which of Mr Jones's jobs to play. Nothing is hidden behind a key you have to know.
 
 **Quick save** (off by default, as the original had none): add
 `"features": { "quickSave": true }` to `settings.json` (below). Then `F5` keeps
@@ -203,7 +210,7 @@ nothing yet.)
 
 ## How it is checked
 
-`mvn -q verify` runs 555 tests and every gate the project has:
+`mvn -q verify` runs 566 tests and every gate the project has:
 
 - **The data validates itself.** Every JSON file is schema-checked at load,
   and the semantic validators go further — a palette colour that does not

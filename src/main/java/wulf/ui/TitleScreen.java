@@ -22,12 +22,21 @@ public final class TitleScreen {
     private final ShellConfig.Title title;
     private final int[] cycle;
     private final int jobColour;
+    private final ShellConfig.Difficulty difficulty;
+    private final int easyColour;
 
     public TitleScreen(Chrome chrome, ShellConfig.Title title, Palette palette) {
         this(chrome, title, palette, ShellConfig.NewGamePlus.NONE);
     }
 
     public TitleScreen(Chrome chrome, ShellConfig.Title title, Palette palette, ShellConfig.NewGamePlus jobs) {
+        this(chrome, title, palette, jobs, ShellConfig.Difficulty.NONE);
+    }
+
+    public TitleScreen(Chrome chrome, ShellConfig.Title title, Palette palette, ShellConfig.NewGamePlus jobs,
+                       ShellConfig.Difficulty difficulty) {
+        this.difficulty = difficulty;
+        this.easyColour = palette.indexOf(difficulty.easyColour());
         this.chrome = chrome;
         this.title = title;
         this.jobColour = palette.indexOf(jobs.labelColour());
@@ -42,14 +51,15 @@ public final class TitleScreen {
      * @param notice a one-off line about the player database, or null (§20.8)
      */
     public void paint(Framebuffer fb, long tick, long best, String notice) {
-        paint(fb, tick, best, notice, null);
+        paint(fb, tick, best, notice, null, false);
     }
 
     /**
      * @param job the job the prompt starts, once a later one is open (§14.9): its label goes under
      *            the prompt, and its tagline, if it has one, replaces the title's; null before
+     * @param easy whether the next game is in Easy mode (§17.8): the first line of the menu says which
      */
-    public void paint(Framebuffer fb, long tick, long best, String notice, ShellConfig.Job job) {
+    public void paint(Framebuffer fb, long tick, long best, String notice, ShellConfig.Job job, boolean easy) {
         fb.clear(chrome.ground());
         int w = fb.width();
         int y = 36;
@@ -65,6 +75,9 @@ public final class TitleScreen {
         }
 
         y += chrome.small().lineHeight() * 2;
+        y += chrome.small().lineHeight() + 3;
+        chrome.small().drawCentred(fb, easy ? difficulty.easy() : difficulty.hard(), 0, w, y,
+                easy ? easyColour : chrome.body());
         for (ShellConfig.MenuItem item : title.menu()) {
             y += chrome.small().lineHeight() + 3;
             chrome.small().drawCentred(fb, item.label(), 0, w, y, chrome.body());

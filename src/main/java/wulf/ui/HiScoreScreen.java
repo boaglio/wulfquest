@@ -15,10 +15,19 @@ public final class HiScoreScreen {
 
     private final Chrome chrome;
     private final ShellConfig.HiScores config;
+    private final String easyMark;
+    private final int easyColour;
 
     public HiScoreScreen(Chrome chrome, ShellConfig.HiScores config) {
+        this(chrome, config, ShellConfig.Difficulty.NONE.hiScoreMark(), chrome.body());
+    }
+
+    /** @param easyMark drawn after the name of a run in Easy mode (§17.8), in {@code easyColour} */
+    public HiScoreScreen(Chrome chrome, ShellConfig.HiScores config, String easyMark, int easyColour) {
         this.chrome = chrome;
         this.config = config;
+        this.easyMark = easyMark;
+        this.easyColour = easyColour;
     }
 
     /** @param highlight the row to draw bright, or -1 */
@@ -31,6 +40,11 @@ public final class HiScoreScreen {
             int ink = i == highlight ? chrome.bright() : chrome.body();
             chrome.small().draw(fb, rank(i + 1), left, y, chrome.dim());
             chrome.small().draw(fb, e.name(), left + 20, y, ink);
+            if (e.easy()) {
+                // A column of its own after the longest name, so the marks line up (§17.8).
+                int at = left + 20 + chrome.small().widthOf("W".repeat(config.nameLength())) + 6;
+                chrome.small().draw(fb, easyMark, at, y, easyColour);
+            }
             String score = Long.toString(e.score());
             chrome.small().draw(fb, score, right - chrome.small().widthOf(score), y, ink);
             // A fixed column: the quarters must not shuffle sideways with the score's width.

@@ -28,7 +28,7 @@ public final class ShellValidator {
         }
         ShellConfig.MapScreen map = shell.map();
         java.util.List<String> mapColours = new java.util.ArrayList<>(
-                java.util.List.of(map.visited(), map.revealed(), map.here()));
+                java.util.List.of(map.visited(), map.revealed(), map.here(), map.trail().colour()));
         for (String colour : mapColours) {
             if (!inPalette(palette, colour)) {
                 throw new DataException(SOURCE, "/map", "names '" + colour + "', which is not a palette entry");
@@ -49,6 +49,16 @@ public final class ShellValidator {
                 throw new DataException(SOURCE, "/title/menu",
                         "binds '" + digit + "', which the keys page already uses to choose an input profile");
             }
+        }
+        // §17.8: the difficulty's key is a title key like the others, and its colour a real one.
+        ShellConfig.Difficulty difficulty = shell.difficulty();
+        if (keys.contains(difficulty.key()) || difficulty.key().equals(shell.newGamePlus().key())) {
+            throw new DataException(SOURCE, "/difficulty/key",
+                    "is '" + difficulty.key() + "', which the title already uses");
+        }
+        if (!inPalette(palette, difficulty.easyColour())) {
+            throw new DataException(SOURCE, "/difficulty/easyColour",
+                    "names '" + difficulty.easyColour() + "', which is not a palette entry");
         }
         if (shell.hiScores().alphabet().chars().distinct().count() != shell.hiScores().alphabet().length()) {
             throw new DataException(SOURCE, "/hiScores/alphabet", "repeats a letter");

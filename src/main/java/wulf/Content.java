@@ -225,6 +225,12 @@ public record Content(
         return level == 0 ? eco : eco.atLevel(level, game.newGamePlus().level(level));
     }
 
+    /** The living jungle as job {@code level}, in Easy mode if {@code easy} (§17.8), else Hard. */
+    public Ecosystem ecosystem(int level, boolean easy) {
+        Ecosystem eco = ecosystem(level);
+        return easy ? eco.easy(game.easy()) : eco;
+    }
+
     /** The quest's rules: each lair's guardian as a species, the Keeper, and the numbers that pace and score it. */
     public QuestRules questRules() {
         List<CreatureData.Species> wardens = new ArrayList<>();

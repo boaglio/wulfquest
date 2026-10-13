@@ -28,6 +28,7 @@
         "attributeClash": { "type": "boolean" }
       }
     },
-    "features": { "type": "object", "additionalProperties": { "type": "boolean" } }
+    "features": { "type": "object", "additionalProperties": { "type": "boolean" } },
+    "easy": { "description": "§17.8: Easy mode chosen on the title; absent or false for Hard", "type": "boolean" }
   }
 }

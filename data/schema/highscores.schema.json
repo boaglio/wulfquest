@@ -19,7 +19,8 @@
           "score": { "type": "integer", "minimum": 0 },
           "pieces": { "type": "integer", "minimum": 0, "maximum": 4 },
           "ticks": { "type": "integer", "minimum": 0 },
-          "date": { "type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$" }
+          "date": { "type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$" },
+          "easy": { "description": "§17.8: a run in Easy mode, marked on the table; absent for Hard", "type": "boolean" }
         }
       }
     }

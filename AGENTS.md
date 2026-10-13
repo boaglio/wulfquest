@@ -2713,6 +2713,9 @@ data-driven game; build it in M1.
   prompt names the job fire will start, the tagline becomes that job's, and `N`
   steps through those open.
 
+  The first line of the menu is the difficulty (§17.8): `D DIFFICULTY: HARD`,
+  or `D DIFFICULTY: EASY` in green; `D` switches.
+
 ### 17.3 The panel (256×40, in the lower border)
 
 ```
@@ -2812,6 +2815,53 @@ eye (§14.8). `ShellValidator.checkMap` refuses a sprite or frame that does not
 exist, or a sprite larger than a room on the map. While a looking glass shows
 the way (§14.10), the map dots it (`map.trail`), with a blinking cross at its
 end. `MapScreen`, `MapScreenTest`.
+
+### 17.8 Easy mode and Hard mode **[NEW]**
+
+Asked for by the user (2026-10-12). **Hard** is the game as it is everywhere
+else in this document — the original's rules, every number above; nothing
+about it changes, and every replay and golden frame is Hard. **Easy** is the
+same jungle, map and quest, with less that kills, in `game.json → easy`:
+
+| | Hard | Easy |
+|---|---|---|
+| lives in reserve at the start (§11.7) | 5 | `livesStart` 9 |
+| small creatures in a room at once (§12.8) | 3 | `swarmRoomMax` 2 |
+| kinds let in per quarter held (`swarm.pick.openPerQuarter`) | 2 | `swarmOpenPerQuarter` 1 |
+| the Wulf's pace (§13.8), on top of a later job's (§14.9) | 100% | `wulfSpeedPercent` 75 |
+| the flame for a player who lingers (§12.7) | comes | `flame` false: never |
+| a looking glass shows the way (§14.10) | 90 s | `showWayTicks` 9000, 3 min |
+| a shrine names the way (§14.5) | once a room a life | `hintsOncePerLife` false: every time |
+
+At 75% the prowling Wulf goes 1.5 px a tick and, risen, 2.25, against Vale's
+3: he can always outrun it. The orchids, the guardians, the Keeper, the map
+items, the treasures, the ending and New Game+ are the same in both.
+
+**Choosing.** `D` on the title (`shell.json → difficulty.key`) switches Hard
+and Easy for the next game; the choice is kept in `settings.json → easy`
+(§21.3), so a new session starts where the last one left it. A settings file
+from before it means Hard.
+
+**Showing.** An Easy game says `EASY` (`difficulty.panelLabel`, in
+`easyColour`) at the right of the panel's lives row (§17.3). A Hard game shows
+nothing new.
+
+**Scoring.** One hi-score table for both: an Easy run's row carries `E`
+(`difficulty.hiScoreMark`) after the name, in `easyColour`, and
+`highscores.json` an `"easy": true` (§21.2). Nothing else about scoring
+differs.
+
+**New Game+.** A win in either mode opens Mr Jones's next job (§14.9), and
+the mode lays over any job: Easy job 2 is job 2's fewer pieces and head start,
+with Easy's lives, swarm, no flame, and its Wulf at 120% × 75% = 90%.
+
+**Rebuilt the same.** A replay (§22.6) and a quick save (§21.4) record
+`"easy": true` for an Easy game, left out for Hard, and rebuild it in that
+mode. `Content.ecosystem(level, easy)` and `Ecosystem.easy` make the Easy
+jungle; `QuestRules.easy` carries it into the simulation, which answers
+`Simulation.easy()`. `EasyModeTest`, `ShellTest`, `QuickSavesTest`,
+`ReplayTest`, `QuestTest`; `ShellValidator` checks the key is free on the
+title and the colour is in the palette.
 
 ## 18. Audio — procedural 1-bit beeper
 
@@ -3137,7 +3187,8 @@ dir — they use a JUnit `@TempDir`.
 }
 ```
 
-Top 10, sorted descending by score then ascending by `ticks`. Name is
+An Easy run (§17.8) adds `"easy": true`, and the table marks it; one
+without is Hard. Top 10, sorted descending by score then ascending by `ticks`. Name is
 exactly 3 chars from `A–Z` and space, entered with the classic
 up/down/fire selector. Seeded on first run with 10 plausible entries from
 `data/config/default_highscores.json` (`[NEW]`, keeps the table from looking
@@ -3146,7 +3197,8 @@ broken at 0 points).
 ### 21.3 `settings.json`
 
 Scale, audio on/off + volume, input profile, CRT toggles, chosen feature
-flags. Written on change. **Feature flags in settings override
+flags, and `easy` — Easy mode chosen on the title (§17.8), absent for Hard.
+Written on change. **Feature flags in settings override
 `game.json`** — `game.json` is the shipped default, settings are the
 player's choice.
 

@@ -23,7 +23,7 @@ class NewGamePlusValidationTest {
     private static GameConfig gameWith(List<GameConfig.Level> levels) {
         GameConfig g = c.game();
         return new GameConfig(g.schemaVersion(), g.tickHz(), g.maxCatchupTicks(), g.transition(), g.difficulty(), g.exit(),
-                new GameConfig.NewGamePlus(levels), g.features());
+                new GameConfig.NewGamePlus(levels), g.easy(), g.features());
     }
 
     private static List<GameConfig.Level> levels() {
@@ -39,7 +39,7 @@ class NewGamePlusValidationTest {
         ShellConfig.NewGamePlus n = s.newGamePlus();
         return new ShellConfig(s.schemaVersion(), s.screenHoldTicks(), s.title(), s.attract(), s.gameOver(), s.ending(),
                 s.tally(), s.hiScores(), s.keyConfig(), s.sound(), s.stats(), s.amuletReveal(), s.map(), s.quickSave(),
-                s.credits(), new ShellConfig.NewGamePlus(n.key(), n.labelColour(), jobs));
+                s.credits(), new ShellConfig.NewGamePlus(n.key(), n.labelColour(), jobs), s.difficulty());
     }
 
     private static DataException wordsError(List<ShellConfig.Job> jobs) {

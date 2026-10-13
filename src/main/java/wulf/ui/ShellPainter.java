@@ -44,9 +44,11 @@ public final class ShellPainter {
         this.tickHz = content.game().tickHz();
         this.game = new GamePainter(content, fonts);
         this.chrome = new Chrome(fonts, content.palette());
-        this.title = new TitleScreen(chrome, config.title(), content.palette(), config.newGamePlus());
+        this.title = new TitleScreen(chrome, config.title(), content.palette(), config.newGamePlus(),
+                config.difficulty());
         this.credits = new CreditsScreen(chrome, config.credits());
-        this.hiScores = new HiScoreScreen(chrome, config.hiScores());
+        this.hiScores = new HiScoreScreen(chrome, config.hiScores(), config.difficulty().hiScoreMark(),
+                content.palette().indexOf(config.difficulty().easyColour()));
         this.hiScoreEntry = new HiScoreEntryScreen(chrome, config.hiScores());
         this.stats = new StatsScreen(chrome, config.stats());
         this.keys = new KeyConfigScreen(chrome, config.keyConfig());
@@ -70,7 +72,7 @@ public final class ShellPainter {
     public void paint(Framebuffer fb, Shell shell, boolean dev) {
         switch (shell.state()) {
             case TITLE -> title.paint(fb, shell.stateTick(), db.scores().best(), shell.notice(),
-                    shell.unlocked() > 0 ? config.newGamePlus().levels().get(shell.level()) : null);
+                    shell.unlocked() > 0 ? config.newGamePlus().levels().get(shell.level()) : null, shell.easy());
             case ATTRACT -> attract(fb, shell);
             case CREDITS -> credits.paint(fb);
             case HISCORES -> hiScores.paint(fb, db.scores(), shell.highlight());

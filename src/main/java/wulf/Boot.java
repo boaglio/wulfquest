@@ -178,9 +178,12 @@ public final class Boot {
         long firstSeed = parsed.seeded() ? parsed.seed() : System.nanoTime();
         AtomicLong nextSeed = new AtomicLong(firstSeed);
         // One way to make a game, so a quick load (§21.4) rebuilds it exactly as it was begun.
-        // §14.9: a game of job n — 0 the game itself — as the title asks for it.
-        QuickSaves.GameMaker silentGame = (seed, job) -> {
+        // §14.9: a game of job n — 0 the game itself — as the title asks for it; §17.8: in Easy mode or Hard.
+        QuickSaves.GameMaker silentGame = (seed, job, easy) -> {
             Ecosystem jobEco = job == 0 ? gameEco : gameEco.atLevel(job, c.game().newGamePlus().level(job));
+            if (easy) {
+                jobEco = jobEco.easy(c.game().easy());
+            }
             Simulation fresh = Simulation.startingIn(c.player(), world, c.game().transition().freezeTicks(), start,
                     jobEco, seed);
             if (parsed.debugEffect() != null) {
@@ -197,8 +200,8 @@ public final class Boot {
             return fresh;
         };
         java.util.function.Consumer<Simulation> voice = sim -> sim.sounds(mixer, c.sfx().cadence());
-        IntFunction<Simulation> newGame = job -> {
-            Simulation fresh = silentGame.make(nextSeed.getAndIncrement(), job);
+        Shell.GameMaker newGame = (job, easy) -> {
+            Simulation fresh = silentGame.make(nextSeed.getAndIncrement(), job, easy);
             voice.accept(fresh);
             return fresh;
         };

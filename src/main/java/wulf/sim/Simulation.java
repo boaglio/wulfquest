@@ -185,7 +185,7 @@ public final class Simulation {
         player.yFp = yFp;
         player.entryXFp = xFp;
         player.entryYFp = yFp;
-        player.lives = rules.lives().start();
+        player.lives = eco.quest().isEasy() ? eco.quest().easy().livesStart() : rules.lives().start();   // §17.8
         WulfData.Appearance appearance = eco.wulf().data().appearance();
         this.wulf = new Wulf(new Creature(Wulf.ID, eco.wulf().species(), -1, xFp, yFp, Herd.NONE));
         this.rowWorld = (gx, gy) -> world.isSolid(Math.floorMod(gx, RoomAddress.GRID_W * CollisionMask.COLS), gy);
@@ -1440,9 +1440,11 @@ public final class Simulation {
         LandmarksData.Rect shrine = marks.shrines().zone();
         boolean atShrine = overlaps(px, py, pb.w(), pb.h(), roomX + shrine.x(), roomY + shrine.y(), shrine.w(), shrine.h());
         // A shrine in a room this game hides a quarter in is quiet: the lair is the answer.
-        if (rules.caveHints() && atShrine && marks.isShrine(room) && q.lair < 0 && !q.hintUsed[room.index()]) {
+        // §17.8: in Easy mode a shrine may answer every time it is asked.
+        boolean asking = !rules.isEasy() || rules.easy().hintsOncePerLife();
+        if (rules.caveHints() && atShrine && marks.isShrine(room) && q.lair < 0 && !(asking && q.hintUsed[room.index()])) {
             // §14.5: the shrine in front of the hut door — the same spot in every hut room — points the way.
-            q.hintUsed[room.index()] = true;
+            q.hintUsed[room.index()] = asking;
             q.hintTicks = marks.hint().messageTicks();
             pointTheWay(marks);
         }
@@ -1489,7 +1491,7 @@ public final class Simulation {
                     && overlaps(px, py, pb.w(), pb.h(), roomX + place.spot().x() + ib.x(),
                             roomY + place.spot().y() + ib.y(), ib.w(), ib.h())) {
                 q.glassTaken[i] = true;
-                q.wayTicks = glass.showWayTicks();
+                q.wayTicks = eco.quest().isEasy() ? eco.quest().easy().showWayTicks() : glass.showWayTicks();   // §17.8
                 itemTaken(marks);
             }
         }
@@ -1916,9 +1918,12 @@ public final class Simulation {
         return Math.min(Quest.SLOTS, quest.quarters() + eco.quest().levelRules().rampHeadStart());
     }
 
-    /** §14.9: the prowler's pace in this job; the game itself keeps the original's. */
+    /** §14.9: the prowler's pace in this job, and slower in Easy mode (§17.8); the game itself keeps the original's. */
     private int paced(int speedFp) {
         int percent = eco.quest().levelRules().wulfSpeedPercent();
+        if (eco.quest().isEasy()) {
+            percent = percent * eco.quest().easy().wulfSpeedPercent() / 100;
+        }
         return percent == 100 ? speedFp : speedFp * percent / 100;
     }
 
@@ -2498,6 +2503,11 @@ public final class Simulation {
     /** Which job this game is (§14.9): 0 for the game itself. */
     public int level() {
         return eco.quest().level();
+    }
+
+    /** Whether this game is in Easy mode (§17.8); otherwise Hard, the original's. */
+    public boolean easy() {
+        return eco.quest().isEasy();
     }
 
     /**

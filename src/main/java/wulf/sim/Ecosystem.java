@@ -24,6 +24,21 @@ public record Ecosystem(CreatureData creatures, RoomPopulator populator, int roo
         return withQuest(quest.atLevel(n, rules));
     }
 
+    /**
+     * The same jungle in Easy mode (§17.8): fewer small creatures at once, the nastier kinds
+     * slower to come, no flame if it says so; the quest carries the rest — the lives, the
+     * Wulf's pace, the glass and the shrines.
+     */
+    public Ecosystem easy(GameConfig.Easy e) {
+        SwarmRules s = swarm;
+        SwarmRules gentler = new SwarmRules(s.on(), Math.min(s.roomMax(), e.swarmRoomMax()), s.slots(), s.everyTicks(),
+                s.appearTicks(), s.lingerTicks(), s.quietAfterGettingUpTicks(), s.area(), s.playerClearancePx(), s.pick(),
+                s.open(), Math.min(s.openPerQuarter(), e.swarmOpenPerQuarter()), s.fold(), s.tints(), s.appearScores(),
+                s.facingRightBonus());
+        return new Ecosystem(creatures, populator, roomFirstVisitScore, wulf, quest.withEasy(e), orchids,
+                e.flame() ? flame : FlameData.NONE, gentler, beasts, orchidSpots);
+    }
+
     /** No creatures, no Wulf, no quest: M3's empty jungle. */
     public static final Ecosystem NONE = new Ecosystem(CreatureData.EMPTY, RoomPopulator.NONE, 0, WulfRules.NONE,
             QuestRules.NONE, OrchidData.NONE, FlameData.NONE, SwarmRules.NONE,

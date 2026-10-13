@@ -171,6 +171,53 @@ class ShellTest {
     }
 
     @Test
+    void theDifficultyKeySwitchesBetweenHardAndEasyAndIsRemembered(@TempDir Path dir) {
+        // §17.8: Hard to begin with — the original's game — and D on the title switches, kept in the settings.
+        PlayerDb db = db(dir);
+        boolean[] asked = new boolean[1];
+        Shell.GameMaker maker = (level, easy) -> {
+            asked[0] = easy;
+            return GameSessionTest.sim();
+        };
+        Shell shell = new Shell(CONFIG, db, List.copyOf(CONTENT.input().profiles().keySet()), maker, null,
+                () -> "2026-10-12");
+        assertThat(shell.easy()).isFalse();
+        shell.tick(InputState.NONE, MenuInput.of(CONFIG.difficulty().key()), false);
+        assertThat(shell.easy()).isTrue();
+        assertThat(shell.state()).isEqualTo(Shell.State.TITLE);
+        assertThat(db.settings().easy()).isTrue();
+        assertThat(new Shell(CONFIG, db, List.copyOf(CONTENT.input().profiles().keySet()), maker, null,
+                () -> "2026-10-12").easy()).as("a new session remembers").isTrue();
+        shell.tick(FIRE, MenuInput.NONE, false);
+        assertThat(asked[0]).as("the game is made easy").isTrue();
+    }
+
+    @Test
+    void anEasyRunIsMarkedOnTheTable(@TempDir Path dir) {
+        PlayerDb db = db(dir);
+        db.putScores(HighScores.empty());
+        Shell shell = new Shell(CONFIG, db, List.copyOf(CONTENT.input().profiles().keySet()),
+                (Shell.GameMaker) (level, easy) -> GameSessionTest.scoringSimIn(easy ? CONTENT.game().easy() : null),
+                null, () -> "2026-10-12");
+        shell.tick(InputState.NONE, MenuInput.of(CONFIG.difficulty().key()), false);
+        shell.tick(FIRE, MenuInput.NONE, false);
+        Simulation sim = shell.session().sim();
+        for (int i = 0; i < 40 && sim.score() == 0; i++) {
+            shell.tick(InputState.of(1, 0, false, false), MenuInput.NONE, false);
+        }
+        assertThat(sim.player().lives()).as("Easy's lives").isEqualTo(CONTENT.game().easy().livesStart());
+        GameSessionTest.playUntilGameOver(shell.session(), sim, sim.player().lives());
+        shell.tick(InputState.NONE, MenuInput.NONE, false);
+        idle(shell, CONFIG.gameOver().holdTicks());
+        assertThat(shell.state()).isEqualTo(Shell.State.HISCORE_ENTRY);
+        for (int i = 0; i < CONFIG.hiScores().nameLength(); i++) {
+            shell.tick(FIRE, MenuInput.NONE, false);
+        }
+        assertThat(db.scores().entries()).hasSize(1);
+        assertThat(db.scores().entries().get(0).easy()).isTrue();
+    }
+
+    @Test
     void aFinishedRunAlwaysLandsInTheLedger(@TempDir Path dir) {
         PlayerDb db = db(dir);
         Shell shell = shell(db);

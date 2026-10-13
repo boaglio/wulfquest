@@ -68,6 +68,15 @@ public final class PanelPainter {
         }
     }
 
+    /**
+     * §17.8: the mode, when it is not the original's — {@code label} at the right of the lives
+     * row, under {@code HI}.
+     */
+    public void paintMode(Framebuffer fb, String label, int colour) {
+        int y = panel.y() + 2 + 10;
+        font.draw(fb, label, panel.x() + panel.w() - 2 - font.widthOf(label), y, colour);
+    }
+
     private void drawLives(Framebuffer fb, int lives, int y) {
         String label = "LIVES";
         int x = panel.x() + 2;

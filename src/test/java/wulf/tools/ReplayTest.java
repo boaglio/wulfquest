@@ -97,6 +97,33 @@ class ReplayTest {
         }
     }
 
+    @Test
+    void anEasyRunIsRecordedAndReplayedEasy() {
+        // §17.8: the file says the run was in Easy mode; a Hard one leaves it out.
+        RoomAddress start = content.map().startRoom();
+        Simulation sim = Simulation.startingIn(content.player(), new wulf.world.WorldGrid(content.rooms()),
+                content.game().transition().freezeTicks(), start, content.ecosystem(0, true), 8L);
+        ReplayRecorder rec = new ReplayRecorder("easy", content.db().contentHash(), 8L, start, false).note("ReplayTest");
+        for (int t = 0; t < 600; t++) {
+            InputState in = script(t);
+            sim.play(in, false);
+            rec.record(in, sim);
+        }
+        Path file = dir.resolve("easy.json");
+        rec.replay().write(file);
+        Replay back = Replay.read(file);
+        assertThat(back.easy()).isTrue();
+        ReplayRunner.Result result = ReplayRunner.run(content, back);
+        assertThat(result.passed()).as("diverged at %d", result.divergedAtTick()).isTrue();
+        assertThat(result.sim().easy()).isTrue();
+        try {
+            record(5L, 50).write(dir.resolve("hard.json"));
+            assertThat(java.nio.file.Files.readString(dir.resolve("hard.json"))).doesNotContain("easy");
+        } catch (java.io.IOException e) {
+            throw new java.io.UncheckedIOException(e);
+        }
+    }
+
     /**
      * §22.6: every replay in the folder, not just the ones named in a test. A replay added later
      * is covered the moment it lands, and one that quietly stops matching cannot hide behind the

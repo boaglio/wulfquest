@@ -46,6 +46,8 @@ public final class GamePainter {
     private final int maskColour;
     private final int paper;
     private final AttributeClash clash;
+    private final String easyLabel;
+    private final int easyColour;
 
     public GamePainter(Content c, Fonts fonts) {
         Palette palette = c.palette();
@@ -79,6 +81,8 @@ public final class GamePainter {
         this.parry = palette.indexOf("brightWhite");
         this.maskColour = palette.indexOf("brightRed");
         this.paper = palette.indexOf("black");
+        this.easyLabel = c.shell().difficulty().panelLabel();
+        this.easyColour = palette.indexOf(c.shell().difficulty().easyColour());
         this.clash = display.crt().attributeClash() ? new AttributeClash(display.playfield()) : null;
     }
 
@@ -123,6 +127,9 @@ public final class GamePainter {
         panel.paint(fb, sim.score(), best, sim.player().lives(), sim.quest().slotMask(),
                 under ? effectColours[sim.effect().orchid()] : -1,
                 under ? sim.effect().remainingPerMille() : 0, message);
+        if (sim.easy()) {
+            panel.paintMode(fb, easyLabel, easyColour);   // §17.8
+        }
         quest.paintFlight(fb, sim, panel);
     }
 

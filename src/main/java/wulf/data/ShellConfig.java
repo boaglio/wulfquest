@@ -26,7 +26,8 @@ public record ShellConfig(
         MapScreen map,
         QuickSave quickSave,
         Credits credits,
-        NewGamePlus newGamePlus) {
+        NewGamePlus newGamePlus,
+        Difficulty difficulty) {
 
     public record Title(String wordmark, String tagline, String prompt, Cycle cycle, List<MenuItem> menu,
                         String footer) {
@@ -160,6 +161,18 @@ public record ShellConfig(
 
         /** Only the game itself: what a test's shell gets. */
         public static final NewGamePlus NONE = new NewGamePlus("N", "white", List.of(new Job("", null, null, null)));
+    }
+
+    /**
+     * Easy mode or Hard (§17.8, {@code [NEW]}): {@code key} on the title switches, and the title
+     * shows {@code hard} or {@code easy} for the one the next game is; an Easy game shows
+     * {@code panelLabel} on the panel, and its row on the hi-score table {@code hiScoreMark},
+     * both in {@code easyColour}.
+     */
+    public record Difficulty(String key, String hard, String easy, String easyColour, String panelLabel,
+                             String hiScoreMark) {
+        /** What a test's shell gets. */
+        public static final Difficulty NONE = new Difficulty("D", "D HARD", "D EASY", "white", "EASY", "E");
     }
 
     /**

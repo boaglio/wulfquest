@@ -11,14 +11,17 @@ import java.util.List;
  * @param practiced   whether the game was already a practice run (§17.6), which is in the state hash
  * @param input       run-length {@code [ticks, bits]} pairs, as in a replay (§22.6)
  * @param newGamePlus which job the game is (§14.9); absent, as in a save from before them, the game itself
+ * @param easy        whether the game is in Easy mode (§17.8); absent, as in a save from before it, Hard
  */
 public record QuickSaveData(int schemaVersion, String contentHash, long seed, String startRoom, boolean dev,
-                            boolean practiced, int ticks, List<int[]> input, String stateHash, Integer newGamePlus) {
+                            boolean practiced, int ticks, List<int[]> input, String stateHash, Integer newGamePlus,
+                            Boolean easy) {
 
     public static final int SCHEMA_VERSION = 1;
 
     public QuickSaveData {
         input = List.copyOf(input);
         newGamePlus = newGamePlus == null ? 0 : newGamePlus;
+        easy = easy != null && easy;
     }
 }

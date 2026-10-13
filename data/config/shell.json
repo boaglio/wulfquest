@@ -194,6 +194,14 @@
       "bodyColour": "white"
     }
   },
+  "difficulty": {
+    "key": "D",
+    "hard": "D DIFFICULTY: HARD",
+    "easy": "D DIFFICULTY: EASY",
+    "easyColour": "brightGreen",
+    "panelLabel": "EASY",
+    "hiScoreMark": "E"
+  },
   "newGamePlus": {
     "key": "N",
     "labelColour": "brightCyan",

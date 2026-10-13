@@ -34,8 +34,13 @@ class GameSessionTest {
 
     /** The same empty world, but walking into a new room is worth something — enough to earn a hi-score. */
     static Simulation scoringSim() {
+        return scoringSimIn(null);
+    }
+
+    /** The same, in Easy mode if {@code easy} is given (§17.8). */
+    static Simulation scoringSimIn(wulf.data.GameConfig.Easy easy) {
         Ecosystem scoring = new Ecosystem(CreatureData.EMPTY, RoomPopulator.NONE, 10);
-        return Simulation.at(RULES, OPEN, 0, Fixed.fp(1000), Fixed.fp(1000), scoring, 1L);
+        return Simulation.at(RULES, OPEN, 0, Fixed.fp(1000), Fixed.fp(1000), easy == null ? scoring : scoring.easy(easy), 1L);
     }
 
     private static GameSession session() {
@@ -126,7 +131,12 @@ class GameSessionTest {
 
     /** Spends every life, which is the only way to reach {@code GAME_OVER}: the reserve and the last fall. */
     static void playUntilGameOver(GameSession s, Simulation sim) {
-        for (int life = 0; life < RULES.lives().start() + 1; life++) {
+        playUntilGameOver(s, sim, RULES.lives().start());
+    }
+
+    /** Every life of {@code lives} in reserve, and the last one. */
+    static void playUntilGameOver(GameSession s, Simulation sim, int lives) {
+        for (int life = 0; life < lives + 1; life++) {
             for (int i = 0; i < RULES.spawn().invulnTicks(); i++) {
                 s.tick(InputState.NONE, false);
             }

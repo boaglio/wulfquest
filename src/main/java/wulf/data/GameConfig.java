@@ -11,6 +11,7 @@ public record GameConfig(
         Difficulty difficulty,
         Exit exit,
         NewGamePlus newGamePlus,
+        Easy easy,
         Map<String, Boolean> features) {
 
     public GameConfig {
@@ -45,6 +46,22 @@ public record GameConfig(
         public Level level(int n) {
             return levels.get(n);
         }
+    }
+
+    /**
+     * Easy mode (§17.8, {@code [NEW]}): the game the player chooses on the title when the
+     * original's — Hard — is too much. The same jungle and quest; less that kills.
+     *
+     * @param livesStart          lives in reserve at the start
+     * @param swarmRoomMax        small creatures in a room at once ({@code jungle.json → swarm.roomMax})
+     * @param swarmOpenPerQuarter how many more kinds each quarter held lets in ({@code swarm.pick.openPerQuarter})
+     * @param wulfSpeedPercent    the Wulf's pace against its own, on top of a later job's
+     * @param flame               whether the flame comes for a player who lingers (§12.7)
+     * @param showWayTicks        how long a looking glass shows the way (§14.10)
+     * @param hintsOncePerLife    whether a shrine names the way only once a room a life (§14.5)
+     */
+    public record Easy(int livesStart, int swarmRoomMax, int swarmOpenPerQuarter, int wulfSpeedPercent, boolean flame,
+                       int showWayTicks, boolean hintsOncePerLife) {
     }
 
     /**
@@ -89,7 +106,8 @@ public record GameConfig(
                 merged.put(e.getKey(), e.getValue());
             }
         }
-        return new GameConfig(schemaVersion, tickHz, maxCatchupTicks, transition, difficulty, exit, newGamePlus, merged);
+        return new GameConfig(schemaVersion, tickHz, maxCatchupTicks, transition, difficulty, exit, newGamePlus, easy,
+                merged);
     }
 
     /** A feature flag (AGENTS.md §1.1); unknown names are a programmer error. */

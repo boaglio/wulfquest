@@ -24,7 +24,16 @@ public record HighScores(int schemaVersion, List<Entry> entries) {
         entries = List.copyOf(entries);
     }
 
-    public record Entry(String name, long score, int pieces, long ticks, String date) {
+    /** @param easy whether the run was in Easy mode (§17.8): the table marks it; absent, as before it, Hard */
+    public record Entry(String name, long score, int pieces, long ticks, String date, Boolean easy) {
+        public Entry {
+            easy = easy != null && easy;
+        }
+
+        /** A run in Hard mode, the original's. */
+        public Entry(String name, long score, int pieces, long ticks, String date) {
+            this(name, score, pieces, ticks, date, false);
+        }
     }
 
     public static HighScores empty() {

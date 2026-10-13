@@ -15,12 +15,25 @@ public record Settings(
         Audio audio,
         String inputProfile,
         Crt crt,
-        Map<String, Boolean> features) {
+        Map<String, Boolean> features,
+        Boolean easy) {
 
     public static final int SCHEMA_VERSION = 1;
 
     public Settings {
         features = Map.copyOf(features);
+        easy = easy != null && easy;
+    }
+
+    /** Hard, the original's game (§17.8): what a settings file from before Easy mode means. */
+    public Settings(int schemaVersion, int scale, Audio audio, String inputProfile, Crt crt,
+                    Map<String, Boolean> features) {
+        this(schemaVersion, scale, audio, inputProfile, crt, features, false);
+    }
+
+    /** Easy mode or Hard, as chosen on the title (§17.8). */
+    public Settings withEasy(boolean on) {
+        return new Settings(schemaVersion, scale, audio, inputProfile, crt, features, on);
     }
 
     public record Audio(boolean enabled, int volumePercent) {
@@ -30,20 +43,20 @@ public record Settings(
     }
 
     public Settings withInputProfile(String profile) {
-        return new Settings(schemaVersion, scale, audio, profile, crt, features);
+        return new Settings(schemaVersion, scale, audio, profile, crt, features, easy);
     }
 
     public Settings withAudio(boolean enabled, int volumePercent) {
-        return new Settings(schemaVersion, scale, new Audio(enabled, volumePercent), inputProfile, crt, features);
+        return new Settings(schemaVersion, scale, new Audio(enabled, volumePercent), inputProfile, crt, features, easy);
     }
 
     public Settings withScale(int newScale) {
-        return new Settings(schemaVersion, newScale, audio, inputProfile, crt, features);
+        return new Settings(schemaVersion, newScale, audio, inputProfile, crt, features, easy);
     }
 
     public Settings withFeature(String name, boolean on) {
         Map<String, Boolean> merged = new LinkedHashMap<>(features);
         merged.put(name, on);
-        return new Settings(schemaVersion, scale, audio, inputProfile, crt, merged);
+        return new Settings(schemaVersion, scale, audio, inputProfile, crt, merged, easy);
     }
 }
