@@ -56,8 +56,9 @@
     "progress": "{percent}% OF THE QUEST DONE",
     "holdTicks": 150,
     "continuePrompt": "PRESS FIRE TO CONTINUE",
-    "continuesLeft": "CONTINUES LEFT {n}   {s}",
-    "continueTicks": 500
+    "continuesLeft": "CONTINUES LEFT {n}",
+    "continueTicks": 500,
+    "countdownScale": 3
   },
   "ending": {
     "backdrop": [

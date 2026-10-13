@@ -2779,8 +2779,9 @@ big font gained a `%` for it.
 **Continues [NEW]** (asked for by the user, 2026-10-12). A game may go on after
 game over `game.json → continues` times (3), in Easy and Hard alike. While any
 are left the screen adds `gameOver.continuePrompt` (`PRESS FIRE TO CONTINUE`)
-and `continuesLeft` (`CONTINUES LEFT {n}   {s}`, the seconds counting down)
-and stands for `continueTicks` (500, 10 s) instead of 150. Fire, after
+and `continuesLeft` (`CONTINUES LEFT {n}`), and under them the seconds
+counting down, `countdownScale` (3) times the big font in yellow; it stands for
+`continueTicks` (500, 10 s) instead of 150. Fire, after
 `screenHoldTicks`, goes on: Vale gets up where he fell with a new game's lives
 in reserve (the mode's, §17.8), keeping everything found — the quarters, the
 map, the scroll, eyes and glasses, the treasures taken, the jungle as it is —

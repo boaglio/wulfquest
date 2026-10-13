@@ -34,20 +34,22 @@ public final class GameOverScreen {
         int textH = chrome.big().glyphH();
         int lineH = chrome.big().lineHeight();
         int lines = continuesLeft > 0 ? 6 : 2;
-        int y = playfieldY + (playfieldH - textH - lines * lineH) / 2;
-        fb.fillRect(0, y - 4, fb.width(), textH + lines * lineH + 8, chrome.ground());
+        int countdown = continuesLeft > 0 ? lineH + textH * config.countdownScale() : 0;
+        int y = playfieldY + (playfieldH - textH - lines * lineH - countdown) / 2;
+        fb.fillRect(0, y - 4, fb.width(), textH + lines * lineH + countdown + 8, chrome.ground());
         chrome.big().drawCentred(fb, config.text(), 0, fb.width(), y, chrome.heading());
         chrome.big().drawCentred(fb, progress(config, percent), 0, fb.width(), y + 2 * lineH, chrome.body());
         if (continuesLeft > 0) {
             chrome.big().drawCentred(fb, config.continuePrompt(), 0, fb.width(), y + 4 * lineH, chrome.bright());
-            chrome.big().drawCentred(fb, left(config, continuesLeft, secondsLeft), 0, fb.width(), y + 6 * lineH,
-                    chrome.body());
+            chrome.big().drawCentred(fb, left(config, continuesLeft), 0, fb.width(), y + 6 * lineH, chrome.body());
+            // The seconds, big: the offer will not wait.
+            chrome.big().drawScaledCentred(fb, Integer.toString(secondsLeft), 0, fb.width(), y + 6 * lineH + 2 * lineH,
+                    chrome.heading(), config.countdownScale());
         }
     }
 
-    static String left(ShellConfig.GameOver config, int continuesLeft, int secondsLeft) {
-        return config.continuesLeft().replace("{n}", Integer.toString(continuesLeft))
-                .replace("{s}", Integer.toString(secondsLeft));
+    static String left(ShellConfig.GameOver config, int continuesLeft) {
+        return config.continuesLeft().replace("{n}", Integer.toString(continuesLeft));
     }
 
     static String progress(ShellConfig.GameOver config, int percent) {

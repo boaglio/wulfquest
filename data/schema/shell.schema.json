@@ -83,14 +83,16 @@
     "gameOver": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["text", "progress", "holdTicks", "continuePrompt", "continuesLeft", "continueTicks"],
+      "required": ["text", "progress", "holdTicks", "continuePrompt", "continuesLeft", "continueTicks",
+                   "countdownScale"],
       "properties": {
         "text": { "type": "string", "minLength": 1, "maxLength": 20 },
         "progress": { "type": "string", "pattern": "\\{percent\\}", "maxLength": 32 },
         "holdTicks": { "type": "integer", "minimum": 1, "maximum": 1000 },
         "continuePrompt": { "description": "§17.5 [NEW]", "type": "string", "minLength": 1, "maxLength": 32 },
         "continuesLeft": { "type": "string", "pattern": "\\{n\\}", "maxLength": 32 },
-        "continueTicks": { "type": "integer", "minimum": 50, "maximum": 3000 }
+        "continueTicks": { "type": "integer", "minimum": 50, "maximum": 3000 },
+        "countdownScale": { "description": "the seconds left, under the offer, this many times the big font", "type": "integer", "minimum": 1, "maximum": 4 }
       }
     },
     "ending": {

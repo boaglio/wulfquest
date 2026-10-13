@@ -90,11 +90,12 @@ public record ShellConfig(
     /**
      * @param progress       the line under it, {@code {percent}} standing for how much of the adventure is done (§17.5)
      * @param continuePrompt §17.5: shown while the game may go on; fire takes it
-     * @param continuesLeft  under it, with {@code {n}} the continues left and {@code {s}} the seconds
+     * @param continuesLeft  under it, with {@code {n}} the continues left
      * @param continueTicks  how long the offer stands before the run is banked
+     * @param countdownScale the seconds left, under all that, this many times the big font
      */
     public record GameOver(String text, String progress, int holdTicks, String continuePrompt, String continuesLeft,
-                           int continueTicks) {
+                           int continueTicks, int countdownScale) {
     }
 
     /**
