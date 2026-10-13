@@ -45,7 +45,7 @@ learned last game is only half the answer. Each quarter's guardian goes with it.
 
 **The original's creatures.** The jungle is now the original's, read from its
 disassembly: small creatures — spiders, scorpions, bats, parrots and ten more —
-appear as puffs, three to a room, each in a colour of its own, and the later kinds
+appear as puffs, three to a room, each kind in its own colours, and the later kinds
 only come as the amulet fills. Meet them with the sabre out and facing them and
 they burst; walk into one and it takes you with it. Rhinos pace their corridors,
 tribesmen follow you about the map — and light up and call when they stand level

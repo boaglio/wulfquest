@@ -13,7 +13,7 @@
     ".": -1,
     "K": 0,
     "w": 7,
-    "W": 15
+    "M": 11
   },
   "frames": [
     {
@@ -24,13 +24,13 @@
         "................",
         "................",
         "...........K....",
-        ".....KKKKKKwKK..",
-        "....KWWWWWWWWWK.",
-        "..KKWWWWWWWWWKWK",
-        "KKwwwWWWWWWWWWK.",
-        "wwwKKWWWWWWKKK..",
-        "wKK..KwwwKK.....",
-        "K....KwwwK......"
+        ".....KKKKKKMKK..",
+        "....KwwwwwwwwwK.",
+        "..KKwwwwwwwwwKwK",
+        "KKMMMwwwwwwwwwMK",
+        "MMMKKwwwwwwKKKK.",
+        "MKK..KMMMKK.....",
+        "K....KMMMK......"
       ]
     },
     {
@@ -41,13 +41,13 @@
         "................",
         "................",
         "...........K....",
-        ".....KKKKKKwKK..",
-        "....KWWWWWWWWWK.",
-        "KKKKWWWWWWWWWKWK",
-        "wwwwwWWWWWWWWWK.",
-        "wKKKKWWWWWWKKK..",
-        "K..KwwKKKwwK....",
-        "...KwwK.KwwK...."
+        ".....KKKKKKMKK..",
+        "....KwwwwwwwwwK.",
+        "KKKKwwwwwwwwwKwK",
+        "MMMMMwwwwwwwwwMK",
+        "MKKKKwwwwwwKKKK.",
+        "K..KMMKKKMMK....",
+        "...KMMK.KMMK...."
       ]
     }
   ],

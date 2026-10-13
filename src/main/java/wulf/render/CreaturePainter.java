@@ -47,9 +47,18 @@ public final class CreaturePainter {
     private final List<Creature> order = new ArrayList<>();
     private final boolean flicker;
     private final int[] crowd;
+    /** §12.8: the original's one ink a creature, rather than each in its own colours. */
+    private final boolean inked;
     private boolean stilled;
 
     public CreaturePainter(DisplayConfig display, SpriteBank sprites, CreatureData roster, Palette palette) {
+        this(display, sprites, roster, palette, false);
+    }
+
+    /** @param inked {@code features.inkedCreatures}: each small creature and big beast in one colour, as the original */
+    public CreaturePainter(DisplayConfig display, SpriteBank sprites, CreatureData roster, Palette palette,
+                           boolean inked) {
+        this.inked = inked;
         this.field = display.playfield();
         this.sprites = sprites;
         this.roster = roster;
@@ -191,7 +200,7 @@ public final class CreaturePainter {
         }
         if (flashing(c)) {
             sprite.blitTinted(fb, frame, x, y, flash);
-        } else if (c.tint() >= 0) {
+        } else if (c.tint() >= 0 && inked) {
             sprite.blitInked(fb, frame, x, y, c.tint() - 8, c.tint(), outline);   // §12.8: the colour it came in
         } else {
             sprite.blit(fb, frame, x, y);
@@ -199,14 +208,18 @@ public final class CreaturePainter {
     }
 
     /**
-     * §12.9: in the colour the actor table gives it, ink and outline; a tribesman level with a
-     * quarter in yellow ({@code $ABCE}); a sleeper lying down.
+     * §12.9: in its own colours — or, inked, in the colour the actor table gives it; a tribesman
+     * level with a quarter in yellow either way ({@code $ABCE}), the call he gives; a sleeper lying down.
      */
     private void paintBeast(Framebuffer fb, Beast b, int ox, int oy) {
         Sprite sprite = sprites.get(b.species().sprite());
         String side = b.faceX() < 0 ? "_l" : "";
         String frame = b.asleep() ? "sleep" + side
                 : "walk" + (b.moveTicks() > 0 ? (b.moveTicks() / roster.walkTicksPerFrame()) % 2 : 0) + side;
+        if (!inked && !b.hinting()) {
+            sprite.blit(fb, frame, Fixed.px(b.xFp()) + ox, Fixed.px(b.yFp()) + oy);
+            return;
+        }
         int ink = b.hinting() ? hint : b.tint();
         sprite.blitInked(fb, frame, Fixed.px(b.xFp()) + ox, Fixed.px(b.yFp()) + oy, ink - 8, ink, outline);
     }

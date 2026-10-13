@@ -12,7 +12,8 @@
   "legend": {
     ".": -1,
     "K": 0,
-    "w": 7,
+    "m": 3,
+    "M": 11,
     "W": 15
   },
   "frames": [
@@ -22,14 +23,14 @@
         "................",
         "................",
         "...K...KK...K...",
-        "..KwK.KWWK.KwK..",
-        "..KwwKWWWWKwwK..",
-        ".KwwKwWWWWwKwwK.",
-        ".KwwwWWWWWWwwwK.",
-        ".KwKKWWWWWWKKwK.",
-        ".KwKwwWWWWwwKwK.",
-        "KwKKwKKWWKKwKKwK",
-        ".K.KwK.KK.KwK.K.",
+        "..KmK.KMMK.KmK..",
+        "..KmmKMWMWKmmK..",
+        ".KmmKmMMMMmKmmK.",
+        ".KmmmMMMMMMmmmK.",
+        ".KmKKMMMMMMKKmK.",
+        ".KmKmmMMMMmmKmK.",
+        "KmKKmKKMMKKmKKmK",
+        ".K.KmK.KK.KmK.K.",
         "....K......K...."
       ]
     },
@@ -39,15 +40,15 @@
         "................",
         "................",
         "...K...KK...K...",
-        "..KwKKKWWKKKwK..",
-        ".KwwwwWWWWwwwwK.",
-        ".KwKKwWWWWwKKwK.",
-        "KwKwwWWWWWWwwKwK",
-        ".KKwwWWWWWWwwKK.",
-        ".KwwKKWWWWKKwwK.",
-        ".KwK.KwWWwK.KwK.",
-        "..K..KwKKwK..K..",
-        "....KwwKKwwK...."
+        "..KmKKKMMKKKmK..",
+        ".KmmmmMWMWmmmmK.",
+        ".KmKKmMMMMmKKmK.",
+        "KmKmmMMMMMMmmKmK",
+        ".KKmmMMMMMMmmKK.",
+        ".KmmKKMMMMKKmmK.",
+        ".KmK.KmMMmK.KmK.",
+        "..K..KmKKmK..K..",
+        "....KmmKKmmK...."
       ]
     }
   ],

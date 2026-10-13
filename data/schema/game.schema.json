@@ -86,7 +86,7 @@
     "features": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["caveHints", "animatedWater", "distanceDrivenGait", "roamingWulf", "inventedOrchids", "inventedCreatures", "quickSave",
+      "required": ["caveHints", "animatedWater", "distanceDrivenGait", "roamingWulf", "inventedOrchids", "inventedCreatures", "inkedCreatures", "quickSave",
                    "bonusRooms", "pauseMap", "stats"],
       "patternProperties": { "^[a-zA-Z]+$": { "type": "boolean" } }
     }

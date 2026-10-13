@@ -1656,8 +1656,12 @@ rooms fewer than **6** (the slots at `$9792`), a puff comes at a random spot (`$
 0..127 each way; ours `swarm.area`, room-local feet) clear of him (`$AB01`) and of the scenery
 (`$B81C`), or none this update. So a room you stand in keeps topping up as you kill.
 
-- **Its colour** is one of red, magenta, cyan, yellow (`$9AB8`), kept for life; ours inks the
-  sprite in it, keeping only its black outline.
+- **Its colour** is one of red, magenta, cyan, yellow (`$9AB8`), kept for life. Ours draws
+  each kind in its own colours instead — a green parrot with a red head, a grey rat, a
+  black-and-white skunk — since the user found one ink a creature did not look good here
+  (2026-10-12, `[NEW]`); its colour still tints the puff it forms from. The original's look is
+  `[NEW]` `features.inkedCreatures` (default off): the sprite inked in that colour, keeping
+  only its black outline. The drawings (`tools/art/creature_forge.py`) read in either.
 - **It forms** over 6 updates (sprites `$01`–`$06`, 12 ticks): harmless, but a blade can take
   it (`$A3B7`), scoring 165–185 by the frame.
 - **What it becomes** (`$A3E0`, `$A41A`): a roll of 0..15 into spider, scorpion, bat, parrot,
@@ -1725,7 +1729,9 @@ ours.
   48 pairs in `beasts.spots`.
 - **Touch** (`$AB36`, as §12.8): only a white Vale on his feet, in its room.
 - **Ours**: `Beast` and `BeastRules`, run by `Simulation.tickBeasts`; the art is the invented
-  roster's rhino, tribesman, hippo and warthog, inked, with a `sleep` frame for the last two.
+  roster's rhino, tribesman, hippo and warthog, in their own colours (inked in the actor
+  table's with `features.inkedCreatures`, §12.8), with a `sleep` frame for the last two; a
+  tribesman level with a quarter turns all yellow either way, for that is his call.
   `[RECON]`: the room spot's x taken as the sprite's left (ours adds half its width); crossing
   south keeps x (the original sets the room type's entry x, `$6036`); the boxes; and the shove's
   direction from our eight-way facing. `BeastTest`.

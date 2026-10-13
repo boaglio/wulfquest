@@ -12,8 +12,9 @@
   "legend": {
     ".": -1,
     "K": 0,
-    "w": 7,
-    "W": 15
+    "g": 4,
+    "G": 12,
+    "Y": 14
   },
   "frames": [
     {
@@ -25,12 +26,12 @@
         "................",
         "................",
         "....K......K....",
-        "...KwKKKKKKwKK..",
-        "KKKKKwWWWWwwWWK.",
-        "wwwwWWwWWWwWWKWK",
-        "KKKwWWWWWWWWWWK.",
-        "...KKKwWWwwKKK..",
-        "......KwwwK....."
+        "...KgKKKKKKgKK..",
+        "KKKKKgGGGGggGGK.",
+        "ggggGGgYGYgGGKGK",
+        "KKKgGGGGGGGGGGK.",
+        "...KKKgGGggKKK..",
+        "......KgggK....."
       ]
     },
     {
@@ -42,12 +43,12 @@
         "................",
         "................",
         ".......KK.......",
-        "......KwwK..KK..",
-        "...KKKwwWwKKWWK.",
-        "KKKwWWwWWWwWWKWK",
-        "wwwwWWWWWWWWWWK.",
-        "KKKKKwwWWWwKKK..",
-        "...KwwKKKKKwK..."
+        "......KggK..KK..",
+        "...KKKggGgKKGGK.",
+        "KKKgGGgYGYgGGKGK",
+        "ggggGGGGGGGGGGK.",
+        "KKKKKggGGGgKKK..",
+        "...KggKKKKKgK..."
       ]
     }
   ],

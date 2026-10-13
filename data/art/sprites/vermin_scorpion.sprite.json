@@ -12,8 +12,9 @@
   "legend": {
     ".": -1,
     "K": 0,
-    "w": 7,
-    "W": 15
+    "y": 6,
+    "R": 10,
+    "Y": 14
   },
   "frames": [
     {
@@ -21,16 +22,16 @@
       "rows": [
         "................",
         ".KKKKK..........",
-        "KWWWWWK.........",
-        "KWWWWWK.........",
-        "WWKKKWK.........",
-        "WK...K..........",
-        "WWKKKKKKK...KKKK",
-        "WWWWWWWWWKKKwwww",
-        "WWWWWWWWwwwwKKKK",
-        "KWwwwwwwwKKKKKKK",
-        ".Kwwwwwwwwwwwwww",
-        "..KwwKKwwKKKKKKK"
+        "KYYYYYK.........",
+        "KYYYYYK.........",
+        "YYKKKRK.........",
+        "YK...K..........",
+        "YYKKKKKKK...KKKK",
+        "YYYYYYYYYKKKyyyy",
+        "YYYYYYYYyyyyKKKK",
+        "KYyyyyyyyKKKKKKK",
+        ".Kyyyyyyyyyyyyyy",
+        "..KyyKKyyKKKKKKK"
       ]
     },
     {
@@ -38,16 +39,16 @@
       "rows": [
         "................",
         ".KKKKK..........",
-        "KWWWWWK.........",
-        "KWWWWWK.........",
-        "WWKKKKWK........",
-        "WK....K.........",
-        "WWKKKKKKK.......",
-        "WWWWWWWWWKKKKKKK",
-        "WWWWWWWWwwwwwwww",
-        "KWwwwwwwwwwwwwww",
-        "KwwwwwwwwKKKKKKK",
-        "KwwKKwwKK......."
+        "KYYYYYK.........",
+        "KYYYYYK.........",
+        "YYKKKKRK........",
+        "YK....K.........",
+        "YYKKKKKKK.......",
+        "YYYYYYYYYKKKKKKK",
+        "YYYYYYYYyyyyyyyy",
+        "KYyyyyyyyyyyyyyy",
+        "KyyyyyyyyKKKKKKK",
+        "KyyKKyyKK......."
       ]
     }
   ],

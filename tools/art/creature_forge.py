@@ -14,7 +14,8 @@ creature white while it is hurt.
 The puff sprite, two frames, is what a creature leaves for 12 ticks when it dies.
 
 The original's 14 small creatures (§12.8) are drawn here too, from data/entities/jungle.json,
-as vermin_<id>: two tones only, since the game inks each in the colour it came in.
+as vermin_<id>, each in its own colours (with features.inkedCreatures the game inks them
+in the colour each came in, as the original did).
 
 The guardians, the Keeper of the Arch, the amulet quarters (§14) and the orchids
 (§15) are drawn here too, from data/entities/guardians.json: each guardian is its roster sibling's
@@ -267,86 +268,93 @@ BRIGHT = {"brightGreen": "G", "brightBlue": "B", "brightRed": "R", "brightYellow
 
 # ------------------------------------------------------------- the original's swarm (§12.8)
 #
-# Ours, not the original's: each small creature in two strokes of light and shade, bright
-# ("W") for the body and plain ("w") for what is behind. The game inks the whole sprite in
-# the colour the creature came in, keeping only the black outline, so the shapes must read
-# on their own — as the Spectrum's one-colour sprites did.
+# Ours, not the original's: each small creature in its own colours (§12.8, changed 2026-10-12
+# at the user's asking — the Spectrum's one ink a creature did not look good here). With
+# features.inkedCreatures the game still inks the whole sprite in the colour the creature came
+# in, keeping only the black outline, so the shapes must also read in one colour: a bright
+# tone for the body and a plain one for what is behind, as the Spectrum's sprites did.
 
 def v_parrot(cv, f, w, h):
     base = h - 1
-    cv.ellipse(7, base - 5, 3.5, 3, "W")                                       # body
-    cv.ellipse(10, base - 8, 2.3, 2.2, "W")                                    # head
-    cv.poly([(12, base - 9), (14.5, base - 8), (12, base - 6.5)], "w")          # hooked beak
+    cv.ellipse(7, base - 5, 3.5, 3, "G")                                       # body, green
+    cv.ellipse(10, base - 8, 2.3, 2.2, "R")                                    # head, red
+    cv.poly([(12, base - 9), (14.5, base - 8), (12, base - 6.5)], "y")          # hooked beak
     cv.set(10, base - 9, "K")
-    cv.poly([(4, base - 4), (0, base - 2 + f), (4, base - 2)], "w")             # tail
+    cv.poly([(4, base - 4), (0, base - 2 + f), (4, base - 2)], "B")             # tail, blue
     wing = -2 if f == 0 else 1
-    cv.poly([(5, base - 6), (9, base - 6), (6, base - 9 + wing)], "w")
-    cv.stroke(7, base - 2, 7, base, "w", 0.5)
+    cv.poly([(5, base - 6), (9, base - 6), (6, base - 9 + wing)], "g")
+    cv.stroke(7, base - 2, 7, base, "y", 0.5)
 
 
 def v_monkey(cv, f, w, h):
     base = h - 1
-    legs(cv, [5, 9], base - 4, base, f, "w", 1)
-    cv.ellipse(7, base - 5, 3, 2.5, "W")                                       # body
-    cv.ellipse(11, base - 8, 2.5, 2.4, "W")                                    # head
-    cv.set(9, base - 9, "w")                                                   # ear
+    legs(cv, [5, 9], base - 4, base, f, "r", 1)
+    cv.ellipse(7, base - 5, 3, 2.5, "y")                                       # body
+    cv.ellipse(11, base - 8, 2.5, 2.4, "y")                                    # head
+    cv.set(12, base - 8, "Y")                                                  # a pale face
+    cv.set(12, base - 7, "Y")
+    cv.set(9, base - 9, "r")                                                   # ear
     cv.set(12, base - 9, "K")
-    cv.stroke(4, base - 5, 1, base - 9 + 2 * f, "w", 0.6)                       # tail, curled up
-    cv.stroke(1, base - 9 + 2 * f, 2.5, base - 11 + 2 * f, "w", 0.5)
-    cv.stroke(9, base - 5, 13, base - 3 - 2 * f, "W", 0.6)                      # a reaching arm
+    cv.stroke(4, base - 5, 1, base - 9 + 2 * f, "r", 0.6)                       # tail, curled up
+    cv.stroke(1, base - 9 + 2 * f, 2.5, base - 11 + 2 * f, "r", 0.5)
+    cv.stroke(9, base - 5, 13, base - 3 - 2 * f, "y", 0.6)                      # a reaching arm
 
 
 def v_lizard(cv, f, w, h):
     base = h - 2
-    cv.ellipse(8, base - 1, 4.5, 1.6, "W")                                     # body
-    cv.ellipse(13, base - 1.5, 2, 1.3, "W")                                    # head
+    cv.ellipse(8, base - 1, 4.5, 1.6, "G")                                     # body
+    cv.ellipse(13, base - 1.5, 2, 1.3, "G")                                    # head
+    cv.set(7, base - 2, "Y")                                                   # spots down the back
+    cv.set(9, base - 2, "Y")
     cv.set(13, base - 2, "K")
-    cv.stroke(4, base - 1, 0, base - 2 + f, "w", 0.7, 0.4)                      # tail
+    cv.stroke(4, base - 1, 0, base - 2 + f, "g", 0.7, 0.4)                      # tail
     for i, x in enumerate((6, 10)):
         swing = 1.5 if (i + f) % 2 == 0 else -1.5
-        cv.stroke(x, base, x + swing, base + 1.5, "w", 0.5)
-        cv.stroke(x, base - 2, x - swing, base - 3.5, "w", 0.5)
+        cv.stroke(x, base, x + swing, base + 1.5, "g", 0.5)
+        cv.stroke(x, base - 2, x - swing, base - 3.5, "g", 0.5)
 
 
 def v_rat(cv, f, w, h):
     base = h - 1
-    legs(cv, [6, 9], base - 2, base, f, "w", 1)
-    cv.ellipse(8, base - 3, 4, 2.4, "W")                                       # body
-    cv.ellipse(12.5, base - 3.5, 2, 1.6, "W")                                  # snout
-    cv.set(11, base - 6, "w")                                                  # ear
+    legs(cv, [6, 9], base - 2, base, f, "M", 1)
+    cv.ellipse(8, base - 3, 4, 2.4, "w")                                       # body, grey
+    cv.ellipse(12.5, base - 3.5, 2, 1.6, "w")                                  # snout
+    cv.set(14, base - 3, "M")                                                  # a pink nose
+    cv.set(11, base - 6, "M")                                                  # ear
     cv.set(13, base - 4, "K")
-    cv.stroke(4, base - 3, 0, base - 1 - f, "w", 0.4)                          # tail
+    cv.stroke(4, base - 3, 0, base - 1 - f, "M", 0.4)                          # tail
 
 
 def v_bird(cv, f, w, h):
     cy = h / 2
     tip = -4 if f == 0 else 3
-    cv.ellipse(8, cy + 1, 3.5, 2, "W")                                         # body
-    cv.ellipse(11.5, cy, 1.8, 1.6, "W")                                        # head
-    cv.stroke(13, cy, 15, cy + 0.5, "w", 0.4)                                  # beak
+    cv.ellipse(8, cy + 1, 3.5, 2, "B")                                         # body, blue
+    cv.ellipse(11.5, cy, 1.8, 1.6, "B")                                        # head
+    cv.set(9, cy + 2, "W")                                                     # a pale breast
+    cv.stroke(13, cy, 15, cy + 0.5, "Y", 0.4)                                  # beak
     cv.set(12, cy - 0.5, "K")
-    cv.poly([(5, cy + 1), (3, cy + 1 + tip), (9, cy)], "w")                    # wing
-    cv.poly([(5, cy + 1), (1, cy), (2, cy + 2.5)], "w")                       # tail
+    cv.poly([(5, cy + 1), (3, cy + 1 + tip), (9, cy)], "b")                    # wing
+    cv.poly([(5, cy + 1), (1, cy), (2, cy + 2.5)], "b")                       # tail
 
 
 def v_mosquito(cv, f, w, h):
     cy = h / 2
     lift = -3 if f == 0 else 1
-    cv.ellipse(7, cy + 1, 3.5, 1.2, "W")                                       # body
-    cv.ellipse(11, cy, 1.4, 1.4, "W")                                          # head
+    cv.ellipse(7, cy + 1, 3.5, 1.2, "R")                                       # body, full of blood
+    cv.ellipse(11, cy, 1.4, 1.4, "r")                                          # head
     cv.stroke(12, cy + 0.5, 15, cy + 2, "w", 0.4)                              # proboscis
-    cv.poly([(6, cy), (4, cy - 3 + lift), (9, cy - 1)], "w")                   # wings
-    cv.poly([(8, cy), (8, cy - 4 + lift), (10, cy - 1)], "w")
+    cv.poly([(6, cy), (4, cy - 3 + lift), (9, cy - 1)], "C")                   # wings, glassy
+    cv.poly([(8, cy), (8, cy - 4 + lift), (10, cy - 1)], "C")
     for x in (6, 8, 10):
         cv.stroke(x, cy + 2, x - 1 + f, h - 1, "w", 0.4)                        # long legs
 
 
 def v_skunk(cv, f, w, h):
     base = h - 1
-    legs(cv, [6, 10], base - 2, base, f, "w", 1)
-    cv.ellipse(8.5, base - 3.5, 4, 2.5, "w")                                   # body, dark
+    legs(cv, [6, 10], base - 2, base, f, "b", 1)
+    cv.ellipse(8.5, base - 3.5, 4, 2.5, "b")                                   # body, dark — black would vanish
     cv.stroke(6, base - 6, 11, base - 6, "W", 0.6)                             # the white stripe
-    cv.ellipse(13, base - 3.5, 2, 1.8, "w")                                    # head
+    cv.ellipse(13, base - 3.5, 2, 1.8, "b")                                    # head
     cv.set(13.5, base - 4, "W")
     cv.ellipse(3.5, base - 7 + f, 2.6, 3.4, "W")                               # the great plumed tail
 
@@ -354,48 +362,36 @@ def v_skunk(cv, f, w, h):
 def v_flea(cv, f, w, h):
     base = h - 1
     lift = 0 if f == 0 else -3
-    cv.ellipse(8, base - 4 + lift, 3.5, 3, "W")                                # a round armoured back
-    cv.stroke(6, base - 6 + lift, 9, base - 7 + lift, "w", 0.5)
+    cv.ellipse(8, base - 4 + lift, 3.5, 3, "r")                                # a round armoured back
+    cv.stroke(6, base - 6 + lift, 9, base - 7 + lift, "R", 0.5)                # its shine
     cv.set(11, base - 4 + lift, "K")
-    cv.stroke(6, base - 2 + lift, 3, base, "w", 0.6)                           # the jumping legs
-    cv.stroke(9, base - 2 + lift, 11, base, "w", 0.5)
+    cv.stroke(6, base - 2 + lift, 3, base, "y", 0.6)                           # the jumping legs
+    cv.stroke(9, base - 2 + lift, 11, base, "y", 0.5)
 
 
 def v_earwig(cv, f, w, h):
     base = h - 2
     for i in range(3):
-        cv.ellipse(5 + i * 2.6, base - 1, 1.6, 1.4, "W")                        # segments
-    cv.ellipse(12.5, base - 1.3, 1.6, 1.3, "W")                                # head
-    cv.stroke(14, base - 2, 15.5, base - 3.5 - f, "w", 0.3)                    # feelers
-    cv.stroke(3.5, base - 1, 1, base - 3, "w", 0.4)                            # pincers
-    cv.stroke(3.5, base - 0.5, 1, base + 1, "w", 0.4)
+        cv.ellipse(5 + i * 2.6, base - 1, 1.6, 1.4, "y" if i % 2 == 0 else "r")  # segments, banded
+    cv.ellipse(12.5, base - 1.3, 1.6, 1.3, "r")                                # head
+    cv.stroke(14, base - 2, 15.5, base - 3.5 - f, "y", 0.3)                    # feelers
+    cv.stroke(3.5, base - 1, 1, base - 3, "R", 0.4)                            # pincers
+    cv.stroke(3.5, base - 0.5, 1, base + 1, "R", 0.4)
     for x in (6, 9, 11):
-        cv.stroke(x, base, x - 1 + 2 * f, base + 1.5, "w", 0.4)
-
-
-def inked(draw):
-    """One of our roster's drawings redrawn for the swarm: every bright colour bright, every plain one plain."""
-    def redraw(cv, f, w, h):
-        draw(cv, f, w, h)
-        for y in range(cv.h):
-            for x in range(cv.w):
-                c = cv.px[y][x]
-                if c not in (".", "K"):
-                    cv.px[y][x] = "W" if LEGEND[c] >= 9 else "w"
-    return redraw
+        cv.stroke(x, base, x - 1 + 2 * f, base + 1.5, "y", 0.4)
 
 
 VERMIN = {
-    "spider": inked(spider),
-    "scorpion": inked(scorpion),
-    "bat": inked(bat),
+    "spider": spider,
+    "scorpion": scorpion,
+    "bat": bat,
     "parrot": v_parrot,
     "monkey": v_monkey,
     "lizard": v_lizard,
-    "snake": inked(snake),
+    "snake": snake,
     "rat": v_rat,
     "bird": v_bird,
-    "frog": inked(frog),
+    "frog": frog,
     "mosquito": v_mosquito,
     "skunk": v_skunk,
     "flea": v_flea,

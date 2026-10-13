@@ -67,7 +67,8 @@ public final class GamePainter {
                 new QuestPainter.TreasureArt(c.treasurePlaces(), c.treasures().sprite(), treasureFrames, treasureInks));
         this.way = new WayPainter(display, sprites, c.landmarks(), c.player().collisionBox(),
                 new Wayfinder(new WorldGrid(c.rooms())));
-        this.beasts = new CreaturePainter(display, sprites, c.creatures(), palette);
+        this.beasts = new CreaturePainter(display, sprites, c.creatures(), palette,
+                c.game().feature("inkedCreatures"));
         this.vale = new PlayerPainter(display, sprites, c.player(), palette);
         this.panel = new PanelPainter(display, fonts, palette, sprites.get(c.landmarks().amulet().sprite()),
                 QuestPainter.framesBySlot(c.landmarks()));
