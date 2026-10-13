@@ -1534,6 +1534,7 @@ public final class Simulation {
         Quest q = quest;
         q.taken[q.lair] = true;
         q.piecesHeld++;
+        q.wayTicks = 0;   // §14.10: the glass showed the way to a piece; with one taken, its work is done
         q.slotMask |= lair.slotMask();
         q.pickupFlash = amulet.pickupFlashTicks();
         sounds.play(SFX_AMULET_PIECE);

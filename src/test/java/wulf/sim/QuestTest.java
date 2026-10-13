@@ -280,6 +280,29 @@ class QuestTest {
     }
 
     @Test
+    void takingAPieceEndsTheGlass() {
+        // §14.10, asked for by the user: the glass showed the way to a piece; once one is taken, it is gone.
+        int i = 3;
+        LandmarksData.Lair lair = marks.lairs().get(i);
+        LandmarksData.Glass g = marks.items().glass();
+        LandmarksData.Place beside = new LandmarksData.Place(lair.room(),
+                new LandmarksData.Point(lair.pedestal().x() - 40, lair.pedestal().y()));
+        LandmarksData.Items items = marks.items();
+        LandmarksData withGlass = new LandmarksData(marks.schemaVersion(), marks.fidelity(), marks.startFacing(),
+                marks.exit(), marks.lairs(), marks.amuletSets(), marks.amulet(), marks.shrines(),
+                new LandmarksData.Items(items.pickupBox(), items.glanceTicks(), items.map(), items.eyes(),
+                        new LandmarksData.Glass(g.sprite(), g.showWayTicks(), g.warnTicks(), g.arrow(), List.of(beside))),
+                marks.hint(), marks.temple());
+        Simulation s = sim(OPEN, pinnedGuardians(80, 0).withLandmarks(withGlass), lairRoom(i), beside.spot().x(),
+                beside.spot().y());
+        s.tick(STILL);
+        assertThat(s.quest().wayTicks()).as("the glass is taken").isEqualTo(g.showWayTicks());
+        walkX(s, wx(lairRoom(i), lair.pedestal().x()));
+        assertThat(s.quest().taken(i)).isTrue();
+        assertThat(s.quest().wayTicks()).as("and the piece ends it").isZero();
+    }
+
+    @Test
     void theEyesShowEveryLairBetweenThem() {
         // §14.8: each eye shows two quarters, and two eyes show all four.
         java.util.Set<String> shown = new java.util.HashSet<>();

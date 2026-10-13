@@ -2368,7 +2368,9 @@ seconds of play; the clock stands still while the game does, under the map or
 pause). The next quarter is the one nearest *on foot* among those this game
 hides and Vale has not taken (in a later job, §14.9, only its kept lairs);
 with the amulet whole, the way leads to the arch instead. A second glass
-starts the 90 seconds again; it does not add to them.
+starts the 90 seconds again; it does not add to them. **Taking a piece ends
+it** (asked for by the user, 2026-10-12): the glass showed the way to a piece,
+and once one is in hand the arrow and the trail are gone, time left or not.
 
 - **In the jungle**, a yellow arrow (`way_arrow`, frames `n` `e` `s` `w`) sits
   `insetPx` inside the playfield's edge where the way leaves the room, in line
