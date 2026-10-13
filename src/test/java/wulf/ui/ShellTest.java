@@ -267,6 +267,43 @@ class ShellTest {
     }
 
     @Test
+    void theEndingsShowPlaysEveryJobsEndingInTurnAndTouchesNothing(@TempDir Path dir) {
+        // §17.6, --endings: each job won on the spot — the scene, the tally, the roll, the offer if any.
+        PlayerDb db = db(dir);
+        HighScores before = db.scores();
+        List<Integer> made = new java.util.ArrayList<>();
+        Shell shell = new Shell(CONFIG, db, List.copyOf(CONTENT.input().profiles().keySet()),
+                (Shell.GameMaker) (level, easy) -> {
+                    made.add(level);
+                    wulf.sim.Ecosystem eco = level == 0 ? wulf.sim.Ecosystem.NONE
+                            : wulf.sim.Ecosystem.NONE.atLevel(level, CONTENT.game().newGamePlus().level(level));
+                    return Simulation.at(CONTENT.player(), (gx, gy) -> false, 0, wulf.engine.Fixed.fp(1000),
+                            wulf.engine.Fixed.fp(1000), eco, 1L);
+                }, null, () -> "2026-10-12");
+        shell.showEndings();
+        List<Integer> offers = new java.util.ArrayList<>();
+        List<Shell.State> seen = new java.util.ArrayList<>();
+        for (int i = 0; i < 60_000 && shell.showingEndings(); i++) {
+            shell.tick(i % 2 == 0 ? FIRE : InputState.NONE, MenuInput.NONE, false);
+            if (seen.isEmpty() || seen.get(seen.size() - 1) != shell.state()) {
+                seen.add(shell.state());
+                if (shell.state() == Shell.State.OFFER) {
+                    offers.add(shell.offered());
+                }
+            }
+        }
+        assertThat(shell.showingEndings()).isFalse();
+        assertThat(shell.state()).isEqualTo(Shell.State.TITLE);
+        assertThat(made).containsExactly(0, 1, 2);
+        assertThat(offers).as("the game's ending offers job 1, job 1's job 2, the last none").containsExactly(1, 2);
+        assertThat(java.util.Collections.frequency(seen, Shell.State.ENDING)).isEqualTo(3);
+        assertThat(java.util.Collections.frequency(seen, Shell.State.ROLL)).isEqualTo(3);
+        assertThat(db.stats().unlocked()).as("nothing unlocked").isZero();
+        assertThat(db.scores()).as("nothing on the table").isEqualTo(before);
+        assertThat(shell.level()).isZero();
+    }
+
+    @Test
     void aFinishedRunAlwaysLandsInTheLedger(@TempDir Path dir) {
         PlayerDb db = db(dir);
         Shell shell = shell(db);

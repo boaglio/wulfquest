@@ -210,6 +210,9 @@ public final class Boot {
         if (parsed.newGamePlus() > 0) {
             shell.practiseJob(parsed.newGamePlus());   // §17.6: this session only
         }
+        if (parsed.endings()) {
+            shell.showEndings();   // §17.6: every job's ending in turn, then the title
+        }
         if (c.game().feature("quickSave")) {
             shell.quickSaves(new QuickSaves(player, c.db().contentHash(), start, parsed.dev(), silentGame, voice));
         }
@@ -464,11 +467,12 @@ public final class Boot {
      */
     record Args(Path dataDir, Path userDir, int scale, RoomAddress room, long seed, boolean seeded, Path record,
                 String debugEffect, boolean headless, boolean browse, boolean dev, boolean noAudio, boolean help,
-                int lives, boolean infiniteLives, boolean god, int amuletSet, int newGamePlus, String error) {
+                int lives, boolean infiniteLives, boolean god, int amuletSet, int newGamePlus, boolean endings,
+                String error) {
 
         /** Any practice option (§17.6). */
         boolean practice() {
-            return lives > 0 || infiniteLives || god || amuletSet >= 0 || newGamePlus > 0;
+            return lives > 0 || infiniteLives || god || amuletSet >= 0 || newGamePlus > 0 || endings;
         }
 
         static Args parse(String[] argv) {
@@ -490,6 +494,7 @@ public final class Boot {
             boolean god = false;
             int amuletSet = -1;
             int newGamePlus = 0;
+            boolean endings = false;
             try {
                 for (int i = 0; i < argv.length; i++) {
                     switch (argv[i]) {
@@ -506,6 +511,7 @@ public final class Boot {
                         }
                         case "--infinite-lives" -> infiniteLives = true;
                         case "--god" -> god = true;
+                        case "--endings" -> endings = true;
                         case "--amulet-set" -> {
                             amuletSet = number(argv, ++i, "--amulet-set");
                             if (amuletSet < 0) {
@@ -533,16 +539,17 @@ public final class Boot {
                 }
             } catch (IllegalArgumentException e) {
                 return new Args(dataDir, userDir, scale, room, seed, seeded, record, debugEffect, headless, browse,
-                        dev, noAudio, help, lives, infiniteLives, god, amuletSet, newGamePlus, e.getMessage());
+                        dev, noAudio, help, lives, infiniteLives, god, amuletSet, newGamePlus, endings, e.getMessage());
             }
-            if (record != null && (lives > 0 || infiniteLives || god || amuletSet >= 0 || newGamePlus > 0)) {
+            if (record != null && (lives > 0 || infiniteLives || god || amuletSet >= 0 || newGamePlus > 0 || endings)) {
                 // A replay file has no room for them, so it would replay a different game.
                 return new Args(dataDir, userDir, scale, room, seed, seeded, record, debugEffect, headless, browse,
-                        dev, noAudio, help, lives, infiniteLives, god, amuletSet, newGamePlus,
-                        "--record cannot be combined with --lives, --infinite-lives, --god, --amulet-set or --new-game-plus");
+                        dev, noAudio, help, lives, infiniteLives, god, amuletSet, newGamePlus, endings,
+                        "--record cannot be combined with --lives, --infinite-lives, --god, --amulet-set, --new-game-plus"
+                                + " or --endings");
             }
             return new Args(dataDir, userDir, scale, room, seed, seeded, record, debugEffect, headless, browse, dev,
-                    noAudio, help, lives, infiniteLives, god, amuletSet, newGamePlus, null);
+                    noAudio, help, lives, infiniteLives, god, amuletSet, newGamePlus, endings, null);
         }
 
         private static String value(String[] argv, int i, String option) {
@@ -608,7 +615,9 @@ public final class Boot {
                                        instead of a set picked at random
                       --new-game-plus N  start at Mr Jones's job N (1: the amulet in two
                                        halves, 2: whole), as if it were unlocked
-                                       (any of these five: a practice run, kept off the
+                      --endings        see every ending in turn: the game's, then each
+                                       of Mr Jones's jobs', each won on the spot
+                                       (any of these six: a practice run, kept off the
                                        hi-score table and the ledger)
                       --headless       load and validate the data, then exit
                       --dev            developer mode: K kills, N shows collision, room and

@@ -57,12 +57,14 @@ Commands (default: play):
   sprites preview NAME|ID     one sprite in the terminal, by name or scenery id
   sprites sheet [COLUMNS]     every scenery object on one contact sheet
   sprites mask NAME|ID        a scenery object's art above its collision cells
+  endings [game options]      see every ending in turn: the game's, then each of
+                              Mr Jones's jobs' — fire steps through, Esc skips one
   jar [game options]          build the single runnable jar, then play from it
   test                        the full verify: tests, data validators, CI gates
   menu                        pick one of the above from a list
   help                        this message
 
-Game options (play, browse and jar):
+Game options (play, browse, endings and jar):
   --room C,R                  start in this room (default: 8,10)
   --seed N                    run seed: the same seed gives the same creatures
   --record FILE               save the first game as a replay (see: replay)
@@ -85,7 +87,8 @@ Game options (play, browse and jar):
                               game, instead of a set picked at random
   --new-game-plus N           start at Mr Jones's job N (1: the amulet in two
                               halves, 2: whole), as if it were unlocked
-                              (any of these five makes a practice run: kept off
+  --endings                   see every ending in turn (also: ./run.sh endings)
+                              (any of these six makes a practice run: kept off
                               the hi-score table and the ledger, and not
                               allowed with --record)
 
@@ -113,6 +116,7 @@ menu() {
         "play --dev                 the game in developer mode"
         "play --seed 42             the game with fixed creatures"
         "browse                     the room browser"
+        "endings                    every ending in turn"
         "check                      validate the data and exit"
         "replay                     re-run every recorded replay"
         "audit                      the map audit"
@@ -144,7 +148,7 @@ while [[ $# -gt 0 ]]; do
         --no-build)  RUN_BUILD="never"; shift ;;
         --test)      RUN_TESTS=1; shift ;;
         -h|--help|help) usage; exit 0 ;;
-        play|browse|check|replay|audit|sprites|jar|test|menu)
+        play|browse|endings|check|replay|audit|sprites|jar|test|menu)
                      # A command word only counts before any game option: `--record play`
                      # records to a file called play.
                      if [[ ${#ARGS[@]} -eq 0 && "$COMMAND" == "play" ]]; then COMMAND="$1"; else ARGS+=("$1"); fi
@@ -225,6 +229,7 @@ readonly CP="$CLASSES:$(cat "$CP_FILE")"
 case "$COMMAND" in
     play)    exec java -cp "$CP" "$MAIN_CLASS" "${ARGS[@]}" ;;
     browse)  exec java -cp "$CP" "$MAIN_CLASS" --browse "${ARGS[@]}" ;;
+    endings) exec java -cp "$CP" "$MAIN_CLASS" --endings "${ARGS[@]}" ;;
     check)   exec java -cp "$CP" "$MAIN_CLASS" --headless "${ARGS[@]}" ;;
     replay)
         if [[ ${#ARGS[@]} -eq 0 ]]; then

@@ -73,6 +73,10 @@ public final class Shell {
     private int level;
     /** The job Mr Jones offers after this win's credits, or 0 for none. */
     private int offered;
+    /** §17.6, {@code --endings}: the jobs whose endings are still to be shown, in turn; empty otherwise. */
+    private final java.util.ArrayDeque<Integer> showing = new java.util.ArrayDeque<>();
+    /** Whether {@code --endings} is under way: until the last ending is back at the title. */
+    private boolean show;
     /** §17.8: whether the next game is in Easy mode; from the settings, switched on the title. */
     private boolean easy;
 
@@ -117,6 +121,24 @@ public final class Shell {
         unlocked = Math.max(unlocked, level);
     }
 
+    /**
+     * §17.6, {@code --endings}: every job's ending in turn — each a game won on the spot, as
+     * practice: the closing scene, the tally, the roll, and Mr Jones's offer of the next job if
+     * there is one — then the title. Nothing reaches the ledger or the table.
+     */
+    public void showEndings() {
+        showing.clear();
+        for (int n = 0; n < config.newGamePlus().levels().size(); n++) {
+            showing.add(n);
+        }
+        show = true;
+    }
+
+    /** Whether {@code --endings} is under way. */
+    public boolean showingEndings() {
+        return show;
+    }
+
     /** §21.4: turns quick save and load on, with what they need. Off unless called. */
     public void quickSaves(QuickSaves saves) {
         this.quick = saves;
@@ -127,7 +149,14 @@ public final class Shell {
     public void tick(InputState in, MenuInput menu, boolean dev) {
         stateTick++;
         switch (state) {
-            case TITLE -> title(in, menu);
+            case TITLE -> {
+                if (!showing.isEmpty()) {
+                    showNextEnding();
+                } else {
+                    show = false;   // the last ending shown: the title as ever
+                    title(in, menu);
+                }
+            }
             case ATTRACT -> attract(in, menu);
             case CREDITS, HISCORES, STATS -> page(in);
             case KEY_CONFIG -> keyConfig(in, menu);
@@ -391,6 +420,14 @@ public final class Shell {
 
     // ---------------------------------------------------------------- transitions
 
+    private void showNextEnding() {
+        int job = showing.poll();
+        Simulation sim = newGame.make(job, easy);
+        sim.winForShow();
+        session = new GameSession(sim, revealFor(sim));
+        go(State.PLAYING);   // the first tick sees the win and goes to the ending
+    }
+
     private void startGame() {
         Simulation sim = newGame.make(level, easy);
         session = new GameSession(sim, revealFor(sim));
@@ -414,6 +451,11 @@ public final class Shell {
     private void unlock(Simulation sim) {
         int next = sim.level() + 1;
         offered = 0;
+        if (show) {
+            // --endings: every offer is shown, whatever is open; nothing is unlocked.
+            offered = next < config.newGamePlus().levels().size() ? next : 0;
+            return;
+        }
         if (next >= config.newGamePlus().levels().size() || next <= unlocked) {
             return;
         }

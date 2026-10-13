@@ -62,6 +62,17 @@ class BootArgsTest {
     }
 
     @Test
+    void everyEndingCanBeAskedFor() {
+        // §17.6: --endings, a show of every ending in turn — practice, and no replay of it.
+        Boot.Args a = parse("--endings");
+        assertThat(a.error()).isNull();
+        assertThat(a.endings()).isTrue();
+        assertThat(a.practice()).isTrue();
+        assertThat(parse().endings()).isFalse();
+        assertThat(parse("--record", "x.json", "--endings").error()).contains("--endings");
+    }
+
+    @Test
     void aReplayCannotCarryPracticeOptions() {
         assertThat(parse("--record", "x.json", "--amulet-set", "2").error()).contains("--record");
         assertThat(parse("--record", "x.json", "--god").error()).contains("--record");

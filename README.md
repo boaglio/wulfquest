@@ -117,6 +117,7 @@ lives in [AGENTS.md](AGENTS.md) §24.
 ./run.sh --amulet-set 3    # practice: hide the amulet in the original's set 3 (0-7),
                            # not in a set picked at random each game
 ./run.sh --new-game-plus 1 # practice: start at Mr Jones's job 1 (2 halves) or 2 (whole)
+./run.sh endings           # see every ending in turn: the game's, then each job's
                            # (practice runs never reach the hi-score table)
 ./run.sh --user-dir ./save # keep hi-scores, settings and stats somewhere else
 ./run.sh browse            # the room browser: arrows, [ ] or PgUp/PgDn, M
@@ -215,7 +216,7 @@ nothing yet.)
 
 ## How it is checked
 
-`mvn -q verify` runs 572 tests and every gate the project has:
+`mvn -q verify` runs 574 tests and every gate the project has:
 
 - **The data validates itself.** Every JSON file is schema-checked at load,
   and the semantic validators go further — a palette colour that does not

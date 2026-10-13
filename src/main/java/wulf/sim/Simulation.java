@@ -445,6 +445,24 @@ public final class Simulation {
         practice |= on;
     }
 
+    /**
+     * §17.6, {@code --endings}: the game won on the spot, as practice — every piece held, the
+     * bonuses added as {@code $A18C} would, Vale through the arch — so the shell plays its ending.
+     */
+    public void winForShow() {
+        practice = true;
+        LandmarksData marks = eco.quest().landmarks();
+        for (int i = 0; i < marks.lairs().size(); i++) {
+            if (!quest.taken[i]) {
+                quest.taken[i] = true;
+                quest.piecesHeld++;
+                quest.slotMask |= marks.lairs().get(i).slotMask();
+                addScore(eco.quest().pieceScore());   // as if taken: the tally adds up as a real win's
+            }
+        }
+        win();
+    }
+
     /** §21.4: a quick load makes the game a practice run; dying has become something you can undo. */
     public void markPractice() {
         practice = true;

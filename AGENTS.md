@@ -2809,6 +2809,7 @@ kill. Off unless given; they last the whole session (every new game).
 | `--infinite-lives` | deaths still happen — the sequence, the respawn, the ledger's cause — but the count never goes down |
 | `--god` | `Simulation.kill` refuses: no creature, spear, guardian or the Wulf can kill him; and no flower takes him (§15.2) |
 | `--amulet-set N` | every game hides the amulet in the original's set N (0–7, §14.2) instead of one picked at random: knowing where to go is practice too |
+| `--endings` | every ending in turn, each job won on the spot — the closing scene, the tally, the roll, and Mr Jones's offer of the next job, then the title (`./run.sh endings`); offers are shown whatever is open, nothing is unlocked; Esc skips to the next |
 | `--new-game-plus N` | the title starts Mr Jones's job N (1 or 2, §14.9), as if it were open; a practice win opens the next for the session only |
 
 Any of them makes the game a **practice run** (`Simulation.practice()`, in the
