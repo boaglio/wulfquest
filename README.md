@@ -216,7 +216,7 @@ nothing yet.)
 
 ## How it is checked
 
-`mvn -q verify` runs 574 tests and every gate the project has:
+`mvn -q verify` runs 576 tests and every gate the project has:
 
 - **The data validates itself.** Every JSON file is schema-checked at load,
   and the semantic validators go further — a palette colour that does not

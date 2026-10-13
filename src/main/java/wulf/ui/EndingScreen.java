@@ -15,7 +15,8 @@ import wulf.render.SpriteBank;
  * word and tick is {@code shell.json → ending}'s; this only draws the moment it is given.
  *
  * <p>The same clearing, later, is where Mr Jones offers the next job (§14.9): Vale stands
- * before him, the amulet gone to its museum, and they talk.
+ * before him, the amulet gone to its museum, and they talk. A later job's ending is the same
+ * scene with its own amulet and words, and the last one ends with the two of them riding home.
  */
 final class EndingScreen {
 
@@ -33,6 +34,7 @@ final class EndingScreen {
     private final Sprite jones;
     private final Sprite amulet;
     private final List<String> framesBySlot;
+    private final SpriteBank sprites;
 
     EndingScreen(ShellConfig.Ending config, FontSet font, Palette palette, SpriteBank sprites, Sprite amulet,
                  List<String> framesBySlot) {
@@ -47,6 +49,7 @@ final class EndingScreen {
         this.jones = sprites.get(config.jones().sprite());
         this.amulet = amulet;
         this.framesBySlot = List.copyOf(framesBySlot);
+        this.sprites = sprites;
     }
 
     /** Where Vale's feet are at tick {@code t}: walking in, then standing. */
@@ -75,24 +78,67 @@ final class EndingScreen {
     }
 
     void paint(Framebuffer fb, long t) {
+        paint(fb, t, config);
+    }
+
+    /** @param e the ending to play: the game's own, or a later job's (§14.9, {@code ShellConfig.endingFor}) */
+    void paint(Framebuffer fb, long t, ShellConfig.Ending e) {
         paintBackdrop(fb);
-        int gy = config.groundY();
-        ShellConfig.Jones j = config.jones();
-        boolean talking = talking(config.lines(), t);
-        boolean holding = handedOver(t);
-        String jonesFrame = holding ? (talking ? j.holdTalk() : j.hold()) : (talking ? j.talk() : j.stand());
-        jones.blit(fb, jonesFrame, j.x(), gy);
-
-        ShellConfig.Walker v = config.vale();
-        int vx = valeX(t);
-        String valeFrame = t < v.walkTicks() ? v.walk().get((int) (t / v.ticksPerFrame() % v.walk().size())) : v.stand();
-        vale.blit(fb, valeFrame, vx, gy);
-
-        paintAmulet(fb, t, vx, gy);
-        paintLines(fb, t, config.lines());
-        if (t >= config.promptAt()) {
-            font.drawCentred(fb, config.prompt(), 0, fb.width(), fb.height() - PROMPT_FROM_BOTTOM_PX, prompt);
+        int gy = e.groundY();
+        ShellConfig.Ride ride = e.ride();
+        boolean mounted = ride != null && t >= ride.mountAt();
+        if (ride != null && t >= ride.comeAt()) {
+            paintHorses(fb, t, e, ride, mounted);
         }
+        if (!mounted) {
+            ShellConfig.Jones j = e.jones();
+            boolean talking = talking(e.lines(), t);
+            boolean holding = handedOver(t);
+            String jonesFrame = holding ? (talking ? j.holdTalk() : j.hold()) : (talking ? j.talk() : j.stand());
+            jones.blit(fb, jonesFrame, j.x(), gy);
+
+            ShellConfig.Walker v = e.vale();
+            int vx = valeX(t);
+            String valeFrame = t < v.walkTicks() ? v.walk().get((int) (t / v.ticksPerFrame() % v.walk().size()))
+                    : v.stand();
+            vale.blit(fb, valeFrame, vx, gy);
+            paintAmulet(fb, t, vx, gy, e.art());
+        }
+        paintLines(fb, t, e.lines());
+        if (t >= e.promptAt()) {
+            font.drawCentred(fb, e.prompt(), 0, fb.width(), fb.height() - PROMPT_FROM_BOTTOM_PX, prompt);
+        }
+    }
+
+    /**
+     * §14.7, the last ending: two horses trot in, each to stand where one of them does; once they
+     * are up, standing, then away at a gallop to the right — home — and off the screen.
+     */
+    private void paintHorses(Framebuffer fb, long t, ShellConfig.Ending e, ShellConfig.Ride ride, boolean mounted) {
+        Sprite horse = sprites.get(ride.sprite());
+        int gy = e.groundY();
+        int valeAt = e.vale().toX();
+        int jonesAt = e.jones().x();
+        long step = t / ride.ticksPerFrame();
+        if (!mounted) {
+            long k = t - ride.comeAt();
+            boolean coming = k < ride.comeTicks();
+            int vx = coming ? ride.fromX() + (int) ((valeAt - ride.fromX()) * k / ride.comeTicks()) : valeAt;
+            int jx = coming ? ride.fromX() + (int) ((jonesAt - ride.fromX()) * k / ride.comeTicks()) : jonesAt;
+            horse.blit(fb, frameOf(ride.valeHorse(), coming, step), vx, gy);
+            horse.blit(fb, frameOf(ride.jonesHorse(), coming, step), jx, gy);
+            return;
+        }
+        boolean riding = t >= ride.rideAt();
+        int shift = riding ? (int) ((ride.toX() - valeAt) * Math.min(t - ride.rideAt(), ride.rideTicks())
+                / ride.rideTicks()) : 0;
+        horse.blit(fb, frameOf(ride.jonesRiding(), riding, step), jonesAt + shift, gy);
+        horse.blit(fb, frameOf(ride.valeRiding(), riding, step), valeAt + shift, gy);
+    }
+
+    /** The frames in turn while moving; the first, standing. */
+    private static String frameOf(List<String> frames, boolean moving, long step) {
+        return moving ? frames.get((int) (step % frames.size())) : frames.get(0);
     }
 
     /**
@@ -125,8 +171,11 @@ final class EndingScreen {
         return speaking(lines, ShellConfig.Line.JONES, t) && (t / config.jones().talkTicksPerFrame()) % 2 == 1;
     }
 
-    /** The amulet, whole and at half size, centred where it is held — or on its way between them. */
-    private void paintAmulet(Framebuffer fb, long t, int vx, int gy) {
+    /**
+     * The amulet, whole, centred where it is held — or on its way between them: the game's own
+     * four quarters at half size, or a later job's own amulet ({@code art}).
+     */
+    private void paintAmulet(Framebuffer fb, long t, int vx, int gy, ShellConfig.Art art) {
         ShellConfig.Amulet a = config.amulet();
         int fromX = vx + a.carry().dx();
         int fromY = gy + a.carry().dy();
@@ -141,6 +190,11 @@ final class EndingScreen {
             long k = t - a.handOverAt();
             cx = fromX + (int) ((toX - fromX) * k / a.handOverTicks());
             cy = fromY + (int) ((toY - fromY) * k / a.handOverTicks());
+        }
+        if (art != null) {
+            Sprite own = sprites.get(art.sprite());
+            own.blit(fb, art.frame(), cx - own.w() / 2 + own.originX(), cy - own.h() / 2 + own.originY());
+            return;
         }
         int half = amulet.w() / 2;
         int left = cx - half;

@@ -102,6 +102,37 @@ public final class ShellValidator {
         }
     }
 
+    /**
+     * §14.7, §14.9: a later job's ending — its amulet a frame that exists, its words fitting the
+     * screen in colours that exist, and its ride's frames drawn and its beats in order: the
+     * horses there before anyone mounts, up before they ride, gone before the prompt.
+     */
+    private static void checkJobEnding(ShellConfig.JobEnding job, Palette palette, Map<String, SpriteData> sprites,
+                                       int width, int big, String at) {
+        frame(sprites, job.amulet().sprite(), job.amulet().frame(), at + "/amulet");
+        for (int i = 0; i < job.lines().size(); i++) {
+            ShellConfig.Line line = job.lines().get(i);
+            colour(palette, line.colour(), at + "/lines/" + i + "/colour");
+            for (int t = 0; t < line.text().size(); t++) {
+                fits(line.text().get(t), big, width, at + "/lines/" + i + "/text/" + t);
+            }
+        }
+        ShellConfig.Ride r = job.ride();
+        if (r == null) {
+            return;
+        }
+        for (List<String> frames : List.of(r.valeHorse(), r.jonesHorse(), r.valeRiding(), r.jonesRiding())) {
+            for (String f : frames) {
+                frame(sprites, r.sprite(), f, at + "/ride");
+            }
+        }
+        if (r.comeAt() + r.comeTicks() > r.mountAt() || r.mountAt() > r.rideAt()
+                || r.rideAt() + r.rideTicks() > job.promptAt()) {
+            throw new DataException(SOURCE, at + "/ride",
+                    "is out of order: the horses come, then they mount, then they ride, then the prompt");
+        }
+    }
+
     /** The game-over progress line must fit the playfield at its widest, "100". */
     public static void checkGameOver(ShellConfig shell, DisplayConfig display, FontData font) {
         String widest = shell.gameOver().progress().replace("{percent}", "100");
@@ -180,6 +211,12 @@ public final class ShellValidator {
             colour(palette, line.colour(), "/ending/lines/" + i + "/colour");
             for (int t = 0; t < line.text().size(); t++) {
                 fits(line.text().get(t), big, width, "/ending/lines/" + i + "/text/" + t);
+            }
+        }
+        for (int n = 0; n < shell.newGamePlus().levels().size(); n++) {
+            ShellConfig.JobEnding job = shell.newGamePlus().levels().get(n).ending();
+            if (job != null) {
+                checkJobEnding(job, palette, sprites, width, big, "/newGamePlus/levels/" + n + "/ending");
             }
         }
         ShellConfig.Tally tally = shell.tally();

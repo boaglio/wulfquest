@@ -279,7 +279,7 @@ wulfquest/
     art/character_forge.py      generates Ranger Vale's frames, §10.5 (dev-time only)
     art/creature_forge.py       generates the 13 creature sprites and the puff, §10.5 (dev-time only)
     art/item_forge.py           draws the map scroll, the eyes, the looking glass and its arrow, the map's diamond and the treasures, §14.8, §14.10, §16.4, §17.7 (dev-time only)
-    art/ending_forge.py         draws Mr Jones for the closing scene, §14.7 (dev-time only)
+    art/ending_forge.py         draws Mr Jones, the later jobs' amulets and the horses home, §14.7 (dev-time only)
     art/font_forge.py           generates the 8x8 display set in font.json, §10.4 (dev-time only)
     audio/music_forge.py        writes music.json from phrases of note tokens, §18.3 (dev-time only)
     check-no-binaries.sh        CI gate, §2.4 — bound to the verify phase
@@ -2278,6 +2278,31 @@ attribution of §2.5 says all of it is original. So `ending` is a short
 original march in the same mood (§18.3). `ShellValidator.checkEnding` checks
 every sprite, frame, colour and the tune exist, and that every line fits the
 screen in the display font.
+
+**Each job its own ending** (asked for by the user, 2026-10-12). A later job
+(§14.9) lays `shell.json → newGamePlus.levels[n].ending` over this scene
+(`ShellConfig.endingFor`): its own amulet, its own words, its own beats. The
+game's ending shows its four quarters put together; job 1's is the amulet
+that was broken in two, a medallion half silver and half gold with the mended
+seam and a green stone (`ending_amulets` frame `twin`); job 2's the amulet that
+was whole all along, a gold sun with a red stone (`sun`):
+
+> job 1: \- HERE ARE BOTH HALVES, MR JONES. — \- MARVELLOUS! TWO HALVES, ONE
+> AMULET. IT WILL SHINE IN THE MUSEUM, RIGHT BESIDE THE FIRST ONE.
+>
+> job 2: \- THE LAST ONE, MR JONES. WHOLE. — \- THANK YOU, MY FRIEND. MY LAST
+> JOB IS DONE, AND SO IS YOURS. LET'S RIDE HOME.
+
+**The ride home**, the last job's (`ending.ride`): once Mr Jones has spoken, a
+bay and a grey trot in from the left (`comeAt`, `comeTicks`), each to stand
+where one of them does; at `mountAt` they are up, Vale on the bay and Mr Jones
+on the grey; from `rideAt` they gallop off to the right over `rideTicks`, past
+the hut and out of the picture, and the tune comes in as they go. The horses,
+with and without their riders, are `ending_horse` (32×36, four frames each), and
+the amulets 16×16 `ending_amulets`, both drawn by `tools/art/ending_forge.py`.
+`checkEnding` checks each job's ending as it does the game's, and that the ride
+keeps its order: the horses there before anyone mounts, up before they ride,
+gone before the prompt. `--endings` (§17.6) plays all three.
 
 **The credits roll [NEW]** (`shell.json → credits.roll`, `CreditsRoll`): the
 credits page's heading and lines, between `before` (`THE END`) and `after`

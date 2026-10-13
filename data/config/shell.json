@@ -213,6 +213,17 @@
       { "label": "N  THE FIRST JOB: FOUR QUARTERS" },
       { "label": "N  NEW GAME+: THE AMULET IN TWO",
         "tagline": "TWO HALVES OF A BROKEN AMULET",
+        "ending": {
+          "amulet": { "sprite": "ending_amulets", "frame": "twin" },
+          "lines": [
+            { "speaker": "vale", "at": 170, "y": 168, "colour": "brightYellow",
+              "text": ["- HERE ARE BOTH HALVES, MR JONES."] },
+            { "speaker": "jones", "at": 270, "y": 186, "colour": "brightCyan",
+              "text": ["- MARVELLOUS! TWO HALVES, ONE AMULET.", "IT WILL SHINE IN THE MUSEUM,", "RIGHT BESIDE THE FIRST ONE."] }
+          ],
+          "tuneAt": 450,
+          "promptAt": 500
+        },
         "verses": [
           ["HALF A MOON IN YOUR HAND,", "THE OTHER HALF IN THE DARK.", "THE JUNGLE KNOWS YOUR FACE NOW,", "AND IT IS NOT GLAD TO SEE YOU."],
           ["THE HALVES ARE ONE AGAIN.", "ITS LIGHT RUNS IN YOUR BONES.", "GO NOW TO THE ARCH OF STONE:", "THE KEEPER WILL STEP ASIDE."]
@@ -228,6 +239,32 @@
       },
       { "label": "N  NEW GAME+2: THE AMULET WHOLE",
         "tagline": "ONE AMULET, WHOLE AND WELL GUARDED",
+        "ending": {
+          "amulet": { "sprite": "ending_amulets", "frame": "sun" },
+          "lines": [
+            { "speaker": "vale", "at": 170, "y": 168, "colour": "brightYellow",
+              "text": ["- THE LAST ONE, MR JONES. WHOLE."] },
+            { "speaker": "jones", "at": 270, "y": 186, "colour": "brightCyan",
+              "text": ["- THANK YOU, MY FRIEND.", "MY LAST JOB IS DONE, AND SO IS YOURS.", "LET'S RIDE HOME."] }
+          ],
+          "tuneAt": 590,
+          "promptAt": 800,
+          "ride": {
+            "sprite": "ending_horse",
+            "ticksPerFrame": 5,
+            "comeAt": 430,
+            "comeTicks": 100,
+            "fromX": -40,
+            "valeHorse": ["bay_walk0", "bay_walk1", "bay_walk2", "bay_walk3"],
+            "jonesHorse": ["grey_walk0", "grey_walk1", "grey_walk2", "grey_walk3"],
+            "mountAt": 560,
+            "valeRiding": ["bay_vale0", "bay_vale1", "bay_vale2", "bay_vale3"],
+            "jonesRiding": ["grey_jones0", "grey_jones1", "grey_jones2", "grey_jones3"],
+            "rideAt": 590,
+            "rideTicks": 200,
+            "toX": 370
+          }
+        },
         "verses": [
           ["THE AMULET, WHOLE AT LAST,", "WARM AS A HAND IN YOURS.", "GO NOW TO THE ARCH OF STONE:", "THE KEEPER WILL STEP ASIDE."]
         ],

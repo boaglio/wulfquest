@@ -90,7 +90,7 @@ public final class ShellPainter {
                                 content.map().roomCount(), content.landmarks().lairs().size()),
                         left, (int) ((ticksLeft + tickHz - 1) / tickHz));
             }
-            case ENDING -> ending.paint(fb, shell.stateTick());
+            case ENDING -> ending.paint(fb, shell.stateTick(), config.endingFor(shell.session().sim().level()));
             case ROLL -> roll.paint(fb, shell.stateTick());
             case OFFER -> ending.paintOffer(fb, shell.stateTick(),
                     config.newGamePlus().levels().get(shell.offered()).offer());

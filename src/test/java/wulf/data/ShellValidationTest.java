@@ -171,6 +171,56 @@ class ShellValidationTest {
     }
 
     @Test
+    void eachJobEndsItsOwnWayAndTheLastRidesHome() {
+        // §14.7, §14.9: a different amulet and different words in each ending; the last, the ride home.
+        ShellConfig s = c.shell();
+        assertThat(s.endingFor(0)).isSameAs(s.ending());
+        assertThat(s.endingFor(0).art()).as("the game's own: its four quarters").isNull();
+        java.util.Set<String> amulets = new java.util.HashSet<>();
+        java.util.Set<String> answers = new java.util.HashSet<>();
+        int last = s.newGamePlus().levels().size() - 1;
+        for (int n = 0; n <= last; n++) {
+            ShellConfig.Ending e = s.endingFor(n);
+            amulets.add(e.art() == null ? "quarters" : e.art().frame());
+            answers.add(e.lines().stream().filter(l -> l.speaker().equals(ShellConfig.Line.JONES))
+                    .map(l -> String.join(" ", l.text())).findFirst().orElseThrow());
+            assertThat(e.ride() != null).as("job %d rides home", n).isEqualTo(n == last);
+        }
+        assertThat(amulets).hasSize(last + 1);
+        assertThat(answers).hasSize(last + 1);
+    }
+
+    private static ShellConfig withJobEnding(int n, ShellConfig.JobEnding ending) {
+        ShellConfig s = c.shell();
+        List<ShellConfig.Job> jobs = new ArrayList<>(s.newGamePlus().levels());
+        ShellConfig.Job j = jobs.get(n);
+        jobs.set(n, new ShellConfig.Job(j.label(), j.tagline(), j.verses(), j.offer(), ending));
+        return new ShellConfig(s.schemaVersion(), s.screenHoldTicks(), s.title(), s.attract(), s.gameOver(), s.ending(),
+                s.tally(), s.hiScores(), s.keyConfig(), s.sound(), s.stats(), s.amuletReveal(), s.map(), s.quickSave(),
+                s.credits(), new ShellConfig.NewGamePlus(s.newGamePlus().key(), s.newGamePlus().labelColour(), jobs),
+                s.difficulty());
+    }
+
+    @Test
+    void aJobsEndingMustNameWhatExistsAndRideInOrder() {
+        ShellConfig.JobEnding last = c.shell().newGamePlus().levels().get(2).ending();
+        ShellConfig.Ride r = last.ride();
+        java.util.function.Function<ShellConfig, DataException> check = s -> catchThrowableOfType(DataException.class,
+                () -> ShellValidator.checkEnding(s, c.palette(), c.display(), c.font(), c.sprites().all(), c.music()));
+        assertThat(check.apply(withJobEnding(2, new ShellConfig.JobEnding(new ShellConfig.Art("ending_amulets", "moon"),
+                last.lines(), last.tuneAt(), last.promptAt(), r))).pointer()).isEqualTo("/newGamePlus/levels/2/ending/amulet");
+        ShellConfig.Ride early = new ShellConfig.Ride(r.sprite(), r.ticksPerFrame(), r.comeAt(), r.comeTicks(), r.fromX(),
+                r.valeHorse(), r.jonesHorse(), r.comeAt(), r.valeRiding(), r.jonesRiding(), r.rideAt(), r.rideTicks(), r.toX());
+        assertThat(check.apply(withJobEnding(2, new ShellConfig.JobEnding(last.amulet(), last.lines(), last.tuneAt(),
+                last.promptAt(), early))).pointer()).as("mounted before the horses came").isEqualTo("/newGamePlus/levels/2/ending/ride");
+        ShellConfig.Ride lame = new ShellConfig.Ride(r.sprite(), r.ticksPerFrame(), r.comeAt(), r.comeTicks(), r.fromX(),
+                List.of("bay_trot9"), r.jonesHorse(), r.mountAt(), r.valeRiding(), r.jonesRiding(), r.rideAt(), r.rideTicks(),
+                r.toX());
+        assertThat(check.apply(withJobEnding(2, new ShellConfig.JobEnding(last.amulet(), last.lines(), last.tuneAt(),
+                last.promptAt(), lame))).pointer()).isEqualTo("/newGamePlus/levels/2/ending/ride");
+    }
+
+    @Test
     void theCreditsNameWhoMadeTheGame() {
         assertThat(c.shell().credits().lines()).anyMatch(l -> l.contains("FERNANDO BOAGLIO"));
         assertThat(c.shell().credits().rollRows()).containsSubsequence(c.shell().credits().heading(),

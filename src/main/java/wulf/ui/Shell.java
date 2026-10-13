@@ -355,7 +355,7 @@ public final class Shell {
      * to the tally once the prompt is up. Escape banks the run, as everywhere else.
      */
     private void ending(InputState in) {
-        ShellConfig.Ending e = config.ending();
+        ShellConfig.Ending e = config.endingFor(session.sim().level());   // §14.9: each job its own
         if (stateTick == Math.max(1, e.tuneAt())) {
             jukebox.tune(e.tune());
         }
