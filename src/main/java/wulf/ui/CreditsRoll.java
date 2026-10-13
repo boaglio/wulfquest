@@ -14,7 +14,6 @@ import wulf.render.Framebuffer;
 final class CreditsRoll {
 
     private final ShellConfig.Credits credits;
-    private final List<String> rows;
     private final FontSet big;
     private final FontSet small;
     private final int ground;
@@ -23,7 +22,6 @@ final class CreditsRoll {
 
     CreditsRoll(ShellConfig.Credits credits, FontSet big, FontSet small, Palette palette) {
         this.credits = credits;
-        this.rows = credits.rollRows();
         this.big = big;
         this.small = small;
         this.ground = palette.indexOf("black");
@@ -32,11 +30,17 @@ final class CreditsRoll {
     }
 
     void paint(Framebuffer fb, long t) {
+        paint(fb, t, credits.roll().theEnd());
+    }
+
+    /** @param theEnd the first row: the job won's own (§14.7) */
+    void paint(Framebuffer fb, long t, String theEnd) {
+        List<String> rows = credits.rollRows(theEnd);
         fb.clear(ground);
         ShellConfig.Roll roll = credits.roll();
         int y = roll.fromY() - (int) (t / roll.ticksPerPx());
         // The rows from credits.lines are the body; the rest — before, the heading, after — are titles.
-        int bodyFrom = roll.before().size() + 2;
+        int bodyFrom = 1 + roll.before().size() + 2;
         int bodyTo = bodyFrom + credits.lines().size();
         for (int i = 0; i < rows.size(); i++, y += roll.lineHeightPx()) {
             if (y < -roll.lineHeightPx() || y >= fb.height()) {

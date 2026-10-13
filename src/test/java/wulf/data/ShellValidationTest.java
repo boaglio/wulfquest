@@ -221,6 +221,17 @@ class ShellValidationTest {
     }
 
     @Test
+    void eachEndingsRollStartsWithItsOwnEnd() {
+        // §14.7, asked for by the user: the end, then perhaps not, then for real.
+        ShellConfig s = c.shell();
+        assertThat(s.theEndFor(0)).isEqualTo("THE END?");
+        assertThat(s.theEndFor(1)).isEqualTo("THE END??");
+        assertThat(s.theEndFor(2)).isEqualTo("THE END! (FOR REAL)");
+        assertThat(s.credits().rollRows(s.theEndFor(2)).get(0)).isEqualTo("THE END! (FOR REAL)");
+        assertThat(s.credits().rollRows(s.theEndFor(2))).hasSameSizeAs(s.credits().rollRows());
+    }
+
+    @Test
     void theCreditsNameWhoMadeTheGame() {
         assertThat(c.shell().credits().lines()).anyMatch(l -> l.contains("FERNANDO BOAGLIO"));
         assertThat(c.shell().credits().rollRows()).containsSubsequence(c.shell().credits().heading(),

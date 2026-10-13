@@ -91,7 +91,7 @@ public final class ShellPainter {
                         left, (int) ((ticksLeft + tickHz - 1) / tickHz));
             }
             case ENDING -> ending.paint(fb, shell.stateTick(), config.endingFor(shell.session().sim().level()));
-            case ROLL -> roll.paint(fb, shell.stateTick());
+            case ROLL -> roll.paint(fb, shell.stateTick(), config.theEndFor(shell.session().sim().level()));
             case OFFER -> ending.paintOffer(fb, shell.stateTick(),
                     config.newGamePlus().levels().get(shell.offered()).offer());
             case TALLY -> {

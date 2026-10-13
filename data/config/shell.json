@@ -189,7 +189,8 @@
     ],
     "prompt": "PRESS FIRE TO RETURN",
     "roll": {
-      "before": ["THE END", "", "", ""],
+      "theEnd": "THE END",
+      "before": ["", "", ""],
       "after": ["", "", "", "THANK YOU FOR PLAYING"],
       "fromY": 256,
       "lineHeightPx": 12,
@@ -210,9 +211,10 @@
     "key": "N",
     "labelColour": "brightCyan",
     "levels": [
-      { "label": "N  THE FIRST JOB: FOUR QUARTERS" },
+      { "label": "N  THE FIRST JOB: FOUR QUARTERS", "theEnd": "THE END?" },
       { "label": "N  NEW GAME+: THE AMULET IN TWO",
         "tagline": "TWO HALVES OF A BROKEN AMULET",
+        "theEnd": "THE END??",
         "ending": {
           "amulet": { "sprite": "ending_amulets", "frame": "twin" },
           "lines": [
@@ -239,6 +241,7 @@
       },
       { "label": "N  NEW GAME+2: THE AMULET WHOLE",
         "tagline": "ONE AMULET, WHOLE AND WELL GUARDED",
+        "theEnd": "THE END! (FOR REAL)",
         "ending": {
           "amulet": { "sprite": "ending_amulets", "frame": "sun" },
           "lines": [

@@ -80,6 +80,9 @@ public final class NewGamePlusValidator {
             ShellConfig.Job job = words.levels().get(n);
             String at = "/newGamePlus/levels/" + n;
             fits(job.label(), small.advance(), width, at + "/label");
+            if (job.theEnd() != null) {
+                fits(job.theEnd(), big.advance(), width, at + "/theEnd");   // §14.7: the roll's first row
+            }
             if (n == 0) {
                 if (job.tagline() != null || job.verses() != null || job.offer() != null) {
                     throw new DataException(SHELL, at,

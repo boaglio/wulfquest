@@ -311,8 +311,9 @@
           "description": "AGENTS.md §14.7 [NEW]: the credits rolled up the screen after a win",
           "type": "object",
           "additionalProperties": false,
-          "required": ["before", "after", "fromY", "lineHeightPx", "ticksPerPx", "headingColour", "bodyColour"],
+          "required": ["theEnd", "before", "after", "fromY", "lineHeightPx", "ticksPerPx", "headingColour", "bodyColour"],
           "properties": {
+            "theEnd": { "type": "string", "minLength": 1, "maxLength": 40 },
             "before": { "type": "array", "items": { "type": "string", "maxLength": 40 } },
             "after": { "type": "array", "items": { "type": "string", "maxLength": 40 } },
             "fromY": { "type": "integer", "minimum": 0 },
@@ -357,6 +358,7 @@
               "label": { "type": "string", "minLength": 1, "maxLength": 60 },
               "tagline": { "description": "the title's tagline while this job is chosen; the game itself keeps title.tagline", "type": "string", "minLength": 1, "maxLength": 48 },
               "verses": { "$ref": "#/$defs/verses" },
+              "theEnd": { "description": "§14.7: the credits roll's first row after winning this job", "type": "string", "minLength": 1, "maxLength": 40 },
               "ending": {
                 "description": "§14.7: this job's own closing scene, laid over the game's ending",
                 "type": "object",

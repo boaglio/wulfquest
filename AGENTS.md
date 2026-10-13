@@ -2305,11 +2305,14 @@ keeps its order: the horses there before anyone mounts, up before they ride,
 gone before the prompt. `--endings` (§17.6) plays all three.
 
 **The credits roll [NEW]** (`shell.json → credits.roll`, `CreditsRoll`): the
-credits page's heading and lines, between `before` (`THE END`) and `after`
+credits page's heading and lines, between `theEnd` and `before` and `after`
 (`THANK YOU FOR PLAYING`), rising a pixel every `ticksPerPx` from `fromY`
 until the last row is gone; then the run is banked. The credits name the
 game's author (2026-10-12). After the first win of a job, the roll is followed
-by Mr Jones's offer of the next (§14.9).
+by Mr Jones's offer of the next (§14.9). Its first row is the job's own
+`newGamePlus.levels[n].theEnd`, as the user asked: `THE END?` after the game,
+`THE END??` after job 1, `THE END! (FOR REAL)` after the last (the display font
+has no lower case); `roll.theEnd` (`THE END`) stands in for a job without one.
 
 ### 14.9 New Game+ — Mr Jones's later jobs **[NEW]**
 

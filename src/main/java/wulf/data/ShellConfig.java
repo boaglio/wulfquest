@@ -199,15 +199,21 @@ public record ShellConfig(
      *               itself, which has {@code amuletReveal.verses}
      * @param offer  the scene after the credits of the win that unlocks this job; null for the first
      * @param ending this job's own closing scene (§14.7); null for the game itself, which has {@code ending}
+     * @param theEnd the first row of the credits roll after winning it (§14.7); null for the roll's own
      */
-    public record Job(String label, String tagline, List<List<String>> verses, Offer offer, JobEnding ending) {
+    public record Job(String label, String tagline, List<List<String>> verses, Offer offer, JobEnding ending,
+                      String theEnd) {
         public Job {
             verses = verses == null ? null : verses.stream().map(List::copyOf).toList();
         }
 
         /** A job that ends as the game does. */
         public Job(String label, String tagline, List<List<String>> verses, Offer offer) {
-            this(label, tagline, verses, offer, null);
+            this(label, tagline, verses, offer, null, null);
+        }
+
+        public Job(String label, String tagline, List<List<String>> verses, Offer offer, JobEnding ending) {
+            this(label, tagline, verses, offer, ending, null);
         }
     }
 
@@ -257,6 +263,12 @@ public record ShellConfig(
             valeRiding = List.copyOf(valeRiding);
             jonesRiding = List.copyOf(jonesRiding);
         }
+    }
+
+    /** The first row of the credits roll after winning job {@code level} (§14.7): its own, or the roll's. */
+    public String theEndFor(int level) {
+        String own = level >= 0 && level < newGamePlus.levels().size() ? newGamePlus.levels().get(level).theEnd() : null;
+        return own != null ? own : credits.roll().theEnd();
     }
 
     /**
@@ -341,9 +353,16 @@ public record ShellConfig(
             lines = List.copyOf(lines);
         }
 
-        /** Everything the roll shows, a row each: {@code before}, the heading, a gap, the lines, {@code after}. */
+        /** Everything the roll shows, a row each: {@code theEnd}, {@code before}, the heading, a gap, the lines, {@code after}. */
         public List<String> rollRows() {
-            List<String> rows = new java.util.ArrayList<>(roll.before());
+            return rollRows(roll.theEnd());
+        }
+
+        /** The same, with the job's own {@code theEnd} at the top (§14.7). */
+        public List<String> rollRows(String theEnd) {
+            List<String> rows = new java.util.ArrayList<>();
+            rows.add(theEnd);
+            rows.addAll(roll.before());
             rows.add(heading);
             rows.add("");
             rows.addAll(lines);
@@ -362,9 +381,11 @@ public record ShellConfig(
      * {@code lineHeightPx}, starting with its first row at {@code fromY} and rising a pixel every
      * {@code ticksPerPx}. The rows of {@code before} and {@code after}, and the heading, are in
      * the display font and {@code headingColour}; the lines in the small one and {@code bodyColour}.
+     *
+     * @param theEnd the roll's first row, unless the job won says otherwise ({@code newGamePlus.levels[n].theEnd})
      */
-    public record Roll(List<String> before, List<String> after, int fromY, int lineHeightPx, int ticksPerPx,
-                       String headingColour, String bodyColour) {
+    public record Roll(String theEnd, List<String> before, List<String> after, int fromY, int lineHeightPx,
+                       int ticksPerPx, String headingColour, String bodyColour) {
         public Roll {
             before = List.copyOf(before);
             after = List.copyOf(after);

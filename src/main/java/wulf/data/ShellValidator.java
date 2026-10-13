@@ -229,6 +229,7 @@ public final class ShellValidator {
         for (String line : shell.credits().lines()) {
             fits(line, small, width, "/credits/lines");
         }
+        fits(roll.theEnd(), big, width, "/credits/roll/theEnd");
         for (String line : roll.before()) {
             fits(line, big, width, "/credits/roll/before");
         }
