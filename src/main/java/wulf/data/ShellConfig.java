@@ -140,7 +140,7 @@ public record ShellConfig(
      */
     public record Ending(List<Placed> backdrop, int groundY, Walker vale, Jones jones, Amulet amulet,
                          List<Line> lines, int ticksPerChar, String tune, int tuneAt, String prompt,
-                         int promptAt, String promptColour, Art art, Ride ride) {
+                         int promptAt, String promptColour, List<String> amuletFrames, Ride ride) {
         public Ending {
             backdrop = List.copyOf(backdrop);
             lines = List.copyOf(lines);
@@ -200,20 +200,23 @@ public record ShellConfig(
      * @param offer  the scene after the credits of the win that unlocks this job; null for the first
      * @param ending this job's own closing scene (§14.7); null for the game itself, which has {@code ending}
      * @param theEnd the first row of the credits roll after winning it (§14.7); null for the roll's own
+     * @param amulet this job's own amulet (§14.9): a frame of the amulet sprite for each panel slot,
+     *               0..3 reading across; null for the game itself, whose quarters are its lairs'.
      */
     public record Job(String label, String tagline, List<List<String>> verses, Offer offer, JobEnding ending,
-                      String theEnd) {
+                      String theEnd, List<String> amulet) {
         public Job {
             verses = verses == null ? null : verses.stream().map(List::copyOf).toList();
+            amulet = amulet == null ? null : List.copyOf(amulet);
         }
 
         /** A job that ends as the game does. */
         public Job(String label, String tagline, List<List<String>> verses, Offer offer) {
-            this(label, tagline, verses, offer, null, null);
+            this(label, tagline, verses, offer, null, null, null);
         }
 
         public Job(String label, String tagline, List<List<String>> verses, Offer offer, JobEnding ending) {
-            this(label, tagline, verses, offer, ending, null);
+            this(label, tagline, verses, offer, ending, null, null);
         }
     }
 
@@ -232,17 +235,13 @@ public record ShellConfig(
     public record Placed(String sprite, String frame, int x, int y) {
     }
 
-    /** One frame of one sprite. */
-    public record Art(String sprite, String frame) {
-    }
-
     /**
-     * A later job's ending (§14.7, §14.9): its own amulet, its own words, its own beats — and, for
-     * the last, the ride home. What it leaves out is the game's own ending's.
+     * A later job's ending (§14.7, §14.9): its own words, its own beats — and, for the last, the
+     * ride home; the amulet handed over is the job's own ({@link Job#amulet}). What it leaves out
+     * is the game's own ending's.
      *
-     * @param amulet the amulet whole, as the scene shows it; the game's own is its four quarters
      */
-    public record JobEnding(Art amulet, List<Line> lines, int tuneAt, int promptAt, Ride ride) {
+    public record JobEnding(List<Line> lines, int tuneAt, int promptAt, Ride ride) {
         public JobEnding {
             lines = List.copyOf(lines);
         }
@@ -265,6 +264,11 @@ public record ShellConfig(
         }
     }
 
+    /** Job {@code level}'s own amulet, a frame a slot (§14.9); null for the game's own quarters. */
+    public List<String> amuletFor(int level) {
+        return level > 0 && level < newGamePlus.levels().size() ? newGamePlus.levels().get(level).amulet() : null;
+    }
+
     /** The first row of the credits roll after winning job {@code level} (§14.7): its own, or the roll's. */
     public String theEndFor(int level) {
         String own = level >= 0 && level < newGamePlus.levels().size() ? newGamePlus.levels().get(level).theEnd() : null;
@@ -282,7 +286,8 @@ public record ShellConfig(
         JobEnding j = newGamePlus.levels().get(level).ending();
         Ending e = ending;
         return new Ending(e.backdrop(), e.groundY(), e.vale(), e.jones(), e.amulet(), j.lines(), e.ticksPerChar(),
-                e.tune(), j.tuneAt(), e.prompt(), j.promptAt(), e.promptColour(), j.amulet(), j.ride());
+                e.tune(), j.tuneAt(), e.prompt(), j.promptAt(), e.promptColour(),
+                newGamePlus.levels().get(level).amulet(), j.ride());
     }
 
     /** Vale: walking frames in turn from {@code fromX} to {@code toX} over {@code walkTicks}, then {@code stand}. */

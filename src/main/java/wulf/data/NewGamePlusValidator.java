@@ -13,6 +13,8 @@ public final class NewGamePlusValidator {
     private static final String GAME = "data/config/game.json";
     private static final String SHELL = "data/config/shell.json";
     private static final int ORIGINAL_PACE_PERCENT = 100;
+    /** The panel's places for the amulet (§17.3): four, however a job breaks it. */
+    private static final int SLOTS = 4;
 
     private NewGamePlusValidator() {
     }
@@ -109,6 +111,38 @@ public final class NewGamePlusValidator {
                 colour(palette, line.colour(), at + "/offer/lines/" + i + "/colour");
                 for (int t = 0; t < line.text().size(); t++) {
                     fits(line.text().get(t), big.advance(), width, at + "/offer/lines/" + i + "/text/" + t);
+                }
+            }
+        }
+    }
+
+    /**
+     * §14.9: each later job's own amulet names a frame of the amulet sprite for every panel slot;
+     * the game itself names none, its quarters being its lairs'.
+     */
+    public static void checkAmulets(ShellConfig shell, LandmarksData marks, java.util.Map<String, SpriteData> sprites) {
+        SpriteData sprite = sprites.get(marks.amulet().sprite());
+        List<ShellConfig.Job> jobs = shell.newGamePlus().levels();
+        for (int n = 0; n < jobs.size(); n++) {
+            List<String> frames = jobs.get(n).amulet();
+            String at = "/newGamePlus/levels/" + n + "/amulet";
+            if (n == 0) {
+                if (frames != null) {
+                    throw new DataException(SHELL, at, "is the game's own: its quarters are its lairs'");
+                }
+                continue;
+            }
+            if (frames == null) {
+                continue;
+            }
+            if (frames.size() != SLOTS) {
+                throw new DataException(SHELL, at, "has " + frames.size() + " frames; the panel has " + SLOTS + " slots");
+            }
+            for (int s = 0; s < frames.size(); s++) {
+                String f = frames.get(s);
+                if (sprite == null || sprite.frames().stream().noneMatch(x -> x.id().equals(f))) {
+                    throw new DataException(SHELL, at + "/" + s,
+                            "names frame '" + f + "', which '" + marks.amulet().sprite() + "' has not got");
                 }
             }
         }

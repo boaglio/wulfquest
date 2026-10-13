@@ -1,5 +1,6 @@
 package wulf.render;
 
+import java.util.List;
 import wulf.data.DisplayConfig;
 import wulf.data.LandmarksData;
 import wulf.sim.Player;
@@ -20,6 +21,7 @@ public final class QuestPainter {
     private final SpriteBank sprites;
     private final int black;
     private final TreasureArt treasures;
+    private AmuletFrames amulets;
 
     /**
      * How the treasures look (§16.4): their places, the sprite, and each kind's frame and
@@ -41,6 +43,13 @@ public final class QuestPainter {
         this.amulet = marks.lairs().isEmpty() ? null : sprites.get(marks.amulet().sprite());
         this.sprites = sprites;
         this.black = black;
+        this.amulets = AmuletFrames.of(marks, null);
+    }
+
+    /** §14.9: each later job's own amulet, on its pedestals and in flight. The game's own until called. */
+    public QuestPainter amulets(AmuletFrames frames) {
+        this.amulets = frames;
+        return this;
     }
 
     /** The quarter on its pedestal, under the creatures (§5.3: loot before creatures). */
@@ -54,7 +63,8 @@ public final class QuestPainter {
         LandmarksData.Lair lair = sim.landmarks().lairs().get(q.lair());
         fb.setClip(field.x(), field.y(), field.w(), field.h());
         try {
-            blitPiece(fb, lair.slotMask(), field.x() + lair.pedestal().x(), field.y() + lair.pedestal().y());
+            blitPiece(fb, lair.slotMask(), field.x() + lair.pedestal().x(), field.y() + lair.pedestal().y(),
+                    amulets.forLevel(sim.level()));
         } finally {
             fb.clearClip();
         }
@@ -142,6 +152,7 @@ public final class QuestPainter {
         int centreX = field.x() + q.flyFromXPx() - sim.room().col() * Simulation.ROOM_W_PX;
         int centreY = field.y() + q.flyFromYPx() - sim.room().row() * Simulation.ROOM_H_PX;
         int mask = q.flyMask() == 0 ? 1 << q.flySlot() : q.flyMask();
+        List<String> frames = amulets.forLevel(sim.level());
         Bounds b = new Bounds(mask);
         int w = amulet.w();
         int h = amulet.h();
@@ -157,7 +168,7 @@ public final class QuestPainter {
             int x = fromX + (toX - fromX) * done / total;
             int y = fromY + (toY - fromY) * done / total;
             // Blit takes the feet origin: bottom-centre of the 16x16 quarter.
-            amulet.blit(fb, frameForSlot(slot), x, y + marks.amulet().size().h() / 2);
+            amulet.blit(fb, frames.get(slot), x, y + marks.amulet().size().h() / 2);
         }
     }
 
@@ -165,7 +176,7 @@ public final class QuestPainter {
      * A piece filling {@code mask}'s slots, its quarters where they sit in the amulet, the
      * piece's feet at ({@code x}, {@code y}): a quarter, or a later job's half or whole (§14.9).
      */
-    private void blitPiece(Framebuffer fb, int mask, int x, int y) {
+    private void blitPiece(Framebuffer fb, int mask, int x, int y, List<String> frames) {
         Bounds b = new Bounds(mask);
         int w = amulet.w();
         int h = amulet.h();
@@ -173,7 +184,7 @@ public final class QuestPainter {
             if ((mask & 1 << slot) != 0) {
                 int fx = x - (b.cols - 1) * w / 2 + (slot % 2 - b.minCol) * w;
                 int fy = y - (b.maxRow - slot / 2) * h;
-                amulet.blit(fb, frameForSlot(slot), fx, fy);
+                amulet.blit(fb, frames.get(slot), fx, fy);
             }
         }
     }

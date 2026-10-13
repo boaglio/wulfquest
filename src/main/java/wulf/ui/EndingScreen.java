@@ -102,7 +102,7 @@ final class EndingScreen {
             String valeFrame = t < v.walkTicks() ? v.walk().get((int) (t / v.ticksPerFrame() % v.walk().size()))
                     : v.stand();
             vale.blit(fb, valeFrame, vx, gy);
-            paintAmulet(fb, t, vx, gy, e.art());
+            paintAmulet(fb, t, vx, gy, e.amuletFrames() == null ? framesBySlot : e.amuletFrames());
         }
         paintLines(fb, t, e.lines());
         if (t >= e.promptAt()) {
@@ -173,9 +173,9 @@ final class EndingScreen {
 
     /**
      * The amulet, whole, centred where it is held — or on its way between them: the game's own
-     * four quarters at half size, or a later job's own amulet ({@code art}).
+     * four quarters at half size, or a later job's own (§14.9) — the one it played for.
      */
-    private void paintAmulet(Framebuffer fb, long t, int vx, int gy, ShellConfig.Art art) {
+    private void paintAmulet(Framebuffer fb, long t, int vx, int gy, List<String> frames) {
         ShellConfig.Amulet a = config.amulet();
         int fromX = vx + a.carry().dx();
         int fromY = gy + a.carry().dy();
@@ -191,16 +191,11 @@ final class EndingScreen {
             cx = fromX + (int) ((toX - fromX) * k / a.handOverTicks());
             cy = fromY + (int) ((toY - fromY) * k / a.handOverTicks());
         }
-        if (art != null) {
-            Sprite own = sprites.get(art.sprite());
-            own.blit(fb, art.frame(), cx - own.w() / 2 + own.originX(), cy - own.h() / 2 + own.originY());
-            return;
-        }
         int half = amulet.w() / 2;
         int left = cx - half;
         int top = cy - half;
-        for (int slot = 0; slot < framesBySlot.size(); slot++) {
-            amulet.blitHalf(fb, framesBySlot.get(slot), left + (slot % 2) * half, top + (slot / 2) * half, -1);
+        for (int slot = 0; slot < frames.size(); slot++) {
+            amulet.blitHalf(fb, frames.get(slot), left + (slot % 2) * half, top + (slot / 2) * half, -1);
         }
     }
 

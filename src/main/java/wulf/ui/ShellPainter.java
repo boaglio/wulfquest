@@ -117,7 +117,8 @@ public final class ShellPainter {
         }
         if (session.revealing()) {
             reveal.paint(fb, session.sim().quest().slotMask(), session.verse(),
-                    session.revealWaitsForFire() ? session.revealPrompt() : null);
+                    session.revealWaitsForFire() ? session.revealPrompt() : null,
+                    game.amulets().forLevel(session.sim().level()));   // §14.9: the job's own amulet
             return;
         }
         if (session.paused()) {

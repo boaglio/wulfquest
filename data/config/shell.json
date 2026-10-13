@@ -215,8 +215,8 @@
       { "label": "N  NEW GAME+: THE AMULET IN TWO",
         "tagline": "TWO HALVES OF A BROKEN AMULET",
         "theEnd": "THE END??",
+        "amulet": ["twin_nw", "twin_ne", "twin_sw", "twin_se"],
         "ending": {
-          "amulet": { "sprite": "ending_amulets", "frame": "twin" },
           "lines": [
             { "speaker": "vale", "at": 170, "y": 168, "colour": "brightYellow",
               "text": ["- HERE ARE BOTH HALVES, MR JONES."] },
@@ -242,8 +242,8 @@
       { "label": "N  NEW GAME+2: THE AMULET WHOLE",
         "tagline": "ONE AMULET, WHOLE AND WELL GUARDED",
         "theEnd": "THE END! (FOR REAL)",
+        "amulet": ["sun_nw", "sun_ne", "sun_sw", "sun_se"],
         "ending": {
-          "amulet": { "sprite": "ending_amulets", "frame": "sun" },
           "lines": [
             { "speaker": "vale", "at": 170, "y": 168, "colour": "brightYellow",
               "text": ["- THE LAST ONE, MR JONES. WHOLE."] },

@@ -38,6 +38,7 @@ public final class GamePainter {
     private final CreaturePainter beasts;
     private final PlayerPainter vale;
     private final PanelPainter panel;
+    private final wulf.render.AmuletFrames amulets;
     private final WayPainter way;
     private final int[] effectColours;
     private final int border;
@@ -63,8 +64,10 @@ public final class GamePainter {
             treasureFrames[i] = c.treasures().kinds().get(i).frame();
             treasureInks[i] = palette.indexOf(c.treasures().kinds().get(i).ink());
         }
+        this.amulets = wulf.render.AmuletFrames.of(c.landmarks(), c.shell());
         this.quest = new QuestPainter(display, sprites, c.landmarks(), palette.indexOf("black"),
-                new QuestPainter.TreasureArt(c.treasurePlaces(), c.treasures().sprite(), treasureFrames, treasureInks));
+                new QuestPainter.TreasureArt(c.treasurePlaces(), c.treasures().sprite(), treasureFrames, treasureInks))
+                .amulets(amulets);
         this.way = new WayPainter(display, sprites, c.landmarks(), c.player().collisionBox(),
                 new Wayfinder(new WorldGrid(c.rooms())));
         this.beasts = new CreaturePainter(display, sprites, c.creatures(), palette,
@@ -85,6 +88,11 @@ public final class GamePainter {
         this.easyLabel = c.shell().difficulty().panelLabel();
         this.easyColour = palette.indexOf(c.shell().difficulty().easyColour());
         this.clash = display.crt().attributeClash() ? new AttributeClash(display.playfield()) : null;
+    }
+
+    /** Each job's amulet, slot by slot (§14.9). */
+    public wulf.render.AmuletFrames amulets() {
+        return amulets;
     }
 
     public PanelPainter panel() {
@@ -127,7 +135,7 @@ public final class GamePainter {
         boolean under = sim.effect().active();
         panel.paint(fb, sim.score(), best, sim.player().lives(), sim.quest().slotMask(),
                 under ? effectColours[sim.effect().orchid()] : -1,
-                under ? sim.effect().remainingPerMille() : 0, message);
+                under ? sim.effect().remainingPerMille() : 0, message, amulets.forLevel(sim.level()));
         if (sim.easy()) {
             panel.paintMode(fb, easyLabel, easyColour);   // §17.8
         }

@@ -496,6 +496,75 @@ def amulet_face():
     return cv
 
 
+def twin_face():
+    """Job 1's amulet (§14.9), 32x32: the medallion that was broken in two — silver above, gold
+    below, as its halves lie in the jungle — a crescent on the one and a star on the other, the
+    seam mended across its middle and a green stone where the halves meet."""
+    cv = Canvas(32, 32)
+    for y in range(32):
+        for x in range(32):
+            r = math.hypot(x + 0.5 - 16, y + 0.5 - 16)
+            if r > 15.9:
+                continue
+            top = y < 16
+            if r > 14.2:
+                cv.set(x, y, "w" if top else "y")           # the rim
+            else:
+                cv.set(x, y, "W" if top else "Y")           # the faces
+    for y in range(32):
+        for x in range(32):
+            a = math.hypot(x + 0.5 - 16, y + 0.5 - 8.5)
+            b = math.hypot(x + 0.5 - 18.5, y + 0.5 - 7.5)
+            if a <= 5 and b > 4.2:
+                cv.set(x, y, "w")                           # the crescent, engraved in the silver
+    for k in range(5):
+        ang = -math.pi / 2 + k * 2 * math.pi / 5
+        for t in range(6):
+            cv.set(int(16 + t * math.cos(ang)), int(24 + t * math.sin(ang)), "y")   # the star in the gold
+    for x in range(2, 30):
+        cv.set(x, 15 + (x // 2) % 2, "K")                   # the seam, zigzag, mended
+    for x, y in ((15, 15), (16, 15), (15, 16), (16, 16), (14, 15), (17, 16)):
+        cv.set(x, y, "G")                                   # the stone where the halves meet
+    cv.set(15, 15, "W")
+    return cv
+
+
+def sun_face():
+    """Job 2's amulet (§14.9), 32x32: whole all along — a gold sun, its rays all round, a red
+    stone in its heart."""
+    cv = Canvas(32, 32)
+    for k in range(12):
+        ang = k * math.pi / 6
+        for t in range(10, 16):
+            r = t + 0.5
+            cv.set(int(16 + r * math.cos(ang)), int(16 + r * math.sin(ang)), "Y" if t < 14 else "y")
+            cv.set(int(16 + r * math.cos(ang + 0.08)), int(16 + r * math.sin(ang + 0.08)), "y")
+    for y in range(32):
+        for x in range(32):
+            d = math.hypot(x + 0.5 - 16, y + 0.5 - 16)
+            if d <= 10:
+                cv.set(x, y, "R" if d <= 3.6 else "Y" if d <= 8.6 else "y")
+    for x, y in ((14, 14), (15, 14), (14, 15)):
+        cv.set(x, y, "W")                                   # the stone catches the light
+    for k in range(12):
+        ang = k * math.pi / 6 + math.pi / 12
+        cv.set(int(16 + 6.5 * math.cos(ang)), int(16 + 6.5 * math.sin(ang)), "y")   # engraving round the disc
+    return cv
+
+
+def face_quarter(face, q):
+    """Quarter {@code q} of a whole 32x32 amulet face, outlined, as the panel and the pedestals show it."""
+    ox = 16 if q % 2 else 0
+    oy = 16 if q >= 2 else 0
+    cv = Canvas(16, 16)
+    for y in range(16):
+        for x in range(16):
+            c = face.get(ox + x, oy + y)
+            if c != ".":
+                cv.set(x, y, c)
+    return cv.rows()
+
+
 def amulet_quarter(q):
     """One quarter of the amulet (16x16), in its guardian's accent: nw green, ne blue, sw red, se yellow.
 
@@ -667,7 +736,10 @@ def main():
         frames.append((fid, cv.rows()))
     write_sprite(k["sprite"], kw, kh, frames)
     names.append(k["sprite"])
-    write_sprite("amulet_piece", 16, 16, [(fid, amulet_quarter(q)) for q, fid in enumerate(("nw", "ne", "sw", "se"))])
+    quarters = [(fid, amulet_quarter(q)) for q, fid in enumerate(("nw", "ne", "sw", "se"))]
+    for name, face in (("twin", twin_face()), ("sun", sun_face())):
+        quarters += [(f"{name}_{fid}", face_quarter(face, q)) for q, fid in enumerate(("nw", "ne", "sw", "se"))]
+    write_sprite("amulet_piece", 16, 16, quarters)
     names.append("amulet_piece")
     flowers = json.loads((ROOT / "data/entities/orchids.json").read_text(encoding="utf-8"))
     frames = [("sprout", orchid_sprout(16))]

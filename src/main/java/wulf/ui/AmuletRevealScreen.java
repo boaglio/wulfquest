@@ -32,6 +32,11 @@ final class AmuletRevealScreen {
 
     /** @param prompt "press fire", once fire will close it; null before then */
     void paint(Framebuffer fb, int slotMask, List<String> verse, String prompt) {
+        paint(fb, slotMask, verse, prompt, framesBySlot);
+    }
+
+    /** @param frames the amulet's frame for each slot: a later job's own (§14.9) */
+    void paint(Framebuffer fb, int slotMask, List<String> verse, String prompt, List<String> frames) {
         fb.fillRect(field.x(), field.y(), field.w(), field.h(), chrome.ground());
         // Four quarters, two across and two down, as the panel lays them out (§17.3).
         int piece = amulet.w() * scale;
@@ -41,9 +46,9 @@ final class AmuletRevealScreen {
         int block = size + lineH + (verse.size() + 1) * lineH;
         int top = field.y() + (field.h() - block) / 2;
         int left = field.x() + (field.w() - size) / 2;
-        for (int slot = 0; slot < framesBySlot.size(); slot++) {
+        for (int slot = 0; slot < frames.size(); slot++) {
             if ((slotMask & (1 << slot)) != 0) {
-                amulet.blitScaled(fb, framesBySlot.get(slot), left + (slot % 2) * piece, top + (slot / 2) * piece, scale);
+                amulet.blitScaled(fb, frames.get(slot), left + (slot % 2) * piece, top + (slot / 2) * piece, scale);
             }
         }
         int y = top + size + lineH;

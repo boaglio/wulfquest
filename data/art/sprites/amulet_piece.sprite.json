@@ -107,6 +107,174 @@
         "wwwwwww.........",
         "wwww............"
       ]
+    },
+    {
+      "id": "twin_nw",
+      "rows": [
+        "............wwww",
+        ".........wwwwwww",
+        "........wwwwWWWW",
+        "......wwwWWWWWWW",
+        ".....wwwWWWWWwww",
+        "....wwWWWWWWwwwW",
+        "...wwWWWWWWwwwWW",
+        "...wwWWWWWWwwwWW",
+        "..wwWWWWWWWwwwWW",
+        ".wwWWWWWWWWwwwwW",
+        ".wwWWWWWWWWwwwww",
+        ".wwWWWWWWWWWwwww",
+        "wwWWWWWWWWWWWwww",
+        "wwWWWWWWWWWWWWWW",
+        "wwWWWWWWWWWWWWWW",
+        "wwWWKKWWKKWWKKGW"
+      ]
+    },
+    {
+      "id": "twin_ne",
+      "rows": [
+        "wwww............",
+        "wwwwwww.........",
+        "WWWWwwww........",
+        "WWWWWWWwww......",
+        "WWWWWWWWwww.....",
+        "WWWWWWWWWWww....",
+        "WWWWWWWWWWWww...",
+        "WWWWWWWWWWWww...",
+        "WWWWWWWWWWWWww..",
+        "WWWWWWWWWWWWWww.",
+        "WWWWWWWWWWWWWww.",
+        "wWWWWWWWWWWWWww.",
+        "wwwWWWWWWWWWWWww",
+        "WWWWWWWWWWWWWWww",
+        "WWWWWWWWWWWWWWww",
+        "GKWWKKWWKKWWKKww"
+      ]
+    },
+    {
+      "id": "twin_sw",
+      "rows": [
+        "yyKKYYKKYYKKYYKG",
+        "yyYYYYYYYYYYYYYY",
+        "yyYYYYYYYYYYYYYY",
+        "yyYYYYYYYYYYYYYY",
+        ".yyYYYYYYYYYYYYY",
+        ".yyYYYYYYYYYYYYY",
+        ".yyYYYYYYYYyyYYY",
+        "..yyYYYYYYYYYyyy",
+        "...yyYYYYYYYYYYy",
+        "...yyYYYYYYYYYyY",
+        "....yyYYYYYYYYyY",
+        ".....yyyYYYYYyYY",
+        "......yyyYYYYyYY",
+        "........yyyyYYYY",
+        ".........yyyyyyy",
+        "............yyyy"
+      ]
+    },
+    {
+      "id": "twin_se",
+      "rows": [
+        "GGKKYYKKYYKKYYyy",
+        "YYYYYYYYYYYYYYyy",
+        "YYYYYYYYYYYYYYyy",
+        "yYYYYYYYYYYYYYyy",
+        "yYYYYYYYYYYYYyy.",
+        "yYYYYYYYYYYYYyy.",
+        "yYYyyYYYYYYYYyy.",
+        "yyyYYYYYYYYYyy..",
+        "yYYYYYYYYYYyy...",
+        "YyYYYYYYYYYyy...",
+        "YyYYYYYYYYyy....",
+        "YYyYYYYYyyy.....",
+        "YYyYYYYyyy......",
+        "YYYYyyyy........",
+        "yyyyyyy.........",
+        "yyyy............"
+      ]
+    },
+    {
+      "id": "sun_nw",
+      "rows": [
+        "...............y",
+        "...............y",
+        "........yy.....Y",
+        "........y.y....Y",
+        ".........Yy....Y",
+        ".........Y.y...Y",
+        "..........Yy.yyy",
+        "...yy......yyyyY",
+        "..yyyy...yyyYYYY",
+        "....YYy.yyYYYYyY",
+        "......YyyYYYYYYY",
+        ".......yyYYyYYYY",
+        ".......yYYYYYYYR",
+        "......yyYYYYYRRR",
+        "yyy...yyYyYYYRWW",
+        "...yyyyYYYYYRRWR"
+      ]
+    },
+    {
+      "id": "sun_ne",
+      "rows": [
+        ".y..............",
+        ".y..............",
+        ".y.....y........",
+        "y......yy.......",
+        "y.....Yyy.......",
+        "y.....Yy........",
+        "yyy..Yy.........",
+        "Yyyyyy..........",
+        "YYYYyyy.....yy..",
+        "YyYYYYyy..YY.y..",
+        "YYYYYYYy.Y.yy...",
+        "YYYYyYYyyyy.....",
+        "RYYYYYYYy.......",
+        "RRRYYYYYyy......",
+        "RRRYYYyYyy......",
+        "RRRRYYYYYy......"
+      ]
+    },
+    {
+      "id": "sun_sw",
+      "rows": [
+        "yyYYYYyYYYYYRRRR",
+        "......yyYyYYYRRR",
+        "......yyYYYYYRRR",
+        ".......yYYYYYYYR",
+        ".....yyyyYYyYYYY",
+        "...yy.Y.yYYYYYYY",
+        "..y.YY..yyYYYYyY",
+        "..yy.....yyyYYYY",
+        "..........yyyyyY",
+        ".........yY..yyy",
+        "........yY.....y",
+        ".......yyY.....y",
+        ".......yy......y",
+        "........y.....y.",
+        "..............y.",
+        "..............y."
+      ]
+    },
+    {
+      "id": "sun_se",
+      "rows": [
+        "RRRRYYYYYyyyyYyy",
+        "RRRYYYyYyy...yyy",
+        "RRRYYYYYyy......",
+        "RYYYYYYYy.......",
+        "YYYYyYYyy.......",
+        "YYYYYYYyyY......",
+        "YyYYYYyy.yYY....",
+        "YYYYyyy...yyyy..",
+        "Yyyyy......yy...",
+        "yyy.yY..........",
+        "Y...y.Y.........",
+        "Y....yY.........",
+        "Y....y.y........",
+        "Y.....yy........",
+        "y...............",
+        "y..............."
+      ]
     }
   ],
   "mirror": {
@@ -124,6 +292,38 @@
     },
     "se_l": {
       "from": "se",
+      "flipX": true
+    },
+    "twin_nw_l": {
+      "from": "twin_nw",
+      "flipX": true
+    },
+    "twin_ne_l": {
+      "from": "twin_ne",
+      "flipX": true
+    },
+    "twin_sw_l": {
+      "from": "twin_sw",
+      "flipX": true
+    },
+    "twin_se_l": {
+      "from": "twin_se",
+      "flipX": true
+    },
+    "sun_nw_l": {
+      "from": "sun_nw",
+      "flipX": true
+    },
+    "sun_ne_l": {
+      "from": "sun_ne",
+      "flipX": true
+    },
+    "sun_sw_l": {
+      "from": "sun_sw",
+      "flipX": true
+    },
+    "sun_se_l": {
+      "from": "sun_se",
       "flipX": true
     }
   }

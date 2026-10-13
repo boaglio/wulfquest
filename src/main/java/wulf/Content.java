@@ -146,6 +146,7 @@ public record Content(
                 CreatureSpriteValidator.framesBySprite(sprites), solidity(rooms));
         NewGamePlusValidator.check(game, landmarks);
         NewGamePlusValidator.checkWords(shell, game, palette, display, font);
+        NewGamePlusValidator.checkAmulets(shell, landmarks, sprites.all());
         TreasureData treasures = db.load("world/treasures", TreasureData.class);
         treasures.check(map, palette, CreatureSpriteValidator.framesBySprite(sprites));
 

@@ -358,17 +358,17 @@
               "label": { "type": "string", "minLength": 1, "maxLength": 60 },
               "tagline": { "description": "the title's tagline while this job is chosen; the game itself keeps title.tagline", "type": "string", "minLength": 1, "maxLength": 48 },
               "verses": { "$ref": "#/$defs/verses" },
+              "amulet": {
+                "description": "§14.9: this job's own amulet, a frame of the amulet sprite for each panel slot, 0..3 reading across",
+                "type": "array", "minItems": 4, "maxItems": 4, "items": { "type": "string", "minLength": 1 }
+              },
               "theEnd": { "description": "§14.7: the credits roll's first row after winning this job", "type": "string", "minLength": 1, "maxLength": 40 },
               "ending": {
                 "description": "§14.7: this job's own closing scene, laid over the game's ending",
                 "type": "object",
                 "additionalProperties": false,
-                "required": ["amulet", "lines", "tuneAt", "promptAt"],
+                "required": ["lines", "tuneAt", "promptAt"],
                 "properties": {
-                  "amulet": {
-                    "type": "object", "additionalProperties": false, "required": ["sprite", "frame"],
-                    "properties": { "sprite": { "type": "string", "minLength": 1 }, "frame": { "type": "string", "minLength": 1 } }
-                  },
                   "lines": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/line" } },
                   "tuneAt": { "type": "integer", "minimum": 0 },
                   "promptAt": { "type": "integer", "minimum": 0 },

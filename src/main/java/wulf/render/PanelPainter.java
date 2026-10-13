@@ -50,6 +50,12 @@ public final class PanelPainter {
      */
     public void paint(Framebuffer fb, long score, long hiScore, int lives,
                       int slotMask, int effectColour, int effectFrac, String message) {
+        paint(fb, score, hiScore, lives, slotMask, effectColour, effectFrac, message, frameBySlot);
+    }
+
+    /** @param frames the amulet's frame for each slot: a later job's own amulet (§14.9) */
+    public void paint(Framebuffer fb, long score, long hiScore, int lives,
+                      int slotMask, int effectColour, int effectFrac, String message, List<String> frames) {
         fb.fillRect(panel.x(), panel.y(), panel.w(), panel.h(), ground);
 
         int top = panel.y() + 2;
@@ -58,7 +64,7 @@ public final class PanelPainter {
         font.draw(fb, hi, panel.x() + panel.w() - 2 - font.widthOf(hi), top, inkNormal);
 
         drawLives(fb, lives, top + 10);
-        drawAmulet(fb, slotMask);
+        drawAmulet(fb, slotMask, frames);
 
         int barY = panel.y() + panel.h() - 10;
         if (message != null && !message.isEmpty()) {
@@ -99,13 +105,13 @@ public final class PanelPainter {
      * The amulet assembling (§14.6, §17.3): held quarters in their own colours, missing
      * ones as silhouettes in {@code white} — never {@code brightBlack}, which is black.
      */
-    private void drawAmulet(Framebuffer fb, int slotMask) {
+    private void drawAmulet(Framebuffer fb, int slotMask, List<String> frames) {
         for (int slot = 0; slot < 4; slot++) {
             boolean held = (slotMask & (1 << slot)) != 0;
-            if (amulet == null || slot >= frameBySlot.size()) {
+            if (amulet == null || slot >= frames.size()) {
                 fb.drawRect(slotX(slot), slotY(slot), AMULET_SLOT, AMULET_SLOT, held ? inkBright : inkDim);
             } else {
-                amulet.blitHalf(fb, frameBySlot.get(slot), slotX(slot), slotY(slot), held ? -1 : inkDim);
+                amulet.blitHalf(fb, frames.get(slot), slotX(slot), slotY(slot), held ? -1 : inkDim);
             }
         }
     }

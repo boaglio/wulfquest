@@ -2281,11 +2281,9 @@ screen in the display font.
 
 **Each job its own ending** (asked for by the user, 2026-10-12). A later job
 (§14.9) lays `shell.json → newGamePlus.levels[n].ending` over this scene
-(`ShellConfig.endingFor`): its own amulet, its own words, its own beats. The
-game's ending shows its four quarters put together; job 1's is the amulet
-that was broken in two, a medallion half silver and half gold with the mended
-seam and a green stone (`ending_amulets` frame `twin`); job 2's the amulet that
-was whole all along, a gold sun with a red stone (`sun`):
+(`ShellConfig.endingFor`): its own words, its own beats, and the amulet that
+job was played for, its four quarters put together as in every ending —
+job 1's medallion, job 2's sun (§14.9, `newGamePlus.levels[n].amulet`):
 
 > job 1: \- HERE ARE BOTH HALVES, MR JONES. — \- MARVELLOUS! TWO HALVES, ONE
 > AMULET. IT WILL SHINE IN THE MUSEUM, RIGHT BESIDE THE FIRST ONE.
@@ -2298,8 +2296,8 @@ bay and a grey trot in from the left (`comeAt`, `comeTicks`), each to stand
 where one of them does; at `mountAt` they are up, Vale on the bay and Mr Jones
 on the grey; from `rideAt` they gallop off to the right over `rideTicks`, past
 the hut and out of the picture, and the tune comes in as they go. The horses,
-with and without their riders, are `ending_horse` (32×36, four frames each), and
-the amulets 16×16 `ending_amulets`, both drawn by `tools/art/ending_forge.py`.
+with and without their riders, are `ending_horse` (32×36, four frames each),
+drawn by `tools/art/ending_forge.py`.
 `checkEnding` checks each job's ending as it does the game's, and that the ride
 keeps its order: the horses there before anyone mounts, up before they ride,
 gone before the prompt. `--endings` (§17.6) plays all three.
@@ -2358,6 +2356,20 @@ later level names its `pieces`, each the panel slots (0–3) it fills:
   `wulfSpeedPercent` of its speeds.
 - **The verses.** The amulet reveal (§14.6) shows a later job's own verses, one
   a piece (`shell.json → newGamePlus.levels[n].verses`).
+
+**Each job its own amulet** (asked for by the user, 2026-10-13). The game's
+amulet is the wolf's face in four quarters; job 1's is another amulet, the one
+broken in two — a medallion, silver above and gold below as its halves lie in
+the jungle, a crescent on the one and a star on the other, its seam mended
+across the middle and a green stone where the halves meet; job 2's was whole
+all along, a gold sun with its rays and a red stone. Each is a 32×32 face cut
+into quarters of the amulet sprite (`twin_nw`… and `sun_nw`…, drawn by
+`tools/art/creature_forge.py`), and `shell.json → newGamePlus.levels[n].amulet`
+names them slot by slot. Everything that shows the amulet draws the job's own
+(`AmuletFrames`): the pieces on their pedestals and in flight, the panel, the
+reveal and the closing scene (§14.7). `NewGamePlusValidator.checkAmulets`
+refuses a frame the sprite has not got, or other than four, or any for the game
+itself.
 
 **Unlocking.** Winning job *n* opens job *n + 1*, if there is one. It is kept
 in the ledger (`stats.json → newGamePlus`, §21.5), and the next game from the

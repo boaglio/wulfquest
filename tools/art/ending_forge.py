@@ -10,12 +10,8 @@ him from the left.
   stand, talk          leaning on the cane; talk opens his mouth in the beard
   hold, hold_talk      both hands out, the amulet in them (the screen draws it)
 
-The amulets of Mr Jones's later jobs (§14.9, §14.7), as each ending shows it whole,
-16x16 — the game itself shows its own four quarters put together:
-
-  twin     the amulet that was broken in two: a medallion, one half silver and one gold,
-           the seam still showing, a green stone where they meet
-  sun      the amulet that was whole all along: a gold sun with its rays, a red stone
+(The later jobs' amulets are quarters of amulet_piece, drawn by creature_forge.py, so
+the ending shows the same amulet the game did.)
 
 And the horses Vale and Mr Jones ride home on at the very last ending (§14.7), 32x36,
 facing right, origin bottom-centre:
@@ -23,8 +19,7 @@ facing right, origin bottom-centre:
   bay_walk0-3, grey_walk0-3     a bay and a grey, saddled, trotting in with no one on them
   bay_vale0-3, grey_jones0-3    the same at a gallop, Vale on the bay, Mr Jones on the grey
 
-Outputs data/art/sprites/ending_jones.sprite.json, ending_amulets.sprite.json and
-ending_horse.sprite.json and merges the names into data/art/sprites/index.json.
+Outputs data/art/sprites/ending_jones.sprite.json and ending_horse.sprite.json and merges the names into data/art/sprites/index.json.
 Run:  python3 tools/art/ending_forge.py
 """
 import math
@@ -77,45 +72,6 @@ def jones(talking, holding):
         cv.set(3, 17, "W")                # the hand on its crook
         box(2, 17, 2, 25, "y")        # the cane
         cv.set(3, 16, "y")
-    cv.outline("K")
-    return cv.rows()
-
-
-def twin():
-    """A round medallion that was in two: silver on the left, gold on the right, a green stone."""
-    cv = Canvas(16, 16)
-    for y in range(16):
-        for x in range(16):
-            d = math.hypot(x + 0.5 - 8, y + 0.5 - 8.5)
-            if d <= 7:
-                left = x < 8
-                rim = d > 5.6
-                cv.set(x, y, ("w" if rim else "W") if left else ("y" if rim else "Y"))
-    for y in range(3, 15):
-        cv.set(8, y, "K" if y % 3 else "w")         # the seam, mended
-    for x, y in ((7, 8), (8, 8), (7, 9), (8, 9)):
-        cv.set(x, y, "G")                           # the stone where the halves meet
-    cv.set(7, 8, "W")
-    cv.set(7, 0, "y")                               # the ring for its chain
-    cv.set(8, 0, "y")
-    cv.outline("K")
-    return cv.rows()
-
-
-def sun():
-    """A gold sun, rays all round, a red stone in its heart."""
-    cv = Canvas(16, 16)
-    cx, cy = 8, 8.5
-    for k in range(8):
-        a = k * math.pi / 4
-        for r in (5.5, 6.5, 7.3):
-            cv.set(int(cx + r * math.cos(a)), int(cy + r * math.sin(a)), "y" if r > 7 else "Y")
-    for y in range(16):
-        for x in range(16):
-            d = math.hypot(x + 0.5 - cx, y + 0.5 - cy)
-            if d <= 4.6:
-                cv.set(x, y, "R" if d <= 1.8 else "Y" if d <= 3.6 else "y")
-    cv.set(7, 7, "W")                               # the stone catches the light
     cv.outline("K")
     return cv.rows()
 
@@ -181,15 +137,14 @@ def horse(coat, frame, rider=None, gallop=False):
 def main():
     write_sprite("ending_jones", W, H, [("stand", jones(False, False)), ("talk", jones(True, False)),
                                         ("hold", jones(False, True)), ("hold_talk", jones(True, True))])
-    write_sprite("ending_amulets", 16, 16, [("twin", twin()), ("sun", sun())])
     frames = []
     for coat in COATS:
         frames += [(f"{coat}_walk{f}", horse(coat, f)) for f in range(4)]
     frames += [(f"bay_vale{f}", horse("bay", f, "vale", gallop=True)) for f in range(4)]
     frames += [(f"grey_jones{f}", horse("grey", f, "jones", gallop=True)) for f in range(4)]
     write_sprite("ending_horse", HW, HH, frames)
-    update_index(["ending_jones", "ending_amulets", "ending_horse"], lambda n: n.startswith("ending_"))
-    print("ending forge: ending_jones (4 frames), ending_amulets (2), ending_horse (%d)" % len(frames))
+    update_index(["ending_jones", "ending_horse"], lambda n: n.startswith("ending_"))
+    print("ending forge: ending_jones (4 frames), ending_horse (%d)" % len(frames))
 
 
 if __name__ == "__main__":
