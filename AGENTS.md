@@ -278,7 +278,7 @@ wulfquest/
     art/scenery_forge.py        generates the 41 scenery sprites, §10.5 (dev-time only)
     art/character_forge.py      generates Ranger Vale's frames, §10.5 (dev-time only)
     art/creature_forge.py       generates the 13 creature sprites and the puff, §10.5 (dev-time only)
-    art/item_forge.py           draws the map scroll, the eyes, the map's diamond and the treasures, §14.8, §16.4, §17.7 (dev-time only)
+    art/item_forge.py           draws the map scroll, the eyes, the looking glass and its arrow, the map's diamond and the treasures, §14.8, §14.10, §16.4, §17.7 (dev-time only)
     art/ending_forge.py         draws Mr Jones for the closing scene, §14.7 (dev-time only)
     art/font_forge.py           generates the 8x8 display set in font.json, §10.4 (dev-time only)
     audio/music_forge.py        writes music.json from phrases of note tokens, §18.3 (dev-time only)
@@ -2354,6 +2354,51 @@ A game's job is in its replay (`newGamePlus`, left out for the game itself,
 (§17.6). `NewGamePlusTest`, `QuestTest`, `ShellTest` and
 `NewGamePlusValidationTest` check all of it.
 
+### 14.10 The looking glasses **[NEW]**
+
+Asked for by the user (2026-10-12). Two looking glasses (`item_glass`, a brass
+rim and a lens whose glint moves on the eyes' beat) lie in the jungle, in
+`landmarks.json → items.glass.places`: the north one at `12,5`, the south one
+at `4,14`, a few rooms from the start. Each is taken like the scroll and the
+eyes (§14.8): by touching `items.pickupBox` round its spot, once per game,
+scoring nothing, with the same flash and sound.
+
+A glass shows **the way to the next quarter** for `showWayTicks` (4500, 90
+seconds of play; the clock stands still while the game does, under the map or
+pause). The next quarter is the one nearest *on foot* among those this game
+hides and Vale has not taken (in a later job, §14.9, only its kept lairs);
+with the amulet whole, the way leads to the arch instead. A second glass
+starts the 90 seconds again; it does not add to them.
+
+- **In the jungle**, a yellow arrow (`way_arrow`, frames `n` `e` `s` `w`) sits
+  `insetPx` inside the playfield's edge where the way leaves the room, in line
+  with where Vale's feet cross. It blinks, on and off for `blinkTicks`; for
+  the last `warnTicks` (10 s) it blinks at `warnBlinkTicks`. In the room the
+  way ends in — the lair itself — there is no arrow.
+- **On the map** (§17.7), the whole way is dotted from Vale's feet to its end
+  in `shell.json → map.trail.colour`, a dot every `dotEveryPx` map pixels,
+  the dots marching towards the end a pixel every `marchTicks`; a cross blinks
+  where it ends. It crosses rooms the map has not shown yet: that is the point
+  of the glass.
+
+**The way** is worked out by `wulf.world.Wayfinder`, a breadth-first flood
+over the stitched world (`WorldGrid`) through the cells the feet fit in, the
+same clearance the audit uses (§22.3), so it goes the way a player can walk,
+room edges, pockets and the Wulf's row included. It floods from the targets
+once, until a quarter is taken, and follows the field down from wherever Vale
+stands, so it is always the shortest way from here. It is drawing only
+(`wulf.render.WayPainter`): the simulation keeps just the glasses taken and
+the ticks left, which enter the state hash only once a glass is found, so a
+game that never finds one hashes as before.
+
+**Where they lie.** `LandmarkValidator` keeps each glass on clear ground in a
+room of its own: not the start, the way out, a room any of the eight sets can
+hide a quarter in, a shrine, the scroll's or an eye's room, or the other
+glass's. Treasures keep out of their rooms too (§16.4). The two rooms are ones
+no recorded replay walks into, so the replays (§22.6) still check what they
+were recorded to check. Drawn by `tools/art/item_forge.py`. `WayfinderTest`,
+`WayPainterTest`, `QuestTest`, `QuestDataValidationTest`.
+
 ---
 
 ## 15. Orchids — the drug system **[CANON]** concept and effects, **[RECON]** growth
@@ -2602,7 +2647,7 @@ disassembly (§25 Q10) and kept in `data/world/treasures.json`:
   sixteen) is a life as well, while fewer than nine are in reserve (`$A2F8`;
   our `lives.max`). `pickupBox` is 12×12 (`$AB01` is called with `BC=$0C0C`).
 - **Not in the quest's rooms.** Ours keep this game's lairs, the way out and
-  the rooms of the map scroll and the eyes (§14.8) clear; the original has no
+  the rooms of the map scroll, the eyes (§14.8) and the glasses (§14.10) clear; the original has no
   such rule. `Content.treasurePlaces()` leaves out the fixed rooms; the lairs,
   known only once the game has picked its set, are skipped as the game lays
   them — on the same draws, so the rest of the jungle is laid alike.
@@ -2764,8 +2809,9 @@ the diamond is shiny and twinkles — `shiny` frames in turn, `frameTicks` each,
 every lair a frame ahead of the last so they do not twinkle together; once the
 quarter is taken it is the `taken` frame, the same gem gone grey, eye or no
 eye (§14.8). `ShellValidator.checkMap` refuses a sprite or frame that does not
-exist, or a sprite larger than a room on the map. `MapScreen`,
-`MapScreenTest`.
+exist, or a sprite larger than a room on the map. While a looking glass shows
+the way (§14.10), the map dots it (`map.trail`), with a blinking cross at its
+end. `MapScreen`, `MapScreenTest`.
 
 ## 18. Audio — procedural 1-bit beeper
 

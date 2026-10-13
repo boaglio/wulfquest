@@ -1,0 +1,102 @@
+{
+  "schemaVersion": 1,
+  "name": "item_glass",
+  "size": {
+    "w": 16,
+    "h": 16
+  },
+  "origin": {
+    "x": 8,
+    "y": 16
+  },
+  "legend": {
+    ".": -1,
+    "K": 0,
+    "r": 2,
+    "c": 5,
+    "y": 6,
+    "R": 10,
+    "C": 13,
+    "Y": 14,
+    "W": 15
+  },
+  "frames": [
+    {
+      "id": "f0",
+      "rows": [
+        ".......KKKKK....",
+        "......KYYYYYK...",
+        ".....KYYcccYYK..",
+        "....KYcWWccccyK.",
+        "...KYYcWcccccyyK",
+        "...KYcccccccccyK",
+        "...KYcccccccccyK",
+        "...KYcccccccccyK",
+        "...KYYcccccCcyyK",
+        "....KYcccccccyK.",
+        "....KKyycccyyK..",
+        "...KrRKyyyyyK...",
+        "..KrRK.KKKKK....",
+        ".KrRK...........",
+        "KrRK............",
+        "rrK............."
+      ]
+    },
+    {
+      "id": "f1",
+      "rows": [
+        ".......KKKKK....",
+        "......KYYYYYK...",
+        ".....KYYcccYYK..",
+        "....KYcccWWccyK.",
+        "...KYYcccWcccyyK",
+        "...KYcccccccccyK",
+        "...KYcccccccccyK",
+        "...KYcccccccccyK",
+        "...KYYcccccCcyyK",
+        "....KYcccccccyK.",
+        "....KKyycccyyK..",
+        "...KrRKyyyyyK...",
+        "..KrRK.KKKKK....",
+        ".KrRK...........",
+        "KrRK............",
+        "rrK............."
+      ]
+    },
+    {
+      "id": "f2",
+      "rows": [
+        ".......KKKKK....",
+        "......KYYYYYK...",
+        ".....KYYcccYYK..",
+        "....KYcccccccyK.",
+        "...KYYcccccccyyK",
+        "...KYcWWccccccyK",
+        "...KYcWcccccccyK",
+        "...KYcccccccccyK",
+        "...KYYcccccCcyyK",
+        "....KYcccccccyK.",
+        "....KKyycccyyK..",
+        "...KrRKyyyyyK...",
+        "..KrRK.KKKKK....",
+        ".KrRK...........",
+        "KrRK............",
+        "rrK............."
+      ]
+    }
+  ],
+  "mirror": {
+    "f0_l": {
+      "from": "f0",
+      "flipX": true
+    },
+    "f1_l": {
+      "from": "f1",
+      "flipX": true
+    },
+    "f2_l": {
+      "from": "f2",
+      "flipX": true
+    }
+  }
+}

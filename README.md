@@ -156,6 +156,9 @@ rebuild — the game reads the working tree's `data/` directly.
 In the jungle, `M` opens a map of everywhere you have been; the game waits while
 it is open. Find the scroll a few rooms from the start and it shows the whole
 jungle; find the two eyes and it shows where the four quarters of the amulet lie.
+Find one of the two looking glasses and for ninety seconds an arrow at the
+edge of each room shows the way to the nearest quarter, and the map dots the
+whole way there.
 
 The title screen has the rest: `K` for the keys page, where the period layout
 (`Q`/`A`/`O`/`P` to move, `M` to swing) is one digit away and the choice sticks;
@@ -200,7 +203,7 @@ nothing yet.)
 
 ## How it is checked
 
-`mvn -q verify` runs 548 tests and every gate the project has:
+`mvn -q verify` runs 555 tests and every gate the project has:
 
 - **The data validates itself.** Every JSON file is schema-checked at load,
   and the semantic validators go further — a palette colour that does not

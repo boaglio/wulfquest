@@ -102,7 +102,7 @@
       }
     },
     "items": {
-      "type": "object", "additionalProperties": false, "required": ["pickupBox", "glanceTicks", "map", "eyes"],
+      "type": "object", "additionalProperties": false, "required": ["pickupBox", "glanceTicks", "map", "eyes", "glass"],
       "properties": {
         "pickupBox": {
           "type": "object", "additionalProperties": false, "required": ["x", "y", "w", "h"],
@@ -129,6 +129,37 @@
                         "properties": { "x": { "type": "integer" }, "y": { "type": "integer" } } },
               "sprite": { "type": "string", "pattern": "^[a-z][a-z0-9_]*$" },
               "reveals": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "type": "string" } }
+            }
+          }
+        },
+        "glass": {
+          "description": "§14.10 [NEW]: the looking glasses, each showing the way to the next quarter for a while",
+          "type": "object", "additionalProperties": false,
+          "required": ["sprite", "showWayTicks", "warnTicks", "arrow", "places"],
+          "properties": {
+            "sprite": { "type": "string", "pattern": "^[a-z][a-z0-9_]*$" },
+            "showWayTicks": { "type": "integer", "minimum": 1 },
+            "warnTicks": { "type": "integer", "minimum": 0 },
+            "arrow": {
+              "type": "object", "additionalProperties": false,
+              "required": ["sprite", "blinkTicks", "warnBlinkTicks", "insetPx"],
+              "properties": {
+                "sprite": { "type": "string", "pattern": "^[a-z][a-z0-9_]*$" },
+                "blinkTicks": { "type": "integer", "minimum": 1 },
+                "warnBlinkTicks": { "type": "integer", "minimum": 1 },
+                "insetPx": { "type": "integer", "minimum": 0, "maximum": 64 }
+              }
+            },
+            "places": {
+              "type": "array", "maxItems": 8,
+              "items": {
+                "type": "object", "additionalProperties": false, "required": ["room", "spot"],
+                "properties": {
+                  "room": { "$ref": "#/$defs/room" },
+                  "spot": { "type": "object", "additionalProperties": false, "required": ["x", "y"],
+                            "properties": { "x": { "type": "integer" }, "y": { "type": "integer" } } }
+                }
+              }
             }
           }
         }

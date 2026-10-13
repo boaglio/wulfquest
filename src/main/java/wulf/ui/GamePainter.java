@@ -14,8 +14,11 @@ import wulf.render.PlayerPainter;
 import wulf.render.QuestPainter;
 import wulf.render.RoomPainter;
 import wulf.render.SpriteBank;
+import wulf.render.WayPainter;
 import wulf.sim.Simulation;
 import wulf.world.RoomBaker;
+import wulf.world.Wayfinder;
+import wulf.world.WorldGrid;
 
 /**
  * One frame of the jungle: the room, its flowers, its creatures, Vale, the
@@ -35,6 +38,7 @@ public final class GamePainter {
     private final CreaturePainter beasts;
     private final PlayerPainter vale;
     private final PanelPainter panel;
+    private final WayPainter way;
     private final int[] effectColours;
     private final int border;
     private final int alarm;
@@ -59,6 +63,8 @@ public final class GamePainter {
         }
         this.quest = new QuestPainter(display, sprites, c.landmarks(), palette.indexOf("black"),
                 new QuestPainter.TreasureArt(c.treasurePlaces(), c.treasures().sprite(), treasureFrames, treasureInks));
+        this.way = new WayPainter(display, sprites, c.landmarks(), c.player().collisionBox(),
+                new Wayfinder(new WorldGrid(c.rooms())));
         this.beasts = new CreaturePainter(display, sprites, c.creatures(), palette);
         this.vale = new PlayerPainter(display, sprites, c.player(), palette);
         this.panel = new PanelPainter(display, fonts, palette, sprites.get(c.landmarks().amulet().sprite()),
@@ -80,6 +86,11 @@ public final class GamePainter {
         return panel;
     }
 
+    /** The way a looking glass shows (§14.10), which the map draws too. */
+    public WayPainter way() {
+        return way;
+    }
+
     /** The playfield alone — no panel — which is what the attract demo shows. */
     public void paintWorld(Framebuffer fb, Simulation sim, boolean showMask) {
         if (clash != null && !fb.tracksInk()) {
@@ -98,6 +109,7 @@ public final class GamePainter {
         quest.paintLoot(fb, sim);
         beasts.paint(fb, sim);
         vale.paint(fb, sim);
+        way.paintArrow(fb, sim);
         quest.paintEscape(fb, sim);
         if (clash != null && !showMask) {
             clash.apply(fb);   // §5.4; the debug mask would only be repainted in someone else's ink

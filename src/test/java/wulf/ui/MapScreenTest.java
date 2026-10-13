@@ -21,7 +21,7 @@ class MapScreenTest {
     private static final Sprite ICON = new SpriteBank(C.sprites()).get(C.shell().map().quarterIcon().sprite());
 
     private static MapScreen map() {
-        return new MapScreen(C.display(), C.rooms(), C.landmarks(), C.palette(), C.shell().map(), ICON);
+        return new MapScreen(C.display(), C.rooms(), C.landmarks(), C.palette(), C.shell().map(), ICON, null);
     }
 
     /** Whether {@code room} on the map carries the icon's {@code frame}: every pixel of it, where it sits. */

@@ -1401,6 +1401,9 @@ public final class Simulation {
         if (q.hintTicks > 0) {
             q.hintTicks--;
         }
+        if (q.wayTicks > 0) {
+            q.wayTicks--;
+        }
         if (q.lair >= 0) {
             Creature g = q.guardian;
             if (g.hurtTicks > 0) {
@@ -1454,7 +1457,7 @@ public final class Simulation {
         }
     }
 
-    /** §14.8: the map scroll and the eyes, taken by touch, once each per game. */
+    /** §14.8, §14.10: the map scroll, the eyes and the looking glasses, taken by touch, once each per game. */
     private void takeItems(LandmarksData marks, int px, int py, PlayerData.Box pb, int roomX, int roomY) {
         LandmarksData.Items items = marks.items();
         if (items.map() == null) {
@@ -1475,6 +1478,18 @@ public final class Simulation {
                     && overlaps(px, py, pb.w(), pb.h(), roomX + eye.spot().x() + ib.x(), roomY + eye.spot().y() + ib.y(),
                             ib.w(), ib.h())) {
                 q.eyeTaken[i] = true;
+                itemTaken(marks);
+            }
+        }
+        // §14.10: a looking glass shows the way afresh, however much of the last one was left.
+        LandmarksData.Glass glass = items.glass();
+        for (int i = 0; i < glass.places().size() && i < Quest.MAX_GLASSES; i++) {
+            LandmarksData.Place place = glass.places().get(i);
+            if (!q.glassTaken[i] && LandmarksData.room(place.room()).equals(room)
+                    && overlaps(px, py, pb.w(), pb.h(), roomX + place.spot().x() + ib.x(),
+                            roomY + place.spot().y() + ib.y(), ib.w(), ib.h())) {
+                q.glassTaken[i] = true;
+                q.wayTicks = glass.showWayTicks();
                 itemTaken(marks);
             }
         }
@@ -2722,8 +2737,14 @@ public final class Simulation {
         for (int i = 0; i < Quest.MAX_EYES; i++) {
             found |= q.eyeTaken[i] ? 2 << i : 0;
         }
+        for (int i = 0; i < Quest.MAX_GLASSES; i++) {
+            found |= q.glassTaken[i] ? 2 << (Quest.MAX_EYES + i) : 0;
+        }
         if (found != 0) {
             h = mix(h, found);   // only once something is found (§14.8): a game that has found nothing hashes as before
+        }
+        if (q.wayTicks > 0) {
+            h = mix(h, q.wayTicks);   // §14.10, likewise only while a glass shows the way
         }
         h = mix(h, q.hintDirection.ordinal());
         h = mix(h, q.escapeBonus + 31 * q.timeBonus + 961 * q.livesBonus);

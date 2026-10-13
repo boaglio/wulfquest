@@ -253,6 +253,32 @@ class QuestTest {
         }
     }
 
+    /** §14.10: a looking glass shows the way for a while, once a game, and a second shows it afresh. */
+    @Test
+    void aLookingGlassShowsTheWayForAWhile() {
+        LandmarksData.Glass glass = marks.items().glass();
+        assertThat(glass.places()).hasSize(2);
+        assertThat(glass.showWayTicks()).as("90 seconds at 50 Hz").isEqualTo(90 * 50);
+        LandmarksData.Place place = glass.places().get(0);
+        Simulation s = sim(OPEN, real, LandmarksData.room(place.room()), place.spot().x(), place.spot().y() + 40);
+        s.tick(STILL);
+        assertThat(s.quest().wayTicks()).as("not yet").isZero();
+        Simulation g = sim(OPEN, real, LandmarksData.room(place.room()), place.spot().x(), place.spot().y());
+        g.tick(STILL);
+        assertThat(g.quest().glassTaken(0)).isTrue();
+        assertThat(g.quest().glassTaken(1)).isFalse();
+        assertThat(g.quest().wayTicks()).isEqualTo(glass.showWayTicks());
+        assertThat(g.score()).as("finding things scores nothing").isZero();
+        for (int i = 0; i < 100; i++) {
+            g.tick(STILL);
+        }
+        assertThat(g.quest().wayTicks()).as("standing on it does not take it again").isEqualTo(glass.showWayTicks() - 100);
+        for (int i = 0; i < glass.showWayTicks(); i++) {
+            g.tick(STILL);
+        }
+        assertThat(g.quest().wayTicks()).isZero();
+    }
+
     @Test
     void theEyesShowEveryLairBetweenThem() {
         // §14.8: each eye shows two quarters, and two eyes show all four.

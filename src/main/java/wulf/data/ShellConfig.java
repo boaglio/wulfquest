@@ -55,7 +55,18 @@ public record ShellConfig(
      * shown, or whose quarter is taken, carries {@code quarterIcon} (§14.8).
      */
     public record MapScreen(String key, String message, String visited, String revealed, String here,
-                            int blinkTicks, QuarterIcon quarterIcon) {
+                            int blinkTicks, QuarterIcon quarterIcon, Trail trail) {
+        public MapScreen {
+            trail = trail == null ? Trail.NONE : trail;
+        }
+    }
+
+    /**
+     * The way a looking glass shows, on the map (§14.10): a dot of {@code colour} every
+     * {@code dotEveryPx} along it, marching on a pixel every {@code marchTicks}.
+     */
+    public record Trail(String colour, int dotEveryPx, int marchTicks) {
+        public static final Trail NONE = new Trail("white", 1, 1);
     }
 
     /**

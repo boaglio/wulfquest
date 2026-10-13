@@ -1,0 +1,110 @@
+{
+  "schemaVersion": 1,
+  "name": "way_arrow",
+  "size": {
+    "w": 13,
+    "h": 13
+  },
+  "origin": {
+    "x": 6,
+    "y": 13
+  },
+  "legend": {
+    ".": -1,
+    "K": 0,
+    "y": 6,
+    "Y": 14
+  },
+  "frames": [
+    {
+      "id": "n",
+      "rows": [
+        "......K......",
+        ".....KYK.....",
+        "....KYYYK....",
+        "...KYYYYYK...",
+        "..KYYYYYYYK..",
+        ".KYYYYyYYYYK.",
+        "..KKYYyYYKK..",
+        "...KYYyYYK...",
+        "...KYYyYYK...",
+        "...KYYyYYK...",
+        "...KYYyYYK...",
+        "...KYYYYYK...",
+        "....KKKKK...."
+      ]
+    },
+    {
+      "id": "e",
+      "rows": [
+        ".............",
+        ".......K.....",
+        "......KYK....",
+        ".KKKKKKYYK...",
+        "KYYYYYYYYYK..",
+        "KYYYYYYYYYYK.",
+        "KYyyyyyyYYYYK",
+        "KYYYYYYYYYYK.",
+        "KYYYYYYYYYK..",
+        ".KKKKKKYYK...",
+        "......KYK....",
+        ".......K.....",
+        "............."
+      ]
+    },
+    {
+      "id": "s",
+      "rows": [
+        "....KKKKK....",
+        "...KYYYYYK...",
+        "...KYYyYYK...",
+        "...KYYyYYK...",
+        "...KYYyYYK...",
+        "...KYYyYYK...",
+        "..KKYYyYYKK..",
+        ".KYYYYyYYYYK.",
+        "..KYYYYYYYK..",
+        "...KYYYYYK...",
+        "....KYYYK....",
+        ".....KYK.....",
+        "......K......"
+      ]
+    },
+    {
+      "id": "w",
+      "rows": [
+        ".............",
+        ".....K.......",
+        "....KYK......",
+        "...KYYKKKKKK.",
+        "..KYYYYYYYYYK",
+        ".KYYYYYYYYYYK",
+        "KYYYYyyyyyyYK",
+        ".KYYYYYYYYYYK",
+        "..KYYYYYYYYYK",
+        "...KYYKKKKKK.",
+        "....KYK......",
+        ".....K.......",
+        "............."
+      ]
+    }
+  ],
+  "mirror": {
+    "n_l": {
+      "from": "n",
+      "flipX": true
+    },
+    "e_l": {
+      "from": "e",
+      "flipX": true
+    },
+    "s_l": {
+      "from": "s",
+      "flipX": true
+    },
+    "w_l": {
+      "from": "w",
+      "flipX": true
+    }
+  }
+}

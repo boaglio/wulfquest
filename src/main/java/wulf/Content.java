@@ -241,7 +241,7 @@ public record Content(
 
     /**
      * Where the treasures may lie (§16.4): every room's two places, less the rooms the quest
-     * keeps for itself — the way out, and the map scroll's and the eyes' rooms. This game's
+     * keeps for itself — the way out, and the map scroll's, the eyes' and the glasses' rooms. This game's
      * lairs are left out when the game lays them, once it has picked where the amulet lies.
      */
     public Treasures treasurePlaces() {
@@ -253,6 +253,9 @@ public record Content(
         }
         for (LandmarksData.Eye eye : items.eyes()) {
             keepClear.add(LandmarksData.room(eye.room()));
+        }
+        for (LandmarksData.Place glass : items.glass().places()) {
+            keepClear.add(LandmarksData.room(glass.room()));
         }
         int[][] places = treasures.places(map, solidity(rooms), keepClear);
         boolean[] life = new boolean[treasures.kinds().size()];

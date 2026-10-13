@@ -114,6 +114,11 @@ public final class LandmarkValidator {
         // A shrine may be where a game hides a quarter: it is quiet in that game (§14.5). Not an item.
         taken.addAll(amuletRooms);
         checkItems(marks, framesBySprite, solid, taken);
+        Set<RoomAddress> busy = new HashSet<>(taken);
+        for (String shrine : shrines.rooms()) {
+            busy.add(LandmarksData.room(shrine));
+        }
+        checkGlass(marks, framesBySprite, solid, busy);
         for (int i = 0; i < marks.temple().rooms().size(); i++) {
             room(marks.temple().rooms().get(i), "/temple/rooms/" + i);
         }
@@ -254,6 +259,50 @@ public final class LandmarkValidator {
         }
         if (!items.eyes().isEmpty() && !revealed.equals(lairIds)) {
             throw new DataException(FILE, "/items/eyes", "between them show " + revealed + ", not every lair " + lairIds);
+        }
+    }
+
+    /** The way arrow's frames, one for each way out of a room (§14.10). */
+    public static final List<String> ARROW_FRAMES = List.of("n", "e", "s", "w");
+    /** The glass glints through these, as the eye glances (§14.10). */
+    public static final List<String> GLASS_FRAMES = List.of("f0", "f1", "f2");
+
+    /**
+     * §14.10: the looking glasses lie on clear ground in rooms of their own — not the start, the
+     * way out, a room any set hides a quarter in, a shrine, the scroll's or an eye's, nor each
+     * other's — and their sprites have the frames drawn for them.
+     */
+    private static void checkGlass(LandmarksData marks, Map<String, Set<String>> framesBySprite, Solid solid,
+                                   Set<RoomAddress> busy) {
+        LandmarksData.Glass glass = marks.items().glass();
+        if (glass.places().isEmpty()) {
+            return;
+        }
+        checkFrames(framesBySprite, "/items/glass/sprite", glass.sprite(), GLASS_FRAMES);
+        checkFrames(framesBySprite, "/items/glass/arrow/sprite", glass.arrow().sprite(), ARROW_FRAMES);
+        if (glass.warnTicks() >= glass.showWayTicks()) {
+            throw new DataException(FILE, "/items/glass/warnTicks", "is not shorter than showWayTicks");
+        }
+        Set<RoomAddress> used = new HashSet<>(busy);
+        LandmarksData.Items items = marks.items();
+        if (items.map() != null) {
+            used.add(LandmarksData.room(items.map().room()));
+        }
+        for (LandmarksData.Eye eye : items.eyes()) {
+            used.add(LandmarksData.room(eye.room()));
+        }
+        for (int i = 0; i < glass.places().size(); i++) {
+            LandmarksData.Place place = glass.places().get(i);
+            String at = "/items/glass/places/" + i;
+            RoomAddress room = room(place.room(), at + "/room");
+            if (!used.add(room)) {
+                throw new DataException(FILE, at + "/room",
+                        "is " + room + ", already the start, the way out, a lair, a shrine or another item's room");
+            }
+            if (blocked(solid, room, items.pickupBox(), place.spot().x(), place.spot().y())) {
+                throw new DataException(FILE, at + "/spot",
+                        "is (" + place.spot().x() + "," + place.spot().y() + "), inside the scenery");
+            }
         }
     }
 

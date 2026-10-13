@@ -7,6 +7,9 @@ origin bottom-centre, so a placement's spot is where the item rests on the groun
 
   item_map   a rolled parchment, tied, half unrolled: the map of the jungle
   item_eye   an eye with a cyan iris: it shows where two quarters of the amulet lie
+  item_glass a looking glass, brass rim, a pale lens catching the light (§14.10): it shows the
+             way to the next quarter for a while. f0-f2 move the glint across the lens.
+  way_arrow  the glass's arrow at the room's way out (§14.10): n, e, s, w, 13x13.
   map_diamond the map's mark for a quarter an eye has shown (§17.7): a cut gem, 13x11 to
              fit a room on the map. shiny0-3 twinkle, a glint at one corner and then the
              other; dull is the same gem gone grey, once its quarter is taken.
@@ -14,7 +17,8 @@ origin bottom-centre, so a placement's spot is where the item rests on the groun
              drawing): crate, ring, fruit, cap, shield, life, money_bag, sword. One ink
              each, as on the Spectrum: the game tints them, so they are drawn in white.
 
-Outputs data/art/sprites/item_map.sprite.json, item_eye.sprite.json,
+Outputs data/art/sprites/item_map.sprite.json, item_eye.sprite.json, item_glass.sprite.json,
+way_arrow.sprite.json,
 map_diamond.sprite.json and treasure.sprite.json and merges the names into data/art/sprites/index.json.  Run:  python3 tools/art/item_forge.py
 """
 import math
@@ -70,6 +74,61 @@ def eye(look):
     for x in range(3, 13):                   # the lid's crease above
         if (x + look) % 3 != 0:
             cv.set(x, 3, "c")
+    cv.outline("K")
+    return cv.rows()
+
+
+def glass(glint):
+    """A round lens in a brass rim, its handle down to the left; {@code glint} is where the light sits."""
+    cv = Canvas(16, 16)
+    cx, cy, r = 9.5, 6.5, 5.6
+    for y in range(16):
+        for x in range(16):
+            d = math.hypot(x + 0.5 - cx, y + 0.5 - cy)
+            if d <= r - 1.3:
+                cv.set(x, y, "c")                    # the lens
+            elif d <= r:
+                cv.set(x, y, "Y" if (x + 0.5 - cx) + (y + 0.5 - cy) < 0 else "y")   # the rim, lit from the top left
+    for x, y in ((glint[0], glint[1]), (glint[0] + 1, glint[1]), (glint[0], glint[1] + 1)):
+        cv.set(x, y, "W")
+    cv.set(int(cx) + 2, int(cy) + 2, "C")           # a softer light low in the lens
+    for i in range(5):                              # the handle, wood, two wide
+        cv.set(4 - i, 11 + i, "r")
+        cv.set(5 - i, 11 + i, "R" if i < 4 else "r")
+    cv.outline("K")
+    return cv.rows()
+
+
+# The arrow, pointing north: '#' ink, 'o' its shadow side. 11x11, its point at the top.
+ARROW = [
+    ".....#.....",
+    "....###....",
+    "...#####...",
+    "..#######..",
+    ".####o####.",
+    "...##o##...",
+    "...##o##...",
+    "...##o##...",
+    "...##o##...",
+    "...##o##...",
+    "...#####...",
+]
+
+
+def arrow(way):
+    """The arrow turned to {@code way}: n as drawn, the others a quarter turn at a time."""
+    rows = [list(r) for r in ARROW]
+    n = len(rows)
+    turns = {"n": 0, "e": 1, "s": 2, "w": 3}[way]
+    for _ in range(turns):                          # clockwise
+        rows = [[rows[n - 1 - j][i] for j in range(n)] for i in range(n)]
+    cv = Canvas(n + 2, n + 2)                       # a pixel all round, for the outline
+    for y in range(n):
+        for x in range(n):
+            if rows[y][x] == "#":
+                cv.set(x + 1, y + 1, "Y")
+            elif rows[y][x] == "o":
+                cv.set(x + 1, y + 1, "y")
     cv.outline("K")
     return cv.rows()
 
@@ -267,13 +326,16 @@ def treasure(name):
 def main():
     write_sprite("item_map", 16, 16, [("f0", scroll())])
     write_sprite("item_eye", 16, 16, [("f0", eye(0)), ("f1", eye(1)), ("f2", eye(-1))])
+    write_sprite("item_glass", 16, 16, [("f0", glass((7, 3))), ("f1", glass((9, 3))), ("f2", glass((6, 5)))])
+    write_sprite("way_arrow", 13, 13, [(w, arrow(w)) for w in ("n", "e", "s", "w")])
     write_sprite("map_diamond", 13, 11, [("shiny0", diamond((11, 1))), ("shiny1", diamond(None)),
                                          ("shiny2", diamond((1, 1))), ("shiny3", diamond(None)),
                                          ("dull", diamond(None, dull=True))])
     write_sprite("treasure", 16, 16, [(name, treasure(name)) for name in TREASURES])
-    update_index(["item_map", "item_eye", "map_diamond", "treasure"],
-                 lambda n: n.startswith("item_") or n in ("map_diamond", "treasure"))
-    print("item forge: item_map (1 frame), item_eye (3 frames), map_diamond (5 frames), treasure (%d frames)"
+    update_index(["item_map", "item_eye", "item_glass", "way_arrow", "map_diamond", "treasure"],
+                 lambda n: n.startswith("item_") or n in ("way_arrow", "map_diamond", "treasure"))
+    print("item forge: item_map (1 frame), item_eye (3 frames), item_glass (3 frames), way_arrow (4 frames), "
+          "map_diamond (5 frames), treasure (%d frames)"
           % len(TREASURES))
 
 

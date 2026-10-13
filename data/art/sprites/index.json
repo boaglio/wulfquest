@@ -24,6 +24,7 @@
     "ending_jones",
     "flame",
     "item_eye",
+    "item_glass",
     "item_map",
     "map_diamond",
     "orchid",
@@ -84,6 +85,7 @@
     "vermin_scorpion",
     "vermin_skunk",
     "vermin_snake",
-    "vermin_spider"
+    "vermin_spider",
+    "way_arrow"
   ]
 }

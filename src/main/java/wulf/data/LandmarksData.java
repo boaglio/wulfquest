@@ -123,12 +123,43 @@ public record LandmarksData(
      * {@code pickupBox} around it. An eye lying in a room glances about, a look every
      * {@code glanceTicks} (drawing only).
      */
-    public record Items(CreatureData.Box pickupBox, int glanceTicks, Item map, List<Eye> eyes) {
+    public record Items(CreatureData.Box pickupBox, int glanceTicks, Item map, List<Eye> eyes, Glass glass) {
         public Items {
             eyes = List.copyOf(eyes);
+            glass = glass == null ? Glass.NONE : glass;
+        }
+
+        public Items(CreatureData.Box pickupBox, int glanceTicks, Item map, List<Eye> eyes) {
+            this(pickupBox, glanceTicks, map, eyes, Glass.NONE);
         }
 
         public static final Items NONE = new Items(new CreatureData.Box(0, 0, 1, 1), 1, null, List.of());
+    }
+
+    /**
+     * The looking glasses (§14.10, {@code [NEW]}): each lies at one of {@code places}, once a
+     * game, and taken shows the way to the nearest quarter still out — or, the amulet whole, to
+     * the arch — for {@code showWayTicks}, as an arrow at the room's way out and a trail on the
+     * map. For its last {@code warnTicks} the arrow blinks faster.
+     */
+    public record Glass(String sprite, int showWayTicks, int warnTicks, Arrow arrow, List<Place> places) {
+        public Glass {
+            places = List.copyOf(places);
+        }
+
+        public static final Glass NONE = new Glass("", 1, 0, new Arrow("", 1, 1, 0), List.of());
+    }
+
+    /**
+     * The glass's arrow (§14.10): {@code sprite} has a frame for each way out, {@code n},
+     * {@code e}, {@code s}, {@code w}, drawn {@code insetPx} inside the playfield's edge, on for
+     * {@code blinkTicks} and off as long — {@code warnBlinkTicks} when time is short.
+     */
+    public record Arrow(String sprite, int blinkTicks, int warnBlinkTicks, int insetPx) {
+    }
+
+    /** Where a thing lies: a room and a spot on its ground, room-local feet. */
+    public record Place(String room, Point spot) {
     }
 
     public record Item(String room, Point spot, String sprite) {

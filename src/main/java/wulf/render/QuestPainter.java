@@ -82,7 +82,7 @@ public final class QuestPainter {
         }
     }
 
-    /** §14.8: the map scroll and the eyes still lying in this room. An eye glances about. */
+    /** §14.8, §14.10: the map scroll, the eyes and the glasses still lying in this room. An eye glances about. */
     private void paintItems(Framebuffer fb, Simulation sim) {
         LandmarksData.Items items = marks.items();
         if (items.map() == null) {
@@ -100,6 +100,15 @@ public final class QuestPainter {
                 if (!q.eyeTaken(i) && LandmarksData.room(eye.room()).equals(sim.room())) {
                     String frame = "f" + GLANCE[(int) (sim.tick() / items.glanceTicks() % GLANCE.length)];
                     sprites.get(eye.sprite()).blit(fb, frame, field.x() + eye.spot().x(), field.y() + eye.spot().y());
+                }
+            }
+            LandmarksData.Glass glass = items.glass();
+            for (int i = 0; i < glass.places().size(); i++) {
+                LandmarksData.Place place = glass.places().get(i);
+                if (!q.glassTaken(i) && LandmarksData.room(place.room()).equals(sim.room())) {
+                    // The light moves across the lens on the eye's beat (§14.10).
+                    String frame = "f" + GLANCE[(int) (sim.tick() / items.glanceTicks() % GLANCE.length)];
+                    sprites.get(glass.sprite()).blit(fb, frame, field.x() + place.spot().x(), field.y() + place.spot().y());
                 }
             }
         } finally {

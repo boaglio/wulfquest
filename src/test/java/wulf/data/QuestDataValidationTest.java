@@ -72,6 +72,40 @@ class QuestDataValidationTest {
                 m.shrines(), m.items(), m.hint(), m.temple());
     }
 
+    private static LandmarksData withGlass(LandmarksData.Glass glass) {
+        LandmarksData m = c.landmarks();
+        LandmarksData.Items i = m.items();
+        return new LandmarksData(m.schemaVersion(), m.fidelity(), m.startFacing(), m.exit(), m.lairs(), m.amuletSets(),
+                m.amulet(), m.shrines(), new LandmarksData.Items(i.pickupBox(), i.glanceTicks(), i.map(), i.eyes(), glass),
+                m.hint(), m.temple());
+    }
+
+    @Test
+    void aLookingGlassLiesOnClearGroundInARoomOfItsOwn() {
+        // §14.10: not where a set may hide a quarter, not an eye's room, not in the scenery, its frames drawn.
+        LandmarksData.Glass g = c.landmarks().items().glass();
+        LandmarksData.Place first = g.places().get(0);
+        String lairRoom = c.landmarks().amuletSets().sets().get(0).get(0);
+        assertThat(landmarkError(withGlass(new LandmarksData.Glass(g.sprite(), g.showWayTicks(), g.warnTicks(), g.arrow(),
+                List.of(new LandmarksData.Place(lairRoom, first.spot()), g.places().get(1)))), solid).pointer())
+                .isEqualTo("/items/glass/places/0/room");
+        String eyeRoom = c.landmarks().items().eyes().get(0).room();
+        assertThat(landmarkError(withGlass(new LandmarksData.Glass(g.sprite(), g.showWayTicks(), g.warnTicks(), g.arrow(),
+                List.of(first, new LandmarksData.Place(eyeRoom, first.spot())))), solid).pointer())
+                .isEqualTo("/items/glass/places/1/room");
+        assertThat(landmarkError(withGlass(new LandmarksData.Glass(g.sprite(), g.showWayTicks(), g.warnTicks(), g.arrow(),
+                List.of(first, first))), solid).pointer()).isEqualTo("/items/glass/places/1/room");
+        RoomAddress at = LandmarksData.room(first.room());
+        LandmarkValidator.Solid overgrown = (gx, gy) -> gx / CollisionMask.COLS == at.col() && gy / CollisionMask.ROWS == at.row()
+                || solid.at(gx, gy);
+        assertThat(landmarkError(withGlass(g), overgrown).pointer()).isEqualTo("/items/glass/places/0/spot");
+        assertThat(landmarkError(withGlass(new LandmarksData.Glass(g.sprite(), g.showWayTicks(), g.warnTicks(),
+                new LandmarksData.Arrow("item_eye", 1, 1, 0), g.places())), solid).pointer())
+                .isEqualTo("/items/glass/arrow/sprite");
+        assertThat(landmarkError(withGlass(new LandmarksData.Glass(g.sprite(), 10, 10, g.arrow(), g.places())), solid)
+                .pointer()).isEqualTo("/items/glass/warnTicks");
+    }
+
     @Test
     void anEyeMustShowRealLairsAndTogetherShowThemAll() {
         // §14.8: an eye naming a lair that does not exist, or the eyes missing one, is a DATA ERROR.

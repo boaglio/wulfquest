@@ -60,7 +60,7 @@ public final class ShellPainter {
         this.ending = new EndingScreen(config.ending(), chrome.big(), content.palette(), sprites, amulet, framesBySlot);
         this.roll = new CreditsRoll(config.credits(), chrome.big(), chrome.small(), content.palette());
         this.map = new MapScreen(display, content.rooms(), content.landmarks(), content.palette(), config.map(),
-                sprites.get(config.map().quarterIcon().sprite()));
+                sprites.get(config.map().quarterIcon().sprite()), game.way());
     }
 
     public GamePainter game() {

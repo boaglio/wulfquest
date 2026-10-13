@@ -56,6 +56,10 @@ public final class Quest {
     static final int MAX_EYES = 8;
     boolean mapTaken;
     final boolean[] eyeTaken = new boolean[MAX_EYES];
+    /** §14.10: which looking glasses are taken, at most {@link #MAX_GLASSES}, and how long the way still shows. */
+    static final int MAX_GLASSES = 8;
+    final boolean[] glassTaken = new boolean[MAX_GLASSES];
+    int wayTicks;
 
     Quest(Creature guardian, Creature keeper) {
         this.guardian = guardian;
@@ -70,6 +74,16 @@ public final class Quest {
     /** Whether eye {@code i} of {@code landmarks.json → items.eyes} has been found. */
     public boolean eyeTaken(int i) {
         return eyeTaken[i];
+    }
+
+    /** Whether glass {@code i} of {@code landmarks.json → items.glass.places} has been found. */
+    public boolean glassTaken(int i) {
+        return glassTaken[i];
+    }
+
+    /** Ticks the way to the next quarter still shows, after a looking glass (§14.10); 0 when it does not. */
+    public int wayTicks() {
+        return wayTicks;
     }
 
     public int piecesHeld() {

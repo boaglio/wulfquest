@@ -7,10 +7,12 @@ import wulf.data.Palette;
 import wulf.data.ShellConfig;
 import wulf.render.Framebuffer;
 import wulf.render.Sprite;
+import wulf.render.WayPainter;
 import wulf.sim.Simulation;
 import wulf.world.CollisionMask;
 import wulf.world.RoomAddress;
 import wulf.world.RoomBaker;
+import wulf.world.Wayfinder;
 
 /**
  * The map (AGENTS.md §17.7, {@code [NEW]}): the whole 16x16 jungle over the playfield,
@@ -31,9 +33,12 @@ final class MapScreen {
     private final int blinkTicks;
     private final Sprite icon;
     private final ShellConfig.QuarterIcon iconFrames;
+    private final WayPainter way;
+    private final ShellConfig.Trail trail;
+    private final int trailColour;
 
     MapScreen(DisplayConfig display, RoomBaker rooms, LandmarksData marks, Palette palette,
-              ShellConfig.MapScreen config, Sprite icon) {
+              ShellConfig.MapScreen config, Sprite icon, WayPainter way) {
         this.field = display.playfield();
         this.rooms = rooms;
         this.marks = marks;
@@ -44,6 +49,9 @@ final class MapScreen {
         this.blinkTicks = config.blinkTicks();
         this.icon = icon;
         this.iconFrames = config.quarterIcon();
+        this.way = way;
+        this.trail = config.trail();
+        this.trailColour = palette.indexOf(trail.colour());
     }
 
     void paint(Framebuffer fb, Simulation sim, long tick) {
@@ -73,8 +81,45 @@ final class MapScreen {
             }
         }
         paintQuarters(fb, sim, cw, ch, tick);
+        paintTrail(fb, sim, cw, ch, tick);
         if ((tick / blinkTicks) % 2 == 0) {
             fb.drawRect(field.x() + sim.room().col() * cw, field.y() + sim.room().row() * ch, cw, ch, here);
+        }
+    }
+
+    /**
+     * The way a looking glass shows (§14.10): dots along it from Vale's feet to the quarter, a
+     * pixel for every 2x2 cells as the map draws the rooms, marching towards the end.
+     */
+    private void paintTrail(Framebuffer fb, Simulation sim, int cw, int ch, long tick) {
+        if (way == null) {
+            return;
+        }
+        int[] route = way.route(sim);
+        int last = -1;
+        int step = 0;
+        int phase = (int) (tick / trail.marchTicks() % trail.dotEveryPx());
+        for (int cell : route) {
+            int u = Wayfinder.gx(cell) * cw / CollisionMask.COLS;
+            int v = Wayfinder.gy(cell) * ch / CollisionMask.ROWS;
+            int px = v * field.w() + u;
+            if (px == last) {
+                continue;   // two cells, one pixel
+            }
+            last = px;
+            if ((step++ + trail.dotEveryPx() - phase) % trail.dotEveryPx() == 0) {
+                fb.set(field.x() + u, field.y() + v, trailColour);
+            }
+        }
+        if (route.length > 0 && (tick / blinkTicks) % 2 == 0) {
+            // A cross where it ends, blinking with Vale's room: the quarter, or the arch.
+            int end = route[route.length - 1];
+            int u = field.x() + Wayfinder.gx(end) * cw / CollisionMask.COLS;
+            int v = field.y() + Wayfinder.gy(end) * ch / CollisionMask.ROWS;
+            for (int d = -2; d <= 2; d++) {
+                fb.set(u + d, v, trailColour);
+                fb.set(u, v + d, trailColour);
+            }
         }
     }
 
