@@ -1,4 +1,13 @@
-## What's new in 0.6.0
+## What's new in 0.6.1
+
+**Each job plays for its own amulet.** Mr Jones's later jobs no longer reuse
+the wolf amulet. Job 1's is a medallion broken across the middle, silver above
+and gold below, a crescent on one half and a star on the other; job 2's is a
+gold sun with a red stone. You see the job's own amulet everywhere: on the
+pedestals, flying to the panel, in the panel, on the reveal, and in Mr Jones's
+hands at the end.
+
+## In 0.6.0, if you are coming from 0.5
 
 **An ending — three of them.** Get out through the arch with the whole amulet
 and you walk it to old Mr Jones, who knows where it belongs. Then the sums,
