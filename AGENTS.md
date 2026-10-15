@@ -2244,7 +2244,7 @@ feet above the Keeper's doorway in the exit room, with 4 pieces
   ──► fire: the tally (TALLY):
         collected score
         + escape bonus            10000
-        + time bonus              max(0, 30000 - ticksElapsed / 2)
+        + time bonus              max(0, 30000 - ticksElapsed / 6)
         + lives remaining bonus   lives * 2500
   ──► fire: the credits roll (ROLL)
   ──► the roll ends, or fire cuts it short: hi-score entry if the run earns a
@@ -2648,7 +2648,7 @@ meter; it is **not canon** and must not come back. One touch, one life
     "amuletPiece": 7500,
     "escapeBonus": 10000,
     "timeBonusMax": 30000,
-    "timeBonusTicksDivisor": 2,
+    "timeBonusTicksDivisor": 6,
     "lifeRemainingBonus": 2500,
     "roomFirstVisit": 10,
     "wulfEvaded": 250
@@ -2656,6 +2656,11 @@ meter; it is **not canon** and must not come back. One touch, one life
 }
 ```
 
+- **The time bonus runs out after an hour** (`timeBonusTicksDivisor` 6: 30 000 points
+  less one for every 6 ticks, so none at 180 000 ticks). It was 2 — none after 20
+  minutes, set when the game ran at half its pace — and every win, the forged
+  `full_run` at 25 minutes among them, scored 0 for it. Now that run scores 17 411.
+  The bonus is added at the win, after a replay's last checkpoint, so no replay moved.
 - `roomFirstVisit: 10` gently rewards exploration (256 rooms = 2560 points
   for a full sweep).
 - `wulfEvaded: 250` is awarded when a pursuit ends in a give-up, not a death.
