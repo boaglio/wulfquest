@@ -57,12 +57,14 @@ public record GameConfig(
      * @param swarmRoomMax        small creatures in a room at once ({@code jungle.json → swarm.roomMax})
      * @param swarmOpenPerQuarter how many more kinds each quarter held lets in ({@code swarm.pick.openPerQuarter})
      * @param wulfSpeedPercent    the Wulf's pace against its own, on top of a later job's
+     * @param beastSpeedPercent   the big beasts' pace (§12.9) — rhinos, tribesmen, hippos and
+     *                            warthogs — against their own; a blade still shoves them as hard
      * @param flame               whether the flame comes for a player who lingers (§12.7)
      * @param showWayTicks        how long a looking glass shows the way (§14.10)
      * @param hintsOncePerLife    whether a shrine names the way only once a room a life (§14.5)
      */
-    public record Easy(int livesStart, int swarmRoomMax, int swarmOpenPerQuarter, int wulfSpeedPercent, boolean flame,
-                       int showWayTicks, boolean hintsOncePerLife) {
+    public record Easy(int livesStart, int swarmRoomMax, int swarmOpenPerQuarter, int wulfSpeedPercent, int beastSpeedPercent,
+                       boolean flame, int showWayTicks, boolean hintsOncePerLife) {
     }
 
     /**

@@ -11,6 +11,7 @@
     "swarmRoomMax": 2,
     "swarmOpenPerQuarter": 1,
     "wulfSpeedPercent": 75,
+    "beastSpeedPercent": 60,
     "flame": false,
     "showWayTicks": 9000,
     "hintsOncePerLife": false

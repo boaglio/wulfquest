@@ -37,6 +37,7 @@ class EasyModeTest {
         assertThat(easy.swarmRoomMax()).isEqualTo(2);
         assertThat(easy.swarmOpenPerQuarter()).isEqualTo(1);
         assertThat(easy.wulfSpeedPercent()).isEqualTo(75);
+        assertThat(easy.beastSpeedPercent()).isEqualTo(60);
         assertThat(easy.flame()).as("no flames").isFalse();
         assertThat(easy.showWayTicks()).as("three minutes").isEqualTo(3 * 60 * c.game().tickHz());
         assertThat(easy.hintsOncePerLife()).isFalse();
@@ -93,6 +94,27 @@ class EasyModeTest {
         assertThat(start(c.ecosystem(0, true)).wulf().speedFp).isEqualTo(own * 75 / 100);
         int job2 = c.game().newGamePlus().level(2).wulfSpeedPercent();
         assertThat(start(c.ecosystem(2, true)).wulf().speedFp).isEqualTo(own * (job2 * 75 / 100) / 100);
+    }
+
+    @Test
+    void theBigBeastsGoSlowerButAreShovedAsHard() {
+        BeastRules hard = c.ecosystem(0, false).beasts();
+        BeastRules e = c.ecosystem(2, true).beasts();
+        assertThat(e.placings()).isEqualTo(hard.placings());
+        int paces = 0;
+        for (int k = 0; k < hard.kinds().size(); k++) {
+            var own = hard.kinds().get(k).behaviour().params();
+            var slow = e.kinds().get(k).behaviour().params();
+            for (var p : own.entrySet()) {
+                if (p.getKey().endsWith("Fp") && !p.getKey().equals("shovedFp")) {
+                    assertThat(slow.get(p.getKey())).as(p.getKey()).isEqualTo(p.getValue() * 60 / 100);
+                    paces++;
+                } else {
+                    assertThat(slow.get(p.getKey())).as(p.getKey()).isEqualTo(p.getValue());
+                }
+            }
+        }
+        assertThat(paces).as("rhino, tribesman (two), hippo, warthog").isEqualTo(5);
     }
 
     @Test

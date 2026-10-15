@@ -40,6 +40,28 @@ public record BeastRules(boolean on, int followRows, int followColumns, List<Cre
     public record Placing(int kind, RoomAddress room, int xPx, int yPx, int heading, int tint, boolean asleep) {
     }
 
+    /** The paces a beast goes at on its own: what Easy mode slows (§17.8). A shove is not one. */
+    private static final List<String> PACES = List.of("paceFp", "walkSlowFp", "walkFastFp", "chargeFp");
+
+    /**
+     * The same beasts at {@code percent} of their own pace (§17.8), never slower than a step
+     * a tick; how hard a blade shoves them, where they stand and how they follow are the same.
+     */
+    public BeastRules slower(int percent) {
+        List<CreatureData.Species> slowed = new java.util.ArrayList<>(kinds.size());
+        for (CreatureData.Species s : kinds) {
+            CreatureData.Species k = s;
+            for (String p : PACES) {
+                Integer v = s.behaviour().params().get(p);
+                if (v != null) {
+                    k = k.withParam(p, Math.max(1, v * percent / 100));
+                }
+            }
+            slowed.add(k);
+        }
+        return new BeastRules(on, followRows, followColumns, slowed, kindOf, spotXPx, spotYPx, sleepers, placings);
+    }
+
     /** A behaviour parameter of kind {@code k}. */
     int param(int k, String name) {
         return kinds.get(k).behaviour().param(name);

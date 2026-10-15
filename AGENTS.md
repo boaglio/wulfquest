@@ -2921,12 +2921,21 @@ same jungle, map and quest, with less that kills, in `game.json → easy`:
 | small creatures in a room at once (§12.8) | 3 | `swarmRoomMax` 2 |
 | kinds let in per quarter held (`swarm.pick.openPerQuarter`) | 2 | `swarmOpenPerQuarter` 1 |
 | the Wulf's pace (§13.8), on top of a later job's (§14.9) | 100% | `wulfSpeedPercent` 75 |
+| the big beasts' pace (§12.9): rhinos, tribesmen, hippos, warthogs | 100% | `beastSpeedPercent` 60 |
 | the flame for a player who lingers (§12.7) | comes | `flame` false: never |
 | a looking glass shows the way (§14.10) | 90 s | `showWayTicks` 9000, 3 min |
 | a shrine names the way (§14.5) | once a room a life | `hintsOncePerLife` false: every time |
 
 At 75% the prowling Wulf goes 1.5 px a tick and, risen, 2.25, against Vale's
-3: he can always outrun it. The orchids, the guardians, the Keeper, the map
+3: he can always outrun it. The big beasts go at 60% of their own paces
+(`paceFp`, `walkSlowFp`, `walkFastFp`, `chargeFp`; `BeastRules.slower`), so a rhino
+or a tribesman is easier to see coming and to step round; a blade shoves them as
+hard as ever. Asked for (2026-10-15) after a playtest found Easy only a fifth kinder
+than Hard: over 40 seeds of 20 000 ticks a random walker died 2 091 times in Hard and
+1 641 in Easy, more of them to tribesmen and rhinos than in Hard. At 60% it dies
+1 478 times. A walker blunders into a beast whatever its pace; slower is for a
+player who watches. The tribesmen still follow him room to room (§12.9), as their
+calls are the hints. The orchids, the guardians, the Keeper, the map
 items, the treasures, the ending and New Game+ are the same in both.
 
 **Choosing.** `D` on the title (`shell.json → difficulty.key`) switches Hard

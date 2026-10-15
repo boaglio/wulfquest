@@ -49,12 +49,13 @@
       "description": "§17.8 [NEW]: Easy mode, chosen on the title; the game as it is otherwise is Hard",
       "type": "object",
       "additionalProperties": false,
-      "required": ["livesStart", "swarmRoomMax", "swarmOpenPerQuarter", "wulfSpeedPercent", "flame", "showWayTicks", "hintsOncePerLife"],
+      "required": ["livesStart", "swarmRoomMax", "swarmOpenPerQuarter", "wulfSpeedPercent", "beastSpeedPercent", "flame", "showWayTicks", "hintsOncePerLife"],
       "properties": {
         "livesStart": { "type": "integer", "minimum": 0, "maximum": 9 },
         "swarmRoomMax": { "type": "integer", "minimum": 0, "maximum": 6 },
         "swarmOpenPerQuarter": { "type": "integer", "minimum": 0, "maximum": 2 },
         "wulfSpeedPercent": { "type": "integer", "minimum": 25, "maximum": 200 },
+        "beastSpeedPercent": { "type": "integer", "minimum": 25, "maximum": 100 },
         "flame": { "type": "boolean" },
         "showWayTicks": { "type": "integer", "minimum": 1 },
         "hintsOncePerLife": { "type": "boolean" }
