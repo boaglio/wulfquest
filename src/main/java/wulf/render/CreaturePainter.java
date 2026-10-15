@@ -48,7 +48,7 @@ public final class CreaturePainter {
     private final boolean flicker;
     private final int[] crowd;
     /** §12.8: the original's one ink a creature, rather than each in its own colours. */
-    private final boolean inked;
+    private boolean inked;
     private boolean stilled;
 
     public CreaturePainter(DisplayConfig display, SpriteBank sprites, CreatureData roster, Palette palette) {
@@ -71,6 +71,11 @@ public final class CreaturePainter {
         this.point = palette.indexOf("brightCyan");
         this.flicker = display.spriteFlicker();
         this.crowd = new int[field.cols() * field.rows()];
+    }
+
+    /** §17.9: the options page switches the original's one ink a creature on and off as it runs. */
+    public void inked(boolean on) {
+        this.inked = on;
     }
 
     public void paint(Framebuffer fb, Simulation sim) {

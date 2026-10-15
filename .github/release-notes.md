@@ -62,11 +62,9 @@ protected your PC" click **More info**, then **Run anyway**.
 
 Hi-scores and settings are kept per user and survive updates.
 
-**Quick save** is off by default, since the original had none. To turn it on,
-add `"features": { "quickSave": true }` to `settings.json` in your user folder
-(see the README). Then F5 saves and F9 loads, during play or from the title
-screen. A game you have loaded into gets no hi-score. A save may not load in a
-later version: the game will say so.
+**Saving**: press `P` in the jungle for the pause menu, which saves to one of
+three slots and loads them; `L` on the title loads too. A save may not load in
+a later version: the game will say so.
 
 Wulf Quest is free software under the GNU General Public License, version 3
 or later; the full text is in `LICENSE` inside every download, and the source

@@ -47,6 +47,7 @@ public final class GamePainter {
     private final int maskColour;
     private final int paper;
     private final AttributeClash clash;
+    private boolean clashing;
     private final String easyLabel;
     private final int easyColour;
 
@@ -87,7 +88,17 @@ public final class GamePainter {
         this.paper = palette.indexOf("black");
         this.easyLabel = c.shell().difficulty().panelLabel();
         this.easyColour = palette.indexOf(c.shell().difficulty().easyColour());
-        this.clash = display.crt().attributeClash() ? new AttributeClash(display.playfield()) : null;
+        this.clash = new AttributeClash(display.playfield());
+        this.clashing = display.crt().attributeClash();
+    }
+
+    /**
+     * §17.9: the options page's switches, as the player has them now — the colour clash, and the
+     * original's one ink a creature. Read every frame, so a change shows at once.
+     */
+    public void retro(wulf.data.Settings s) {
+        this.clashing = s.crt().attributeClash();
+        beasts.inked(Shell.optionOn(s, "inkedCreatures"));
     }
 
     /** Each job's amulet, slot by slot (§14.9). */
@@ -106,7 +117,7 @@ public final class GamePainter {
 
     /** The playfield alone — no panel — which is what the attract demo shows. */
     public void paintWorld(Framebuffer fb, Simulation sim, boolean showMask) {
-        if (clash != null && !fb.tracksInk()) {
+        if (clashing && !fb.tracksInk()) {
             fb.trackInk(paper);   // first frame: start remembering what each cell was last drawn in
         }
         fb.clear(!display.border().flashOnEvent() ? border : switch (sim.borderFlash()) {
@@ -124,7 +135,7 @@ public final class GamePainter {
         vale.paint(fb, sim);
         way.paintArrow(fb, sim);
         quest.paintEscape(fb, sim);
-        if (clash != null && !showMask) {
+        if (clashing && !showMask) {
             clash.apply(fb);   // §5.4; the debug mask would only be repainted in someone else's ink
         }
     }

@@ -45,6 +45,9 @@ import wulf.world.WorldGrid;
  * that quarter is carried back out of the lair rather than waiting for a win — which is how
  * {@code replays/lair_nw.json} is made.
  *
+ * <p>{@code -Dforge.job=N} plays Mr Jones's job N instead (§14.9), {@code -Dforge.easy=true} in Easy
+ * mode (§17.8): the recording says which, as any replay does.
+ *
  * <pre>
  * java -cp target/test-classes:target/classes:&lt;deps&gt; wulf.tools.FullRunForge [out.json]
  * java -Dforge.lairs=0 -Dforge.pieces=1 ... wulf.tools.FullRunForge replays/lair_nw.json
@@ -158,8 +161,9 @@ public final class FullRunForge {
     private static final int MAX_REWINDS = Integer.getInteger("forge.rewinds", 4000);
 
     private static Simulation fresh(Content c, WorldGrid grid, long seed) {
+        // -Dforge.job=N plays Mr Jones's job N (§14.9), -Dforge.easy=true in Easy mode (§17.8).
         return Simulation.startingIn(c.player(), grid, c.game().transition().freezeTicks(), c.map().startRoom(),
-                c.ecosystem(), seed);
+                c.ecosystem(Integer.getInteger("forge.job", 0), Boolean.getBoolean("forge.easy")), seed);
     }
 
     /** {@code -Dforge.lairs=0} or {@code -Dforge.lairs=0,2}: the lairs to fetch from, in that order. */

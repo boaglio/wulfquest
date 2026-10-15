@@ -2795,10 +2795,30 @@ data-driven game; build it in M1.
 
 `P` freezes the simulation completely (including orchid clocks — store a
 `pausedAtTick` and shift `stageStartTick` on resume so nothing jumps). The
-playfield stays visible, dimmed to the non-bright palette; the panel shows
-`PAUSED`. Pause must not be usable as an exploit to study a Wulf pursuit at
-leisure — it is fine that it is, actually; the original had no pause and we
-are not shipping a competitive game.
+playfield stays visible, dimmed to the non-bright palette. Pause must not be
+usable as an exploit to study a Wulf pursuit at leisure — it is fine that it
+is, actually; the original had no pause and we are not shipping a competitive
+game.
+
+**The pause menu [NEW]** (asked for by the user, 2026-10-14; `shell.json →
+pause`, `MenuScreen`, state `PAUSED`): pausing shows a box over the dimmed
+jungle — `RESUME`, `SAVE GAME`, `LOAD GAME`, `OPTIONS`, `QUIT TO TITLE` — up
+and down to choose, fire to pick. `P` or Escape resumes; Escape on a page
+reached from it goes back to it, on the line that led there. `QUIT TO TITLE`
+banks the run as Escape from the jungle does. Not while the amulet reveal or
+the map is up. The menus over a game are silent, as the jungle is (§18.3).
+`ShellValidator` checks every line names something the shell does, once, and
+that one of them resumes.
+
+### 17.9 Options [NEW]
+
+Asked for by the user (2026-10-14; `shell.json → options`, state `OPTIONS`),
+from the title (`O OPTIONS`) and from the pause menu: the switches that were
+only in `settings.json` until now — `SCANLINES` and `COLOUR CLASH` (§5.4) and
+`ONE-COLOUR CREATURES` (`features.inkedCreatures`, §12.8) — each shown `ON` or
+`OFF`, fire flipping it, written to `settings.json` at once and shown at once:
+the painter reads them every frame (`GamePainter.retro`, `Scaler.setScanlines`).
+Sound has its own page (`A`) and the difficulty its own key (`D`, §17.8).
 
 ### 17.5 Game over
 
@@ -2926,7 +2946,7 @@ with Easy's lives, swarm, no flame, and its Wulf at 120% × 75% = 90%.
 `"easy": true` for an Easy game, left out for Hard, and rebuild it in that
 mode. `Content.ecosystem(level, easy)` and `Ecosystem.easy` make the Easy
 jungle; `QuestRules.easy` carries it into the simulation, which answers
-`Simulation.easy()`. `EasyModeTest`, `ShellTest`, `QuickSavesTest`,
+`Simulation.easy()`. `EasyModeTest`, `ShellTest`, `SaveSlotsTest`,
 `ReplayTest`, `QuestTest`; `ShellValidator` checks the key is free on the
 title and the colour is in the palette.
 
@@ -3269,33 +3289,35 @@ Written on change. **Feature flags in settings override
 `game.json`** — `game.json` is the shipped default, settings are the
 player's choice.
 
-### 21.4 Quick save and quick load — `quicksave.json` (`[NEW]`, flag `features.quickSave`, default off)
+### 21.4 Save and load — three slots, `save1.json`… (`[NEW]`)
 
-Asked for by the user (2026-10-04), emulator style: **F5** keeps this moment,
-**F9** goes back to it — during play as often as you like, and on the title
-screen to resume the saved game. The keys are `shell.json → quickSave`; the
-panel says `SAVED`, `LOADED`, or why a load was refused, for `noteTicks`. The
-original had no save, so it is off by default: turn it on with
-`"features": { "quickSave": true }` in the player's `settings.json` (§21.3).
+Asked for by the user (2026-10-04 as a quick save; 2026-10-14 as three slots).
+From the pause menu (§17.4) `SAVE GAME` keeps the moment in a slot of
+`shell.json → saves.slots` (3), over what was there; `LOAD GAME` — from the
+pause menu, or `L` on the title — goes back to one. Each slot's line says what
+is in it: the mode, the job, the quarters and the score, and under it the date
+and the room (`saves.slot`, `saves.detail`), or `EMPTY`. The panel says
+`SAVED TO SLOT n` or `LOADED SLOT n`; a slot that is empty or refused says so
+on the page. Saving is always on: the F5/F9 quick save and its
+`features.quickSave` are gone.
 
 **A save is the game as it was made, not a snapshot of it**: the run seed, the
 start room, `dev`, and every tick's input since the game began (`GameSession`
 records what it feeds `Simulation.play`), run-length encoded as a replay's
-(§22.6), plus the state hash it reached and the job it is (§14.9). Loading builds a fresh game the way a
-new game of this session is built (`Boot`'s one `silentGame` function, practice
-options and all), replays the input silently at full speed — an hour of play is
-well under a second — and compares the hash. Nothing is copied field by field,
-so nothing can be forgotten. A save is refused, never loaded wrong, when it is
-another version's (`contentHash`), another session's options (start room,
-`--dev`), damaged, or does not replay to its hash (other practice options, a
-rule changed).
+(§22.6), plus the state hash it reached, the job (§14.9) and the mode (§17.8);
+and, for the list, the date, quarters, score and room. Loading builds a fresh
+game the way a new game of this session is built (`Boot`'s one `silentGame`
+function, practice options and all), replays the input silently at full speed —
+an hour of play is well under a second — and compares the hash. Nothing is
+copied field by field, so nothing can be forgotten. A save is refused, never
+loaded wrong, when it is another version's (`contentHash`), another session's
+options (start room, `--dev`), damaged, or does not replay to its hash.
 
-**A load makes the game a practice run** (§17.6, `Simulation.markPractice`,
-in the state hash): dying can now be undone, so it never reaches the hi-score
-table or the ledger. Saving alone changes nothing. One slot; it stays until
-the next save overwrites it. `QuickSavesTest` checks a load lands on exactly
-the hash and tick saved, saves and loads again from a loaded game, and every
-refusal.
+**A loaded game ranks like any other**, as the user asked: saving and loading
+are part of play now. A game that was already practice when saved (§17.6)
+stays practice. `SaveSlots`, `SaveSlotsTest`: a load lands on exactly the hash
+and tick saved, a slot says what is in it, every refusal, and the menus from
+the pause menu and the title.
 
 The `progress.json` snapshot this section used to plan
 (`features.saveInProgress`) is dropped: replaying the input is exact by

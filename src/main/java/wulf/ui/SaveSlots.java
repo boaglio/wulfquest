@@ -2,6 +2,7 @@ package wulf.ui;
 
 import java.util.Optional;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 import wulf.data.PlayerDb;
 import wulf.data.QuickSaveData;
 import wulf.engine.Replay;
@@ -10,16 +11,17 @@ import wulf.sim.Simulation;
 import wulf.world.RoomAddress;
 
 /**
- * Quick save and quick load (AGENTS.md §21.4, [NEW] {@code features.quickSave}). A save is
- * the game as it was made — its seed, its start room and every tick's input — so loading
- * replays it, silently and at full speed, from a fresh start. Nothing is snapshotted by
- * hand, so nothing can be left out: the state hash at the end must match the one saved,
- * or the save is refused (another version's rules, other practice options).
+ * The save slots (AGENTS.md §21.4, {@code [NEW]}), offered from the pause menu and the
+ * title. A save is not a snapshot of the simulation: it is the game's seed and every tick of
+ * input played into it, and loading plays that input into a fresh game of the same seed —
+ * the simulation is deterministic (§6.4), so it arrives exactly where it was saved. The state
+ * hash the save recorded is checked on arrival; a save the rules have moved under (another
+ * version of the content, or other options) is refused rather than loaded wrong.
  *
- * <p>A load makes the game a practice run (§17.6): dying can now be undone, so it never
- * reaches the hi-score table or the ledger.
+ * <p>A loaded game ranks like any other, as the user asked: saving and loading are part of
+ * play. A game that was already practice when it was saved stays practice.
  */
-public final class QuickSaves {
+public final class SaveSlots {
 
     /** A new game from a seed, as job {@code level} (§14.9), in Easy mode or Hard (§17.8). */
     @FunctionalInterface
@@ -45,38 +47,43 @@ public final class QuickSaves {
     private final boolean dev;
     private final GameMaker silentGame;
     private final Consumer<Simulation> voice;
+    private final Supplier<String> today;
 
     /**
      * @param silentGame a new game from a seed, exactly as a new game starts this session (its
      *                   practice options and all) but with no sound — replaying it must not be heard
      * @param voice      gives a loaded game its sound
      */
-    public QuickSaves(PlayerDb db, String contentHash, RoomAddress start, boolean dev,
-                      GameMaker silentGame, Consumer<Simulation> voice) {
+    public SaveSlots(PlayerDb db, String contentHash, RoomAddress start, boolean dev, GameMaker silentGame,
+                     Consumer<Simulation> voice, Supplier<String> today) {
         this.db = db;
         this.contentHash = contentHash;
         this.start = start;
         this.dev = dev;
         this.silentGame = silentGame;
         this.voice = voice;
+        this.today = today;
     }
 
-    public void save(GameSession session) {
+    /** Keeps the game in slot {@code n} (from 1), over whatever was there. */
+    public void save(GameSession session, int n) {
         Simulation sim = session.sim();
         RecordedInput played = session.played();
-        db.putQuickSave(new QuickSaveData(QuickSaveData.SCHEMA_VERSION, contentHash, sim.runSeed(), start.toString(),
+        db.putSaveSlot(n, new QuickSaveData(QuickSaveData.SCHEMA_VERSION, contentHash, sim.runSeed(), start.toString(),
                 dev, sim.practice(), played.ticks(), played.runs(), Replay.hex(sim.stateHash()), sim.level(),
-                sim.easy()));
+                sim.easy(), today.get(), sim.quest().quarters(), sim.score(),
+                sim.room().col() + "," + sim.room().row()));
     }
 
-    public boolean exists() {
-        return db.quickSave().isPresent();
+    /** What is in slot {@code n}, for the list: empty when nothing is, or it cannot be read. */
+    public Optional<QuickSaveData> peek(int n) {
+        return db.saveSlot(n);
     }
 
-    public Loaded load() {
-        Optional<QuickSaveData> found = db.quickSave();
+    public Loaded load(int n) {
+        Optional<QuickSaveData> found = db.saveSlot(n);
         if (found.isEmpty()) {
-            return Loaded.refused("NO QUICK SAVE YET");
+            return Loaded.refused("EMPTY");
         }
         QuickSaveData save = found.get();
         if (!save.contentHash().equals(contentHash)) {
@@ -102,7 +109,6 @@ public final class QuickSaves {
         if (!Replay.hex(sim.stateHash()).equals(save.stateHash())) {
             return Loaded.refused("SAVE DOES NOT FIT THIS GAME");
         }
-        sim.markPractice();
         voice.accept(sim);
         return new Loaded(sim, played, null);
     }

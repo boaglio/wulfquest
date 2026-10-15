@@ -68,7 +68,9 @@ class ShellTest {
             assertThat(shell.state()).as("%s opens %s", item.key(), item.screen())
                     .isEqualTo(Shell.State.valueOf(item.screen()));
             idle(shell, CONFIG.screenHoldTicks());
-            shell.tick(FIRE, MenuInput.NONE, false);
+            // On the menus (§17.9, §21.4) fire picks a line; Escape is the way back, as on every page.
+            boolean menu = item.screen().equals("LOAD_GAME") || item.screen().equals("OPTIONS");
+            shell.tick(menu ? QUIT : FIRE, MenuInput.NONE, false);
             assertThat(shell.state()).as("%s closes again", item.screen()).isEqualTo(Shell.State.TITLE);
         }
     }

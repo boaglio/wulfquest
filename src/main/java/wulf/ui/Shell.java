@@ -25,7 +25,7 @@ public final class Shell {
 
     public enum State {
         TITLE, ATTRACT, CREDITS, HISCORES, STATS, KEY_CONFIG, SOUND, PLAYING, GAME_OVER, ENDING, TALLY, ROLL,
-        OFFER, HISCORE_ENTRY
+        OFFER, HISCORE_ENTRY, PAUSED, SAVE_GAME, LOAD_GAME, OPTIONS
     }
 
     /** The sounds the shell itself makes; the jungle's own are the simulation's (§18.2). */
@@ -50,8 +50,14 @@ public final class Shell {
     /** The input profiles the keys page offers, in the order it shows them (§19.1). */
     private final java.util.List<String> profiles;
     private Jukebox jukebox = Jukebox.SILENT;
-    /** §21.4: quick save and load, when {@code features.quickSave} is on; null when it is off. */
-    private QuickSaves quick;
+    /** §21.4: the save slots; null when none are given (a test's shell), and the menus say so. */
+    private SaveSlots saves;
+    /** §17.4, §17.9, §21.4: the line chosen on a menu page, the page Escape goes back to, and a word for the player. */
+    private int cursor;
+    private State back = State.TITLE;
+    private String menuNote;
+    private boolean heldUp;
+    private boolean heldDown;
 
     private State state = State.TITLE;
     private long stateTick;
@@ -139,9 +145,9 @@ public final class Shell {
         return show;
     }
 
-    /** §21.4: turns quick save and load on, with what they need. Off unless called. */
-    public void quickSaves(QuickSaves saves) {
-        this.quick = saves;
+    /** §21.4: the save slots, with what they need. Without them the menus offer nothing to load or save. */
+    public void saveSlots(SaveSlots slots) {
+        this.saves = slots;
     }
 
     // ---------------------------------------------------------------- the machine
@@ -168,24 +174,16 @@ public final class Shell {
             case ROLL -> roll(in);
             case OFFER -> offer(in);
             case HISCORE_ENTRY -> hiScoreEntry(in);
+            case PAUSED -> paused(in);
+            case SAVE_GAME -> saveGame(in);
+            case LOAD_GAME -> loadGame(in);
+            case OPTIONS -> options(in);
         }
     }
 
     private void title(InputState in, MenuInput menu) {
         if (in.quitPressed()) {
             quit = true;
-            return;
-        }
-        if (quick != null && menu.typed(config.quickSave().loadKey())) {
-            QuickSaves.Loaded loaded = quick.load();
-            if (loaded.ok()) {
-                jukebox.sfx(SFX_PICK);
-                session = new GameSession(loaded.sim(), revealFor(loaded.sim()), loaded.played());
-                session.note("LOADED", config.quickSave().noteTicks());
-                go(State.PLAYING);
-            } else {
-                notice = loaded.refusal();
-            }
             return;
         }
         if (menu.typed(config.difficulty().key())) {
@@ -204,7 +202,7 @@ public final class Shell {
         String screen = TitleScreen.screenFor(config.title().menu(), menu);
         if (screen != null) {
             jukebox.sfx(SFX_PICK);
-            go(State.valueOf(screen));
+            openMenu(State.valueOf(screen), State.TITLE);
             return;
         }
         if (in.firePressed()) {
@@ -287,7 +285,11 @@ public final class Shell {
             endRun();
             return;
         }
-        quickKeys(menu);
+        if (in.pausePressed() && !session.revealing() && !session.mapOpen() && !session.over() && !session.won()) {
+            jukebox.sfx(SFX_PICK);
+            openMenu(State.PAUSED, State.PLAYING);   // §17.4: the game stands still under the menu
+            return;
+        }
         boolean wasRevealing = session.revealing();
         session.tick(in, dev);
         if (session.revealing() != wasRevealing) {
@@ -303,26 +305,139 @@ public final class Shell {
         }
     }
 
-    /** §21.4: the save key keeps this moment; the load key goes back to the last one kept. */
-    private void quickKeys(MenuInput menu) {
-        if (quick == null) {
+    // ---------------------------------------------------------------- the menus (§17.4, §17.9, §21.4)
+
+    private void openMenu(State page, State from) {
+        cursor = 0;
+        back = from;
+        menuNote = null;
+        heldUp = false;
+        heldDown = false;
+        go(page);
+    }
+
+    /** Up and down move the cursor through {@code lines}, wrapping, on the press and not the hold. */
+    private void steer(InputState in, int lines) {
+        int dy = (in.down() && !heldDown ? 1 : 0) - (in.up() && !heldUp ? 1 : 0);
+        heldUp = in.up();
+        heldDown = in.down();
+        if (dy != 0 && lines > 0) {
+            cursor = Math.floorMod(cursor + dy, lines);
+            menuNote = null;
+            jukebox.sfx(SFX_MOVE);
+        }
+    }
+
+    private void paused(InputState in) {
+        java.util.List<ShellConfig.Entry> items = config.pause().items();
+        steer(in, items.size());
+        if (in.quitPressed() || in.pausePressed()) {
+            go(State.PLAYING);
             return;
         }
-        ShellConfig.QuickSave keys = config.quickSave();
-        if (menu.typed(keys.saveKey()) && !session.over() && !session.won()) {
-            quick.save(session);
-            session.note("SAVED", keys.noteTicks());
-            jukebox.sfx(SFX_PICK);
-        } else if (menu.typed(keys.loadKey())) {
-            QuickSaves.Loaded loaded = quick.load();
-            if (loaded.ok()) {
-                session = new GameSession(loaded.sim(), revealFor(loaded.sim()), loaded.played());
-                session.note("LOADED", keys.noteTicks());
-                jukebox.sfx(SFX_PICK);
-            } else {
-                session.note(loaded.refusal(), keys.noteTicks());
-            }
+        if (!in.firePressed()) {
+            return;
         }
+        jukebox.sfx(SFX_PICK);
+        switch (items.get(cursor).id()) {
+            case "resume" -> go(State.PLAYING);
+            case "save" -> openMenu(State.SAVE_GAME, State.PAUSED);
+            case "load" -> openMenu(State.LOAD_GAME, State.PAUSED);
+            case "options" -> openMenu(State.OPTIONS, State.PAUSED);
+            case "quit" -> endRun();   // as Escape from the jungle: the run is banked
+            default -> { }
+        }
+    }
+
+    /** Back a step: to the pause menu, on the line that came here, or to the title. */
+    private void backOut() {
+        State to = back;
+        State from = state;
+        if (to == State.PAUSED) {
+            openMenu(State.PAUSED, State.PLAYING);
+            java.util.List<ShellConfig.Entry> items = config.pause().items();
+            String id = from == State.SAVE_GAME ? "save" : from == State.LOAD_GAME ? "load" : "options";
+            for (int i = 0; i < items.size(); i++) {
+                cursor = items.get(i).id().equals(id) ? i : cursor;
+            }
+        } else {
+            go(State.TITLE);
+        }
+    }
+
+    private void saveGame(InputState in) {
+        steer(in, config.saves().slots());
+        if (in.quitPressed()) {
+            backOut();
+        } else if (in.firePressed() && saves != null) {
+            int n = cursor + 1;
+            saves.save(session, n);
+            jukebox.sfx(SFX_PICK);
+            session.note(config.saves().saved().replace("{n}", Integer.toString(n)), config.saves().noteTicks());
+            go(State.PLAYING);
+        }
+    }
+
+    private void loadGame(InputState in) {
+        steer(in, config.saves().slots());
+        if (in.quitPressed()) {
+            backOut();
+            return;
+        }
+        if (!in.firePressed() || saves == null || stateTick < config.screenHoldTicks() && back == State.TITLE) {
+            return;
+        }
+        int n = cursor + 1;
+        SaveSlots.Loaded loaded = saves.load(n);
+        if (!loaded.ok()) {
+            menuNote = "EMPTY".equals(loaded.refusal())
+                    ? config.saves().emptySlot().replace("{n}", Integer.toString(n)) : loaded.refusal();
+            jukebox.sfx(SFX_MOVE);
+            return;
+        }
+        jukebox.sfx(SFX_PICK);
+        session = new GameSession(loaded.sim(), revealFor(loaded.sim()), loaded.played());
+        session.note(config.saves().loaded().replace("{n}", Integer.toString(n)), config.saves().noteTicks());
+        go(State.PLAYING);
+    }
+
+    private void options(InputState in) {
+        java.util.List<ShellConfig.Entry> items = config.options().items();
+        steer(in, items.size());
+        if (in.quitPressed()) {
+            backOut();
+            return;
+        }
+        if (!in.firePressed() || stateTick < config.screenHoldTicks() && back == State.TITLE) {
+            return;
+        }
+        String id = items.get(cursor).id();
+        if (id.equals("back")) {
+            jukebox.sfx(SFX_PICK);
+            backOut();
+            return;
+        }
+        db.putSettings(toggled(db.settings(), id));
+        jukebox.sfx(SFX_PICK);
+    }
+
+    /** §17.9: an options switch flipped. */
+    static Settings toggled(Settings s, String id) {
+        Settings.Crt c = s.crt();
+        return switch (id) {
+            case "scanlines" -> s.withCrt(new Settings.Crt(!c.scanlines(), c.glow(), c.attributeClash()));
+            case "attributeClash" -> s.withCrt(new Settings.Crt(c.scanlines(), c.glow(), !c.attributeClash()));
+            default -> s.withFeature(id, !optionOn(s, id));
+        };
+    }
+
+    /** §17.9: whether an options switch is on. */
+    public static boolean optionOn(Settings s, String id) {
+        return switch (id) {
+            case "scanlines" -> s.crt().scanlines();
+            case "attributeClash" -> s.crt().attributeClash();
+            default -> Boolean.TRUE.equals(s.features().get(id));
+        };
     }
 
     private void gameOver(InputState in) {
@@ -527,7 +642,10 @@ public final class Shell {
     private void go(State next) {
         state = next;
         stateTick = 0;
-        jukebox.tune(tuneFor(next));
+        // The menus over a game are as silent as the jungle under them (§18.3).
+        boolean inGame = next == State.PAUSED || next == State.SAVE_GAME
+                || back == State.PAUSED && (next == State.LOAD_GAME || next == State.OPTIONS);
+        jukebox.tune(inGame ? null : tuneFor(next));
     }
 
     /**
@@ -582,6 +700,26 @@ public final class Shell {
     /** §14.9: the job the title starts, and the furthest one open. */
     public int level() {
         return level;
+    }
+
+    /** The line chosen on the menu showing (§17.4, §17.9, §21.4). */
+    public int cursor() {
+        return cursor;
+    }
+
+    /** Whether the menu showing is over a game: drawn over the frozen jungle, not a page of its own. */
+    public boolean menuInGame() {
+        return state == State.PAUSED || state == State.SAVE_GAME || back == State.PAUSED;
+    }
+
+    /** A word for the player on the menu showing — a slot that is empty, a save refused — or null. */
+    public String menuNote() {
+        return menuNote;
+    }
+
+    /** The save slots, for the lists to show what is in them; null when there are none. */
+    public SaveSlots saveSlots() {
+        return saves;
     }
 
     /** Whether the next game from the title is in Easy mode (§17.8). */

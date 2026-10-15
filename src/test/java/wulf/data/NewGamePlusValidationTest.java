@@ -38,8 +38,8 @@ class NewGamePlusValidationTest {
         ShellConfig s = c.shell();
         ShellConfig.NewGamePlus n = s.newGamePlus();
         return new ShellConfig(s.schemaVersion(), s.screenHoldTicks(), s.title(), s.attract(), s.gameOver(), s.ending(),
-                s.tally(), s.hiScores(), s.keyConfig(), s.sound(), s.stats(), s.amuletReveal(), s.map(), s.quickSave(),
-                s.credits(), new ShellConfig.NewGamePlus(n.key(), n.labelColour(), jobs), s.difficulty());
+                s.tally(), s.hiScores(), s.keyConfig(), s.sound(), s.stats(), s.amuletReveal(), s.map(), s.saves(),
+                s.credits(), new ShellConfig.NewGamePlus(n.key(), n.labelColour(), jobs), s.difficulty(), s.pause(), s.options());
     }
 
     private static DataException wordsError(List<ShellConfig.Job> jobs) {

@@ -24,10 +24,12 @@ public record ShellConfig(
         Stats stats,
         AmuletReveal amuletReveal,
         MapScreen map,
-        QuickSave quickSave,
+        Saves saves,
         Credits credits,
         NewGamePlus newGamePlus,
-        Difficulty difficulty) {
+        Difficulty difficulty,
+        Pause pause,
+        Options options) {
 
     public record Title(String wordmark, String tagline, String prompt, Cycle cycle, List<MenuItem> menu,
                         String footer) {
@@ -81,10 +83,45 @@ public record ShellConfig(
     }
 
     /**
-     * Quick save and quick load (§21.4, {@code [NEW]}, {@code features.quickSave}): the keys,
-     * by name ({@code "F5"}), and how long "SAVED" or a refusal stays on the panel.
+     * The save slots (§21.4, {@code [NEW]}), from the pause menu and the title. A slot's row is
+     * {@code slot} with {@code {n}}, {@code {mode}}, {@code {job}}, {@code {quarters}} and
+     * {@code {score}} filled in, and under it {@code detail} with {@code {date}} and
+     * {@code {room}}; an empty one is {@code empty}. {@code jobNames} names job n, the game's
+     * own first; the notes stay on the panel {@code noteTicks}.
      */
-    public record QuickSave(String saveKey, String loadKey, int noteTicks) {
+    public record Saves(int slots, String saveHeading, String loadHeading, String slot, String detail, String empty,
+                        List<String> jobNames, ModeNames modeNames, String saved, String loaded, String emptySlot,
+                        int noteTicks, String footer) {
+        public Saves {
+            jobNames = List.copyOf(jobNames);
+        }
+    }
+
+    public record ModeNames(String hard, String easy) {
+    }
+
+    /** One line of a menu: what it does ({@code id}, which the shell knows) and what it says. */
+    public record Entry(String id, String label) {
+    }
+
+    /** The pause menu (§17.4, {@code [NEW]}): {@code items} over the frozen jungle. */
+    public record Pause(String heading, List<Entry> items, String footer) {
+        public Pause {
+            items = List.copyOf(items);
+        }
+
+        /** The ids the shell acts on, in any order. */
+        public static final List<String> IDS = List.of("resume", "save", "load", "options", "quit");
+    }
+
+    /** The options page (§17.9, {@code [NEW]}): each item a switch, shown {@code on} or {@code off}, and back. */
+    public record Options(String heading, List<Entry> items, String on, String off, String footer) {
+        public Options {
+            items = List.copyOf(items);
+        }
+
+        /** The ids the shell acts on: the switches it knows, and back. */
+        public static final List<String> IDS = List.of("scanlines", "attributeClash", "inkedCreatures", "back");
     }
 
     /**

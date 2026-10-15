@@ -84,14 +84,14 @@ public final class PlayerDb implements AutoCloseable {
         return List.copyOf(notices);
     }
 
-    /** §21.4: the quick save, read fresh each time; empty when there is none or it cannot be read. */
-    public java.util.Optional<QuickSaveData> quickSave() {
-        return java.util.Optional.ofNullable(read("quicksave", "quicksave", QuickSaveData.class, () -> null));
+    /** §21.4: save slot {@code n} (from 1), read fresh each time; empty when there is none or it cannot be read. */
+    public java.util.Optional<QuickSaveData> saveSlot(int n) {
+        return java.util.Optional.ofNullable(read("save" + n, "quicksave", QuickSaveData.class, () -> null));
     }
 
     /** §21.4: written now, not coalesced — the player is told it is saved. */
-    public void putQuickSave(QuickSaveData value) {
-        run(() -> write("quicksave", value));
+    public void putSaveSlot(int n, QuickSaveData value) {
+        run(() -> write("save" + n, value));
     }
 
     public void putScores(HighScores value) {

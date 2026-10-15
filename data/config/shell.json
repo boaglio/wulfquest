@@ -41,6 +41,16 @@
         "key": "S",
         "screen": "STATS",
         "label": "S STATS"
+      },
+      {
+        "key": "L",
+        "screen": "LOAD_GAME",
+        "label": "L LOAD GAME"
+      },
+      {
+        "key": "O",
+        "screen": "OPTIONS",
+        "label": "O OPTIONS"
       }
     ],
     "footer": "CLEAN-ROOM HOMAGE - ALL ART AUDIO AND CODE ORIGINAL"
@@ -162,7 +172,21 @@
     "quarterIcon": { "sprite": "map_diamond", "shiny": ["shiny0", "shiny1", "shiny2", "shiny3"], "frameTicks": 8, "taken": "dull" },
     "trail": { "colour": "brightYellow", "dotEveryPx": 3, "marchTicks": 4 }
   },
-  "quickSave": { "saveKey": "F5", "loadKey": "F9", "noteTicks": 100 },
+  "saves": {
+    "slots": 3,
+    "saveHeading": "SAVE GAME",
+    "loadHeading": "LOAD GAME",
+    "slot": "{n}  {mode} {job}  {quarters}/4  {score}",
+    "detail": "{date}  ROOM {room}",
+    "empty": "{n}  EMPTY",
+    "jobNames": ["", "NG+", "NG+2"],
+    "modeNames": { "hard": "HARD", "easy": "EASY" },
+    "saved": "SAVED TO SLOT {n}",
+    "loaded": "LOADED SLOT {n}",
+    "emptySlot": "SLOT {n} IS EMPTY",
+    "noteTicks": 100,
+    "footer": "FIRE TO PICK - ESC TO GO BACK"
+  },
   "credits": {
     "heading": "CREDITS",
     "lines": [
@@ -281,5 +305,28 @@
         }
       }
     ]
+  },
+  "pause": {
+    "heading": "PAUSED",
+    "items": [
+      { "id": "resume", "label": "RESUME" },
+      { "id": "save", "label": "SAVE GAME" },
+      { "id": "load", "label": "LOAD GAME" },
+      { "id": "options", "label": "OPTIONS" },
+      { "id": "quit", "label": "QUIT TO TITLE" }
+    ],
+    "footer": "UP DOWN TO CHOOSE - FIRE TO PICK"
+  },
+  "options": {
+    "heading": "OPTIONS",
+    "items": [
+      { "id": "scanlines", "label": "SCANLINES" },
+      { "id": "attributeClash", "label": "COLOUR CLASH" },
+      { "id": "inkedCreatures", "label": "ONE-COLOUR CREATURES" },
+      { "id": "back", "label": "BACK" }
+    ],
+    "on": "ON",
+    "off": "OFF",
+    "footer": "UP DOWN TO CHOOSE - FIRE TO CHANGE"
   }
 }

@@ -28,6 +28,7 @@ public final class ShellPainter {
     private final KeyConfigScreen keys;
     private final SoundScreen sound;
     private final GameOverScreen gameOver;
+    private final MenuScreen menus;
     private final TallyScreen tally;
     private final EndingScreen ending;
     private final CreditsRoll roll;
@@ -54,6 +55,7 @@ public final class ShellPainter {
         this.keys = new KeyConfigScreen(chrome, config.keyConfig());
         this.sound = new SoundScreen(chrome, config.sound());
         this.gameOver = new GameOverScreen(chrome, config.gameOver());
+        this.menus = new MenuScreen(chrome, display, config);
         this.tally = new TallyScreen(fonts.small(), content.palette(), config.tally());
         wulf.render.SpriteBank sprites = new wulf.render.SpriteBank(content.sprites());
         wulf.render.Sprite amulet = sprites.get(content.landmarks().amulet().sprite());
@@ -70,7 +72,14 @@ public final class ShellPainter {
     }
 
     public void paint(Framebuffer fb, Shell shell, boolean dev) {
+        game.retro(db.settings());   // §17.9: as the options page left them
         switch (shell.state()) {
+            case PAUSED, SAVE_GAME, LOAD_GAME, OPTIONS -> {
+                if (shell.menuInGame() && shell.session() != null) {
+                    playing(fb, shell, dev);
+                }
+                menus.paint(fb, shell, db.settings());
+            }
             case TITLE -> title.paint(fb, shell.stateTick(), db.scores().best(), shell.notice(),
                     shell.unlocked() > 0 ? config.newGamePlus().levels().get(shell.level()) : null, shell.easy());
             case ATTRACT -> attract(fb, shell);

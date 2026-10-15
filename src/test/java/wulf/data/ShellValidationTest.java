@@ -23,7 +23,7 @@ class ShellValidationTest {
     private static ShellConfig withTitle(ShellConfig.Title title) {
         ShellConfig s = c.shell();
         return new ShellConfig(s.schemaVersion(), s.screenHoldTicks(), title, s.attract(), s.gameOver(), s.ending(), s.tally(),
-                s.hiScores(), s.keyConfig(), s.sound(), s.stats(), s.amuletReveal(), s.map(), s.quickSave(), s.credits(), s.newGamePlus(), s.difficulty());
+                s.hiScores(), s.keyConfig(), s.sound(), s.stats(), s.amuletReveal(), s.map(), s.saves(), s.credits(), s.newGamePlus(), s.difficulty(), s.pause(), s.options());
     }
 
     private static ShellConfig.Title titleWith(List<String> colours, List<ShellConfig.MenuItem> menu) {
@@ -76,7 +76,7 @@ class ShellValidationTest {
                 s.gameOver(), s.ending(), s.tally(),
                 new ShellConfig.HiScores(h.heading(), h.entryHeading(), h.entryPrompt(), h.size(), h.nameLength(),
                         "AABC", h.cursorBlinkTicks(), h.repeatDelayTicks(), h.repeatEveryTicks()),
-                s.keyConfig(), s.sound(), s.stats(), s.amuletReveal(), s.map(), s.quickSave(), s.credits(), s.newGamePlus(), s.difficulty());
+                s.keyConfig(), s.sound(), s.stats(), s.amuletReveal(), s.map(), s.saves(), s.credits(), s.newGamePlus(), s.difficulty(), s.pause(), s.options());
         DataException e = error(broken);
         assertThat(e).isNotNull();
         assertThat(e.pointer()).isEqualTo("/hiScores/alphabet");
@@ -85,7 +85,7 @@ class ShellValidationTest {
     private static ShellConfig withReveal(ShellConfig.AmuletReveal reveal) {
         ShellConfig s = c.shell();
         return new ShellConfig(s.schemaVersion(), s.screenHoldTicks(), s.title(), s.attract(), s.gameOver(), s.ending(), s.tally(),
-                s.hiScores(), s.keyConfig(), s.sound(), s.stats(), reveal, s.map(), s.quickSave(), s.credits(), s.newGamePlus(), s.difficulty());
+                s.hiScores(), s.keyConfig(), s.sound(), s.stats(), reveal, s.map(), s.saves(), s.credits(), s.newGamePlus(), s.difficulty(), s.pause(), s.options());
     }
 
     private static DataException revealError(ShellConfig.AmuletReveal reveal) {
@@ -139,7 +139,7 @@ class ShellValidationTest {
     private static ShellConfig withEnding(ShellConfig.Ending ending) {
         ShellConfig s = c.shell();
         return new ShellConfig(s.schemaVersion(), s.screenHoldTicks(), s.title(), s.attract(), s.gameOver(), ending, s.tally(),
-                s.hiScores(), s.keyConfig(), s.sound(), s.stats(), s.amuletReveal(), s.map(), s.quickSave(), s.credits(), s.newGamePlus(), s.difficulty());
+                s.hiScores(), s.keyConfig(), s.sound(), s.stats(), s.amuletReveal(), s.map(), s.saves(), s.credits(), s.newGamePlus(), s.difficulty(), s.pause(), s.options());
     }
 
     private static DataException endingError(ShellConfig.Ending ending) {
@@ -197,9 +197,9 @@ class ShellValidationTest {
         ShellConfig.Job j = jobs.get(n);
         jobs.set(n, new ShellConfig.Job(j.label(), j.tagline(), j.verses(), j.offer(), ending, j.theEnd(), j.amulet()));
         return new ShellConfig(s.schemaVersion(), s.screenHoldTicks(), s.title(), s.attract(), s.gameOver(), s.ending(),
-                s.tally(), s.hiScores(), s.keyConfig(), s.sound(), s.stats(), s.amuletReveal(), s.map(), s.quickSave(),
+                s.tally(), s.hiScores(), s.keyConfig(), s.sound(), s.stats(), s.amuletReveal(), s.map(), s.saves(),
                 s.credits(), new ShellConfig.NewGamePlus(s.newGamePlus().key(), s.newGamePlus().labelColour(), jobs),
-                s.difficulty());
+                s.difficulty(), s.pause(), s.options());
     }
 
     @Test
@@ -225,9 +225,9 @@ class ShellValidationTest {
         ShellConfig.Job j = jobs.get(n);
         jobs.set(n, new ShellConfig.Job(j.label(), j.tagline(), j.verses(), j.offer(), j.ending(), j.theEnd(), frames));
         return new ShellConfig(s.schemaVersion(), s.screenHoldTicks(), s.title(), s.attract(), s.gameOver(), s.ending(),
-                s.tally(), s.hiScores(), s.keyConfig(), s.sound(), s.stats(), s.amuletReveal(), s.map(), s.quickSave(),
+                s.tally(), s.hiScores(), s.keyConfig(), s.sound(), s.stats(), s.amuletReveal(), s.map(), s.saves(),
                 s.credits(), new ShellConfig.NewGamePlus(s.newGamePlus().key(), s.newGamePlus().labelColour(), jobs),
-                s.difficulty());
+                s.difficulty(), s.pause(), s.options());
     }
 
     @Test

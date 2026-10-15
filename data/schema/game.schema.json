@@ -90,7 +90,7 @@
     "features": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["caveHints", "animatedWater", "distanceDrivenGait", "roamingWulf", "inventedOrchids", "inventedCreatures", "inkedCreatures", "quickSave",
+      "required": ["caveHints", "animatedWater", "distanceDrivenGait", "roamingWulf", "inventedOrchids", "inventedCreatures", "inkedCreatures",
                    "bonusRooms", "pauseMap", "stats"],
       "patternProperties": { "^[a-zA-Z]+$": { "type": "boolean" } }
     }

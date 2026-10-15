@@ -118,22 +118,30 @@ class ShellPainterTest {
     }
 
     @Test
-    void pausingDropsThePlayfieldToTheNonBrightPalette(@TempDir Path dir) {
+    void pausingDropsThePlayfieldToTheNonBrightPaletteUnderTheMenu(@TempDir Path dir) {
         PlayerDb db = db(dir);
         Shell shell = shell(db);
         ShellPainter painter = painter(db);
         shell.tick(FIRE, MenuInput.NONE, false);
         shell.tick(new InputState(false, false, false, false, false, false, true, false, false, false, false),
                 MenuInput.NONE, false);
-        assertThat(shell.session().paused()).isTrue();
+        assertThat(shell.state()).isEqualTo(Shell.State.PAUSED);   // §17.4: the pause menu
         Framebuffer fb = fb();
         painter.paint(fb, shell, false);
         wulf.data.DisplayConfig.Playfield f = CONTENT.display().playfield();
+        // The jungle round the menu's box — its margin, down the left of the playfield — is dimmed.
         for (int y = f.y(); y < f.y() + f.h(); y++) {
-            for (int x = f.x(); x < f.x() + f.w(); x++) {
+            for (int x = f.x(); x < f.x() + 8; x++) {
                 assertThat(fb.get(x, y)).as("bright ink at %d,%d", x, y).isLessThan(8);
             }
         }
+        boolean bright = false;
+        for (int y = f.y(); y < f.y() + f.h() && !bright; y++) {
+            for (int x = f.x(); x < f.x() + f.w() && !bright; x++) {
+                bright = fb.get(x, y) >= 8;
+            }
+        }
+        assertThat(bright).as("the menu itself in bright ink").isTrue();
     }
 
     @Test

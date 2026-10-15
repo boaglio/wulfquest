@@ -163,7 +163,7 @@ rebuild — the game reads the working tree's `data/` directly.
 |-----|--------|
 | Arrows / WASD | Walk (8 directions) |
 | Space / Z | Swing the sabre |
-| P | Pause |
+| P | Pause, with the menu: save, load, options, quit |
 | Escape | Leave the jungle for the title; quit from the title |
 
 In the jungle, `M` opens a map of everywhere you have been; the game waits while
@@ -179,23 +179,21 @@ The title screen has the rest: `K` for the keys page, where the period layout
 your lifetime ledger; `D` switches between Hard and Easy. Once you have won,
 `N` picks which of Mr Jones's jobs to play. Nothing is hidden behind a key you have to know.
 
-**Quick save** (off by default, as the original had none): add
-`"features": { "quickSave": true }` to `settings.json` (below). Then `F5` keeps
-the moment and `F9` goes back to it, during play or from the title screen to
-pick the game up again. A game you have loaded into is practice: it gets no
-hi-score.
+**Pause, save and load.** `P` pauses the game with a menu: resume, save the
+game to one of three slots, load one, options, or quit to the title. The title
+has `L` to load a saved game and `O` for the options — scanlines, the colour
+clash, and the original's one-colour creatures.
 
-Hi-scores, settings, stats and the quick save are written to your own user directory —
+Hi-scores, settings, stats and saved games are written to your own user directory —
 `~/.local/share/wulfquest` on Linux, `~/Library/Application Support/WulfQuest`
 on macOS, `%APPDATA%\WulfQuest` on Windows — never into the game's own files.
 
-For the nostalgic, `settings.json` there has two switches, both off by default
-and not yet on any menu, in
-`"crt": { "scanlines": false, "glow": false, "attributeClash": false }`:
-`scanlines` darkens every other line of the picture, and `attributeClash`
-gives each 8×8 cell of the jungle one colour, so Vale turns the undergrowth
-his colour as he pushes through it — faithful, ugly, fun. (`glow` does
-nothing yet.)
+For the nostalgic, the options page (`O` on the title, or from the pause menu)
+has three switches, all off by default: scanlines darken every other line of
+the picture; the colour clash gives each 8×8 cell of the jungle one colour, so
+Vale turns the undergrowth his colour as he pushes through it — faithful, ugly,
+fun; and one-colour creatures draws each creature in a single ink, as the
+original did.
 
 ## How it is built
 

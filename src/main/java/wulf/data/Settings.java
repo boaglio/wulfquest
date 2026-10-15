@@ -31,6 +31,11 @@ public record Settings(
         this(schemaVersion, scale, audio, inputProfile, crt, features, false);
     }
 
+    /** The retro switches, as the options page sets them (§17.9). */
+    public Settings withCrt(Crt value) {
+        return new Settings(schemaVersion, scale, audio, inputProfile, value, features, easy);
+    }
+
     /** Easy mode or Hard, as chosen on the title (§17.8). */
     public Settings withEasy(boolean on) {
         return new Settings(schemaVersion, scale, audio, inputProfile, crt, features, on);

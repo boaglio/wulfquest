@@ -50,6 +50,15 @@ public final class ShellValidator {
                         "binds '" + digit + "', which the keys page already uses to choose an input profile");
             }
         }
+        // §17.4, §17.9: every menu line does something the shell knows, and none twice.
+        checkEntries(shell.pause().items(), ShellConfig.Pause.IDS, "/pause/items");
+        checkEntries(shell.options().items(), ShellConfig.Options.IDS, "/options/items");
+        if (shell.pause().items().stream().noneMatch(e -> e.id().equals("resume"))) {
+            throw new DataException(SOURCE, "/pause/items", "has no way back to the game ('resume')");
+        }
+        if (shell.saves().jobNames().size() < shell.newGamePlus().levels().size()) {
+            throw new DataException(SOURCE, "/saves/jobNames", "names fewer jobs than newGamePlus has");
+        }
         // §17.8: the difficulty's key is a title key like the others, and its colour a real one.
         ShellConfig.Difficulty difficulty = shell.difficulty();
         if (keys.contains(difficulty.key()) || difficulty.key().equals(shell.newGamePlus().key())) {
@@ -62,6 +71,19 @@ public final class ShellValidator {
         }
         if (shell.hiScores().alphabet().chars().distinct().count() != shell.hiScores().alphabet().length()) {
             throw new DataException(SOURCE, "/hiScores/alphabet", "repeats a letter");
+        }
+    }
+
+    private static void checkEntries(List<ShellConfig.Entry> items, List<String> known, String at) {
+        Set<String> seen = new HashSet<>();
+        for (int i = 0; i < items.size(); i++) {
+            String id = items.get(i).id();
+            if (!known.contains(id)) {
+                throw new DataException(SOURCE, at + "/" + i + "/id", "is '" + id + "', which is not one of " + known);
+            }
+            if (!seen.add(id)) {
+                throw new DataException(SOURCE, at + "/" + i + "/id", "is '" + id + "' twice");
+            }
         }
     }
 

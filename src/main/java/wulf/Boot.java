@@ -38,7 +38,7 @@ import wulf.input.RecordedInput;
 import wulf.ui.DataErrorScreen;
 import wulf.ui.GameSession;
 import wulf.ui.Jukebox;
-import wulf.ui.QuickSaves;
+import wulf.ui.SaveSlots;
 import wulf.ui.Shell;
 import wulf.ui.ShellPainter;
 import wulf.world.Room;
@@ -179,7 +179,7 @@ public final class Boot {
         AtomicLong nextSeed = new AtomicLong(firstSeed);
         // One way to make a game, so a quick load (§21.4) rebuilds it exactly as it was begun.
         // §14.9: a game of job n — 0 the game itself — as the title asks for it; §17.8: in Easy mode or Hard.
-        QuickSaves.GameMaker silentGame = (seed, job, easy) -> {
+        SaveSlots.GameMaker silentGame = (seed, job, easy) -> {
             Ecosystem jobEco = job == 0 ? gameEco : gameEco.atLevel(job, c.game().newGamePlus().level(job));
             if (easy) {
                 jobEco = jobEco.easy(c.game().easy());
@@ -213,9 +213,7 @@ public final class Boot {
         if (parsed.endings()) {
             shell.showEndings();   // §17.6: every job's ending in turn, then the title
         }
-        if (c.game().feature("quickSave")) {
-            shell.quickSaves(new QuickSaves(player, c.db().contentHash(), start, parsed.dev(), silentGame, voice));
-        }
+        shell.saveSlots(new SaveSlots(player, c.db().contentHash(), start, parsed.dev(), silentGame, voice, Boot::today));
         shell.jukebox(new Jukebox() {
             @Override
             public void tune(String id) {
@@ -242,10 +240,8 @@ public final class Boot {
                 ? c.sfx().sfx().size() + " sounds, " + c.music().tunes().size() + " tunes, "
                         + player.settings().audio().volumePercent() + "% volume"
                 : parsed.noAudio() ? "off (--no-audio)" : "off (settings.json)"));
-        System.out.println("  quick save   : " + (c.game().feature("quickSave")
-                ? c.shell().quickSave().saveKey() + " saves, " + c.shell().quickSave().loadKey() + " loads (a load makes it practice)"
-                : "off (features.quickSave)"));
-        System.out.println("  controls     : arrows or WASD walk, Space or Z swing, P pause, Esc leaves the jungle"
+        System.out.println("  saves        : " + c.shell().saves().slots() + " slots, from the pause menu (P) and the title");
+        System.out.println("  controls     : arrows or WASD walk, Space or Z swing, P pause and menu, Esc leaves the jungle"
                 + (parsed.dev() ? "   [dev: K kill, N collision mask, H summon the roaming Wulf]" : ""));
 
         GameLoop loop = new GameLoop(c.game().tickHz(), c.game().maxCatchupTicks());
@@ -266,6 +262,9 @@ public final class Boot {
             @Override
             public void render() {
                 painter.paint(screen.fb(), shell, parsed.dev());
+                // §17.9: the options page switches scanlines while the game runs.
+                screen.scaler().setScanlines(player.settings().crt().scanlines(),
+                        c.display().crt().scanlineLuminancePercent());
                 screen.window().present(screen.scaler().render(screen.fb()));
             }
 
