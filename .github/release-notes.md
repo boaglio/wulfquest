@@ -1,4 +1,27 @@
-## What's new in 0.6.1
+## What's new in 0.6.2
+
+**Save your game.** Press `P` in the jungle for the new pause menu:
+resume, save, load, options, or quit to the title. There are three save slots,
+and you can save anywhere. Each slot shows the mode, the job, the quarters
+found, the score, the room and the date. `L` on the title loads a game
+straight away. A loaded game counts for the hi-score table like any other.
+
+**Options.** `O` on the title, or the pause menu, switches the scanlines, the
+colour clash and the one-colour creatures on and off. The change shows at once.
+
+**The time bonus pays again.** It now runs down over an hour instead of
+twenty minutes, so a win in 25 minutes earns about 17 000 points for its
+speed. Before this, every win got nothing for it.
+
+**Easy is easier.** In Easy the rhinos, tribesmen, hippos and warthogs move at
+40% of their speed, so they are easy to see coming and to step round. Your
+sabre still knocks them back as hard. Hard is unchanged.
+
+**And a smaller fix.** In job 1, the verse you get on taking the first half of
+the medallion now fits either half. It used to speak of the moon, which is on
+the silver half only.
+
+## In 0.6.1
 
 **Each job plays for its own amulet.** Mr Jones's later jobs no longer reuse
 the wolf amulet. Job 1's is a medallion broken across the middle, silver above
