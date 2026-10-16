@@ -37,7 +37,7 @@ class EasyModeTest {
         assertThat(easy.swarmRoomMax()).isEqualTo(2);
         assertThat(easy.swarmOpenPerQuarter()).isEqualTo(1);
         assertThat(easy.wulfSpeedPercent()).isEqualTo(75);
-        assertThat(easy.beastSpeedPercent()).isEqualTo(60);
+        assertThat(easy.beastSpeedPercent()).isEqualTo(40);
         assertThat(easy.flame()).as("no flames").isFalse();
         assertThat(easy.showWayTicks()).as("three minutes").isEqualTo(3 * 60 * c.game().tickHz());
         assertThat(easy.hintsOncePerLife()).isFalse();
@@ -107,7 +107,7 @@ class EasyModeTest {
             var slow = e.kinds().get(k).behaviour().params();
             for (var p : own.entrySet()) {
                 if (p.getKey().endsWith("Fp") && !p.getKey().equals("shovedFp")) {
-                    assertThat(slow.get(p.getKey())).as(p.getKey()).isEqualTo(p.getValue() * 60 / 100);
+                    assertThat(slow.get(p.getKey())).as(p.getKey()).isEqualTo(p.getValue() * 40 / 100);
                     paces++;
                 } else {
                     assertThat(slow.get(p.getKey())).as(p.getKey()).isEqualTo(p.getValue());
