@@ -13,7 +13,16 @@
   <img src="https://github.com/boaglio/wulfquest/releases/download/v0.7.0/screenshot-8bit.png" width="400" alt="A room of mountains and crates in 8-BIT MODE: colour clash, one-colour sprites and scanlines">
 </p>
 
-## What's new in 0.7.1
+## What's new in 0.7.2
+
+**Glow, like an old television.** The options page has a new `GLOW` line,
+just under `SCANLINES`. Turn it on and every bright pixel throws a soft halo
+onto the dark around it, the way a CRT's phosphor did. The pixels themselves
+keep their colour and their detail. It is off by default, goes well with
+scanlines, and stays out of 8-BIT MODE: that switch is the original game's
+look, and glow is the television's.
+
+## In 0.7.1
 
 **Size the window, or fill the screen.** The options page has `SCALE`, from
 1X to 6X with left and right, and `FULLSCREEN`, which fills the screen at the
