@@ -1,3 +1,18 @@
+## Screenshots
+
+<p align="center">
+  <img src="https://github.com/boaglio/wulfquest/releases/download/v0.7.0/screenshot-title.png" width="400" alt="The new title screen: WULF over QUEST, with START, OPTIONS and EXIT">
+  <img src="https://github.com/boaglio/wulfquest/releases/download/v0.7.0/screenshot-options.png" width="400" alt="The options page: difficulty, keys, sound, volume and the four 8-bit switches">
+</p>
+<p align="center">
+  <img src="https://github.com/boaglio/wulfquest/releases/download/v0.7.0/screenshot-lake.png" width="400" alt="Ranger Vale by a jungle lake, a tribesman watching, an orchid's spell running out on the bar below">
+  <img src="https://github.com/boaglio/wulfquest/releases/download/v0.7.0/screenshot-jungle.png" width="400" alt="A jungle room with spiders, an orchid and Ranger Vale on the right">
+</p>
+<p align="center">
+  <img src="https://github.com/boaglio/wulfquest/releases/download/v0.7.0/screenshot-beast.png" width="400" alt="Something large and blue by the water, and Ranger Vale keeping his distance">
+  <img src="https://github.com/boaglio/wulfquest/releases/download/v0.7.0/screenshot-8bit.png" width="400" alt="The lake room again in 8-BIT MODE: colour clash, one-colour sprites and scanlines">
+</p>
+
 ## What's new in 0.7.0
 
 **A new title screen.** WULF QUEST, big, over a short menu: `START`,
