@@ -24,11 +24,16 @@ engine.
   <img src="https://github.com/boaglio/wulfquest/releases/download/v0.7.1/screenshot-options.png" width="420" alt="The options page: difficulty, keys, sound, volume, scale, full screen and the four 8-bit switches">
   <img src="https://github.com/boaglio/wulfquest/releases/download/v0.7.0/screenshot-8bit.png" width="420" alt="A room of mountains and crates in 8-BIT MODE: colour clash, one-colour sprites and scanlines">
 </p>
+<p align="center">
+  <img src="https://github.com/boaglio/wulfquest/releases/download/v0.7.2/screenshot-map.png" width="420" alt="The map: the rooms walked in green and the rest in blue, a quarter of the amulet shining where an eye showed it, a dull one where it was taken, and the stone arch">
+</p>
 
-The title, a few rooms of the jungle, and the options page, the last room
-again with **8-BIT MODE** on. Each one is drawn by the game's own painters
-from a fixed seed. The pictures are attached to the
-[v0.7.0 release](https://github.com/boaglio/wulfquest/releases/tag/v0.7.0),
+The title, a few rooms of the jungle, the options page, a room with
+**8-BIT MODE** on, and the map: one quarter of the amulet shown by an eye and
+waiting, one already taken. Each one is drawn by the game's own painters
+from a fixed seed (the map from the recorded full run, `replays/full_run.json`).
+The pictures are attached to the
+[releases](https://github.com/boaglio/wulfquest/releases) from v0.7.0 on,
 not kept in the repository, because §2.4 of `AGENTS.md` keeps every image
 file out of it.
 

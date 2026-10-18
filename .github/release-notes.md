@@ -12,6 +12,9 @@
   <img src="https://github.com/boaglio/wulfquest/releases/download/v0.7.0/screenshot-beast.png" width="400" alt="Ranger Vale swinging his sabre under a wall of carved stone">
   <img src="https://github.com/boaglio/wulfquest/releases/download/v0.7.0/screenshot-8bit.png" width="400" alt="A room of mountains and crates in 8-BIT MODE: colour clash, one-colour sprites and scanlines">
 </p>
+<p align="center">
+  <img src="https://github.com/boaglio/wulfquest/releases/download/v0.7.2/screenshot-map.png" width="400" alt="The map: the rooms walked in green and the rest in blue, a quarter of the amulet shining where an eye showed it, a dull one where it was taken, and the stone arch">
+</p>
 
 ## What's new in 0.7.2
 
