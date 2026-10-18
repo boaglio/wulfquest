@@ -13,15 +13,40 @@
   <img src="https://github.com/boaglio/wulfquest/releases/download/v0.7.0/screenshot-8bit.png" width="400" alt="A room of mountains and crates in 8-BIT MODE: colour clash, one-colour sprites and scanlines">
 </p>
 
-## What's new in 0.7.0
+## What's new in 0.7.1
+
+**Size the window, or fill the screen.** The options page has `SCALE`, from
+1X to 6X with left and right, and `FULLSCREEN`, which fills the screen at the
+largest size that fits. Both are remembered, and work over a game too: the
+window changes as you pick. `F11` switches full screen on and off anywhere,
+and the game now opens at the size you chose (`--scale` still sets it for one
+run).
+
+**A plane lands in the jungle.** Leave the title alone for 20 seconds and a
+small plane comes down over the forest and rolls to a stop on a dirt
+airstrip, while *ONE MAN, / ONE MISSING ARTIFACT, / ONE MISSION* types out
+below it. Then the demo plays, as before. Any key brings the title back.
+
+**Space or Enter picks.** On every menu, in either key layout, Space or Enter
+chooses the line, as fire does. In the jungle they do only what your layout
+says, so Enter never swings.
+
+**The keys page lists the map's key.** `M` in the modern layout, `B` in the
+period one.
+
+**The credits are for the end.** They are no longer on the options page, and
+`C` on the title no longer opens them: they roll after a won game, as they
+always have.
+
+## In 0.7.0
 
 **A new title screen.** WULF QUEST, big, over a short menu: `START`,
 `OPTIONS` and `EXIT`, with `CONTINUE` first when you have a game saved. Up and
-down choose, Space or Enter picks (in either key layout), and a little wolf marks the line you are on, on every
+down choose, fire picks, and a little wolf marks the line you are on, on every
 menu. Under `START` the title says whether the next game is Hard or Easy and,
 once you have won, which of Mr Jones's jobs it is; left and right choose the
 job. The difficulty, the keys, loading a game, the hi-scores, your ledger and
-the credits are on the title's options page now, and the keys page lists the map's key too. The old letters still work
+the credits are on the title's options page now. The old letters still work
 on the title for those who know them.
 
 **Every game has its save slot.** A new game first asks which of the three
