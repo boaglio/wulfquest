@@ -37,6 +37,42 @@ class RetroTogglesTest {
         return argb;
     }
 
+    // ------------------------------------------------------------------ glow
+
+    @Test
+    void glowLightsTheDarkAroundALitPixelAndLeavesThePixelItself() {
+        Framebuffer fb = new Framebuffer(9, 9);
+        fb.clear(0);
+        fb.set(4, 4, 15);
+        Scaler scaler = new Scaler(greyRamp(), 9, 9, 3);
+        var off = scaler.render(fb);
+        assertThat(off.getRGB(4 * 3 + 4, 4 * 3 + 1) & 0xFFFFFF).as("off: the dark stays dark").isZero();
+        scaler.setGlow(true, 80);
+        var on = scaler.render(fb);
+        assertThat(on.getRGB(4 * 3 + 1, 4 * 3 + 1)).as("the pixel keeps its colour").isEqualTo(0xFFFFFFFF);
+        int next = on.getRGB(5 * 3 + 1, 4 * 3 + 1) & 0xFF;
+        int far = on.getRGB(7 * 3 + 1, 4 * 3 + 1) & 0xFF;
+        assertThat(next).as("beside it, a halo").isGreaterThan(0);
+        assertThat(far).as("fainter further off").isLessThan(next);
+        assertThat(on.getRGB(0, 0) & 0xFFFFFF).as("and nothing far away").isZero();
+    }
+
+    @Test
+    void glowNeverDarkensAPixel() {
+        Framebuffer fb = new Framebuffer(6, 6);
+        for (int i = 0; i < 36; i++) {
+            fb.set(i % 6, i / 6, i % 16);
+        }
+        Scaler scaler = new Scaler(greyRamp(), 6, 6, 2);
+        var plain = scaler.render(fb);
+        int[] before = plain.getRGB(0, 0, 12, 12, null, 0, 12);
+        scaler.setGlow(true, 80);
+        int[] after = scaler.render(fb).getRGB(0, 0, 12, 12, null, 0, 12);
+        for (int i = 0; i < before.length; i++) {
+            assertThat(after[i] & 0xFF).isGreaterThanOrEqualTo(before[i] & 0xFF);
+        }
+    }
+
     // ------------------------------------------------------------------ scanlines
 
     @Test
@@ -44,6 +80,7 @@ class RetroTogglesTest {
         assertThat(DISPLAY.crt().scanlines()).isFalse();
         assertThat(DISPLAY.crt().attributeClash()).isFalse();
         assertThat(DISPLAY.crt().glow()).isFalse();
+        assertThat(DISPLAY.crt().glowPercent()).isEqualTo(60);
         assertThat(DISPLAY.spriteFlicker()).isFalse();
         assertThat(DISPLAY.crt().scanlineLuminancePercent()).isEqualTo(82);
     }

@@ -227,6 +227,9 @@ slot. Under it the title says whether the next game is
 Hard or Easy and, once you have won, which of Mr Jones's jobs it is; left and
 right choose the job.
 
+`GLOW` on the options page gives every bright pixel the soft halo of an old
+television.
+
 The options page sizes the window: `SCALE` (left and right, 1X to 6X) and
 `FULLSCREEN`, which fills the screen at the largest size that fits; `F11`
 switches full screen anywhere. Both are remembered, and work over a game too.

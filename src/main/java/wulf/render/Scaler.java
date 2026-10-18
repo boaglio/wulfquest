@@ -12,12 +12,22 @@ import java.awt.image.DataBufferInt;
  * <p>With scanlines on (§5.4, {@code [NEW]}, default off) every odd output row is
  * drawn from a second, darker copy of the palette — after the upscale, so the
  * lines are one output pixel tall at any scale.
+ *
+ * <p>With glow on (§5.4, {@code [NEW]}, default off) every lit pixel throws a soft halo
+ * onto the darker ones around it, as a television's phosphor did. The halo is the picture
+ * blurred at the canvas's own size (a five-tap binomial, across then down: about one
+ * canvas pixel of spread), smoothed up to the output and taken where it is brighter, so
+ * the pixels themselves keep their colour and their detail.
  */
 public final class Scaler {
 
     private final int[] argbByIndex;
     private final int[] dimmedByIndex = new int[16];
     private boolean scanlines;
+    private boolean glow;
+    private int glowPercent;
+    private int[] haloA;
+    private int[] haloB;
     private final int srcW;
     private final int srcH;
     private int scale;
@@ -47,6 +57,12 @@ public final class Scaler {
         for (int i = 0; i < dimmedByIndex.length; i++) {
             dimmedByIndex[i] = dim(argbByIndex[i], keep);
         }
+    }
+
+    /** Turns glow on or off; {@code percent} is how bright the halo is of the pixel throwing it. */
+    public void setGlow(boolean on, int percent) {
+        this.glow = on;
+        this.glowPercent = Math.max(0, Math.min(100, percent));
     }
 
     static int dim(int argb, int keepPercent) {
@@ -81,7 +97,76 @@ public final class Scaler {
                 darkenOddRows(src, srcRow, y * scale, dstW);
             }
         }
+        if (glow && glowPercent > 0) {
+            addGlow(src);
+        }
         return image;
+    }
+
+    /** The halo: blurred at the canvas's size, then smoothed up and lit in where it is brighter. */
+    private void addGlow(byte[] src) {
+        int n = srcW * srcH;
+        if (haloA == null) {
+            haloA = new int[n];
+            haloB = new int[n];
+        }
+        for (int i = 0; i < n; i++) {
+            haloA[i] = argbByIndex[src[i] & 0x0F] & 0xFFFFFF;
+        }
+        blur(haloA, haloB, 1, srcW);        // across
+        blur(haloB, haloA, srcW, srcH);     // down
+        int dstW = srcW * scale;
+        int dstH = srcH * scale;
+        for (int oy = 0; oy < dstH; oy++) {
+            // Each output pixel's place on the canvas, in 256ths, from pixel centre to centre.
+            int sy = Math.max(0, (oy * 2 + 1) * 128 / scale - 128);
+            int y0 = Math.min(srcH - 1, sy >> 8);
+            int y1 = Math.min(srcH - 1, y0 + 1);
+            int wy = sy & 0xFF;
+            int row = oy * dstW;
+            for (int ox = 0; ox < dstW; ox++) {
+                int sx = Math.max(0, (ox * 2 + 1) * 128 / scale - 128);
+                int x0 = Math.min(srcW - 1, sx >> 8);
+                int x1 = Math.min(srcW - 1, x0 + 1);
+                int wx = sx & 0xFF;
+                int a = haloA[y0 * srcW + x0];
+                int b = haloA[y0 * srcW + x1];
+                int c = haloA[y1 * srcW + x0];
+                int d = haloA[y1 * srcW + x1];
+                int px = target[row + ox];
+                int out = 0xFF000000;
+                for (int shift = 16; shift >= 0; shift -= 8) {
+                    int top = ((a >> shift) & 0xFF) * (256 - wx) + ((b >> shift) & 0xFF) * wx;
+                    int bottom = ((c >> shift) & 0xFF) * (256 - wx) + ((d >> shift) & 0xFF) * wx;
+                    int h = (top * (256 - wy) + bottom * wy) >> 16;
+                    h = h * glowPercent / 100;
+                    out |= Math.max((px >> shift) & 0xFF, h) << shift;
+                }
+                target[row + ox] = out;
+            }
+        }
+    }
+
+    /** One pass of the 1-4-6-4-1 blur along lines {@code step} apart, {@code len} long, edges held. */
+    private void blur(int[] from, int[] to, int step, int len) {
+        int lines = srcW * srcH / len;
+        for (int line = 0; line < lines; line++) {
+            int base = step == 1 ? line * srcW : line;
+            for (int i = 0; i < len; i++) {
+                int p2 = from[base + Math.max(0, i - 2) * step];
+                int p1 = from[base + Math.max(0, i - 1) * step];
+                int p0 = from[base + i * step];
+                int n1 = from[base + Math.min(len - 1, i + 1) * step];
+                int n2 = from[base + Math.min(len - 1, i + 2) * step];
+                int out = 0;
+                for (int shift = 16; shift >= 0; shift -= 8) {
+                    int v = ((p2 >> shift) & 0xFF) + 4 * ((p1 >> shift) & 0xFF) + 6 * ((p0 >> shift) & 0xFF)
+                            + 4 * ((n1 >> shift) & 0xFF) + ((n2 >> shift) & 0xFF);
+                    out |= (v >> 4) << shift;
+                }
+                to[base + i * step] = out;
+            }
+        }
     }
 
     /** Redraws the odd output rows of one source row's block from the darker palette. */

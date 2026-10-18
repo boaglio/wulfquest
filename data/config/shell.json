@@ -383,6 +383,7 @@
       { "id": "fullscreen", "label": "FULLSCREEN" },
       { "id": "eightBit", "label": "8-BIT MODE" },
       { "id": "scanlines", "label": "SCANLINES" },
+      { "id": "glow", "label": "GLOW" },
       { "id": "attributeClash", "label": "COLOUR CLASH" },
       { "id": "inkedCreatures", "label": "ONE-COLOUR SPRITES" },
       { "id": "spriteFlicker", "label": "SPRITE FLICKER" },

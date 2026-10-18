@@ -56,11 +56,15 @@
     "crt": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["scanlines", "scanlineLuminancePercent", "glow", "attributeClash"],
+      "required": ["scanlines", "scanlineLuminancePercent", "glow", "glowPercent", "attributeClash"],
       "properties": {
         "scanlines": { "type": "boolean" },
         "scanlineLuminancePercent": { "type": "integer", "minimum": 0, "maximum": 100 },
         "glow": { "type": "boolean" },
+        "glowPercent": {
+          "description": "AGENTS.md §5.4: how bright the halo around a lit pixel is, of the pixel itself",
+          "type": "integer", "minimum": 0, "maximum": 100
+        },
         "attributeClash": { "type": "boolean" }
       }
     },

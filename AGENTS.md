@@ -405,7 +405,7 @@ Constants live in `display.json`:
   "panel":     { "x": 32, "y": 208, "w": 256, "h": 40 },
   "scale":     { "default": 4, "min": 1, "max": 6, "integerOnly": true },
   "border":    { "idleColour": "black", "flashOnEvent": true },
-  "crt":       { "scanlines": false, "scanlineLuminancePercent": 82, "glow": false, "attributeClash": false },
+  "crt":       { "scanlines": false, "scanlineLuminancePercent": 82, "glow": false, "glowPercent": 60, "attributeClash": false },
   "spriteFlicker": false
 }
 ```
@@ -509,8 +509,17 @@ are unchanged. `RetroTogglesTest` covers each.
   Playfield only; the panel and border never clash, and the `--dev` collision
   mask switches it off. (The first version gave each cell the last colour
   drawn into it, so Vale painted the undergrowth his colour.)
-- `crt.glow` — **reserved, unimplemented.** The flag exists in both schemas
-  but nothing here says what it should look like; spec it before building it.
+- `crt.glow` — a television's phosphor bloom (specified and built 2026-10-18,
+  when the user chose "soft" from a preview of off, soft and strong): every
+  lit pixel throws a faint halo onto the darker pixels around it. The halo is
+  the picture blurred at the canvas's own size (a 1-4-6-4-1 binomial across
+  and down, about one canvas pixel of spread), smoothed up to the output and
+  taken per channel where it is brighter, at `crt.glowPercent` (60) of the
+  pixel throwing it. So it only ever lights, never darkens, and the pixels
+  keep their colour; at 80 % it filled the black carvings of the stone walls.
+  After the upscale and after scanlines, in `Scaler`. It is a `GLOW` line on
+  the options page (§17.9), and not part of 8-BIT MODE: glow is the TV's, not
+  the original game's.
 - `spriteFlicker` — when 3+ sprites overlap one cell, alternate which draws
   on odd/even ticks. Creatures only (`CreaturePainter`): Vale, the Wulf and
   the guardians always draw.

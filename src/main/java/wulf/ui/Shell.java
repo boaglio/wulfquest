@@ -660,6 +660,7 @@ public final class Shell {
         return switch (id) {
             case "scanlines" -> s.withCrt(new Settings.Crt(!c.scanlines(), c.glow(), c.attributeClash()));
             case "attributeClash" -> s.withCrt(new Settings.Crt(c.scanlines(), c.glow(), !c.attributeClash()));
+            case "glow" -> s.withCrt(new Settings.Crt(c.scanlines(), !c.glow(), c.attributeClash()));
             default -> s.withFeature(id, !optionOn(s, id));
         };
     }
@@ -670,6 +671,7 @@ public final class Shell {
             case "sound" -> s.audio().enabled();
             case "scanlines" -> s.crt().scanlines();
             case "attributeClash" -> s.crt().attributeClash();
+            case "glow" -> s.crt().glow();
             default -> Boolean.TRUE.equals(s.features().get(id));
         };
     }

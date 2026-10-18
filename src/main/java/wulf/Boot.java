@@ -193,6 +193,7 @@ public final class Boot {
         Framebuffer fb = new Framebuffer(d.canvas().w(), d.canvas().h());
         Scaler scaler = new Scaler(c.palette().toArgb(), fb.width(), fb.height(), scale);
         scaler.setScanlines(d.crt().scanlines(), d.crt().scanlineLuminancePercent());
+        scaler.setGlow(d.crt().glow(), d.crt().glowPercent());
         int border = c.palette().indexOf(d.border().idleColour());
         Window window = new Window(title, fb.width() * scale, fb.height() * scale,
                 new Color(c.palette().toArgb()[border]));
@@ -335,6 +336,7 @@ public final class Boot {
                 // §17.9: the options page switches scanlines while the game runs.
                 screen.scaler().setScanlines(player.settings().crt().scanlines(),
                         c.display().crt().scanlineLuminancePercent());
+                screen.scaler().setGlow(player.settings().crt().glow(), c.display().crt().glowPercent());
                 screen.window().present(screen.scaler().render(screen.fb()));
             }
 
