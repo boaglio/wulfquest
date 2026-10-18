@@ -71,10 +71,11 @@ public record ShellConfig(
     /**
      * The scene the title idles into before the demo (§17.2, {@code [NEW]}, asked for by the
      * user 2026-10-18): over {@code backdrop}, a small plane flies in along {@code path} and
-     * lands in the forest, and {@code text} types out at the bottom. It lasts {@code ticks}.
+     * lands in the forest, in the screen's top half, and {@code text} types out below it, a row
+     * every {@code rowStepPx}. It lasts {@code ticks}.
      */
     public record Intro(List<Placed> backdrop, Plane plane, List<String> text, int textAt, int textY,
-                        String textColour, int ticksPerChar, int ticks) {
+                        int rowStepPx, String textColour, int ticksPerChar, int ticks) {
         public Intro {
             backdrop = List.copyOf(backdrop);
             text = List.copyOf(text);

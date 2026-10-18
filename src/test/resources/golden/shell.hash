@@ -2,7 +2,7 @@
 # Framebuffer hashes. Regenerate with -Dgolden.update=true, and say why.
 title = 7ed328cbe852e9c5
 title cycled = 7f1d0518b1dd0e35
-intro = 65539df92e18b656
+intro = ac87683d45f5321e
 key_config = e26db234e93fb59c
 sound = a0c7d0e9c2e8d703
 hiscores = 2fe5c35bdc9bcdeb

@@ -307,6 +307,13 @@ public final class ShellValidator {
             }
         }
         colour(palette, intro.textColour(), "/attract/intro/textColour");
+        if (intro.rowStepPx() < font.sets().get("big").lineHeight()) {
+            throw new DataException(SOURCE, "/attract/intro/rowStepPx", "is less than the display font's line");
+        }
+        if (intro.textY() + (intro.text().size() - 1) * intro.rowStepPx() + font.sets().get("big").lineHeight()
+                > display.canvas().h()) {
+            throw new DataException(SOURCE, "/attract/intro/textY", "puts the last row of the text below the screen");
+        }
         int big = font.sets().get("big").advance();
         for (int i = 0; i < intro.text().size(); i++) {
             fits(intro.text().get(i), big, display.canvas().w(), "/attract/intro/text/" + i);

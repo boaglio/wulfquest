@@ -2816,7 +2816,9 @@ data-driven game; build it in M1.
   `INTRO` comes before the demo: over the forest (`attract.intro.backdrop`,
   the jungle's own scenery), a small plane (`intro_plane`, our own sprite)
   flies down along `plane.path`, straight lines between waypoints, and rolls
-  to a stop on the grass; the line types out under it. After `intro.ticks`
+  to a stop on the grass, all in the screen's top half; below it the line
+  types out, a row to each "ONE …" (`intro.text`, `rowStepPx` apart; the user
+  asked for that layout the same day). After `intro.ticks`
   the demo plays, or with none the title comes back; any key returns to the
   title. Without `intro`, the title goes straight to the demo as before.
 - Lines: the menu (`title.items`), and the attribution line from §2.5 in

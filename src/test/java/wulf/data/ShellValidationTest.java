@@ -323,7 +323,7 @@ class ShellValidationTest {
                 in.plane().ticksPerFrame(), in.plane().parked(), back);
         ShellConfig.Attract attract = new ShellConfig.Attract(s.attract().idleTicks(), s.attract().replay(),
                 s.attract().banner(), s.attract().dimEveryOtherRow(), new ShellConfig.Intro(in.backdrop(), plane,
-                        in.text(), in.textAt(), in.textY(), in.textColour(), in.ticksPerChar(), in.ticks()));
+                        in.text(), in.textAt(), in.textY(), in.rowStepPx(), in.textColour(), in.ticksPerChar(), in.ticks()));
         ShellConfig broken = new ShellConfig(s.schemaVersion(), s.screenHoldTicks(), s.title(), attract, s.gameOver(),
                 s.ending(), s.tally(), s.hiScores(), s.keyConfig(), s.sound(), s.stats(), s.amuletReveal(), s.map(),
                 s.saves(), s.credits(), s.newGamePlus(), s.difficulty(), s.pause(), s.options());

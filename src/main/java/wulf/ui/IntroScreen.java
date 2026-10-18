@@ -60,7 +60,7 @@ final class IntroScreen {
             int left = (fb.width() - font.widthOf(row)) / 2;
             font.draw(fb, row.substring(0, (int) Math.min(row.length(), shown)), left, y, textColour);
             shown -= row.length();
-            y += font.lineHeight();
+            y += config.rowStepPx();
         }
     }
 }
