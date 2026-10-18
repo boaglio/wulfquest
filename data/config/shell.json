@@ -4,10 +4,14 @@
   "title": {
     "wordmark": "WULF QUEST",
     "tagline": "FOUR QUARTERS OF A BROKEN AMULET",
-    "prompt": "PRESS FIRE TO BEGIN",
-    "continuePrompt": "PRESS FIRE TO CONTINUE YOUR GAME",
+    "items": [
+      { "id": "continue", "label": "CONTINUE" },
+      { "id": "start", "label": "START" },
+      { "id": "options", "label": "OPTIONS" },
+      { "id": "exit", "label": "EXIT" }
+    ],
     "newGameKey": "G",
-    "newGameLabel": "G NEW GAME",
+    "newGameLabel": "NEW GAME",
     "continueDetail": "SLOT {line}",
     "cycle": {
       "colours": [
@@ -234,8 +238,8 @@
   },
   "difficulty": {
     "key": "D",
-    "hard": "D DIFFICULTY: HARD",
-    "easy": "D DIFFICULTY: EASY",
+    "hard": "HARD",
+    "easy": "EASY",
     "easyColour": "brightGreen",
     "panelLabel": "EASY",
     "hiScoreMark": "E"
@@ -244,8 +248,8 @@
     "key": "N",
     "labelColour": "brightCyan",
     "levels": [
-      { "label": "N  THE FIRST JOB: FOUR QUARTERS", "theEnd": "THE END?" },
-      { "label": "N  NEW GAME+: THE AMULET IN TWO",
+      { "label": "THE FIRST JOB: FOUR QUARTERS", "theEnd": "THE END?" },
+      { "label": "NEW GAME+: THE AMULET IN TWO",
         "tagline": "TWO HALVES OF A BROKEN AMULET",
         "theEnd": "THE END??",
         "amulet": ["twin_nw", "twin_ne", "twin_sw", "twin_se"],
@@ -272,7 +276,7 @@
           "promptAt": 290
         }
       },
-      { "label": "N  NEW GAME+2: THE AMULET WHOLE",
+      { "label": "NEW GAME+2: THE AMULET WHOLE",
         "tagline": "ONE AMULET, WHOLE AND WELL GUARDED",
         "theEnd": "THE END! (FOR REAL)",
         "amulet": ["sun_nw", "sun_ne", "sun_sw", "sun_se"],
@@ -329,6 +333,8 @@
   "options": {
     "heading": "OPTIONS",
     "items": [
+      { "id": "difficulty", "label": "DIFFICULTY" },
+      { "id": "keys", "label": "KEYS" },
       { "id": "sound", "label": "SOUND" },
       { "id": "volume", "label": "VOLUME" },
       { "id": "eightBit", "label": "8-BIT MODE" },
@@ -336,6 +342,10 @@
       { "id": "attributeClash", "label": "COLOUR CLASH" },
       { "id": "inkedCreatures", "label": "ONE-COLOUR SPRITES" },
       { "id": "spriteFlicker", "label": "SPRITE FLICKER" },
+      { "id": "load", "label": "LOAD GAME" },
+      { "id": "hiScores", "label": "HI-SCORES" },
+      { "id": "stats", "label": "STATS" },
+      { "id": "credits", "label": "CREDITS" },
       { "id": "back", "label": "BACK" }
     ],
     "on": "ON",

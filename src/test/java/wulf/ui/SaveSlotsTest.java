@@ -285,7 +285,7 @@ class SaveSlotsTest {
         press(shell, DOWN, line(CONTENT.shell().pause().items(), "options"));
         press(shell, FIRE, 1);
         assertThat(shell.state()).isEqualTo(Shell.State.OPTIONS);
-        List<wulf.data.ShellConfig.Entry> items = CONTENT.shell().options().items();
+        List<wulf.data.ShellConfig.Entry> items = shell.optionLines();   // over a game: without the title's own lines
         int volume = db.settings().audio().volumePercent();
         int step = CONTENT.shell().sound().volumeStepPercent();
 

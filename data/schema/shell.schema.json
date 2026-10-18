@@ -41,15 +41,17 @@
     "title": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["wordmark", "tagline", "prompt", "continuePrompt", "newGameKey", "newGameLabel", "continueDetail", "cycle", "menu", "footer"],
+      "required": ["wordmark", "tagline", "items", "newGameKey", "newGameLabel", "continueDetail", "cycle", "menu", "footer"],
       "properties": {
         "wordmark": { "type": "string", "minLength": 1, "maxLength": 20 },
         "tagline": { "type": "string", "maxLength": 48 },
-        "prompt": { "type": "string", "minLength": 1, "maxLength": 48 },
-        "continuePrompt": { "description": "AGENTS.md §17.2: the prompt while a saved game waits, fire loading the newest", "type": "string", "minLength": 1, "maxLength": 48 },
-        "newGameKey": { "type": "string", "pattern": "^[A-Z0-9]$" },
-        "newGameLabel": { "type": "string", "minLength": 1, "maxLength": 32 },
-        "continueDetail": { "description": "AGENTS.md §17.2: under the prompt, the saved game: {line} is its line on the load page", "type": "string", "minLength": 1, "maxLength": 20 },
+        "items": {
+          "description": "AGENTS.md §17.2: the title's menu, up and down to choose and fire to pick; 'continue' shows only while a game is saved",
+          "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/entry" }
+        },
+        "newGameKey": { "description": "AGENTS.md §17.2: a letter that starts a new game, not listed on the title", "type": "string", "pattern": "^[A-Z0-9]$" },
+        "newGameLabel": { "description": "AGENTS.md §17.2: what 'start' reads while 'continue' is offered", "type": "string", "minLength": 1, "maxLength": 32 },
+        "continueDetail": { "description": "AGENTS.md §17.2: under 'continue', the saved game: {line} is its line on the load page", "type": "string", "minLength": 1, "maxLength": 20 },
         "cycle": {
           "type": "object",
           "additionalProperties": false,
@@ -60,6 +62,7 @@
           }
         },
         "menu": {
+          "description": "AGENTS.md §17.2: letters that open a page from the title, not listed on it: the options page lists them",
           "type": "array",
           "minItems": 1,
           "maxItems": 8,
@@ -379,7 +382,7 @@
       }
     },
     "options": {
-      "description": "§17.9 [NEW]: the options page, from the title and the pause menu",
+      "description": "§17.9 [NEW]: the options page, from the title and the pause menu; the pause menu's leaves out difficulty, keys, load, hiScores, stats and credits",
       "type": "object",
       "additionalProperties": false,
       "required": ["heading", "items", "on", "off", "footer", "volumeFooter", "eightBit"],
@@ -397,7 +400,7 @@
       }
     },
     "difficulty": {
-      "description": "§17.8 [NEW]: Easy mode or Hard, switched on the title",
+      "description": "§17.8 [NEW]: Easy mode or Hard, switched on the title's options; hard and easy are the words for each",
       "type": "object",
       "additionalProperties": false,
       "required": ["key", "hard", "easy", "easyColour", "panelLabel", "hiScoreMark"],

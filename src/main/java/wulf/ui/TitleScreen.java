@@ -6,8 +6,8 @@ import wulf.data.ShellConfig;
 import wulf.render.Framebuffer;
 
 /**
- * The title screen (AGENTS.md §17.2): the wordmark in the 8x8 font with its
- * colour cycling down the rows, the prompt, the menu, and the attribution line.
+ * The title screen (AGENTS.md §17.2): the wordmark in the 8x8 font with its colour
+ * cycling down the rows, its tagline, a short menu, and the attribution line.
  *
  * <p>The cycle walks one pixel row at a time through the colours named in
  * {@code shell.json}, so the wordmark reads as a single banded object rather
@@ -16,7 +16,11 @@ import wulf.render.Framebuffer;
 public final class TitleScreen {
 
     /** The wordmark is drawn at this many times the 8x8 font, which is all the art it needs. */
-    private static final int WORDMARK_SCALE = 2;
+    private static final int WORDMARK_SCALE = 3;
+    /** Layout, not game numbers: where the wordmark and the menu start. */
+    private static final int WORDMARK_Y = 44;
+    private static final int MENU_Y = 106;
+    private static final String MARK = "> ";
 
     private final Chrome chrome;
     private final ShellConfig.Title title;
@@ -46,61 +50,55 @@ public final class TitleScreen {
         }
     }
 
-    /**
-     * @param tick   ticks the title has been up, which drives the cycle
-     * @param notice a one-off line about the player database, or null (§20.8)
-     */
-    public void paint(Framebuffer fb, long tick, long best, String notice) {
-        paint(fb, tick, best, notice, null, false, null);
+    /** The wordmark and tagline alone, with no menu: what shows when a demo cannot. */
+    public void paint(Framebuffer fb, long tick, String notice) {
+        paint(fb, tick, notice, List.of(), -1, null, false, null);
     }
 
     /**
-     * @param job the job the prompt starts, once a later one is open (§14.9): its label goes under
-     *            the prompt, and its tagline, if it has one, replaces the title's; null before
-     * @param easy whether the next game is in Easy mode (§17.8): the first line of the menu says which
-     * @param saved the saved game fire goes on with (§17.2), as its slot reads on the load page, or
-     *              null: then the prompt asks to continue, that line goes under it, and the new game,
-     *              with its job, gets a line of its own
+     * @param tick   ticks the title has been up, which drives the cycle
+     * @param notice a one-off line about the player database, or null (§20.8)
+     * @param lines  the menu as the shell has it ({@link Shell#titleLines()}), and {@code cursor} the
+     *               line chosen
+     * @param saved  the saved game {@code continue} goes on with, as its slot reads on the load page,
+     *               or null; it goes under that line
+     * @param easy   whether the next game is in Easy mode (§17.8): said under {@code start}
+     * @param job    the job {@code start} begins, once a later one is open (§14.9): under the
+     *               difficulty, between arrows that say left and right change it, and its tagline,
+     *               if it has one, replaces the title's; null before
      */
-    public void paint(Framebuffer fb, long tick, long best, String notice, ShellConfig.Job job, boolean easy,
-                      String saved) {
+    public void paint(Framebuffer fb, long tick, String notice, List<ShellConfig.Entry> lines, int cursor,
+                      String saved, boolean easy, ShellConfig.Job job) {
         fb.clear(chrome.ground());
         int w = fb.width();
-        int y = 36;
-        drawWordmark(fb, title.wordmark(), y, tick);
-        y += chrome.big().glyphH() * WORDMARK_SCALE + 10;
+        drawWordmark(fb, title.wordmark(), WORDMARK_Y, tick);
+        int y = WORDMARK_Y + chrome.big().glyphH() * WORDMARK_SCALE + 10;
         String tagline = job != null && job.tagline() != null ? job.tagline() : title.tagline();
         chrome.small().drawCentred(fb, tagline, 0, w, y, chrome.dim());
 
-        y += chrome.small().lineHeight() * 4;
-        chrome.small().drawCentred(fb, saved != null ? title.continuePrompt() : title.prompt(), 0, w, y, chrome.bright());
-        if (saved != null) {
-            chrome.small().drawCentred(fb, saved, 0, w, y + chrome.small().lineHeight() + 2, jobColour);
-        } else if (job != null) {
-            chrome.small().drawCentred(fb, job.label(), 0, w, y + chrome.small().lineHeight() + 2, jobColour);
-        }
-
-        y += chrome.small().lineHeight() * 2;
-        if (saved != null) {
-            y += chrome.small().lineHeight() + 3;
-            chrome.small().drawCentred(fb, title.newGameLabel(), 0, w, y, chrome.body());
-            if (job != null) {
-                y += chrome.small().lineHeight() + 3;
-                chrome.small().drawCentred(fb, job.label(), 0, w, y, jobColour);
+        y = MENU_Y;
+        int small = chrome.small().lineHeight() + 2;
+        for (int i = 0; i < lines.size(); i++) {
+            ShellConfig.Entry line = lines.get(i);
+            boolean chosen = i == cursor;
+            chrome.big().drawCentred(fb, (chosen ? MARK : "") + line.label(), 0, w, y,
+                    chosen ? chrome.bright() : chrome.body());
+            y += chrome.big().lineHeight() + 2;
+            if (line.id().equals("continue") && saved != null) {
+                chrome.small().drawCentred(fb, saved, 0, w, y, chrome.dim());
+                y += small;
+            } else if (line.id().equals("start")) {
+                chrome.small().drawCentred(fb, easy ? difficulty.easy() : difficulty.hard(), 0, w, y,
+                        easy ? easyColour : chrome.dim());
+                y += small;
+                if (job != null) {
+                    chrome.small().drawCentred(fb, "< " + job.label() + " >", 0, w, y, jobColour);
+                    y += small;
+                }
             }
-        }
-        y += chrome.small().lineHeight() + 3;
-        chrome.small().drawCentred(fb, easy ? difficulty.easy() : difficulty.hard(), 0, w, y,
-                easy ? easyColour : chrome.body());
-        for (ShellConfig.MenuItem item : title.menu()) {
-            y += chrome.small().lineHeight() + 3;
-            chrome.small().drawCentred(fb, item.label(), 0, w, y, chrome.body());
+            y += 4;
         }
 
-        y += chrome.small().lineHeight() * 3;
-        if (best > 0) {
-            chrome.small().drawCentred(fb, "BEST " + best, 0, w, y, chrome.heading());
-        }
         if (notice != null) {
             chrome.small().drawCentred(fb, notice, 0, w, fb.height() - 28, chrome.heading());
         }

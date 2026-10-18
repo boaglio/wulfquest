@@ -207,15 +207,22 @@ public final class Shell {
             quit = true;
             return;
         }
+        java.util.List<ShellConfig.Entry> lines = titleLines();
+        cursor = Math.min(cursor, lines.size() - 1);   // a saved game that would not load is gone from it
+        steer(in, lines.size());
+        int dx = (in.right() && !heldRight ? 1 : 0) - (in.left() && !heldLeft ? 1 : 0);
+        heldLeft = in.left();
+        heldRight = in.right();
+        // The letters the title no longer lists still work, for those who know them (§17.2).
         if (menu.typed(config.difficulty().key()) || menu.pad(MenuInput.Pad.DIFFICULTY)) {
-            easy = !easy;   // §17.8: Hard and Easy in turn, kept in the settings
-            db.putSettings(db.settings().withEasy(easy));
-            jukebox.sfx(SFX_MOVE);
+            switchDifficulty();
             idleTicks = 0;
             return;
         }
-        if (unlocked > 0 && menu.typed(config.newGamePlus().key())) {
-            level = (level + 1) % (unlocked + 1);   // §14.9: through the jobs unlocked, and back to the first
+        boolean onStart = lines.get(cursor).id().equals("start");
+        if (unlocked > 0 && (menu.typed(config.newGamePlus().key()) || onStart && dx != 0)) {
+            // §14.9: through the jobs unlocked, and back to the first
+            level = Math.floorMod(level + (dx < 0 ? -1 : 1), unlocked + 1);
             jukebox.sfx(SFX_MOVE);
             idleTicks = 0;
             return;
@@ -233,10 +240,12 @@ public final class Shell {
         }
         if (in.firePressed()) {
             jukebox.sfx(SFX_PICK);
-            if (continueSlot > 0) {
-                goOn(continueSlot);   // §17.2: a saved game waits, and fire goes on with it
-            } else {
-                startGame();
+            switch (lines.get(cursor).id()) {
+                case "continue" -> goOn(continueSlot);   // §17.2: the newest saved game
+                case "start" -> startGame();
+                case "options" -> openMenu(State.OPTIONS, State.TITLE);
+                case "exit" -> quit = true;
+                default -> { }
             }
             return;
         }
@@ -245,6 +254,37 @@ public final class Shell {
         if (idleTicks >= config.attract().idleTicks()) {
             startDemo();
         }
+    }
+
+    /**
+     * §17.2: the title's menu as it stands — {@code continue} only while a game is saved, and
+     * then {@code start} saying it is a new one.
+     */
+    public java.util.List<ShellConfig.Entry> titleLines() {
+        java.util.List<ShellConfig.Entry> lines = new java.util.ArrayList<>();
+        for (ShellConfig.Entry e : config.title().items()) {
+            if (e.id().equals("continue") && continueSlot == 0) {
+                continue;
+            }
+            boolean fresh = e.id().equals("start") && continueSlot > 0;
+            lines.add(fresh ? new ShellConfig.Entry(e.id(), config.title().newGameLabel()) : e);
+        }
+        return lines;
+    }
+
+    /** §17.9: the options page's lines; over a game, without those only the title's has (§17.2). */
+    public java.util.List<ShellConfig.Entry> optionLines() {
+        boolean fromTitle = back != State.PAUSED;
+        return config.options().items().stream()
+                .filter(e -> fromTitle || !ShellConfig.Options.TITLE_ONLY.contains(e.id()))
+                .toList();
+    }
+
+    /** §17.8: Hard and Easy in turn, kept in the settings. */
+    private void switchDifficulty() {
+        easy = !easy;
+        db.putSettings(db.settings().withEasy(easy));
+        jukebox.sfx(SFX_MOVE);
     }
 
     /** §17.2: the demo plays behind the title, and any key at all brings the title back. */
@@ -263,7 +303,7 @@ public final class Shell {
 
     private void page(InputState in) {
         if (stateTick >= config.screenHoldTicks() && (in.firePressed() || in.quitPressed())) {
-            go(State.TITLE);
+            backOut();
             highlight = -1;
         }
     }
@@ -379,20 +419,40 @@ public final class Shell {
         }
     }
 
-    /** Back a step: to the pause menu, on the line that came here, or to the title. */
+    /** Back a step, on the line that came here: to the pause menu, the title's options, or the title. */
     private void backOut() {
         State to = back;
         State from = state;
         if (to == State.PAUSED) {
             openMenu(State.PAUSED, State.PLAYING);
-            java.util.List<ShellConfig.Entry> items = config.pause().items();
             String id = from == State.SAVE_GAME ? "save" : from == State.LOAD_GAME ? "load" : "options";
-            for (int i = 0; i < items.size(); i++) {
-                cursor = items.get(i).id().equals(id) ? i : cursor;
-            }
+            cursor = lineOf(config.pause().items(), id);
+        } else if (to == State.OPTIONS) {
+            openMenu(State.OPTIONS, State.TITLE);
+            String id = switch (from) {
+                case KEY_CONFIG -> "keys";
+                case LOAD_GAME -> "load";
+                case HISCORES -> "hiScores";
+                case STATS -> "stats";
+                default -> "credits";
+            };
+            cursor = lineOf(optionLines(), id);
         } else {
             go(State.TITLE);
+            if (from == State.OPTIONS) {
+                cursor = lineOf(titleLines(), "options");
+            }
         }
+    }
+
+    /** Where the line {@code id} is in {@code lines}; the first line if it is not there. */
+    private static int lineOf(java.util.List<ShellConfig.Entry> lines, String id) {
+        for (int i = 0; i < lines.size(); i++) {
+            if (lines.get(i).id().equals(id)) {
+                return i;
+            }
+        }
+        return 0;
     }
 
     private void saveGame(InputState in) {
@@ -414,7 +474,7 @@ public final class Shell {
             backOut();
             return;
         }
-        if (!in.firePressed() || saves == null || stateTick < config.screenHoldTicks() && back == State.TITLE) {
+        if (!in.firePressed() || saves == null || stateTick < config.screenHoldTicks() && back != State.PAUSED) {
             return;
         }
         int n = cursor + 1;
@@ -447,7 +507,7 @@ public final class Shell {
     }
 
     private void options(InputState in) {
-        java.util.List<ShellConfig.Entry> items = config.options().items();
+        java.util.List<ShellConfig.Entry> items = optionLines();
         steer(in, items.size());
         if (in.quitPressed()) {
             backOut();
@@ -473,6 +533,23 @@ public final class Shell {
         }
         if (id.equals("volume")) {
             return;   // the arrows turn it, not fire
+        }
+        if (id.equals("difficulty")) {
+            switchDifficulty();
+            return;
+        }
+        State page = switch (id) {
+            case "keys" -> State.KEY_CONFIG;
+            case "load" -> State.LOAD_GAME;
+            case "hiScores" -> State.HISCORES;
+            case "stats" -> State.STATS;
+            case "credits" -> State.CREDITS;
+            default -> null;
+        };
+        if (page != null) {
+            jukebox.sfx(SFX_PICK);
+            openMenu(page, State.OPTIONS);   // §17.2: the pages the title used to list, and back here
+            return;
         }
         if (id.equals("sound")) {
             Settings s = db.settings();
@@ -751,6 +828,10 @@ public final class Shell {
     private void go(State next) {
         if (next == State.TITLE && state != State.TITLE) {
             lookForAGame();   // a game saved, or quit, since: the title offers the newest
+        }
+        if (next == State.TITLE || next == State.PLAYING) {
+            back = State.TITLE;   // nothing to go back to from either
+            cursor = next == State.TITLE ? 0 : cursor;
         }
         state = next;
         stateTick = 0;

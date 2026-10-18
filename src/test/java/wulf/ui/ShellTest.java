@@ -60,6 +60,98 @@ class ShellTest {
         assertThat(shell.session()).isNotNull();
     }
 
+    private static final InputState DOWN = InputState.of(0, 1, false, false);
+    private static final InputState RIGHT = InputState.of(1, 0, false, false);
+
+    /** One press and a release, {@code times} over: the menus move on the press. */
+    private static void press(Shell shell, InputState in, int times) {
+        for (int i = 0; i < times; i++) {
+            shell.tick(in, MenuInput.NONE, false);
+            shell.tick(InputState.NONE, MenuInput.NONE, false);
+        }
+    }
+
+    private static int line(List<ShellConfig.Entry> lines, String id) {
+        for (int i = 0; i < lines.size(); i++) {
+            if (lines.get(i).id().equals(id)) {
+                return i;
+            }
+        }
+        throw new AssertionError("no line " + id);
+    }
+
+    @Test
+    void theTitleIsAShortMenuAndExitQuits(@TempDir Path dir) {
+        // §17.2: with no game saved, START, OPTIONS and EXIT; down and fire picks.
+        Shell shell = shell(db(dir));
+        assertThat(shell.titleLines()).extracting(ShellConfig.Entry::id).containsExactly("start", "options", "exit");
+        assertThat(shell.cursor()).isZero();
+        press(shell, DOWN, line(shell.titleLines(), "exit"));
+        assertThat(shell.quit()).isFalse();
+        shell.tick(FIRE, MenuInput.NONE, false);
+        assertThat(shell.quit()).isTrue();
+    }
+
+    @Test
+    void theTitlesOptionsHoldThePagesItUsedToListAndComeBackToThem(@TempDir Path dir) {
+        PlayerDb db = db(dir);
+        Shell shell = shell(db);
+        press(shell, DOWN, line(shell.titleLines(), "options"));
+        shell.tick(FIRE, MenuInput.NONE, false);
+        assertThat(shell.state()).isEqualTo(Shell.State.OPTIONS);
+        assertThat(shell.optionLines()).extracting(ShellConfig.Entry::id)
+                .contains("difficulty", "keys", "load", "hiScores", "stats", "credits");
+        idle(shell, CONFIG.screenHoldTicks());
+
+        // The difficulty switches here now (§17.8).
+        boolean easy = shell.easy();
+        press(shell, DOWN, line(shell.optionLines(), "difficulty"));
+        press(shell, FIRE, 1);
+        assertThat(shell.easy()).isNotEqualTo(easy);
+        assertThat(db.settings().easy()).isEqualTo(shell.easy());
+
+        // A page opened from here goes back here, on its own line.
+        int credits = line(shell.optionLines(), "credits");
+        press(shell, DOWN, credits - shell.cursor());
+        press(shell, FIRE, 1);
+        assertThat(shell.state()).isEqualTo(Shell.State.CREDITS);
+        idle(shell, CONFIG.screenHoldTicks());
+        shell.tick(FIRE, MenuInput.NONE, false);
+        assertThat(shell.state()).isEqualTo(Shell.State.OPTIONS);
+        assertThat(shell.cursor()).isEqualTo(credits);
+
+        // And Escape goes back to the title, on OPTIONS.
+        shell.tick(QUIT, MenuInput.NONE, false);
+        assertThat(shell.state()).isEqualTo(Shell.State.TITLE);
+        assertThat(shell.titleLines().get(shell.cursor()).id()).isEqualTo("options");
+    }
+
+    @Test
+    void overAGameTheOptionsLeaveOutTheTitlesOwnLines(@TempDir Path dir) {
+        Shell shell = shell(db(dir));
+        shell.tick(FIRE, MenuInput.NONE, false);
+        shell.tick(new InputState(false, false, false, false, false, false, true, false, false, false, false),
+                MenuInput.NONE, false);
+        assertThat(shell.state()).isEqualTo(Shell.State.PAUSED);
+        press(shell, DOWN, line(CONFIG.pause().items(), "options"));
+        shell.tick(FIRE, MenuInput.NONE, false);
+        assertThat(shell.state()).isEqualTo(Shell.State.OPTIONS);
+        assertThat(shell.optionLines()).extracting(ShellConfig.Entry::id)
+                .doesNotContainAnyElementsOf(ShellConfig.Options.TITLE_ONLY)
+                .contains("sound", "back");
+    }
+
+    @Test
+    void leftAndRightOnStartChooseTheJobOnceOneIsOpen(@TempDir Path dir) {
+        Shell shell = shell(db(dir));
+        shell.practiseJob(2);
+        assertThat(shell.level()).isEqualTo(2);
+        press(shell, RIGHT, 1);
+        assertThat(shell.level()).as("past the last, back to the first").isZero();
+        press(shell, InputState.of(-1, 0, false, false), 1);
+        assertThat(shell.level()).isEqualTo(2);
+    }
+
     @Test
     void everyTitleMenuKeyOpensItsPageAndFireCloneItAgain(@TempDir Path dir) {
         for (ShellConfig.MenuItem item : CONFIG.title().menu()) {

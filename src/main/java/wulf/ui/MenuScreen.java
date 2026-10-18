@@ -50,12 +50,15 @@ final class MenuScreen {
             }
             case OPTIONS -> {
                 ShellConfig.Options o = config.options();
+                List<ShellConfig.Entry> items = shell.optionLines();
                 heading = o.heading();
-                footer = o.items().get(shell.cursor()).id().equals("volume") ? o.volumeFooter() : o.footer();
-                for (int i = 0; i < o.items().size(); i++) {
-                    ShellConfig.Entry e = o.items().get(i);
+                footer = items.get(shell.cursor()).id().equals("volume") ? o.volumeFooter() : o.footer();
+                for (int i = 0; i < items.size(); i++) {
+                    ShellConfig.Entry e = items.get(i);
                     String text = switch (e.id()) {
-                        case "back" -> e.label();
+                        case "back", "keys", "load", "hiScores", "stats", "credits" -> e.label();
+                        case "difficulty" -> e.label() + "  "
+                                + (shell.easy() ? config.difficulty().easy() : config.difficulty().hard());
                         case "volume" -> e.label() + "  " + settings.audio().volumePercent() + "%";
                         case "eightBit" -> e.label() + "  " + (Shell.eightBitOn(settings, o.eightBit()) ? o.on() : o.off());
                         default -> e.label() + "  " + (Shell.optionOn(settings, e.id()) ? o.on() : o.off());

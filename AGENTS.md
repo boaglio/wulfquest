@@ -2763,6 +2763,12 @@ of §21.3 are actually reachable — a setting the player cannot change is not a
 setting. Both hang off the title like `CREDITS`, and both are named by
 `shell.json`, not by Java.
 
+Since 2026-10-18 the title's menu lists only `START`, `OPTIONS` and `EXIT`
+(and `CONTINUE` with a game saved, §17.2): `CREDITS`, `HISCORES`, `STATS`,
+`KEY_CONFIG` and `LOAD_GAME` are reached through `OPTIONS`, and go back to it.
+Their letters on the title still open them directly; `SOUND` has only its
+letter now, the options having the same two settings.
+
 `ENDING` and `ROLL` were added on 2026-10-12, at the user's asking: the
 closing scene and the credits after a win (§14.7). `OFFER` came the same day:
 Mr Jones's next job, after the roll of a win that opens one (§14.9).
@@ -2783,8 +2789,30 @@ data-driven game; build it in M1.
   through the palette per row.
 - An attract-mode demo: `ReplayRunner` playing `replays/attract.json` behind
   a dimmed overlay after 20 s idle. Any key returns to the title.
-- Lines: `PRESS FIRE TO BEGIN`, then one per menu entry in `shell.json`, and
-  the attribution line from §2.5 in small type.
+- Lines: the menu (`title.items`), and the attribution line from §2.5 in
+  small type.
+
+  **A short menu** (asked for by the user, 2026-10-18: "the first screen has
+  too much information... wulf quest bigger, and then a menu"). The wordmark
+  is drawn at 3× the 8×8 font, the tagline under it, then `START`, `OPTIONS`
+  and `EXIT` in the big font — up and down to choose, fire to pick, the line
+  chosen bright with a mark, as on every menu (§17.4). Under `START` the
+  difficulty the next game is (`HARD`, or `EASY` in `easyColour`) and, once a
+  later job is open, that job between arrows: left and right on `START` choose
+  it (§14.9). Escape still quits. `ShellTest`, `ShellValidator` (the ids are
+  `Title.IDS`, and there must be a `start`).
+
+  Everything else the title used to list moved to the **options page from the
+  title** (§17.9): `DIFFICULTY` (fire switches), `KEYS`, `LOAD GAME`,
+  `HI-SCORES`, `STATS` and `CREDITS`, each page going back to the options on
+  its own line. The pause menu's options leave those out
+  (`Options.TITLE_ONLY`). The letters of `title.menu`, `G`, `D` and `N` still
+  work on the title, unlisted, for those who know them; the menu is the way
+  for everyone else, and for a gamepad. The best score left the title; it is
+  on the hi-score table.
+
+  What follows is the title before 2026-10-18, kept for the history; the
+  letters it names are the unlisted ones above.
 
   **As shipped (M8):** `K KEYS`, `A SOUND`, `H HI-SCORES`, `C CREDITS`,
   `S STATS`. There is no `2 JOYSTICK`: a gamepad needs no choosing (§19.3) —
@@ -2800,14 +2828,13 @@ data-driven game; build it in M1.
   or `D DIFFICULTY: EASY` in green; `D` switches.
 
   **A saved game comes first** (asked for by the user, 2026-10-18). When a
-  save slot holds a game (§21.4), the prompt is `title.continuePrompt` (`PRESS
-  FIRE TO CONTINUE YOUR GAME`) with the game under it (`continueDetail`, its
-  line from the load page: `SLOT 2  EASY  0/4  350`), and fire loads it — the
-  slot written last, by the file's time (`SaveSlots.newest`), looked for when
-  the title comes up, so a game saved and then quit is the one offered. A new
-  game is `G` (`newGameKey`, `G NEW GAME` above the difficulty, the job line
-  under it); `G` starts one with no save too. A save that will not load says
-  why (`saves.refused`) and fire then starts a new game. `ShellValidator`
+  save slot holds a game (§21.4), the menu starts with `CONTINUE`, the game
+  under it (`continueDetail`, its line from the load page: `SLOT 2  EASY  0/4
+  350`), and fire there loads it — the slot written last, by the file's time
+  (`SaveSlots.newest`), looked for when the title comes up, so a game saved and
+  then quit is the one offered. `START` then reads `NEW GAME`
+  (`newGameLabel`); `G` (`newGameKey`) starts one too. A save that will not
+  load says why (`saves.refused`), and `CONTINUE` leaves the menu. `ShellValidator`
   refuses a `newGameKey` the title or its `D` or `N` already use.
 
 ### 17.3 The panel (256×40, in the lower border)
@@ -2859,7 +2886,7 @@ that one of them resumes.
 ### 17.9 Options [NEW]
 
 Asked for by the user (2026-10-14; `shell.json → options`, state `OPTIONS`),
-from the title (`O OPTIONS`) and from the pause menu: the switches that were
+from the title (`OPTIONS`) and from the pause menu: the switches that were
 only in `settings.json` until now — `SCANLINES` and `COLOUR CLASH` (§5.4) and
 `ONE-COLOUR SPRITES` (`features.inkedCreatures`, §12.8; `ONE-COLOUR CREATURES` until 2026-10-18) — each shown `ON` or
 `OFF`, fire flipping it, written to `settings.json` at once and shown at once:
@@ -3011,8 +3038,8 @@ player who watches. The tribesmen still follow him room to room (§12.9), as the
 calls are the hints. The orchids, the guardians, the Keeper, the map
 items, the treasures, the ending and New Game+ are the same in both.
 
-**Choosing.** `D` on the title (`shell.json → difficulty.key`) switches Hard
-and Easy for the next game; the choice is kept in `settings.json → easy`
+**Choosing.** `DIFFICULTY` on the title's options, or `D` on the title
+(`shell.json → difficulty.key`), switches Hard and Easy for the next game; the choice is kept in `settings.json → easy`
 (§21.3), so a new session starts where the last one left it. A settings file
 from before it means Hard.
 
@@ -3214,14 +3241,15 @@ report from a player with a pad is the first thing to act on.
   START LEFTBUMPER RIGHTBUMPER LEFTSTICK RIGHTSTICK` (the schema's enum; the
   guide button is the system's): `fire`, `pause` and `quit` are the keys of
   those names, everywhere; `map` opens the map in the jungle (§17.7); on the
-  title `newGame` and `difficulty` do what `G` and `D` do (§17.2) — stand-ins
+  title `newGame` and `difficulty` do what `G` and `D` do (§17.2), a short cut
+  past its menu, which `A`, the stick and the d-pad work as on any — stand-ins
   for the shell's letters as `MenuInput.Pad`, never seen by the simulation. A
   button may do one thing on each screen: `PadMap` refuses one bound twice in
   the jungle (fire, pause, quit, map) or on the title (fire, quit, newGame,
   difficulty), so `Y` is both the map and a new game. Any button at all, as
   any key, ends the attract demo. The title's other letters (keys page,
-  hi-scores, credits, stats, load, options) have no button; the pause menu
-  reaches load and the options.
+  hi-scores, credits, stats, load, options) have no button; its menu reaches
+  them all.
 - **Off** with `"enabled": false`, or for one run with `--no-gamepad`.
 - **`./run.sh pad [SECONDS]`** (`wulf.tools.PadProbe`) lists what SDL takes
   for a gamepad on the machine and prints every change each one reports, and

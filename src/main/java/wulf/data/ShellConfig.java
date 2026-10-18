@@ -32,11 +32,22 @@ public record ShellConfig(
         Pause pause,
         Options options) {
 
-    public record Title(String wordmark, String tagline, String prompt, String continuePrompt, String newGameKey,
-                        String newGameLabel, String continueDetail, Cycle cycle, List<MenuItem> menu, String footer) {
+    /**
+     * The title (§17.2): the wordmark and its tagline over {@code items}, a short menu chosen with
+     * up, down and fire. {@code continue} shows only while a game is saved, the newest one under
+     * it as {@code continueDetail} gives it, and then {@code start} reads {@code newGameLabel}.
+     * {@code menu} and {@code newGameKey} are letters that do the same as the options page's lines,
+     * for those who know them; the title does not list them.
+     */
+    public record Title(String wordmark, String tagline, List<Entry> items, String newGameKey, String newGameLabel,
+                        String continueDetail, Cycle cycle, List<MenuItem> menu, String footer) {
         public Title {
+            items = List.copyOf(items);
             menu = List.copyOf(menu);
         }
+
+        /** The ids the shell acts on. */
+        public static final List<String> IDS = List.of("continue", "start", "options", "exit");
     }
 
     /** The wordmark's colours, walked one row at a time (§17.2). */
@@ -150,9 +161,14 @@ public record ShellConfig(
         public static final List<String> SWITCHES = List.of("scanlines", "attributeClash", "inkedCreatures",
                 "spriteFlicker");
 
-        /** The ids the shell acts on: the switches it knows, and back. */
+        /** The lines only the title's options show (§17.2): a game's difficulty, and pages of their own. */
+        public static final List<String> TITLE_ONLY = List.of("difficulty", "keys", "load", "hiScores", "stats",
+                "credits");
+
+        /** The ids the shell acts on: the switches it knows, the title's own lines, and back. */
         public static final List<String> IDS = List.of("sound", "volume", "eightBit", "scanlines", "attributeClash",
-                "inkedCreatures", "spriteFlicker", "back");
+                "inkedCreatures", "spriteFlicker", "difficulty", "keys", "load", "hiScores", "stats", "credits",
+                "back");
     }
 
     /**
@@ -247,15 +263,16 @@ public record ShellConfig(
     }
 
     /**
-     * Easy mode or Hard (§17.8, {@code [NEW]}): {@code key} on the title switches, and the title
-     * shows {@code hard} or {@code easy} for the one the next game is; an Easy game shows
+     * Easy mode or Hard (§17.8, {@code [NEW]}): the title's options switch it ({@code key} on the
+     * title too), and the title shows {@code hard} or {@code easy} under its start line for the one
+     * the next game is, as the options page does after its line; an Easy game shows
      * {@code panelLabel} on the panel, and its row on the hi-score table {@code hiScoreMark},
      * both in {@code easyColour}.
      */
     public record Difficulty(String key, String hard, String easy, String easyColour, String panelLabel,
                              String hiScoreMark) {
         /** What a test's shell gets. */
-        public static final Difficulty NONE = new Difficulty("D", "D HARD", "D EASY", "white", "EASY", "E");
+        public static final Difficulty NONE = new Difficulty("D", "HARD", "EASY", "white", "EASY", "E");
     }
 
     /**

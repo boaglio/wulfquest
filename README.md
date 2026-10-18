@@ -28,8 +28,8 @@ mode, fire on the game-over screen sends you back where you fell with fresh
 lives and everything you found — but your score starts again from zero. The
 hi-score table keeps the run's best.
 
-**Easy and Hard.** The game as the original plays it is Hard. Press `D` on
-the title for Easy: nine lives instead of five, two small creatures in a room
+**Easy and Hard.** The game as the original plays it is Hard. Choose Easy on
+the title's options: nine lives instead of five, two small creatures in a room
 instead of three and the nastier kinds slower to come, a Wulf you can always
 outrun, no flames at all, a looking glass that shows the way for three
 minutes, and shrines that answer every time. Easy runs share the hi-score
@@ -42,7 +42,8 @@ the credits roll.
 **New Game+.** Win once and Mr Jones has a new job for you: another amulet,
 broken in two. Win that and there is one last job, an amulet in one piece.
 Fewer pieces, but the jungle starts out angrier and the Wulf runs faster.
-Once a job is open the title starts it, and `N` there switches back.
+Once a job is open the title starts it, and left and right on `START` switch
+back.
 
 **The amulet hides somewhere new every game.** Like the original, each game
 picks one of its eight sets of four rooms for the quarters, so the map you
@@ -164,7 +165,7 @@ rebuild — the game reads the working tree's `data/` directly.
 | Key | Action |
 |-----|--------|
 | Arrows / WASD | Walk (8 directions) |
-| Space / Z | Swing the sabre; on the title, start a game; at game over, continue |
+| Space / Z | Swing the sabre; in a menu, pick; at game over, continue |
 | M | The map (the game waits while it is open; `B` in the period layout) |
 | P | Pause, with the menu: save, load, options, quit |
 | Escape | Leave the jungle for the title; quit from the title |
@@ -176,7 +177,7 @@ the options page left and right turn the volume.
 stick or the d-pad walks, `A` or `X` swings (and picks, in a menu), `Start`
 pauses, `Back` (Select, View, Share — the small one on the left) leaves the
 jungle or goes back a step, and `Y` opens the map. On the title, `Y` starts a
-new game, as `G` does, and `B` switches between Hard and Easy. The buttons are
+new game and `B` switches between Hard and Easy. The buttons are
 named as on an Xbox pad and found by their place on the others: `A` is the
 bottom face button on a PlayStation or Switch pad too. Gamepads are new in this
 version, and so far tried with no pad in hand — tell us how yours does. If one
@@ -189,24 +190,30 @@ Find one of the two looking glasses and for ninety seconds an arrow at the
 edge of each room shows the way to the nearest quarter, and the map dots the
 whole way there.
 
-The title screen has the rest: `K` for the keys page, where the period layout
-(`Q`/`A`/`O`/`P` to move, `M` to swing, `H` to pause, `B` for the map) is one digit away and the choice sticks;
-`A` for sound and volume; `H` for the hi-scores, `C` for the credits, `S` for
-your lifetime ledger; `D` switches between Hard and Easy. Once you have won,
-`N` picks which of Mr Jones's jobs to play. Nothing is hidden behind a key you have to know.
+The title screen is a short menu: `START`, `OPTIONS` and `EXIT`. With a game
+saved, `CONTINUE` comes first and carries on with the one saved last, and
+`START` becomes `NEW GAME`. Under it the title says whether the next game is
+Hard or Easy and, once you have won, which of Mr Jones's jobs it is; left and
+right choose the job.
+
+The rest is on the title's options page: the difficulty; the keys page, where
+the period layout (`Q`/`A`/`O`/`P` to move, `M` to swing, `H` to pause, `B` for
+the map) is one digit away and the choice sticks; loading a saved game; the
+hi-scores, your lifetime ledger and the credits. Nothing is hidden behind a key
+you have to know, but the old letters still work on the title for those who
+know them: `G` new game, `D` difficulty, `N` the job, `K` keys, `A` sound, `H`
+hi-scores, `C` credits, `S` stats, `L` load, `O` options.
 
 **Pause, save and load.** `P` pauses the game with a menu: resume, save the
-game to one of three slots, load one, options, or quit to the title. The title
-has `L` to load a saved game and `O` for the options. With a game saved, the
-title offers it first: fire carries on with the one saved last, and `G` starts
-a new game. The options page has sound and volume, 8-bit mode, scanlines,
-the colour clash, the original's one-colour sprites and sprite flicker.
+game to one of three slots, load one, options, or quit to the title. The
+options page has sound and volume, 8-bit mode, scanlines, the colour clash, the
+original's one-colour sprites and sprite flicker.
 
 Hi-scores, settings, stats and saved games are written to your own user directory —
 `~/.local/share/wulfquest` on Linux, `~/Library/Application Support/WulfQuest`
 on macOS, `%APPDATA%\WulfQuest` on Windows — never into the game's own files.
 
-The options page (`O` on the title, or from the pause menu) starts with the
+The options page (from the title, or from the pause menu) has the
 sound, on or off, and its volume, so you can turn it down without leaving a
 game. For the nostalgic, **8-BIT MODE** turns on everything that makes it look
 like the Spectrum original at once; each of its four switches is there on its

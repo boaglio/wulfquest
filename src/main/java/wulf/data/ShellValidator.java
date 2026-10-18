@@ -66,7 +66,11 @@ public final class ShellValidator {
                         "binds '" + digit + "', which the keys page already uses to choose an input profile");
             }
         }
-        // §17.4, §17.9: every menu line does something the shell knows, and none twice.
+        // §17.2, §17.4, §17.9: every menu line does something the shell knows, and none twice.
+        checkEntries(shell.title().items(), ShellConfig.Title.IDS, "/title/items");
+        if (shell.title().items().stream().noneMatch(e -> e.id().equals("start"))) {
+            throw new DataException(SOURCE, "/title/items", "has no way to start a game ('start')");
+        }
         checkEntries(shell.pause().items(), ShellConfig.Pause.IDS, "/pause/items");
         checkEntries(shell.options().items(), ShellConfig.Options.IDS, "/options/items");
         for (String id : shell.options().eightBit()) {

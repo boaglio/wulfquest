@@ -28,8 +28,14 @@ class ShellValidationTest {
 
     private static ShellConfig.Title titleWith(List<String> colours, List<ShellConfig.MenuItem> menu) {
         ShellConfig.Title t = c.shell().title();
-        return new ShellConfig.Title(t.wordmark(), t.tagline(), t.prompt(), t.continuePrompt(), t.newGameKey(),
+        return new ShellConfig.Title(t.wordmark(), t.tagline(), t.items(), t.newGameKey(),
                 t.newGameLabel(), t.continueDetail(), new ShellConfig.Cycle(colours, t.cycle().ticksPerStep()), menu, t.footer());
+    }
+
+    private static ShellConfig.Title titleWithItems(List<ShellConfig.Entry> items) {
+        ShellConfig.Title t = c.shell().title();
+        return new ShellConfig.Title(t.wordmark(), t.tagline(), items, t.newGameKey(), t.newGameLabel(),
+                t.continueDetail(), t.cycle(), t.menu(), t.footer());
     }
 
     private static DataException error(ShellConfig shell) {
@@ -53,11 +59,27 @@ class ShellValidationTest {
     @Test
     void theNewGameKeyCannotBeAMenuKey() {
         ShellConfig.Title t = c.shell().title();
-        ShellConfig.Title clashing = new ShellConfig.Title(t.wordmark(), t.tagline(), t.prompt(), t.continuePrompt(),
+        ShellConfig.Title clashing = new ShellConfig.Title(t.wordmark(), t.tagline(), t.items(),
                 t.menu().get(0).key(), t.newGameLabel(), t.continueDetail(), t.cycle(), t.menu(), t.footer());
         DataException e = error(withTitle(clashing));
         assertThat(e).isNotNull();
         assertThat(e.detail()).contains("twice");
+    }
+
+    @Test
+    void theTitlesMenuMustStartAGameAndNameOnlyWhatTheShellDoes() {
+        List<ShellConfig.Entry> items = new ArrayList<>(c.shell().title().items());
+        items.removeIf(e -> e.id().equals("start"));
+        DataException e = error(withTitle(titleWithItems(items)));
+        assertThat(e).isNotNull();
+        assertThat(e.pointer()).isEqualTo("/title/items");
+        assertThat(e.detail()).contains("start");
+
+        items.add(new ShellConfig.Entry("start", "START"));
+        items.add(new ShellConfig.Entry("dance", "DANCE"));
+        e = error(withTitle(titleWithItems(items)));
+        assertThat(e).isNotNull();
+        assertThat(e.detail()).contains("dance");
     }
 
     @Test

@@ -81,9 +81,9 @@ public final class ShellPainter {
                 }
                 menus.paint(fb, shell, db.settings());
             }
-            case TITLE -> title.paint(fb, shell.stateTick(), db.scores().best(), shell.notice(),
-                    shell.unlocked() > 0 ? config.newGamePlus().levels().get(shell.level()) : null, shell.easy(),
-                    saved(shell));
+            case TITLE -> title.paint(fb, shell.stateTick(), shell.notice(), shell.titleLines(), shell.cursor(),
+                    saved(shell), shell.easy(),
+                    shell.unlocked() > 0 ? config.newGamePlus().levels().get(shell.level()) : null);
             case ATTRACT -> attract(fb, shell);
             case CREDITS -> credits.paint(fb);
             case HISCORES -> hiScores.paint(fb, db.scores(), shell.highlight());
@@ -144,7 +144,7 @@ public final class ShellPainter {
     private void attract(Framebuffer fb, Shell shell) {
         Shell.Demo demo = shell.demo();
         if (demo == null) {
-            title.paint(fb, shell.stateTick(), db.scores().best(), shell.notice());
+            title.paint(fb, shell.stateTick(), shell.notice());
             return;
         }
         game.paintWorld(fb, demo.sim(), false);
@@ -161,7 +161,7 @@ public final class ShellPainter {
         chrome.small().drawCentred(fb, config.attract().banner(), 0, fb.width(), bannerY, chrome.bright());
     }
 
-    /** §17.2: the saved game fire on the title goes on with, as the load page lists it; null for none. */
+    /** §17.2: the saved game the title's {@code continue} goes on with, as the load page lists it; null for none. */
     private String saved(Shell shell) {
         wulf.data.QuickSaveData d = shell.continueGame();
         return d == null ? null
