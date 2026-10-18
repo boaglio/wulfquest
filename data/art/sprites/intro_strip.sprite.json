@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "name": "intro_strip",
+  "size": {
+    "w": 32,
+    "h": 15
+  },
+  "origin": {
+    "x": 0,
+    "y": 15
+  },
+  "legend": {
+    ".": -1,
+    "K": 0,
+    "g": 4,
+    "y": 6,
+    "W": 15,
+    "G": 12,
+    "Y": 14
+  },
+  "frames": [
+    {
+      "id": "f0",
+      "rows": [
+        "g.gg..g.g..gg.g..g.gg..g.g..gg.g",
+        "GgGGgGGgGgGGGgGgGGgGGgGGgGGGgGgG",
+        "yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy",
+        "yyyYyyyyyyyyKyyyyyyYyyyyyyyyyKyy",
+        "yyyyyyyKyyyyyyyyyyyyyyyyyYyyyyyy",
+        "yYyyyyyyyyyyyyYyyyyyKyyyyyyyyyyy",
+        "yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy",
+        "yyyyWWWWWWWWWWyyyyyyWWWWWWWWWWyy",
+        "yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy",
+        "yyyyyyKyyyyyyYyyyyyyyyyyyyyKyyyy",
+        "yyYyyyyyyyyyyyyyyyKyyyyYyyyyyyyy",
+        "yyyyyyyyyyKyyyyyyyyyyyyyyyyyyyyy",
+        "yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy",
+        "GgGGgGGgGgGGGgGgGGgGGgGGgGGGgGgG",
+        "g.gg..g.g..gg.g..g.gg..g.g..gg.g"
+      ]
+    }
+  ]
+}
