@@ -3499,6 +3499,26 @@ and the room (`saves.slot`, `saves.detail`), or `EMPTY`. The panel says
 on the page. Saving is always on: the F5/F9 quick save and its
 `features.quickSave` are gone.
 
+**Every game has a slot, and saves itself there** (asked for by the user,
+2026-10-18: "new game should be mandatory select one save slot and when the
+player starts should auto save every once in a while"). `START` on the title
+(or `G`) opens `NEW_GAME`, a page of the slots headed `saves.newGameHeading`,
+the cursor on the first empty one. An empty slot starts the game and saves it
+there at once, so the title offers it straight away; a slot with a game in it
+says `saves.replace` (`FIRE AGAIN TO REPLACE SLOT n`), and a second fire
+replaces it. Escape goes back to the title, on `START`. The game then saves
+itself to its slot every `saves.autosaveEveryTicks` (3000, a minute) of play,
+the panel saying `saves.autosaved` (`GAME SAVED`) — not while the amulet is
+shown, the game is over or it is won — and when it is left for the title
+(Escape, or `QUIT TO TITLE`), so `CONTINUE` goes on from there. Loading a game
+makes its slot the one it saves to, and so does `SAVE GAME` to another slot.
+**A game that ends, won or lost, is gone from its slot** (`PlayerDb.clearSaveSlot`,
+the slot's `.bak` too): there is nothing to go on with, and keeping the last
+minute before a game over would make dying something to undo. A slot that
+holds another game is untouched. A shell with no slots (a test's) starts the
+game at once, as before; so does `--endings`, which saves nothing.
+`SaveSlotsTest`.
+
 **A save is the game as it was made, not a snapshot of it**: the run seed, the
 start room, `dev`, and every tick's input since the game began (`GameSession`
 records what it feeds `Simulation.play`), run-length encoded as a replay's

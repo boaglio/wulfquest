@@ -331,7 +331,8 @@
       "type": "object",
       "additionalProperties": false,
       "required": ["slots", "saveHeading", "loadHeading", "slot", "detail", "empty", "jobNames", "modeNames", "saved",
-                   "loaded", "emptySlot", "refused", "noteTicks", "footer"],
+                   "loaded", "emptySlot", "refused", "noteTicks", "footer", "newGameHeading", "replace",
+                   "autosaveEveryTicks", "autosaved"],
       "properties": {
         "slots": { "type": "integer", "minimum": 1, "maximum": 9 },
         "saveHeading": { "type": "string", "minLength": 1, "maxLength": 32 },
@@ -349,7 +350,11 @@
         "emptySlot": { "type": "string", "maxLength": 40 },
         "refused": { "description": "AGENTS.md §17.2: the title's word when the saved game fire would go on with will not load", "type": "string", "maxLength": 40 },
         "noteTicks": { "type": "integer", "minimum": 1 },
-        "footer": { "type": "string", "maxLength": 60 }
+        "footer": { "type": "string", "maxLength": 60 },
+        "newGameHeading": { "description": "AGENTS.md §21.4: the page a new game picks its slot on", "type": "string", "minLength": 1, "maxLength": 32 },
+        "replace": { "description": "AGENTS.md §21.4: said when the slot picked for a new game holds one; a second fire replaces it", "type": "string", "pattern": "\\{n\\}", "maxLength": 40 },
+        "autosaveEveryTicks": { "description": "AGENTS.md §21.4: a game saves itself to its slot this often, in ticks of play", "type": "integer", "minimum": 50 },
+        "autosaved": { "description": "AGENTS.md §21.4: the panel's word when it has", "type": "string", "maxLength": 40 }
       }
     },
     "credits": {

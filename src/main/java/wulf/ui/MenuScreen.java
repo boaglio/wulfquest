@@ -72,7 +72,11 @@ final class MenuScreen {
             }
             default -> {
                 ShellConfig.Saves s = config.saves();
-                heading = shell.state() == Shell.State.SAVE_GAME ? s.saveHeading() : s.loadHeading();
+                heading = switch (shell.state()) {
+                    case SAVE_GAME -> s.saveHeading();
+                    case NEW_GAME -> s.newGameHeading();   // §21.4: a new game's slot
+                    default -> s.loadHeading();
+                };
                 footer = s.footer();
                 for (int slot = 1; slot <= s.slots(); slot++) {
                     int n = slot;

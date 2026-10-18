@@ -25,7 +25,7 @@ public final class Shell {
 
     public enum State {
         TITLE, ATTRACT, CREDITS, HISCORES, STATS, KEY_CONFIG, SOUND, PLAYING, GAME_OVER, ENDING, TALLY, ROLL,
-        OFFER, HISCORE_ENTRY, PAUSED, SAVE_GAME, LOAD_GAME, OPTIONS
+        OFFER, HISCORE_ENTRY, PAUSED, SAVE_GAME, LOAD_GAME, OPTIONS, NEW_GAME
     }
 
     /** The sounds the shell itself makes; the jungle's own are the simulation's (§18.2). */
@@ -54,6 +54,9 @@ public final class Shell {
     private SaveSlots saves;
     private int continueSlot;
     private wulf.data.QuickSaveData continueGame;
+    /** §21.4: the slot the game in play saves itself to, from 1; 0 for none. And ticks played since it did. */
+    private int gameSlot;
+    private int sinceSaved;
     /** §17.4, §17.9, §21.4: the line chosen on a menu page, the page Escape goes back to, and a word for the player. */
     private int cursor;
     private State back = State.TITLE;
@@ -199,6 +202,7 @@ public final class Shell {
             case SAVE_GAME -> saveGame(in);
             case LOAD_GAME -> loadGame(in);
             case OPTIONS -> options(in);
+            case NEW_GAME -> newGame(in);
         }
     }
 
@@ -235,14 +239,14 @@ public final class Shell {
         }
         if (menu.typed(config.title().newGameKey()) || menu.pad(MenuInput.Pad.NEW_GAME)) {
             jukebox.sfx(SFX_PICK);
-            startGame();
+            chooseSlot();
             return;
         }
         if (in.firePressed()) {
             jukebox.sfx(SFX_PICK);
             switch (lines.get(cursor).id()) {
                 case "continue" -> goOn(continueSlot);   // §17.2: the newest saved game
-                case "start" -> startGame();
+                case "start" -> chooseSlot();
                 case "options" -> openMenu(State.OPTIONS, State.TITLE);
                 case "exit" -> quit = true;
                 default -> { }
@@ -351,7 +355,8 @@ public final class Shell {
             jukebox.sfx(SFX_PICK);
         }
         if (in.quitPressed()) {
-            // Escape leaves the jungle rather than the program: the run is banked as if it ended.
+            // Escape leaves the jungle rather than the program: the run is banked as if it ended, and
+            // kept in its slot to go on with (§21.4).
             endRun();
             return;
         }
@@ -362,6 +367,7 @@ public final class Shell {
         }
         boolean wasRevealing = session.revealing();
         session.tick(in, dev);
+        autosave();
         if (session.revealing() != wasRevealing) {
             // §14.6, as the original played one: a tune under the amulet reveal, and silence again
             // after — the jungle itself has no music (§18.3). The user approved this one exception.
@@ -439,8 +445,8 @@ public final class Shell {
             cursor = lineOf(optionLines(), id);
         } else {
             go(State.TITLE);
-            if (from == State.OPTIONS) {
-                cursor = lineOf(titleLines(), "options");
+            if (from == State.OPTIONS || from == State.NEW_GAME) {
+                cursor = lineOf(titleLines(), from == State.OPTIONS ? "options" : "start");
             }
         }
     }
@@ -462,6 +468,8 @@ public final class Shell {
         } else if (in.firePressed() && saves != null) {
             int n = cursor + 1;
             saves.save(session, n);
+            gameSlot = n;   // §21.4: the game saves itself here from now on
+            sinceSaved = 0;
             jukebox.sfx(SFX_PICK);
             session.note(config.saves().saved().replace("{n}", Integer.toString(n)), config.saves().noteTicks());
             go(State.PLAYING);
@@ -502,6 +510,8 @@ public final class Shell {
 
     private void play(SaveSlots.Loaded loaded, int n) {
         session = new GameSession(loaded.sim(), revealFor(loaded.sim()), loaded.played());
+        gameSlot = n;   // §21.4: a game loaded saves itself back where it came from
+        sinceSaved = 0;
         session.note(config.saves().loaded().replace("{n}", Integer.toString(n)), config.saves().noteTicks());
         go(State.PLAYING);
     }
@@ -722,6 +732,7 @@ public final class Shell {
     // ---------------------------------------------------------------- transitions
 
     private void showNextEnding() {
+        gameSlot = 0;   // a show, not a game: nothing to keep
         int job = showing.poll();
         Simulation sim = newGame.make(job, easy);
         sim.winForShow();
@@ -729,10 +740,76 @@ public final class Shell {
         go(State.PLAYING);   // the first tick sees the win and goes to the ending
     }
 
-    private void startGame() {
+    /** §21.4: a new game picks its slot first; with no slots (a test's shell) it simply starts. */
+    private void chooseSlot() {
+        if (saves == null) {
+            startGame(0);
+        } else {
+            openMenu(State.NEW_GAME, State.TITLE);
+            cursor = firstEmptySlot();
+        }
+    }
+
+    /** The first slot with no game in it, as a cursor; the first slot when all are full. */
+    private int firstEmptySlot() {
+        for (int n = 1; n <= config.saves().slots(); n++) {
+            if (saves.peek(n).isEmpty()) {
+                return n - 1;
+            }
+        }
+        return 0;
+    }
+
+    /**
+     * §21.4: the slot for a new game. An empty one starts it; one with a game in it says so,
+     * and a second fire on it replaces that game. Escape goes back to the title.
+     */
+    private void newGame(InputState in) {
+        int was = cursor;
+        steer(in, config.saves().slots());
+        if (in.quitPressed()) {
+            backOut();
+            return;
+        }
+        if (cursor != was || !in.firePressed() || stateTick < config.screenHoldTicks()) {
+            return;
+        }
+        int n = cursor + 1;
+        String replace = config.saves().replace().replace("{n}", Integer.toString(n));
+        if (saves.peek(n).isPresent() && !replace.equals(menuNote)) {
+            menuNote = replace;
+            jukebox.sfx(SFX_MOVE);
+            return;
+        }
+        jukebox.sfx(SFX_PICK);
+        startGame(n);
+    }
+
+    /** A new game, saving itself to slot {@code slot} (§21.4) — at once, so the title offers it — or nowhere for 0. */
+    private void startGame(int slot) {
         Simulation sim = newGame.make(level, easy);
         session = new GameSession(sim, revealFor(sim));
+        gameSlot = slot;
+        sinceSaved = 0;
+        if (slot > 0) {
+            saves.save(session, slot);
+        }
         go(State.PLAYING);
+    }
+
+    /**
+     * §21.4: the game in play saves itself to its slot every {@code saves.autosaveEveryTicks} —
+     * not while the amulet is shown or the game is over or won, which would keep a moment there
+     * is no going on from.
+     */
+    private void autosave() {
+        if (gameSlot == 0 || saves == null || ++sinceSaved < config.saves().autosaveEveryTicks()
+                || session.revealing() || session.over() || session.won()) {
+            return;
+        }
+        saves.save(session, gameSlot);
+        sinceSaved = 0;
+        session.note(config.saves().autosaved(), config.saves().noteTicks());
     }
 
     /** The reveal's verses for {@code sim}'s job: the game's own, or one a piece of a later job's (§14.9). */
@@ -792,6 +869,15 @@ public final class Shell {
         offered = 0;
         Simulation sim = session.sim();
         boolean escaped = session.won();
+        if (gameSlot > 0 && saves != null) {
+            // §21.4: a game left for the title is kept to go on with; one over, won or lost, is gone.
+            if (session.won() || session.over()) {
+                saves.clear(gameSlot);
+            } else {
+                saves.save(session, gameSlot);
+            }
+            gameSlot = 0;
+        }
         if (sim.practice()) {
             // §17.6: --lives, --infinite-lives, --god — a practice run is not a run the table can rank.
             session = null;

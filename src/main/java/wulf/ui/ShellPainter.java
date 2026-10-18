@@ -76,7 +76,7 @@ public final class ShellPainter {
     public void paint(Framebuffer fb, Shell shell, boolean dev) {
         game.retro(db.settings());   // §17.9: as the options page left them
         switch (shell.state()) {
-            case PAUSED, SAVE_GAME, LOAD_GAME, OPTIONS -> {
+            case PAUSED, SAVE_GAME, LOAD_GAME, OPTIONS, NEW_GAME -> {
                 if (shell.menuInGame() && shell.session() != null) {
                     playing(fb, shell, dev);
                 }

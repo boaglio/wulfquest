@@ -193,7 +193,11 @@ jungle, one in each quarter of the map, to show you the way out.
 
 The title screen is a short menu: `START`, `OPTIONS` and `EXIT`. With a game
 saved, `CONTINUE` comes first and carries on with the one saved last, and
-`START` becomes `NEW GAME`. Under it the title says whether the next game is
+`START` becomes `NEW GAME`. A new game first asks for one of the three save
+slots (a slot that holds a game asks you to press fire again before it is
+replaced), and from then on the game saves itself there every minute and when
+you leave for the title. A game that ends, won or lost, is cleared from its
+slot. Under it the title says whether the next game is
 Hard or Easy and, once you have won, which of Mr Jones's jobs it is; left and
 right choose the job.
 

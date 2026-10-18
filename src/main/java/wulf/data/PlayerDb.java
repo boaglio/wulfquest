@@ -104,6 +104,18 @@ public final class PlayerDb implements AutoCloseable {
         run(() -> write("save" + n, value));
     }
 
+    /** §21.4: slot {@code n} emptied, its game over; written now, as a save is. */
+    public void clearSaveSlot(int n) {
+        run(() -> {
+            try {
+                Files.deleteIfExists(dir.resolve("save" + n + ".json"));
+                Files.deleteIfExists(dir.resolve("save" + n + ".json.bak"));
+            } catch (IOException e) {
+                throw new java.io.UncheckedIOException(e);
+            }
+        });
+    }
+
     public void putScores(HighScores value) {
         scores = value;
         pendingScores = schedule(pendingScores, "highscores", value);

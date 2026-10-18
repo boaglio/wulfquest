@@ -146,7 +146,7 @@ class SaveSlotsTest {
         // §17.4: P pauses with the menu; SAVE GAME, a slot, fire; then LOAD GAME, that slot, fire.
         PlayerDb db = db(dir);
         Shell shell = shell(db, 11L);
-        shell.tick(FIRE, MenuInput.NONE, false);
+        begin(shell);   // §21.4: a new game, in the first empty slot
         for (int t = 0; t < 200; t++) {
             shell.tick(InputState.of(1, 0, false, false), MenuInput.NONE, false);
         }
@@ -173,16 +173,26 @@ class SaveSlotsTest {
         press(shell, DOWN, line(items, "load"));
         press(shell, FIRE, 1);
         assertThat(shell.state()).isEqualTo(Shell.State.LOAD_GAME);
+        press(shell, DOWN, 2);   // slot 1 is the game's own, slot 2 the one saved by hand
         shell.tick(FIRE, MenuInput.NONE, false);
-        assertThat(shell.menuNote()).as("slot 1 is empty").isEqualTo("SLOT 1 IS EMPTY");
+        assertThat(shell.menuNote()).as("slot 3 is empty").isEqualTo("SLOT 3 IS EMPTY");
         assertThat(shell.state()).isEqualTo(Shell.State.LOAD_GAME);
         shell.tick(InputState.NONE, MenuInput.NONE, false);
-        press(shell, DOWN, 1);
+        press(shell, InputState.of(0, -1, false, false), 1);
         shell.tick(FIRE, MenuInput.NONE, false);
         assertThat(shell.state()).isEqualTo(Shell.State.PLAYING);
         assertThat(shell.session().message(false)).isEqualTo("LOADED SLOT 2");
         assertThat(shell.session().sim().stateHash()).isEqualTo(saved);
         assertThat(shell.session().sim().practice()).isFalse();
+    }
+
+    /** Fire on the title's START, then fire on the slot it offers: the first empty one (§21.4). */
+    private static void begin(Shell shell) {
+        shell.tick(FIRE, MenuInput.NONE, false);
+        assertThat(shell.state()).isEqualTo(Shell.State.NEW_GAME);
+        idleIn(shell, CONTENT.shell().screenHoldTicks());
+        shell.tick(FIRE, MenuInput.NONE, false);
+        assertThat(shell.state()).isEqualTo(Shell.State.PLAYING);
     }
 
     private static void idleIn(Shell shell, int ticks) {
@@ -194,7 +204,7 @@ class SaveSlotsTest {
     @Test
     void escapeGoesBackAStepAndPauseOrEscapeResumes(@TempDir Path dir) {
         Shell shell = shell(db(dir), 11L);
-        shell.tick(FIRE, MenuInput.NONE, false);
+        begin(shell);   // §21.4: a new game, in the first empty slot
         shell.tick(PAUSE, MenuInput.NONE, false);
         List<wulf.data.ShellConfig.Entry> items = CONTENT.shell().pause().items();
         press(shell, DOWN, line(items, "options"));
@@ -280,7 +290,7 @@ class SaveSlotsTest {
                 heard[1] = volumePercent;
             }
         });
-        shell.tick(FIRE, MenuInput.NONE, false);
+        begin(shell);   // §21.4: a new game, in the first empty slot
         shell.tick(PAUSE, MenuInput.NONE, false);
         press(shell, DOWN, line(CONTENT.shell().pause().items(), "options"));
         press(shell, FIRE, 1);
@@ -374,6 +384,10 @@ class SaveSlotsTest {
 
         Shell again = shell(db, 99L);
         again.tick(InputState.NONE, MenuInput.of(CONTENT.shell().title().newGameKey()), false);
+        assertThat(again.state()).as("G: a slot first").isEqualTo(Shell.State.NEW_GAME);
+        assertThat(again.cursor()).as("the empty one").isEqualTo(1);
+        idleIn(again, CONTENT.shell().screenHoldTicks());
+        again.tick(FIRE, MenuInput.NONE, false);
         assertThat(again.state()).isEqualTo(Shell.State.PLAYING);
         assertThat(again.session().sim().runSeed()).as("G: a new game").isEqualTo(99L);
         assertThat(again.session().sim().tick()).isZero();
@@ -384,7 +398,7 @@ class SaveSlotsTest {
         Shell shell = shell(db(dir), 77L);
         assertThat(shell.continueSlot()).isZero();
         assertThat(shell.continueGame()).isNull();
-        shell.tick(FIRE, MenuInput.NONE, false);
+        begin(shell);   // §21.4: a new game, in the first empty slot
         assertThat(shell.session().sim().runSeed()).isEqualTo(77L);
     }
 
@@ -405,7 +419,7 @@ class SaveSlotsTest {
         assertThat(shell.notice()).isEqualTo("SLOT 2: SAVE DOES NOT FIT THIS GAME");
         assertThat(shell.continueSlot()).isZero();
         shell.tick(InputState.NONE, MenuInput.NONE, false);
-        shell.tick(FIRE, MenuInput.NONE, false);
+        begin(shell);   // §21.4: a new game, in the first empty slot
         assertThat(shell.state()).isEqualTo(Shell.State.PLAYING);
         assertThat(shell.session().sim().runSeed()).isEqualTo(99L);
     }
@@ -415,7 +429,7 @@ class SaveSlotsTest {
         PlayerDb db = db(dir);
         Shell shell = shell(db, 11L);
         assertThat(shell.continueSlot()).isZero();
-        shell.tick(FIRE, MenuInput.NONE, false);
+        begin(shell);   // §21.4: a new game, in the first empty slot
         for (int t = 0; t < 120; t++) {
             shell.tick(InputState.of(1, 0, false, false), MenuInput.NONE, false);
         }
@@ -433,5 +447,86 @@ class SaveSlotsTest {
         }
         assertThat(shell.state()).isEqualTo(Shell.State.TITLE);
         assertThat(shell.continueSlot()).as("the game just saved").isEqualTo(1);
+    }
+
+    @Test
+    void aNewGameInASlotWithAGameAsksAgainAndEscapeGoesBackToStart(@TempDir Path dir) {
+        // §21.4: every slot full, so the page offers the first; fire there says so, a second fire replaces it.
+        PlayerDb db = db(dir);
+        SaveSlots saves = slots(db, CONTENT.db().contentHash());
+        for (int n = 1; n <= CONTENT.shell().saves().slots(); n++) {
+            GameSession s = new GameSession(GAME.make(n, 0, false));
+            play(s, 0, 100);
+            saves.save(s, n);
+        }
+        Shell shell = shell(db, 42L);
+        int start = line(shell.titleLines(), "start");
+        press(shell, DOWN, start);
+        shell.tick(FIRE, MenuInput.NONE, false);
+        assertThat(shell.state()).isEqualTo(Shell.State.NEW_GAME);
+        idleIn(shell, CONTENT.shell().screenHoldTicks());
+        shell.tick(QUIT, MenuInput.NONE, false);
+        assertThat(shell.state()).isEqualTo(Shell.State.TITLE);
+        assertThat(shell.cursor()).as("back on START").isEqualTo(start);
+
+        shell.tick(FIRE, MenuInput.NONE, false);
+        idleIn(shell, CONTENT.shell().screenHoldTicks());
+        assertThat(shell.cursor()).isZero();
+        press(shell, FIRE, 1);
+        assertThat(shell.state()).as("slot 1 has a game: not yet").isEqualTo(Shell.State.NEW_GAME);
+        assertThat(shell.menuNote()).isEqualTo("FIRE AGAIN TO REPLACE SLOT 1");
+        shell.tick(FIRE, MenuInput.NONE, false);
+        assertThat(shell.state()).isEqualTo(Shell.State.PLAYING);
+        assertThat(db.saveSlot(1).orElseThrow().seed()).as("the new game is in slot 1 at once").isEqualTo(42L);
+    }
+
+    @Test
+    void theGameSavesItselfToItsSlotNowAndThenAndOnLeaving(@TempDir Path dir) {
+        PlayerDb db = db(dir);
+        Shell shell = new Shell(CONTENT.shell(), db, List.copyOf(CONTENT.input().profiles().keySet()), () -> {
+            Simulation sim = GAME.make(11L, 0, false);
+            sim.god(true);   // a minute of play with nothing ending it
+            return sim;
+        }, null, () -> "2026-10-18");
+        shell.saveSlots(slots(db, CONTENT.db().contentHash()));
+        begin(shell);
+        assertThat(db.saveSlot(1).orElseThrow().ticks()).isZero();
+        int every = CONTENT.shell().saves().autosaveEveryTicks();
+        for (int t = 0; t < every; t++) {
+            shell.tick(InputState.of(1, 0, false, false), MenuInput.NONE, false);
+        }
+        assertThat(db.saveSlot(1).orElseThrow().ticks()).as("saved after a while of play").isPositive();
+        assertThat(shell.session().message(false)).isEqualTo(CONTENT.shell().saves().autosaved());
+        for (int t = 0; t < 77; t++) {
+            shell.tick(InputState.of(-1, 0, false, false), MenuInput.NONE, false);
+        }
+        long hash = shell.session().sim().stateHash();
+        shell.tick(QUIT, MenuInput.NONE, false);
+        while (shell.state() == Shell.State.HISCORE_ENTRY) {
+            shell.tick(FIRE, MenuInput.NONE, false);
+            shell.tick(InputState.NONE, MenuInput.NONE, false);
+        }
+        assertThat(shell.state()).isEqualTo(Shell.State.TITLE);
+        assertThat(shell.continueSlot()).as("left for the title, it is kept").isEqualTo(1);
+        assertThat(db.saveSlot(1).orElseThrow().stateHash()).isEqualTo(wulf.engine.Replay.hex(hash));
+    }
+
+    @Test
+    void aGameOverIsGoneFromItsSlot(@TempDir Path dir) {
+        PlayerDb db = db(dir);
+        Shell shell = shell(db, 11L);
+        begin(shell);
+        assertThat(db.saveSlot(1)).isPresent();
+        Simulation sim = shell.session().sim();
+        for (int i = 0; i < 100_000 && shell.state() == Shell.State.PLAYING; i++) {
+            if (i % 200 == 0) {
+                sim.kill();
+            }
+            shell.tick(InputState.NONE, MenuInput.NONE, false);
+        }
+        assertThat(shell.state()).isEqualTo(Shell.State.GAME_OVER);
+        shell.tick(QUIT, MenuInput.NONE, false);   // no continue: the run is over
+        assertThat(db.saveSlot(1)).as("nothing to go on with").isEmpty();
+        assertThat(shell.state()).isIn(Shell.State.TITLE, Shell.State.HISCORE_ENTRY);
     }
 }

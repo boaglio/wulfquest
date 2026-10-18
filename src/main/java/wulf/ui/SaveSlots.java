@@ -77,6 +77,11 @@ public final class SaveSlots {
                 sim.room().col() + "," + sim.room().row()));
     }
 
+    /** §21.4: slot {@code n} emptied: the game that saved itself there is over, won or lost. */
+    public void clear(int n) {
+        db.clearSaveSlot(n);
+    }
+
     /** §17.2: the slot written last, of those that hold a game; empty when none does. */
     public Optional<Integer> newest(int slots) {
         int best = 0;

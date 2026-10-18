@@ -127,11 +127,15 @@ public record ShellConfig(
      * {@code slot} with {@code {n}}, {@code {mode}}, {@code {job}}, {@code {quarters}} and
      * {@code {score}} filled in, and under it {@code detail} with {@code {date}} and
      * {@code {room}}; an empty one is {@code empty}. {@code jobNames} names job n, the game's
-     * own first; the notes stay on the panel {@code noteTicks}.
+     * own first; the notes stay on the panel {@code noteTicks}. A new game is given a slot first,
+     * on the page {@code newGameHeading} heads, and a slot with a game in it says {@code replace}
+     * before a second fire replaces it; the game then saves itself there every
+     * {@code autosaveEveryTicks} of play, saying {@code autosaved}.
      */
     public record Saves(int slots, String saveHeading, String loadHeading, String slot, String detail, String empty,
                         List<String> jobNames, ModeNames modeNames, String saved, String loaded, String emptySlot,
-                        String refused, int noteTicks, String footer) {
+                        String refused, int noteTicks, String footer, String newGameHeading, String replace,
+                        int autosaveEveryTicks, String autosaved) {
         public Saves {
             jobNames = List.copyOf(jobNames);
         }

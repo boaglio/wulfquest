@@ -197,7 +197,11 @@
     "emptySlot": "SLOT {n} IS EMPTY",
     "refused": "SLOT {n}: {why}",
     "noteTicks": 100,
-    "footer": "FIRE TO PICK - ESC TO GO BACK"
+    "footer": "FIRE TO PICK - ESC TO GO BACK",
+    "newGameHeading": "NEW GAME: A SLOT",
+    "replace": "FIRE AGAIN TO REPLACE SLOT {n}",
+    "autosaveEveryTicks": 3000,
+    "autosaved": "GAME SAVED"
   },
   "credits": {
     "heading": "CREDITS",
