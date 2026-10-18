@@ -120,7 +120,8 @@ class ShellTest {
         shell.tick(FIRE, MenuInput.NONE, false);
         assertThat(shell.state()).isEqualTo(Shell.State.OPTIONS);
         assertThat(shell.optionLines()).extracting(ShellConfig.Entry::id)
-                .contains("difficulty", "keys", "load", "hiScores", "stats", "credits");
+                .contains("difficulty", "keys", "load", "hiScores", "stats")
+                .doesNotContain("credits");   // only after a win now (§17.2)
         idle(shell, CONFIG.screenHoldTicks());
 
         // The difficulty switches here now (§17.8).
@@ -131,14 +132,14 @@ class ShellTest {
         assertThat(db.settings().easy()).isEqualTo(shell.easy());
 
         // A page opened from here goes back here, on its own line.
-        int credits = line(shell.optionLines(), "credits");
-        press(shell, DOWN, credits - shell.cursor());
+        int stats = line(shell.optionLines(), "stats");
+        press(shell, DOWN, stats - shell.cursor());
         press(shell, FIRE, 1);
-        assertThat(shell.state()).isEqualTo(Shell.State.CREDITS);
+        assertThat(shell.state()).isEqualTo(Shell.State.STATS);
         idle(shell, CONFIG.screenHoldTicks());
         shell.tick(FIRE, MenuInput.NONE, false);
         assertThat(shell.state()).isEqualTo(Shell.State.OPTIONS);
-        assertThat(shell.cursor()).isEqualTo(credits);
+        assertThat(shell.cursor()).isEqualTo(stats);
 
         // And Escape goes back to the title, on OPTIONS.
         shell.tick(QUIT, MenuInput.NONE, false);
@@ -190,9 +191,9 @@ class ShellTest {
     @Test
     void aPageIgnoresFireForABeatSoTheKeyThatOpenedItCannotCloseIt(@TempDir Path dir) {
         Shell shell = shell(db(dir));
-        shell.tick(InputState.NONE, MenuInput.of("C"), false);
+        shell.tick(InputState.NONE, MenuInput.of("S"), false);
         shell.tick(FIRE, MenuInput.NONE, false);
-        assertThat(shell.state()).isEqualTo(Shell.State.CREDITS);
+        assertThat(shell.state()).isEqualTo(Shell.State.STATS);
     }
 
     @Test
@@ -686,7 +687,7 @@ class ShellTest {
             }
         });
         assertThat(tunes).containsExactly(wulf.data.MusicData.TITLE);
-        shell.tick(InputState.NONE, MenuInput.of("C"), false);
+        shell.tick(InputState.NONE, MenuInput.of("S"), false);
         assertThat(clicks).containsExactly("menu_pick");
         assertThat(tunes).as("the same tune is not restarted between menu pages")
                 .containsExactly(wulf.data.MusicData.TITLE, wulf.data.MusicData.TITLE);

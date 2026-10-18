@@ -72,7 +72,7 @@
             "required": ["key", "screen", "label"],
             "properties": {
               "key": { "type": "string", "pattern": "^[A-Z0-9]$" },
-              "screen": { "enum": ["HISCORES", "CREDITS", "STATS", "KEY_CONFIG", "SOUND", "LOAD_GAME", "OPTIONS"] },
+              "screen": { "enum": ["HISCORES", "STATS", "KEY_CONFIG", "SOUND", "LOAD_GAME", "OPTIONS"] },
               "label": { "type": "string", "minLength": 1, "maxLength": 32 }
             }
           }

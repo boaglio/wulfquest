@@ -150,7 +150,8 @@ exceptions and no allowlist. Art lives in JSON (§10); audio is synthesised
 
 ### 2.5 Attribution text (ship this, verbatim)
 
-In `README.md` and on the title screen credits page:
+In `README.md` and in the credits that roll after a win (§14.7; until
+2026-10-18 also on a credits page off the title, which the user removed):
 
 > Wulf Quest is an independent, clean-room homage to the flip-screen jungle
 > maze genre of the early 1980s. All artwork, audio, and code are original.
@@ -164,7 +165,7 @@ The whole repository — code, art, music and data — is free software under th
 **GNU General Public License, version 3 or later** (`GPL-3.0-or-later`). The
 full text is `LICENSE` at the root, and it travels with every copy: inside the
 jar (a `pom.xml` resource) and beside the launcher in each release archive
-(`tools/package.sh`). The credits page (§17.2) ends with a short notice of it,
+(`tools/package.sh`). The credits (`shell.json → credits.lines`, §14.7) end with a short notice of it,
 after the §2.5 text, which stays verbatim. A dependency must stay compatible
 with the GPLv3 (Jackson, the schema validator and Jamepad are Apache-2.0, and
 the SDL2 inside Jamepad is zlib, which both are).
@@ -2329,7 +2330,8 @@ keeps its order: the horses there before anyone mounts, up before they ride,
 gone before the prompt. `--endings` (§17.6) plays all three.
 
 **The credits roll [NEW]** (`shell.json → credits.roll`, `CreditsRoll`): the
-credits page's heading and lines, between `theEnd` and `before` and `after`
+credits' heading and lines (`credits.heading`, `credits.lines`; no page shows them
+any more, §17.1), between `theEnd` and `before` and `after`
 (`THANK YOU FOR PLAYING`), rising a pixel every `ticksPerPx` (3; 2 until the
 user found it too fast to read, 2026-10-18 — about 37 s now) from `fromY`
 until the last row is gone; then the run is banked. Fire stops it to read and
@@ -2763,8 +2765,8 @@ to plan (an idol, a gem, a tusk) are dropped: the original had its own.
 ```
 BOOT ──► TITLE ──► (key) ──► PLAYING ──► ...
  │           │        │                    │
- │           │        ├─► CREDITS          ├─► PAUSED  (P; sim frozen, panel dims)
- │           │        ├─► HISCORES         ├─► DYING   (§11.7)
+ │           │        ├─► HISCORES         ├─► PAUSED  (P; sim frozen, panel dims)
+ │           │        │                    ├─► DYING   (§11.7)
  │           │        ├─► STATS  [NEW]     ├─► GAME_OVER ──► HISCORE_ENTRY ──► TITLE
  │           │        ├─► SOUND  [NEW]     └─► WON ──► ENDING ──► TALLY ──► ROLL ──► (OFFER) ──► HISCORE_ENTRY ──► TITLE
  │           │        └─► KEY_CONFIG
@@ -2775,14 +2777,18 @@ BOOT ──► TITLE ──► (key) ──► PLAYING ──► ...
 Two states were added to this diagram deliberately in M8. `STATS` is the
 title-screen stats page §21.5 asks for, and `SOUND` is where the audio settings
 of §21.3 are actually reachable — a setting the player cannot change is not a
-setting. Both hang off the title like `CREDITS`, and both are named by
+setting. Both hang off the title like `HISCORES`, and both are named by
 `shell.json`, not by Java.
 
 Since 2026-10-18 the title's menu lists only `START`, `OPTIONS` and `EXIT`
-(and `CONTINUE` with a game saved, §17.2): `CREDITS`, `HISCORES`, `STATS`,
+(and `CONTINUE` with a game saved, §17.2): `HISCORES`, `STATS`,
 `KEY_CONFIG` and `LOAD_GAME` are reached through `OPTIONS`, and go back to it.
 Their letters on the title still open them directly; `SOUND` has only its
 letter now, the options having the same two settings.
+
+The same day the user removed the `CREDITS` page and its `C` letter: the
+credits are for the end of a won game only, where `ROLL` shows them (§14.7).
+The §2.5 text ships there and in the README.
 
 `ENDING` and `ROLL` were added on 2026-10-12, at the user's asking: the
 closing scene and the credits after a win (§14.7). `OFFER` came the same day:
@@ -2827,7 +2833,7 @@ data-driven game; build it in M1.
 
   Everything else the title used to list moved to the **options page from the
   title** (§17.9): `DIFFICULTY` (fire switches), `KEYS`, `LOAD GAME`,
-  `HI-SCORES`, `STATS` and `CREDITS`, each page going back to the options on
+  `HI-SCORES` and `STATS`, each page going back to the options on
   its own line. The pause menu's options leave those out
   (`Options.TITLE_ONLY`). The letters of `title.menu`, `G`, `D` and `N` still
   work on the title, unlisted, for those who know them; the menu is the way
@@ -3278,7 +3284,7 @@ report from a player with a pad is the first thing to act on.
   the jungle (fire, pause, quit, map) or on the title (fire, quit, newGame,
   difficulty), so `Y` is both the map and a new game. Any button at all, as
   any key, ends the attract demo. The title's other letters (keys page,
-  hi-scores, credits, stats, load, options) have no button; its menu reaches
+  hi-scores, stats, load, options) have no button; its menu reaches
   them all.
 - **Off** with `"enabled": false`, or for one run with `--no-gamepad`.
 - **`./run.sh pad [SECONDS]`** (`wulf.tools.PadProbe`) lists what SDL takes

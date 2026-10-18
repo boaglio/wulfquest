@@ -41,11 +41,6 @@
         "label": "H HI-SCORES"
       },
       {
-        "key": "C",
-        "screen": "CREDITS",
-        "label": "C CREDITS"
-      },
-      {
         "key": "S",
         "screen": "STATS",
         "label": "S STATS"
@@ -351,7 +346,6 @@
       { "id": "load", "label": "LOAD GAME" },
       { "id": "hiScores", "label": "HI-SCORES" },
       { "id": "stats", "label": "STATS" },
-      { "id": "credits", "label": "CREDITS" },
       { "id": "back", "label": "BACK" }
     ],
     "on": "ON",

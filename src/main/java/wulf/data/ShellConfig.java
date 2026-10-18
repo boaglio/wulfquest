@@ -171,13 +171,11 @@ public record ShellConfig(
                 "spriteFlicker");
 
         /** The lines only the title's options show (§17.2): a game's difficulty, and pages of their own. */
-        public static final List<String> TITLE_ONLY = List.of("difficulty", "keys", "load", "hiScores", "stats",
-                "credits");
+        public static final List<String> TITLE_ONLY = List.of("difficulty", "keys", "load", "hiScores", "stats");
 
         /** The ids the shell acts on: the switches it knows, the title's own lines, and back. */
         public static final List<String> IDS = List.of("sound", "volume", "eightBit", "scanlines", "attributeClash",
-                "inkedCreatures", "spriteFlicker", "difficulty", "keys", "load", "hiScores", "stats", "credits",
-                "back");
+                "inkedCreatures", "spriteFlicker", "difficulty", "keys", "load", "hiScores", "stats", "back");
     }
 
     /**

@@ -24,7 +24,7 @@ import wulf.sim.Simulation;
 public final class Shell {
 
     public enum State {
-        TITLE, ATTRACT, CREDITS, HISCORES, STATS, KEY_CONFIG, SOUND, PLAYING, GAME_OVER, ENDING, TALLY, ROLL,
+        TITLE, ATTRACT, HISCORES, STATS, KEY_CONFIG, SOUND, PLAYING, GAME_OVER, ENDING, TALLY, ROLL,
         OFFER, HISCORE_ENTRY, PAUSED, SAVE_GAME, LOAD_GAME, OPTIONS, NEW_GAME
     }
 
@@ -193,7 +193,7 @@ public final class Shell {
                 }
             }
             case ATTRACT -> attract(in, menu);
-            case CREDITS, HISCORES, STATS -> page(in);
+            case HISCORES, STATS -> page(in);
             case KEY_CONFIG -> keyConfig(in, menu);
             case SOUND -> sound(in, menu);
             case PLAYING -> playing(in, menu, dev);
@@ -444,8 +444,7 @@ public final class Shell {
                 case KEY_CONFIG -> "keys";
                 case LOAD_GAME -> "load";
                 case HISCORES -> "hiScores";
-                case STATS -> "stats";
-                default -> "credits";
+                default -> "stats";
             };
             cursor = lineOf(optionLines(), id);
         } else {
@@ -558,7 +557,6 @@ public final class Shell {
             case "load" -> State.LOAD_GAME;
             case "hiScores" -> State.HISCORES;
             case "stats" -> State.STATS;
-            case "credits" -> State.CREDITS;
             default -> null;
         };
         if (page != null) {

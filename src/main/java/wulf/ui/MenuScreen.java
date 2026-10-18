@@ -60,7 +60,7 @@ final class MenuScreen {
                 for (int i = 0; i < items.size(); i++) {
                     ShellConfig.Entry e = items.get(i);
                     String text = switch (e.id()) {
-                        case "back", "keys", "load", "hiScores", "stats", "credits" -> e.label();
+                        case "back", "keys", "load", "hiScores", "stats" -> e.label();
                         case "difficulty" -> e.label() + "  "
                                 + (shell.easy() ? config.difficulty().easy() : config.difficulty().hard());
                         case "volume" -> e.label() + "  " + settings.audio().volumePercent() + "%";

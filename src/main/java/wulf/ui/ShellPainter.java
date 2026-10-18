@@ -21,7 +21,6 @@ public final class ShellPainter {
     private final GamePainter game;
     private final Chrome chrome;
     private final TitleScreen title;
-    private final CreditsScreen credits;
     private final HiScoreScreen hiScores;
     private final HiScoreEntryScreen hiScoreEntry;
     private final StatsScreen stats;
@@ -49,7 +48,6 @@ public final class ShellPainter {
         wulf.render.Sprite marker = sprites.get(config.title().marker().sprite());
         this.title = new TitleScreen(chrome, config.title(), content.palette(), config.newGamePlus(),
                 config.difficulty(), marker);
-        this.credits = new CreditsScreen(chrome, config.credits());
         this.hiScores = new HiScoreScreen(chrome, config.hiScores(), config.difficulty().hiScoreMark(),
                 content.palette().indexOf(config.difficulty().easyColour()));
         this.hiScoreEntry = new HiScoreEntryScreen(chrome, config.hiScores());
@@ -86,7 +84,6 @@ public final class ShellPainter {
                     saved(shell), shell.easy(),
                     shell.unlocked() > 0 ? config.newGamePlus().levels().get(shell.level()) : null);
             case ATTRACT -> attract(fb, shell);
-            case CREDITS -> credits.paint(fb);
             case HISCORES -> hiScores.paint(fb, db.scores(), shell.highlight());
             case STATS -> stats.paint(fb, db.stats(), tickHz);
             case KEY_CONFIG -> keys.paint(fb, content.input(), db.settings().inputProfile());
