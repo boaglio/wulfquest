@@ -186,9 +186,10 @@ your lifetime ledger; `D` switches between Hard and Easy. Once you have won,
 
 **Pause, save and load.** `P` pauses the game with a menu: resume, save the
 game to one of three slots, load one, options, or quit to the title. The title
-has `L` to load a saved game and `O` for the options — sound and volume,
-8-bit mode, scanlines, the colour clash, the original's one-colour sprites
-and sprite flicker.
+has `L` to load a saved game and `O` for the options. With a game saved, the
+title offers it first: fire carries on with the one saved last, and `G` starts
+a new game. The options page has sound and volume, 8-bit mode, scanlines,
+the colour clash, the original's one-colour sprites and sprite flicker.
 
 Hi-scores, settings, stats and saved games are written to your own user directory —
 `~/.local/share/wulfquest` on Linux, `~/Library/Application Support/WulfQuest`
