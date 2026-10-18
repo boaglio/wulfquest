@@ -1,4 +1,37 @@
-## What's new in 0.6.2
+## What's new in 0.6.3
+
+**Carry on where you left off.** With a game saved, the title offers it first:
+fire takes you back into the game you saved last, and `G` starts a new one.
+
+**Your saves survive updates.** A save from an earlier version now loads, as
+long as the new version's rules bring it back to the same place, which they do
+across changes to menus, words, keys and pictures. Your 0.6.2 saves load in
+0.6.3.
+
+**8-bit mode.** A new line on the options page gives the game the Spectrum
+original's look in one switch: the jungle in solid blocks of colour with black
+detail, Vale and every creature in one colour, anything moving through the
+foliage a black shape cut out of it, scanlines, and sprite flicker. The colour
+clash now works the way the original's did, and each switch is still there on
+its own.
+
+**Sound on the options page.** Turn the sound on or off, and the volume up or
+down, from the pause menu without leaving your game.
+
+**The way out is on the map.** The stone arch, where the amulet goes, is
+marked on the map from the start, and its doorway glows gold once the amulet
+is whole.
+
+**Credits you can read.** The roll after a win is slower, fire stops it and
+starts it again, and Escape skips ahead without missing Mr Jones's offer.
+
+**Fixes.**
+- In the period layout (`M` to swing), every swing also opened the map. The map
+  is `B` in that layout now.
+- In the small font, `S` looked exactly like `5` and `O` like `0`, so the
+  credits' "early 1980s" read "19805". Both letters are new.
+
+## In 0.6.2
 
 **Save your game.** Press `P` in the jungle for the new pause menu:
 resume, save, load, options, or quit to the title. There are three save slots,
@@ -86,8 +119,9 @@ protected your PC" click **More info**, then **Run anyway**.
 Hi-scores and settings are kept per user and survive updates.
 
 **Saving**: press `P` in the jungle for the pause menu, which saves to one of
-three slots and loads them; `L` on the title loads too. A save may not load in
-a later version: the game will say so.
+three slots and loads them; the title offers the game you saved last, and `L`
+loads any slot. A save made by an earlier version loads unless the game's rules
+have changed under it; if one cannot, the game says so.
 
 Wulf Quest is free software under the GNU General Public License, version 3
 or later; the full text is in `LICENSE` inside every download, and the source
