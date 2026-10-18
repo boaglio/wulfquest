@@ -2823,7 +2823,15 @@ only in `settings.json` until now — `SCANLINES` and `COLOUR CLASH` (§5.4) and
 `ONE-COLOUR CREATURES` (`features.inkedCreatures`, §12.8) — each shown `ON` or
 `OFF`, fire flipping it, written to `settings.json` at once and shown at once:
 the painter reads them every frame (`GamePainter.retro`, `Scaler.setScanlines`).
-Sound has its own page (`A`) and the difficulty its own key (`D`, §17.8).
+The difficulty has its own key (`D`, §17.8).
+
+**Sound** is on it too (asked for by the user, 2026-10-17), first, so it can be
+turned down without leaving a game: `SOUND` `ON`/`OFF`, fire flipping it, and
+`VOLUME` with its percent, the left and right arrows turning it by
+`sound.volumeStepPercent` (10) — fire does nothing there, and the footer
+changes to `options.volumeFooter` to say so. Both are the §21.3 settings the
+sound page (`A`) sets, written at once and heard at once; over a game the
+menus stay silent (§18.3), so only the sound effects show the change.
 
 ### 17.5 Game over
 

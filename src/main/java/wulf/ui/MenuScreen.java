@@ -51,11 +51,14 @@ final class MenuScreen {
             case OPTIONS -> {
                 ShellConfig.Options o = config.options();
                 heading = o.heading();
-                footer = o.footer();
+                footer = o.items().get(shell.cursor()).id().equals("volume") ? o.volumeFooter() : o.footer();
                 for (int i = 0; i < o.items().size(); i++) {
                     ShellConfig.Entry e = o.items().get(i);
-                    String text = e.id().equals("back") ? e.label()
-                            : e.label() + "  " + (Shell.optionOn(settings, e.id()) ? o.on() : o.off());
+                    String text = switch (e.id()) {
+                        case "back" -> e.label();
+                        case "volume" -> e.label() + "  " + settings.audio().volumePercent() + "%";
+                        default -> e.label() + "  " + (Shell.optionOn(settings, e.id()) ? o.on() : o.off());
+                    };
                     rows.add(new Row(text, true, i == shell.cursor()));
                 }
             }

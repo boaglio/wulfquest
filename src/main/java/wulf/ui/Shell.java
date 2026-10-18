@@ -408,6 +408,15 @@ public final class Shell {
             backOut();
             return;
         }
+        int dx = (in.right() && !heldRight ? 1 : 0) - (in.left() && !heldLeft ? 1 : 0);
+        heldLeft = in.left();
+        heldRight = in.right();
+        if (dx != 0 && items.get(cursor).id().equals("volume")) {
+            Settings s = db.settings();
+            int volume = Math.max(0, Math.min(100, s.audio().volumePercent() + dx * config.sound().volumeStepPercent()));
+            sounded(s.withAudio(s.audio().enabled(), volume));
+            return;
+        }
         if (!in.firePressed() || stateTick < config.screenHoldTicks() && back == State.TITLE) {
             return;
         }
@@ -417,8 +426,24 @@ public final class Shell {
             backOut();
             return;
         }
+        if (id.equals("volume")) {
+            return;   // the arrows turn it, not fire
+        }
+        if (id.equals("sound")) {
+            Settings s = db.settings();
+            sounded(s.withAudio(!s.audio().enabled(), s.audio().volumePercent()));
+            return;
+        }
         db.putSettings(toggled(db.settings(), id));
         jukebox.sfx(SFX_PICK);
+    }
+
+    /** §21.3: the sound changed from the options — written, and heard at once. */
+    private void sounded(Settings after) {
+        db.putSettings(after);
+        jukebox.settings(after.audio().enabled(), after.audio().volumePercent());
+        jukebox.tune(menuInGame() ? null : tuneFor(state));   // over a game the menus stay silent (§18.3)
+        jukebox.sfx(SFX_MOVE);
     }
 
     /** §17.9: an options switch flipped. */
@@ -434,6 +459,7 @@ public final class Shell {
     /** §17.9: whether an options switch is on. */
     public static boolean optionOn(Settings s, String id) {
         return switch (id) {
+            case "sound" -> s.audio().enabled();
             case "scanlines" -> s.crt().scanlines();
             case "attributeClash" -> s.crt().attributeClash();
             default -> Boolean.TRUE.equals(s.features().get(id));

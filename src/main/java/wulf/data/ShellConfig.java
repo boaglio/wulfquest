@@ -115,13 +115,15 @@ public record ShellConfig(
     }
 
     /** The options page (§17.9, {@code [NEW]}): each item a switch, shown {@code on} or {@code off}, and back. */
-    public record Options(String heading, List<Entry> items, String on, String off, String footer) {
+    public record Options(String heading, List<Entry> items, String on, String off, String footer,
+                          String volumeFooter) {
         public Options {
             items = List.copyOf(items);
         }
 
         /** The ids the shell acts on: the switches it knows, and back. */
-        public static final List<String> IDS = List.of("scanlines", "attributeClash", "inkedCreatures", "back");
+        public static final List<String> IDS = List.of("sound", "volume", "scanlines", "attributeClash", "inkedCreatures",
+                "back");
     }
 
     /**

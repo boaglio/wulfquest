@@ -248,4 +248,61 @@ class SaveSlotsTest {
         press(shell, FIRE, 1);
         assertThat(shell.state()).isEqualTo(Shell.State.TITLE);
     }
+
+    @Test
+    void theSoundIsOnTheOptionsTooAndHeardAtOnce(@TempDir Path dir) {
+        // §17.9: from the pause menu, fire turns the sound off and on; the arrows turn the volume.
+        PlayerDb db = db(dir);
+        Shell shell = shell(db, 11L);
+        int[] heard = {-1, -1};
+        java.util.List<String> tunes = new java.util.ArrayList<>();
+        shell.jukebox(new Jukebox() {
+            @Override
+            public void tune(String id) {
+                tunes.add(String.valueOf(id));
+            }
+
+            @Override
+            public void sfx(String id) {
+            }
+
+            @Override
+            public void settings(boolean enabled, int volumePercent) {
+                heard[0] = enabled ? 1 : 0;
+                heard[1] = volumePercent;
+            }
+        });
+        shell.tick(FIRE, MenuInput.NONE, false);
+        shell.tick(PAUSE, MenuInput.NONE, false);
+        press(shell, DOWN, line(CONTENT.shell().pause().items(), "options"));
+        press(shell, FIRE, 1);
+        assertThat(shell.state()).isEqualTo(Shell.State.OPTIONS);
+        List<wulf.data.ShellConfig.Entry> items = CONTENT.shell().options().items();
+        int volume = db.settings().audio().volumePercent();
+        int step = CONTENT.shell().sound().volumeStepPercent();
+
+        press(shell, DOWN, line(items, "sound"));
+        assertThat(db.settings().audio().enabled()).isTrue();
+        tunes.clear();
+        press(shell, FIRE, 1);
+        assertThat(db.settings().audio().enabled()).isFalse();
+        assertThat(heard[0]).as("the jukebox told at once").isZero();
+        assertThat(tunes).as("over a game the menus stay silent").containsOnly("null");
+        press(shell, FIRE, 1);
+        assertThat(db.settings().audio().enabled()).isTrue();
+        assertThat(heard[0]).isOne();
+
+        press(shell, DOWN, 1);
+        assertThat(items.get(shell.cursor()).id()).isEqualTo("volume");
+        press(shell, InputState.of(-1, 0, false, false), 2);
+        assertThat(db.settings().audio().volumePercent()).isEqualTo(volume - 2 * step);
+        assertThat(heard[1]).isEqualTo(volume - 2 * step);
+        press(shell, InputState.of(1, 0, false, false), 1);
+        assertThat(db.settings().audio().volumePercent()).isEqualTo(volume - step);
+        press(shell, FIRE, 1);
+        assertThat(db.settings().audio().volumePercent()).as("fire does not turn it").isEqualTo(volume - step);
+        assertThat(shell.state()).isEqualTo(Shell.State.OPTIONS);
+        press(shell, InputState.of(1, 0, false, false), 20);
+        assertThat(db.settings().audio().volumePercent()).as("no louder than all").isEqualTo(100);
+    }
 }

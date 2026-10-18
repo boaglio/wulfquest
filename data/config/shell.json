@@ -320,6 +320,8 @@
   "options": {
     "heading": "OPTIONS",
     "items": [
+      { "id": "sound", "label": "SOUND" },
+      { "id": "volume", "label": "VOLUME" },
       { "id": "scanlines", "label": "SCANLINES" },
       { "id": "attributeClash", "label": "COLOUR CLASH" },
       { "id": "inkedCreatures", "label": "ONE-COLOUR CREATURES" },
@@ -327,6 +329,7 @@
     ],
     "on": "ON",
     "off": "OFF",
-    "footer": "UP DOWN TO CHOOSE - FIRE TO CHANGE"
+    "footer": "UP DOWN TO CHOOSE - FIRE TO CHANGE",
+    "volumeFooter": "LEFT RIGHT FOR LOUDER OR QUIETER"
   }
 }
