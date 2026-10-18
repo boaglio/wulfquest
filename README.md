@@ -18,11 +18,11 @@ engine.
 </p>
 <p align="center">
   <img src="https://github.com/boaglio/wulfquest/releases/download/v0.7.0/screenshot-jungle.png" width="420" alt="A jungle room with spiders, an orchid and Ranger Vale on the right">
-  <img src="https://github.com/boaglio/wulfquest/releases/download/v0.7.0/screenshot-beast.png" width="420" alt="Something large and blue by the water, and Ranger Vale keeping his distance">
+  <img src="https://github.com/boaglio/wulfquest/releases/download/v0.7.0/screenshot-beast.png" width="420" alt="Ranger Vale swinging his sabre under a wall of carved stone">
 </p>
 <p align="center">
   <img src="https://github.com/boaglio/wulfquest/releases/download/v0.7.0/screenshot-options.png" width="420" alt="The options page: difficulty, keys, sound, volume and the four 8-bit switches">
-  <img src="https://github.com/boaglio/wulfquest/releases/download/v0.7.0/screenshot-8bit.png" width="420" alt="The lake room again in 8-BIT MODE: colour clash, one-colour sprites and scanlines">
+  <img src="https://github.com/boaglio/wulfquest/releases/download/v0.7.0/screenshot-8bit.png" width="420" alt="A room of mountains and crates in 8-BIT MODE: colour clash, one-colour sprites and scanlines">
 </p>
 
 The title, a few rooms of the jungle, and the options page, the last room

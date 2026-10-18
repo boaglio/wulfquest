@@ -9,8 +9,8 @@
   <img src="https://github.com/boaglio/wulfquest/releases/download/v0.7.0/screenshot-jungle.png" width="400" alt="A jungle room with spiders, an orchid and Ranger Vale on the right">
 </p>
 <p align="center">
-  <img src="https://github.com/boaglio/wulfquest/releases/download/v0.7.0/screenshot-beast.png" width="400" alt="Something large and blue by the water, and Ranger Vale keeping his distance">
-  <img src="https://github.com/boaglio/wulfquest/releases/download/v0.7.0/screenshot-8bit.png" width="400" alt="The lake room again in 8-BIT MODE: colour clash, one-colour sprites and scanlines">
+  <img src="https://github.com/boaglio/wulfquest/releases/download/v0.7.0/screenshot-beast.png" width="400" alt="Ranger Vale swinging his sabre under a wall of carved stone">
+  <img src="https://github.com/boaglio/wulfquest/releases/download/v0.7.0/screenshot-8bit.png" width="400" alt="A room of mountains and crates in 8-BIT MODE: colour clash, one-colour sprites and scanlines">
 </p>
 
 ## What's new in 0.7.0
