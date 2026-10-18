@@ -99,8 +99,10 @@ public final class Sprite {
 
     /**
      * Draws a frame in one hue but its outline: {@code keep} (black) stays; the bright half of
-     * the palette takes {@code bright} and the plain half {@code plain}, so the shapes inside
-     * the outline still read. A flower's colour on Vale (§15.2).
+     * the palette takes {@code bright} and the plain half {@code plain}. Where two colours of the
+     * drawing meet, the pixel below or right of the seam is {@code keep} too: one ink loses the
+     * colours that told a hat from a face, so the shapes inside are drawn in lines instead, as a
+     * Spectrum sprite's were. A flower's colour on Vale (§15.2), and every inked sprite (§17.9).
      */
     public void blitInked(Framebuffer fb, String frameId, int x, int y, int plain, int bright, int keep) {
         byte[] px = frames.get(frameId);
@@ -115,10 +117,20 @@ public final class Sprite {
                 byte v = px[row + xx];
                 if (v >= 0) {
                     // 9..15 are the bright half of the palette; 1..7 are the same hues, plain.
-                    fb.set(left + xx, top + yy, v == keep ? v : v >= 9 ? bright : plain);
+                    boolean seam = v != keep && (seam(px, v, xx - 1, yy, keep) || seam(px, v, xx, yy - 1, keep));
+                    fb.set(left + xx, top + yy, v == keep || seam ? keep : v >= 9 ? bright : plain);
                 }
             }
         }
+    }
+
+    /** Whether the drawing at ({@code x}, {@code y}) is another colour than {@code v}, outline and space aside. */
+    private boolean seam(byte[] px, byte v, int x, int y, int keep) {
+        if (x < 0 || y < 0) {
+            return false;
+        }
+        byte n = px[y * w + x];
+        return n >= 0 && n != keep && n != v;
     }
 
     /** Draws a frame's silhouette in one colour: a hit flash. */

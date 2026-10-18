@@ -149,7 +149,8 @@ class PlayerPainterTest {
 
     @Test
     void aFlowersColourKeepsHisOutlineAndTwoShades() {
-        // §15.2: black stays black; bright pixels take the flower's bright shade, plain ones its plain twin.
+        // §15.2: black stays black; bright pixels take the flower's bright shade, plain ones its plain twin;
+        // where two colours of the drawing meet, a black seam keeps the shapes apart (§17.9).
         Sprite vale = new SpriteBank(new SpriteRepository(DB)).get(RULES.sprite());
         Framebuffer plainFb = new Framebuffer(32, 32);
         Framebuffer inkedFb = new Framebuffer(32, 32);
@@ -158,6 +159,8 @@ class PlayerPainterTest {
         vale.blit(plainFb, "side_walk0", 16, 28);
         vale.blitInked(inkedFb, "side_walk0", 16, 28, 2, 10, 0);
         int outline = 0;
+        int seams = 0;
+        int inked = 0;
         for (int y = 0; y < 32; y++) {
             for (int x = 0; x < 32; x++) {
                 int was = plainFb.get(x, y);
@@ -168,11 +171,21 @@ class PlayerPainterTest {
                     assertThat(now).as("the outline").isZero();
                     outline++;
                 } else {
-                    assertThat(now).isEqualTo(was >= 9 ? 10 : 2);
+                    int above = plainFb.get(x, y - 1);
+                    int left = plainFb.get(x - 1, y);
+                    boolean seam = above != 3 && above != 0 && above != was || left != 3 && left != 0 && left != was;
+                    assertThat(now).isEqualTo(seam ? 0 : was >= 9 ? 10 : 2);
+                    if (seam) {
+                        seams++;
+                    } else {
+                        inked++;
+                    }
                 }
             }
         }
         assertThat(outline).isPositive();
+        assertThat(seams).as("a hat is told from a face").isPositive();
+        assertThat(inked).as("but most of him is his colour").isGreaterThan(seams);
     }
 
     @Test
