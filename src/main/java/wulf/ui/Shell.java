@@ -556,6 +556,10 @@ public final class Shell {
             sounded(s.withAudio(s.audio().enabled(), volume));
             return;
         }
+        if (dx != 0 && items.get(cursor).id().equals("scale")) {
+            rescaled(dx);
+            return;
+        }
         if (!in.firePressed() || stateTick < config.screenHoldTicks() && back == State.TITLE) {
             return;
         }
@@ -570,6 +574,15 @@ public final class Shell {
         }
         if (id.equals("difficulty")) {
             switchDifficulty();
+            return;
+        }
+        if (id.equals("scale")) {
+            rescaled(1);   // fire steps up, and round to the smallest
+            return;
+        }
+        if (id.equals("fullscreen")) {
+            db.putSettings(db.settings().withFullscreen(!db.settings().fullscreen()));
+            jukebox.sfx(SFX_PICK);
             return;
         }
         State page = switch (id) {
@@ -611,6 +624,21 @@ public final class Shell {
     /** Whether 8-BIT MODE shows on: every one of its switches is. */
     public static boolean eightBitOn(Settings s, java.util.List<String> switches) {
         return switches.stream().allMatch(id -> optionOn(s, id));
+    }
+
+    /**
+     * §17.9: the window a size bigger or smaller, through {@code options.scales} and round; the
+     * window follows at once (Boot reads the setting as it draws).
+     */
+    private void rescaled(int dx) {
+        java.util.List<Integer> scales = config.options().scales();
+        if (scales.isEmpty()) {
+            return;
+        }
+        int at = scales.indexOf(db.settings().scale());
+        int next = at < 0 ? 0 : Math.floorMod(at + dx, scales.size());
+        db.putSettings(db.settings().withScale(scales.get(next)));
+        jukebox.sfx(SFX_MOVE);
     }
 
     /** §21.3: the sound changed from the options — written, and heard at once. */

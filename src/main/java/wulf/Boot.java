@@ -32,6 +32,7 @@ import wulf.sim.Ecosystem;
 import wulf.sim.Simulation;
 import wulf.audio.Mixer;
 import wulf.data.PlayerDb;
+import wulf.data.Settings;
 import wulf.data.UserDataDir;
 import wulf.engine.Replay;
 import wulf.input.MenuInput;
@@ -127,13 +128,54 @@ public final class Boot {
         }
     }
 
+    /**
+     * The window as the settings ask (§17.9): a scale the player picked resizes it, and full
+     * screen fills the screen at the largest whole scale that fits it, letterboxed.
+     */
+    private static final class WindowMode {
+        private final Screen screen;
+        private final DisplayConfig display;
+        private int scale;
+        private boolean full;
+
+        WindowMode(Screen screen, DisplayConfig display, Settings start) {
+            this.screen = screen;
+            this.display = display;
+            this.scale = start.scale();
+            this.full = false;
+            follow(start);
+        }
+
+        void follow(Settings s) {
+            if (s.scale() == scale && s.fullscreen() == full) {
+                return;
+            }
+            scale = s.scale();
+            full = s.fullscreen();
+            int w = screen.fb().width();
+            int h = screen.fb().height();
+            int fit = display.scale().clamp(scale);
+            if (full) {
+                java.awt.Dimension size = screen.window().screenSize();
+                fit = Math.max(1, Math.min(size.width / w, size.height / h));
+            }
+            screen.scaler().setScale(fit);
+            screen.window().setMode(full, w * fit, h * fit);
+        }
+    }
+
     /** What a window-backed mode needs. */
     private record Screen(Framebuffer fb, Scaler scaler, Window window) {
     }
 
     private static Screen openScreen(Content c, Args parsed, String title) {
+        return openScreen(c, parsed, title, c.display().scale().defaultScale());
+    }
+
+    /** @param chosen the scale when {@code --scale} does not give one: the player's, or display.json's */
+    private static Screen openScreen(Content c, Args parsed, String title, int chosen) {
         DisplayConfig d = c.display();
-        int scale = d.scale().clamp(parsed.scale() > 0 ? parsed.scale() : d.scale().defaultScale());
+        int scale = d.scale().clamp(parsed.scale() > 0 ? parsed.scale() : chosen);
         Framebuffer fb = new Framebuffer(d.canvas().w(), d.canvas().h());
         Scaler scaler = new Scaler(c.palette().toArgb(), fb.width(), fb.height(), scale);
         scaler.setScanlines(d.crt().scanlines(), d.crt().scanlineLuminancePercent());
@@ -165,7 +207,9 @@ public final class Boot {
         mixer.warmUp();
         mixer.start();
 
-        Screen screen = openScreen(c, parsed, "Wulf Quest");
+        Screen screen = openScreen(c, parsed, "Wulf Quest", player.settings().scale());
+        // §17.9: the window as the options page leaves it; --scale holds until the player picks one.
+        WindowMode windowMode = new WindowMode(screen, c.display(), player.settings());
         Fonts fonts = new Fonts("art/font/font.json", c.font());
         ShellPainter painter = new ShellPainter(c, c.shell(), player, fonts);
 
@@ -272,6 +316,7 @@ public final class Boot {
 
             @Override
             public void render() {
+                windowMode.follow(player.settings());
                 painter.paint(screen.fb(), shell, parsed.dev());
                 // §17.9: the options page switches scanlines while the game runs.
                 screen.scaler().setScanlines(player.settings().crt().scanlines(),

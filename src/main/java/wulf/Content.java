@@ -108,6 +108,7 @@ public record Content(
         ShellConfig shell = db.load("config/shell", ShellConfig.class);
         ShellValidator.check(shell, palette, input);
         ShellValidator.checkGameOver(shell, display, font);
+        ShellValidator.checkScales(shell, display);
         SfxData sfx = db.load("audio/sfx", SfxData.class);
         MusicData music = db.load("audio/music", MusicData.class);
         AudioValidator.check(sfx, music);

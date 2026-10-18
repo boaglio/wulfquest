@@ -22,6 +22,7 @@ public final class Window {
     private final JFrame frame;
     private final Canvas canvas;
     private BufferStrategy strategy;
+    private boolean fullscreen;
 
     public Window(String title, int width, int height, Color letterbox) {
         this.canvas = new Canvas();
@@ -44,6 +45,58 @@ public final class Window {
         canvas.requestFocusInWindow();
     }
 
+    /**
+     * §17.9: over the whole screen, or a window around a canvas of {@code width} x {@code height}.
+     * Done on the event thread while no frame is drawn; the keys go on reaching the canvas.
+     */
+    public void setMode(boolean full, int width, int height) {
+        Runnable change = () -> {
+            synchronized (this) {
+                java.awt.GraphicsDevice screen = frame.getGraphicsConfiguration().getDevice();
+                if (full != fullscreen) {
+                    if (fullscreen && screen.getFullScreenWindow() == frame) {
+                        screen.setFullScreenWindow(null);
+                    }
+                    frame.dispose();
+                    frame.setUndecorated(full);
+                    fullscreen = full;
+                }
+                if (full) {
+                    if (screen.isFullScreenSupported()) {
+                        screen.setFullScreenWindow(frame);
+                    } else {
+                        frame.setBounds(frame.getGraphicsConfiguration().getBounds());
+                    }
+                } else {
+                    canvas.setPreferredSize(new Dimension(width, height));
+                    frame.pack();
+                    frame.setLocationRelativeTo(null);
+                }
+                frame.setVisible(true);
+                canvas.createBufferStrategy(2);
+                strategy = canvas.getBufferStrategy();
+                canvas.requestFocusInWindow();
+            }
+        };
+        if (javax.swing.SwingUtilities.isEventDispatchThread()) {
+            change.run();
+        } else {
+            try {
+                javax.swing.SwingUtilities.invokeAndWait(change);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            } catch (java.lang.reflect.InvocationTargetException e) {
+                throw new IllegalStateException("could not change the window", e.getCause());
+            }
+        }
+    }
+
+    /** The size of the screen the window is on, in pixels. */
+    public Dimension screenSize() {
+        java.awt.Rectangle r = frame.getGraphicsConfiguration().getBounds();
+        return new Dimension(r.width, r.height);
+    }
+
     /** The window's icon, and the dock's where there is one (macOS, when run from the jar). */
     public void setIcon(List<BufferedImage> images) {
         frame.setIconImages(images);
@@ -64,8 +117,8 @@ public final class Window {
         return frame.isDisplayable();
     }
 
-    /** Blits the image centred, at the largest integer scale that still fits. */
-    public void present(BufferedImage image) {
+    /** Blits the image centred, letterboxed in the border colour. */
+    public synchronized void present(BufferedImage image) {
         if (strategy == null) {
             strategy = canvas.getBufferStrategy();
             if (strategy == null) {

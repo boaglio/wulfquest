@@ -2951,6 +2951,19 @@ changes to `options.volumeFooter` to say so. Both are the §21.3 settings the
 sound page (`A`) sets, written at once and heard at once; over a game the
 menus stay silent (§18.3), so only the sound effects show the change.
 
+**The window** (asked for by the user, 2026-10-18: "scale option in menu with
+also FullScreen"): `SCALE` with its size (`options.scaleLabel`, `4X`), left
+and right stepping through `options.scales` (1 to 6, each within
+`display.json`'s scale, `ShellValidator.checkScales`) and fire stepping up and
+round, the footer saying so (`options.scaleFooter`); and `FULLSCREEN` `ON`/`OFF`.
+Both are §21.3 settings. The shell only writes them; `Boot`'s `WindowMode`
+reads them as it draws and resizes the window (`Window.setMode`, on the event
+thread), so the change shows at once, in a game or out. Full screen fills the
+screen the window is on at the largest whole scale that fits, letterboxed in
+the border colour (§5.3). `--scale` sets the window for the run until the
+player picks a scale. The game opens at the saved scale, and full screen if
+it was left so. Neither is in the pause menu's leave-outs: both work over a game.
+
 ### 17.5 Game over
 
 `GAME OVER` in the 8×8 font over the frozen playfield, 150 ticks, then
@@ -3504,7 +3517,8 @@ broken at 0 points).
 ### 21.3 `settings.json`
 
 Scale, audio on/off + volume, input profile, CRT toggles, chosen feature
-flags, and `easy` — Easy mode chosen on the title (§17.8), absent for Hard.
+flags, `easy` — Easy mode chosen on the title (§17.8), absent for Hard — and
+`fullscreen` (§17.9), absent for a window.
 Written on change. **Feature flags in settings override
 `game.json`** — `game.json` is the shipped default, settings are the
 player's choice.

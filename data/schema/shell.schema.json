@@ -443,10 +443,10 @@
       }
     },
     "options": {
-      "description": "§17.9 [NEW]: the options page, from the title and the pause menu; the pause menu's leaves out difficulty, keys, load, hiScores, stats and credits",
+      "description": "§17.9 [NEW]: the options page, from the title and the pause menu; the pause menu's leaves out difficulty, keys, load, hiScores and stats",
       "type": "object",
       "additionalProperties": false,
-      "required": ["heading", "items", "on", "off", "footer", "volumeFooter", "eightBit"],
+      "required": ["heading", "items", "on", "off", "footer", "volumeFooter", "eightBit", "scales", "scaleLabel", "scaleFooter"],
       "properties": {
         "heading": { "type": "string", "minLength": 1, "maxLength": 32 },
         "items": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/entry" } },
@@ -454,6 +454,12 @@
         "off": { "type": "string", "minLength": 1, "maxLength": 8 },
         "footer": { "type": "string", "maxLength": 60 },
         "volumeFooter": { "type": "string", "maxLength": 60 },
+        "scales": {
+          "description": "AGENTS.md §17.9: the window's sizes the scale line steps through, each within display.json's scale",
+          "type": "array", "minItems": 1, "uniqueItems": true, "items": { "type": "integer", "minimum": 1, "maximum": 12 }
+        },
+        "scaleLabel": { "type": "string", "pattern": "\\{n\\}", "maxLength": 8 },
+        "scaleFooter": { "type": "string", "maxLength": 60 },
         "eightBit": {
           "description": "AGENTS.md §17.9: the switches 8-BIT MODE turns on and off together, for the look of the original",
           "type": "array", "minItems": 1, "uniqueItems": true, "items": { "type": "string", "minLength": 1 }

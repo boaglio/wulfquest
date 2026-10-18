@@ -180,6 +180,21 @@ public final class ShellValidator {
         }
     }
 
+    /** §17.9: every size the scale line offers is one display.json allows, and it offers some if it is listed. */
+    public static void checkScales(ShellConfig shell, DisplayConfig display) {
+        ShellConfig.Options o = shell.options();
+        for (int i = 0; i < o.scales().size(); i++) {
+            int n = o.scales().get(i);
+            if (display.scale().clamp(n) != n) {
+                throw new DataException(SOURCE, "/options/scales/" + i, "is " + n + ", outside display.json's scale "
+                        + display.scale().min() + ".." + display.scale().max());
+            }
+        }
+        if (o.scales().isEmpty() && o.items().stream().anyMatch(e -> e.id().equals("scale"))) {
+            throw new DataException(SOURCE, "/options/scales", "is empty, and the options list a scale line");
+        }
+    }
+
     /** The game-over progress line must fit the playfield at its widest, "100". */
     public static void checkGameOver(ShellConfig shell, DisplayConfig display, FontData font) {
         String widest = shell.gameOver().progress().replace("{percent}", "100");

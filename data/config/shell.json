@@ -378,6 +378,8 @@
       { "id": "keys", "label": "KEYS" },
       { "id": "sound", "label": "SOUND" },
       { "id": "volume", "label": "VOLUME" },
+      { "id": "scale", "label": "SCALE" },
+      { "id": "fullscreen", "label": "FULLSCREEN" },
       { "id": "eightBit", "label": "8-BIT MODE" },
       { "id": "scanlines", "label": "SCANLINES" },
       { "id": "attributeClash", "label": "COLOUR CLASH" },
@@ -392,6 +394,9 @@
     "off": "OFF",
     "footer": "UP DOWN TO CHOOSE - FIRE TO CHANGE",
     "volumeFooter": "LEFT RIGHT FOR LOUDER OR QUIETER",
+    "scales": [1, 2, 3, 4, 5, 6],
+    "scaleLabel": "{n}X",
+    "scaleFooter": "LEFT RIGHT FOR SMALLER OR BIGGER",
     "eightBit": ["scanlines", "attributeClash", "inkedCreatures", "spriteFlicker"]
   }
 }

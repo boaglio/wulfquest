@@ -447,6 +447,32 @@ class ShellTest {
     }
 
     @Test
+    void theOptionsSizeTheWindowAndPutItOverTheWholeScreen(@TempDir Path dir) {
+        // §17.9: SCALE steps through options.scales with left and right (fire steps up, and round);
+        // FULLSCREEN switches. Both are written, and the window follows them as it draws.
+        PlayerDb db = db(dir);
+        Shell shell = shell(db);
+        press(shell, DOWN, line(shell.titleLines(), "options"));
+        shell.tick(FIRE, MenuInput.NONE, false);
+        idle(shell, CONFIG.screenHoldTicks());
+        List<Integer> scales = CONFIG.options().scales();
+        int was = db.settings().scale();
+        press(shell, DOWN, line(shell.optionLines(), "scale"));
+        press(shell, RIGHT, 1);
+        assertThat(db.settings().scale()).isEqualTo(scales.get((scales.indexOf(was) + 1) % scales.size()));
+        press(shell, InputState.of(-1, 0, false, false), 1);
+        assertThat(db.settings().scale()).isEqualTo(was);
+
+        assertThat(db.settings().fullscreen()).isFalse();
+        press(shell, DOWN, 1);
+        assertThat(shell.optionLines().get(shell.cursor()).id()).isEqualTo("fullscreen");
+        press(shell, FIRE, 1);
+        assertThat(db.settings().fullscreen()).isTrue();
+        press(shell, FIRE, 1);
+        assertThat(db.settings().fullscreen()).isFalse();
+    }
+
+    @Test
     void anyKeyDuringThePlaneSceneBringsTheTitleBack(@TempDir Path dir) {
         // §17.2: the idle title's scene, a plane landing in the forest, before the demo.
         Shell shell = shell(db(dir), ShellTest::demo);
