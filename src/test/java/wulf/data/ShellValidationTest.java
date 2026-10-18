@@ -169,9 +169,10 @@ class ShellValidationTest {
 
     @Test
     void everyKeyConfigActionExistsInEveryProfile() {
-        for (InputConfig.Profile profile : c.input().profiles().values()) {
+        for (var profile : c.input().profiles().entrySet()) {
+            String mapKey = c.shell().map().keyFor(profile.getKey());
             for (String action : c.shell().keyConfig().actionOrder()) {
-                assertThat(wulf.ui.KeyConfigScreen.keysFor(profile, action)).as(action).isNotEmpty();
+                assertThat(wulf.ui.KeyConfigScreen.keysFor(profile.getValue(), mapKey, action)).as(action).isNotEmpty();
             }
         }
     }

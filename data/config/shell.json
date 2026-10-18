@@ -145,7 +145,8 @@
       "RIGHT",
       "FIRE",
       "PAUSE",
-      "QUIT"
+      "QUIT",
+      "MAP"
     ]
   },
   "sound": {

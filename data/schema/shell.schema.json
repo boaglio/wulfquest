@@ -236,7 +236,7 @@
           "type": "array",
           "minItems": 1,
           "maxItems": 10,
-          "items": { "enum": ["UP", "DOWN", "LEFT", "RIGHT", "FIRE", "PAUSE", "QUIT"] }
+          "items": { "enum": ["UP", "DOWN", "LEFT", "RIGHT", "FIRE", "PAUSE", "QUIT", "MAP"] }
         }
       }
     },

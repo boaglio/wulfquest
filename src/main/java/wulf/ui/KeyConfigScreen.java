@@ -19,10 +19,12 @@ public final class KeyConfigScreen {
 
     private final Chrome chrome;
     private final ShellConfig.KeyConfig config;
+    private final ShellConfig.MapScreen map;
 
-    public KeyConfigScreen(Chrome chrome, ShellConfig.KeyConfig config) {
+    public KeyConfigScreen(Chrome chrome, ShellConfig.KeyConfig config, ShellConfig.MapScreen map) {
         this.chrome = chrome;
         this.config = config;
+        this.map = map;
     }
 
     public void paint(Framebuffer fb, InputConfig input, String active) {
@@ -44,7 +46,7 @@ public final class KeyConfigScreen {
             chrome.small().draw(fb, action, labelX, y, chrome.body());
             for (int p = 0; p < profiles.size(); p++) {
                 InputConfig.Profile profile = input.profiles().get(profiles.get(p));
-                String keys = String.join(" ", keysFor(profile, action));
+                String keys = String.join(" ", keysFor(profile, map.keyFor(profiles.get(p)), action));
                 boolean chosen = profiles.get(p).equals(active);
                 chrome.small().draw(fb, keys, firstColumn + p * columnW, y,
                         chosen ? chrome.bright() : chrome.dim());
@@ -54,11 +56,14 @@ public final class KeyConfigScreen {
         chrome.footer(fb, config.prompt());
     }
 
-    /** The profile's bindings for one action name; unknown names are a data error, caught at load. */
-    public static List<String> keysFor(InputConfig.Profile profile, String action) {
+    /**
+     * The profile's bindings for one action name, {@code MAP} being the map's key in it (§17.7);
+     * unknown names are a data error, caught at load.
+     */
+    public static List<String> keysFor(InputConfig.Profile profile, String mapKey, String action) {
         Map<String, List<String>> byAction = Map.of(
                 "UP", profile.up(), "DOWN", profile.down(), "LEFT", profile.left(), "RIGHT", profile.right(),
-                "FIRE", profile.fire(), "PAUSE", profile.pause(), "QUIT", profile.quit());
+                "FIRE", profile.fire(), "PAUSE", profile.pause(), "QUIT", profile.quit(), "MAP", List.of(mapKey));
         List<String> keys = byAction.get(action);
         if (keys == null) {
             throw new IllegalArgumentException("no action '" + action + "' in an input profile");

@@ -225,7 +225,7 @@ right choose the job.
 
 The rest is on the title's options page: the difficulty; the keys page, where
 the period layout (`Q`/`A`/`O`/`P` to move, `M` to swing, `H` to pause, `B` for
-the map) is one digit away and the choice sticks; loading a saved game; the
+the map) is one digit away, every key either layout uses is listed, map included, and the choice sticks; loading a saved game; the
 hi-scores, your lifetime ledger and the credits. Nothing is hidden behind a key
 you have to know, but the old letters still work on the title for those who
 know them: `G` new game, `D` difficulty, `N` the job, `K` keys, `A` sound, `H`

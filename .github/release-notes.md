@@ -21,7 +21,7 @@ down choose, fire picks, and a little wolf marks the line you are on, on every
 menu. Under `START` the title says whether the next game is Hard or Easy and,
 once you have won, which of Mr Jones's jobs it is; left and right choose the
 job. The difficulty, the keys, loading a game, the hi-scores, your ledger and
-the credits are on the title's options page now. The old letters still work
+the credits are on the title's options page now, and the keys page lists the map's key too. The old letters still work
 on the title for those who know them.
 
 **Every game has its save slot.** A new game first asks which of the three

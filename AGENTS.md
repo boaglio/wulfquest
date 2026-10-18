@@ -3209,6 +3209,8 @@ on the title screen as a nod; do not make it default.
   roaming Wulf (§13.3) — only under `features.roamingWulf`; the original's
   (§13.8) is never summoned. It is not `W`, which is up.
 - A key bound to two actions within a profile is a load-time `DataException`.
+- The keys page lists the actions in `shell.json`'s `keyConfig.actionOrder`;
+  `MAP` there is the map's key in each profile (`map.key`, `map.profileKeys`).
 - The deadzone is an integer percent: nothing that reaches the game is a float.
   The gamepad and its buttons are §19.3.
 - **X11 auto-repeat** delivers a release and a press with the same timestamp

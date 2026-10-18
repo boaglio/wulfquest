@@ -54,7 +54,7 @@ public final class ShellPainter {
                 content.palette().indexOf(config.difficulty().easyColour()));
         this.hiScoreEntry = new HiScoreEntryScreen(chrome, config.hiScores());
         this.stats = new StatsScreen(chrome, config.stats());
-        this.keys = new KeyConfigScreen(chrome, config.keyConfig());
+        this.keys = new KeyConfigScreen(chrome, config.keyConfig(), config.map());
         this.sound = new SoundScreen(chrome, config.sound());
         this.gameOver = new GameOverScreen(chrome, config.gameOver());
         this.menus = new MenuScreen(chrome, display, config, marker);
