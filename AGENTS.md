@@ -2841,7 +2841,7 @@ that one of them resumes.
 Asked for by the user (2026-10-14; `shell.json → options`, state `OPTIONS`),
 from the title (`O OPTIONS`) and from the pause menu: the switches that were
 only in `settings.json` until now — `SCANLINES` and `COLOUR CLASH` (§5.4) and
-`ONE-COLOUR CREATURES` (`features.inkedCreatures`, §12.8) — each shown `ON` or
+`ONE-COLOUR SPRITES` (`features.inkedCreatures`, §12.8; `ONE-COLOUR CREATURES` until 2026-10-18) — each shown `ON` or
 `OFF`, fire flipping it, written to `settings.json` at once and shown at once:
 the painter reads them every frame (`GamePainter.retro`, `Scaler.setScanlines`).
 The difficulty has its own key (`D`, §17.8).
