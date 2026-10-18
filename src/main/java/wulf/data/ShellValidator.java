@@ -53,6 +53,11 @@ public final class ShellValidator {
                         "binds '" + item.key() + "' twice on the title screen");
             }
         }
+        // §17.2: the new game's key is a title key too, and not the difficulty's or the jobs'.
+        String fresh = shell.title().newGameKey();
+        if (keys.contains(fresh) || fresh.equals(shell.difficulty().key()) || fresh.equals(shell.newGamePlus().key())) {
+            throw new DataException(SOURCE, "/title/newGameKey", "binds '" + fresh + "' twice on the title screen");
+        }
         // The keys page offers a profile per digit; a menu hotkey on one of those digits would fight it.
         for (int i = 0; i < input.profiles().size(); i++) {
             String digit = String.valueOf((char) ('1' + i));

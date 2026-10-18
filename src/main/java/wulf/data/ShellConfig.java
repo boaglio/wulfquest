@@ -32,8 +32,8 @@ public record ShellConfig(
         Pause pause,
         Options options) {
 
-    public record Title(String wordmark, String tagline, String prompt, Cycle cycle, List<MenuItem> menu,
-                        String footer) {
+    public record Title(String wordmark, String tagline, String prompt, String continuePrompt, String newGameKey,
+                        String newGameLabel, String continueDetail, Cycle cycle, List<MenuItem> menu, String footer) {
         public Title {
             menu = List.copyOf(menu);
         }
@@ -115,7 +115,7 @@ public record ShellConfig(
      */
     public record Saves(int slots, String saveHeading, String loadHeading, String slot, String detail, String empty,
                         List<String> jobNames, ModeNames modeNames, String saved, String loaded, String emptySlot,
-                        int noteTicks, String footer) {
+                        String refused, int noteTicks, String footer) {
         public Saves {
             jobNames = List.copyOf(jobNames);
         }

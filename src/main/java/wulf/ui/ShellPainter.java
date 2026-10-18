@@ -82,7 +82,8 @@ public final class ShellPainter {
                 menus.paint(fb, shell, db.settings());
             }
             case TITLE -> title.paint(fb, shell.stateTick(), db.scores().best(), shell.notice(),
-                    shell.unlocked() > 0 ? config.newGamePlus().levels().get(shell.level()) : null, shell.easy());
+                    shell.unlocked() > 0 ? config.newGamePlus().levels().get(shell.level()) : null, shell.easy(),
+                    saved(shell));
             case ATTRACT -> attract(fb, shell);
             case CREDITS -> credits.paint(fb);
             case HISCORES -> hiScores.paint(fb, db.scores(), shell.highlight());
@@ -158,5 +159,12 @@ public final class ShellPainter {
         int bannerY = f.y() + f.h() - 26;
         band(fb, bannerY - 3, chrome.small().glyphH() + 6);
         chrome.small().drawCentred(fb, config.attract().banner(), 0, fb.width(), bannerY, chrome.bright());
+    }
+
+    /** §17.2: the saved game fire on the title goes on with, as the load page lists it; null for none. */
+    private String saved(Shell shell) {
+        wulf.data.QuickSaveData d = shell.continueGame();
+        return d == null ? null
+                : config.title().continueDetail().replace("{line}", MenuScreen.slotLine(config.saves(), shell.continueSlot(), d));
     }
 }

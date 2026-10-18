@@ -41,11 +41,15 @@
     "title": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["wordmark", "tagline", "prompt", "cycle", "menu", "footer"],
+      "required": ["wordmark", "tagline", "prompt", "continuePrompt", "newGameKey", "newGameLabel", "continueDetail", "cycle", "menu", "footer"],
       "properties": {
         "wordmark": { "type": "string", "minLength": 1, "maxLength": 20 },
         "tagline": { "type": "string", "maxLength": 48 },
         "prompt": { "type": "string", "minLength": 1, "maxLength": 48 },
+        "continuePrompt": { "description": "AGENTS.md §17.2: the prompt while a saved game waits, fire loading the newest", "type": "string", "minLength": 1, "maxLength": 48 },
+        "newGameKey": { "type": "string", "pattern": "^[A-Z0-9]$" },
+        "newGameLabel": { "type": "string", "minLength": 1, "maxLength": 32 },
+        "continueDetail": { "description": "AGENTS.md §17.2: under the prompt, the saved game: {line} is its line on the load page", "type": "string", "minLength": 1, "maxLength": 20 },
         "cycle": {
           "type": "object",
           "additionalProperties": false,
@@ -314,7 +318,7 @@
       "type": "object",
       "additionalProperties": false,
       "required": ["slots", "saveHeading", "loadHeading", "slot", "detail", "empty", "jobNames", "modeNames", "saved",
-                   "loaded", "emptySlot", "noteTicks", "footer"],
+                   "loaded", "emptySlot", "refused", "noteTicks", "footer"],
       "properties": {
         "slots": { "type": "integer", "minimum": 1, "maximum": 9 },
         "saveHeading": { "type": "string", "minLength": 1, "maxLength": 32 },
@@ -330,6 +334,7 @@
         "saved": { "type": "string", "maxLength": 40 },
         "loaded": { "type": "string", "maxLength": 40 },
         "emptySlot": { "type": "string", "maxLength": 40 },
+        "refused": { "description": "AGENTS.md §17.2: the title's word when the saved game fire would go on with will not load", "type": "string", "maxLength": 40 },
         "noteTicks": { "type": "integer", "minimum": 1 },
         "footer": { "type": "string", "maxLength": 60 }
       }

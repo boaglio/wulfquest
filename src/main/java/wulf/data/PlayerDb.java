@@ -89,6 +89,16 @@ public final class PlayerDb implements AutoCloseable {
         return java.util.Optional.ofNullable(read("save" + n, "quicksave", QuickSaveData.class, () -> null));
     }
 
+    /** §17.2: when slot {@code n} was last written, in ms since the epoch; 0 when there is none. */
+    public long saveSlotWritten(int n) {
+        try {
+            Path file = dir.resolve("save" + n + ".json");
+            return Files.isRegularFile(file) ? Files.getLastModifiedTime(file).toMillis() : 0L;
+        } catch (IOException e) {
+            return 0L;
+        }
+    }
+
     /** §21.4: written now, not coalesced — the player is told it is saved. */
     public void putSaveSlot(int n, QuickSaveData value) {
         run(() -> write("save" + n, value));

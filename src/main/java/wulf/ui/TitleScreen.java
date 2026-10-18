@@ -51,15 +51,19 @@ public final class TitleScreen {
      * @param notice a one-off line about the player database, or null (§20.8)
      */
     public void paint(Framebuffer fb, long tick, long best, String notice) {
-        paint(fb, tick, best, notice, null, false);
+        paint(fb, tick, best, notice, null, false, null);
     }
 
     /**
      * @param job the job the prompt starts, once a later one is open (§14.9): its label goes under
      *            the prompt, and its tagline, if it has one, replaces the title's; null before
      * @param easy whether the next game is in Easy mode (§17.8): the first line of the menu says which
+     * @param saved the saved game fire goes on with (§17.2), as its slot reads on the load page, or
+     *              null: then the prompt asks to continue, that line goes under it, and the new game,
+     *              with its job, gets a line of its own
      */
-    public void paint(Framebuffer fb, long tick, long best, String notice, ShellConfig.Job job, boolean easy) {
+    public void paint(Framebuffer fb, long tick, long best, String notice, ShellConfig.Job job, boolean easy,
+                      String saved) {
         fb.clear(chrome.ground());
         int w = fb.width();
         int y = 36;
@@ -69,12 +73,22 @@ public final class TitleScreen {
         chrome.small().drawCentred(fb, tagline, 0, w, y, chrome.dim());
 
         y += chrome.small().lineHeight() * 4;
-        chrome.small().drawCentred(fb, title.prompt(), 0, w, y, chrome.bright());
-        if (job != null) {
+        chrome.small().drawCentred(fb, saved != null ? title.continuePrompt() : title.prompt(), 0, w, y, chrome.bright());
+        if (saved != null) {
+            chrome.small().drawCentred(fb, saved, 0, w, y + chrome.small().lineHeight() + 2, jobColour);
+        } else if (job != null) {
             chrome.small().drawCentred(fb, job.label(), 0, w, y + chrome.small().lineHeight() + 2, jobColour);
         }
 
         y += chrome.small().lineHeight() * 2;
+        if (saved != null) {
+            y += chrome.small().lineHeight() + 3;
+            chrome.small().drawCentred(fb, title.newGameLabel(), 0, w, y, chrome.body());
+            if (job != null) {
+                y += chrome.small().lineHeight() + 3;
+                chrome.small().drawCentred(fb, job.label(), 0, w, y, jobColour);
+            }
+        }
         y += chrome.small().lineHeight() + 3;
         chrome.small().drawCentred(fb, easy ? difficulty.easy() : difficulty.hard(), 0, w, y,
                 easy ? easyColour : chrome.body());

@@ -77,6 +77,20 @@ public final class SaveSlots {
                 sim.room().col() + "," + sim.room().row()));
     }
 
+    /** §17.2: the slot written last, of those that hold a game; empty when none does. */
+    public Optional<Integer> newest(int slots) {
+        int best = 0;
+        long when = -1;
+        for (int n = 1; n <= slots; n++) {
+            long t = db.saveSlotWritten(n);
+            if (t > when && peek(n).isPresent()) {
+                best = n;
+                when = t;
+            }
+        }
+        return best == 0 ? Optional.empty() : Optional.of(best);
+    }
+
     /** What is in slot {@code n}, for the list: empty when nothing is, or it cannot be read. */
     public Optional<QuickSaveData> peek(int n) {
         return db.saveSlot(n);

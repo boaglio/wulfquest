@@ -344,4 +344,94 @@ class SaveSlotsTest {
             assertThat(Shell.optionOn(db.settings(), id)).as(id).isFalse();
         }
     }
+
+    private static void writtenAt(Path dir, int slot, long millis) throws java.io.IOException {
+        java.nio.file.Files.setLastModifiedTime(dir.resolve("save" + slot + ".json"),
+                java.nio.file.attribute.FileTime.fromMillis(millis));
+    }
+
+    @Test
+    void withAGameSavedFireOnTheTitleGoesOnWithTheNewestAndGStartsAnew(@TempDir Path dir) throws Exception {
+        // §17.2: asked for by the user — a saved game is what the title offers first.
+        PlayerDb db = db(dir);
+        SaveSlots saves = slots(db, CONTENT.db().contentHash());
+        GameSession older = new GameSession(GAME.make(5L, 0, false));
+        play(older, 0, 300);
+        saves.save(older, 1);
+        GameSession newer = new GameSession(GAME.make(6L, 0, true));
+        play(newer, 0, 450);
+        saves.save(newer, 3);
+        writtenAt(dir, 1, 2_000_000_000_000L);
+        writtenAt(dir, 3, 1_000_000_000_000L);   // slot 1 was written last after all
+
+        Shell shell = shell(db, 99L);
+        assertThat(shell.continueSlot()).as("the newest of them").isEqualTo(1);
+        assertThat(shell.continueGame().seed()).isEqualTo(5L);
+        shell.tick(FIRE, MenuInput.NONE, false);
+        assertThat(shell.state()).isEqualTo(Shell.State.PLAYING);
+        assertThat(shell.session().sim().runSeed()).as("the saved game, not a new one").isEqualTo(5L);
+        assertThat(shell.session().sim().stateHash()).isEqualTo(older.sim().stateHash());
+
+        Shell again = shell(db, 99L);
+        again.tick(InputState.NONE, MenuInput.of(CONTENT.shell().title().newGameKey()), false);
+        assertThat(again.state()).isEqualTo(Shell.State.PLAYING);
+        assertThat(again.session().sim().runSeed()).as("G: a new game").isEqualTo(99L);
+        assertThat(again.session().sim().tick()).isZero();
+    }
+
+    @Test
+    void withNoGameSavedFireStartsANewOne(@TempDir Path dir) {
+        Shell shell = shell(db(dir), 77L);
+        assertThat(shell.continueSlot()).isZero();
+        assertThat(shell.continueGame()).isNull();
+        shell.tick(FIRE, MenuInput.NONE, false);
+        assertThat(shell.session().sim().runSeed()).isEqualTo(77L);
+    }
+
+    @Test
+    void aSavedGameThatWillNotLoadSaysSoAndFireThenStartsAnew(@TempDir Path dir) {
+        PlayerDb db = db(dir);
+        GameSession s = new GameSession(GAME.make(3L, 0, false));
+        play(s, 0, 300);
+        slots(db, CONTENT.db().contentHash()).save(s, 2);
+        QuickSaveData d = db.saveSlot(2).orElseThrow();
+        db.putSaveSlot(2, new QuickSaveData(d.schemaVersion(), d.contentHash(), d.seed() + 1, d.startRoom(), d.dev(),
+                d.practiced(), d.ticks(), d.input(), d.stateHash(), d.newGamePlus(), d.easy(), d.date(), d.quarters(),
+                d.score(), d.room()));
+        Shell shell = shell(db, 99L);
+        assertThat(shell.continueSlot()).isEqualTo(2);
+        shell.tick(FIRE, MenuInput.NONE, false);
+        assertThat(shell.state()).isEqualTo(Shell.State.TITLE);
+        assertThat(shell.notice()).isEqualTo("SLOT 2: SAVE DOES NOT FIT THIS GAME");
+        assertThat(shell.continueSlot()).isZero();
+        shell.tick(InputState.NONE, MenuInput.NONE, false);
+        shell.tick(FIRE, MenuInput.NONE, false);
+        assertThat(shell.state()).isEqualTo(Shell.State.PLAYING);
+        assertThat(shell.session().sim().runSeed()).isEqualTo(99L);
+    }
+
+    @Test
+    void savingInTheGameAndQuittingOffersThatGameOnTheTitle(@TempDir Path dir) {
+        PlayerDb db = db(dir);
+        Shell shell = shell(db, 11L);
+        assertThat(shell.continueSlot()).isZero();
+        shell.tick(FIRE, MenuInput.NONE, false);
+        for (int t = 0; t < 120; t++) {
+            shell.tick(InputState.of(1, 0, false, false), MenuInput.NONE, false);
+        }
+        shell.tick(PAUSE, MenuInput.NONE, false);
+        List<wulf.data.ShellConfig.Entry> items = CONTENT.shell().pause().items();
+        press(shell, DOWN, line(items, "save"));
+        press(shell, FIRE, 1);
+        shell.tick(FIRE, MenuInput.NONE, false);   // slot 1
+        shell.tick(PAUSE, MenuInput.NONE, false);
+        press(shell, DOWN, line(items, "quit"));
+        shell.tick(FIRE, MenuInput.NONE, false);
+        while (shell.state() == Shell.State.HISCORE_ENTRY) {
+            shell.tick(FIRE, MenuInput.NONE, false);
+            shell.tick(InputState.NONE, MenuInput.NONE, false);
+        }
+        assertThat(shell.state()).isEqualTo(Shell.State.TITLE);
+        assertThat(shell.continueSlot()).as("the game just saved").isEqualTo(1);
+    }
 }

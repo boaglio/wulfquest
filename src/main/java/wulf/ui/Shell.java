@@ -52,6 +52,8 @@ public final class Shell {
     private Jukebox jukebox = Jukebox.SILENT;
     /** §21.4: the save slots; null when none are given (a test's shell), and the menus say so. */
     private SaveSlots saves;
+    private int continueSlot;
+    private wulf.data.QuickSaveData continueGame;
     /** §17.4, §17.9, §21.4: the line chosen on a menu page, the page Escape goes back to, and a word for the player. */
     private int cursor;
     private State back = State.TITLE;
@@ -150,6 +152,23 @@ public final class Shell {
     /** §21.4: the save slots, with what they need. Without them the menus offer nothing to load or save. */
     public void saveSlots(SaveSlots slots) {
         this.saves = slots;
+        lookForAGame();
+    }
+
+    /** §17.2: the newest saved game, which fire on the title goes on with; 0 for none. */
+    private void lookForAGame() {
+        continueSlot = saves == null ? 0 : saves.newest(config.saves().slots()).orElse(0);
+        continueGame = continueSlot == 0 ? null : saves.peek(continueSlot).orElse(null);
+    }
+
+    /** §17.2: what is in {@link #continueSlot}, read once when the title came up; null for none. */
+    public wulf.data.QuickSaveData continueGame() {
+        return continueSlot == 0 ? null : continueGame;
+    }
+
+    /** §17.2: the slot fire on the title loads, from 1; 0 when it starts a new game. */
+    public int continueSlot() {
+        return continueSlot;
     }
 
     // ---------------------------------------------------------------- the machine
@@ -207,9 +226,18 @@ public final class Shell {
             openMenu(State.valueOf(screen), State.TITLE);
             return;
         }
-        if (in.firePressed()) {
+        if (menu.typed(config.title().newGameKey())) {
             jukebox.sfx(SFX_PICK);
             startGame();
+            return;
+        }
+        if (in.firePressed()) {
+            jukebox.sfx(SFX_PICK);
+            if (continueSlot > 0) {
+                goOn(continueSlot);   // §17.2: a saved game waits, and fire goes on with it
+            } else {
+                startGame();
+            }
             return;
         }
         boolean busy = menu.anyKey() || in.up() || in.down() || in.left() || in.right() || in.fire();
@@ -398,6 +426,21 @@ public final class Shell {
             return;
         }
         jukebox.sfx(SFX_PICK);
+        play(loaded, n);
+    }
+
+    /** §17.2: fire on the title, a saved game waiting; one that will not load says why, and fire then starts anew. */
+    private void goOn(int n) {
+        SaveSlots.Loaded loaded = saves.load(n);
+        if (!loaded.ok()) {
+            notice = config.saves().refused().replace("{n}", Integer.toString(n)).replace("{why}", loaded.refusal());
+            continueSlot = 0;
+            return;
+        }
+        play(loaded, n);
+    }
+
+    private void play(SaveSlots.Loaded loaded, int n) {
         session = new GameSession(loaded.sim(), revealFor(loaded.sim()), loaded.played());
         session.note(config.saves().loaded().replace("{n}", Integer.toString(n)), config.saves().noteTicks());
         go(State.PLAYING);
@@ -706,6 +749,9 @@ public final class Shell {
     }
 
     private void go(State next) {
+        if (next == State.TITLE && state != State.TITLE) {
+            lookForAGame();   // a game saved, or quit, since: the title offers the newest
+        }
         state = next;
         stateTick = 0;
         rollTick = 0;

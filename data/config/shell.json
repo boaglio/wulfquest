@@ -5,6 +5,10 @@
     "wordmark": "WULF QUEST",
     "tagline": "FOUR QUARTERS OF A BROKEN AMULET",
     "prompt": "PRESS FIRE TO BEGIN",
+    "continuePrompt": "PRESS FIRE TO CONTINUE YOUR GAME",
+    "newGameKey": "G",
+    "newGameLabel": "G NEW GAME",
+    "continueDetail": "SLOT {line}",
     "cycle": {
       "colours": [
         "green",
@@ -186,6 +190,7 @@
     "saved": "SAVED TO SLOT {n}",
     "loaded": "LOADED SLOT {n}",
     "emptySlot": "SLOT {n} IS EMPTY",
+    "refused": "SLOT {n}: {why}",
     "noteTicks": 100,
     "footer": "FIRE TO PICK - ESC TO GO BACK"
   },

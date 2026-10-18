@@ -496,6 +496,11 @@ are unchanged. `RetroTogglesTest` covers each.
   over foliage a sprite is a black shape cut out of the foliage, which keeps
   its colour, and over black detail it lets the paper through (XOR). A
   sprite's black outline is not drawn — the original's sprites have none.
+  An inked sprite (`Sprite.blitInked`: one-colour sprites, a flower on Vale)
+  draws a black seam wherever two colours of its drawing meet, above or left
+  of a pixel, so one ink still tells a hat from a face and a shield from a
+  body, the way the original's sprites were drawn in lines (2026-10-18, when
+  the user found Vale and the tribesmen in one colour shapeless).
   Playfield only; the panel and border never clash, and the `--dev` collision
   mask switches it off. (The first version gave each cell the last colour
   drawn into it, so Vale painted the undergrowth his colour.)
@@ -2789,6 +2794,17 @@ data-driven game; build it in M1.
 
   The first line of the menu is the difficulty (§17.8): `D DIFFICULTY: HARD`,
   or `D DIFFICULTY: EASY` in green; `D` switches.
+
+  **A saved game comes first** (asked for by the user, 2026-10-18). When a
+  save slot holds a game (§21.4), the prompt is `title.continuePrompt` (`PRESS
+  FIRE TO CONTINUE YOUR GAME`) with the game under it (`continueDetail`, its
+  line from the load page: `SLOT 2  EASY  0/4  350`), and fire loads it — the
+  slot written last, by the file's time (`SaveSlots.newest`), looked for when
+  the title comes up, so a game saved and then quit is the one offered. A new
+  game is `G` (`newGameKey`, `G NEW GAME` above the difficulty, the job line
+  under it); `G` starts one with no save too. A save that will not load says
+  why (`saves.refused`) and fire then starts a new game. `ShellValidator`
+  refuses a `newGameKey` the title or its `D` or `N` already use.
 
 ### 17.3 The panel (256×40, in the lower border)
 

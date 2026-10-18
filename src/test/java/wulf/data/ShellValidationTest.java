@@ -28,8 +28,8 @@ class ShellValidationTest {
 
     private static ShellConfig.Title titleWith(List<String> colours, List<ShellConfig.MenuItem> menu) {
         ShellConfig.Title t = c.shell().title();
-        return new ShellConfig.Title(t.wordmark(), t.tagline(), t.prompt(),
-                new ShellConfig.Cycle(colours, t.cycle().ticksPerStep()), menu, t.footer());
+        return new ShellConfig.Title(t.wordmark(), t.tagline(), t.prompt(), t.continuePrompt(), t.newGameKey(),
+                t.newGameLabel(), t.continueDetail(), new ShellConfig.Cycle(colours, t.cycle().ticksPerStep()), menu, t.footer());
     }
 
     private static DataException error(ShellConfig shell) {
@@ -48,6 +48,16 @@ class ShellValidationTest {
         assertThat(e).isNotNull();
         assertThat(e.pointer()).isEqualTo("/title/cycle/colours/1");
         assertThat(e.detail()).contains("puce");
+    }
+
+    @Test
+    void theNewGameKeyCannotBeAMenuKey() {
+        ShellConfig.Title t = c.shell().title();
+        ShellConfig.Title clashing = new ShellConfig.Title(t.wordmark(), t.tagline(), t.prompt(), t.continuePrompt(),
+                t.menu().get(0).key(), t.newGameLabel(), t.continueDetail(), t.cycle(), t.menu(), t.footer());
+        DataException e = error(withTitle(clashing));
+        assertThat(e).isNotNull();
+        assertThat(e.detail()).contains("twice");
     }
 
     @Test
