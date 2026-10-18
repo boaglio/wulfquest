@@ -141,4 +141,21 @@ class FontTest {
             }
         }
     }
+
+    @Test
+    void noTwoCharactersLookTheSame() {
+        // The small S was once the small 5, and "1980S" read "19805" in the credits.
+        FontData data = db.load("art/font/font", FontData.class);
+        for (var set : data.sets().entrySet()) {
+            java.util.Map<java.util.List<String>, String> seen = new java.util.HashMap<>();
+            for (var glyph : new java.util.TreeMap<>(set.getValue().glyphs()).entrySet()) {
+                if (glyph.getKey().equals(glyph.getKey().toLowerCase(java.util.Locale.ROOT))
+                        && !glyph.getKey().equals(glyph.getKey().toUpperCase(java.util.Locale.ROOT))) {
+                    continue;   // a lowercase letter may borrow its capital
+                }
+                String other = seen.putIfAbsent(glyph.getValue(), glyph.getKey());
+                assertThat(other).as("%s: '%s' looks the same as '%s'", set.getKey(), glyph.getKey(), other).isNull();
+            }
+        }
+    }
 }

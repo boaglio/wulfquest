@@ -1,11 +1,11 @@
 # shell.hash — AGENTS.md §22.5
 # Framebuffer hashes. Regenerate with -Dgolden.update=true, and say why.
-title = 2e316a5ab3371236
-title cycled = d59b119cbaf50496
-key_config = 9eaf2f8412b5de92
-sound = 4bf6fedf835ee553
-hiscores = 2f0af79202086713
-credits = bddd411709ac17dd
-stats = b7210a4c273284e1
-load_game = ee479cd79772a7df
-options = 5b5112120eaedc47
+title = 9649b64069655836
+title cycled = 3db35d8271234a96
+key_config = 6a0caba3b5948e4a
+sound = a0c7d0e9c2e8d703
+hiscores = 2fe5c35bdc9bcdeb
+credits = 0709e531b264c839
+stats = 9cee65b8b8ef7ae9
+load_game = c21538cc81a0e1b3
+options = cbba90e053e95613
