@@ -15,8 +15,10 @@ import wulf.world.RoomAddress;
  * title. A save is not a snapshot of the simulation: it is the game's seed and every tick of
  * input played into it, and loading plays that input into a fresh game of the same seed —
  * the simulation is deterministic (§6.4), so it arrives exactly where it was saved. The state
- * hash the save recorded is checked on arrival; a save the rules have moved under (another
- * version of the content, or other options) is refused rather than loaded wrong.
+ * hash the save recorded is checked on arrival, and that is the whole test: a save from another
+ * version of the content loads when this version's rules replay it to the same place (most new
+ * versions change words, menus and pictures, not the rules), and a save the rules have moved
+ * under, or made with other options, is refused rather than loaded wrong.
  *
  * <p>A loaded game ranks like any other, as the user asked: saving and loading are part of
  * play. A game that was already practice when it was saved stays practice.
@@ -86,9 +88,6 @@ public final class SaveSlots {
             return Loaded.refused("EMPTY");
         }
         QuickSaveData save = found.get();
-        if (!save.contentHash().equals(contentHash)) {
-            return Loaded.refused("SAVE IS FROM ANOTHER VERSION");
-        }
         if (save.dev() != dev || !save.startRoom().equals(start.toString())) {
             return Loaded.refused("SAVE WAS MADE WITH OTHER OPTIONS");
         }
@@ -107,7 +106,9 @@ public final class SaveSlots {
             sim.markPractice();
         }
         if (!Replay.hex(sim.stateHash()).equals(save.stateHash())) {
-            return Loaded.refused("SAVE DOES NOT FIT THIS GAME");
+            // Another version's rules took it somewhere else; this version's cannot have.
+            return Loaded.refused(save.contentHash().equals(contentHash) ? "SAVE DOES NOT FIT THIS GAME"
+                    : "SAVE IS FROM ANOTHER VERSION");
         }
         voice.accept(sim);
         return new Loaded(sim, played, null);

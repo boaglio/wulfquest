@@ -95,12 +95,20 @@ class SaveSlotsTest {
     }
 
     @Test
-    void anotherVersionsSaveIsRefusedAndSoIsOneThatDoesNotFit(@TempDir Path dir) {
+    void anotherVersionsSaveLoadsWhenItsRulesStillFitAndIsRefusedWhenNot(@TempDir Path dir) {
         PlayerDb db = db(dir);
         GameSession s = new GameSession(GAME.make(3L, 0, false));
         play(s, 0, 300);
         slots(db, "an older version").save(s, 1);
-        assertThat(slots(db, CONTENT.db().contentHash()).load(1).refusal()).isEqualTo("SAVE IS FROM ANOTHER VERSION");
+        SaveSlots.Loaded older = slots(db, CONTENT.db().contentHash()).load(1);
+        assertThat(older.ok()).as("words and menus changed, not the rules: it loads").isTrue();
+        assertThat(older.sim().stateHash()).isEqualTo(s.sim().stateHash());
+        QuickSaveData o = db.saveSlot(1).orElseThrow();
+        db.putSaveSlot(1, new QuickSaveData(o.schemaVersion(), o.contentHash(), o.seed() + 1, o.startRoom(), o.dev(),
+                o.practiced(), o.ticks(), o.input(), o.stateHash(), o.newGamePlus(), o.easy(), o.date(), o.quarters(),
+                o.score(), o.room()));
+        assertThat(slots(db, CONTENT.db().contentHash()).load(1).refusal()).as("its rules took it elsewhere")
+                .isEqualTo("SAVE IS FROM ANOTHER VERSION");
         SaveSlots saves = slots(db, CONTENT.db().contentHash());
         saves.save(s, 1);
         QuickSaveData d = db.saveSlot(1).orElseThrow();

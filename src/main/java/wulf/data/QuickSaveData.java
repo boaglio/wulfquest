@@ -7,7 +7,8 @@ import java.util.List;
  * what made it — its seed, where it started, and every tick's input — plus the state hash
  * it reached. Loading replays it; the hash says whether it came out the same.
  *
- * @param contentHash the content database's hash when saved: another version's rules may not replay it
+ * @param contentHash the content database's hash when saved: if it does not replay to its hash, whether
+ *                    the rules moved under it (another version) or it is wrong
  * @param practiced   whether the game was already a practice run (§17.6), which is in the state hash
  * @param input       run-length {@code [ticks, bits]} pairs, as in a replay (§22.6)
  * @param newGamePlus which job the game is (§14.9); absent, as in a save from before them, the game itself

@@ -3340,8 +3340,13 @@ game the way a new game of this session is built (`Boot`'s one `silentGame`
 function, practice options and all), replays the input silently at full speed —
 an hour of play is well under a second — and compares the hash. Nothing is
 copied field by field, so nothing can be forgotten. A save is refused, never
-loaded wrong, when it is another version's (`contentHash`), another session's
-options (start room, `--dev`), damaged, or does not replay to its hash.
+loaded wrong, when it is another session's options (start room, `--dev`),
+damaged, or does not replay to its hash — `SAVE IS FROM ANOTHER VERSION` when
+its `contentHash` is not this one's, else `SAVE DOES NOT FIT THIS GAME`. The hash
+is the whole test (2026-10-17, asked for by the user): a save from another
+version loads whenever this version's rules replay it to the same place, as
+they do across a change of words, menus, keys or pictures. Before, any change
+to `data/` at all refused every save.
 
 **A loaded game ranks like any other**, as the user asked: saving and loading
 are part of play now. A game that was already practice when saved (§17.6)
