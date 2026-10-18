@@ -2,7 +2,7 @@
 
 <p align="center">
   <img src="https://github.com/boaglio/wulfquest/releases/download/v0.7.0/screenshot-title.png" width="400" alt="The new title screen: WULF over QUEST, with START, OPTIONS and EXIT">
-  <img src="https://github.com/boaglio/wulfquest/releases/download/v0.7.0/screenshot-options.png" width="400" alt="The options page: difficulty, keys, sound, volume and the four 8-bit switches">
+  <img src="https://github.com/boaglio/wulfquest/releases/download/v0.7.1/screenshot-options.png" width="400" alt="The options page: difficulty, keys, sound, volume, scale, full screen and the four 8-bit switches">
 </p>
 <p align="center">
   <img src="https://github.com/boaglio/wulfquest/releases/download/v0.7.0/screenshot-lake.png" width="400" alt="Ranger Vale by a jungle lake, a tribesman watching, an orchid's spell running out on the bar below">

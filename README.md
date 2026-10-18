@@ -21,7 +21,7 @@ engine.
   <img src="https://github.com/boaglio/wulfquest/releases/download/v0.7.0/screenshot-beast.png" width="420" alt="Ranger Vale swinging his sabre under a wall of carved stone">
 </p>
 <p align="center">
-  <img src="https://github.com/boaglio/wulfquest/releases/download/v0.7.0/screenshot-options.png" width="420" alt="The options page: difficulty, keys, sound, volume and the four 8-bit switches">
+  <img src="https://github.com/boaglio/wulfquest/releases/download/v0.7.1/screenshot-options.png" width="420" alt="The options page: difficulty, keys, sound, volume, scale, full screen and the four 8-bit switches">
   <img src="https://github.com/boaglio/wulfquest/releases/download/v0.7.0/screenshot-8bit.png" width="420" alt="A room of mountains and crates in 8-BIT MODE: colour clash, one-colour sprites and scanlines">
 </p>
 
