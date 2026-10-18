@@ -29,7 +29,7 @@ class InputMapTest {
 
     @Test
     void thePeriodProfileIsQaopM() {
-        InputMap map = new InputMap(new InputConfig(1, "period", config.profiles(), config.gamepad()));
+        InputMap map = new InputMap(new InputConfig(1, "period", config.menuSelect(), config.profiles(), config.gamepad()));
         assertThat(map.held(InputMap.Action.UP, Set.of(KeyEvent.VK_Q))).isTrue();
         assertThat(map.held(InputMap.Action.RIGHT, Set.of(KeyEvent.VK_P))).isTrue();
         assertThat(map.held(InputMap.Action.FIRE, Set.of(KeyEvent.VK_M))).isTrue();
@@ -38,7 +38,7 @@ class InputMapTest {
     @Test
     void anUnknownActiveProfileIsADataError() {
         DataException e = catchThrowableOfType(DataException.class,
-                () -> new InputMap(new InputConfig(1, "arcade", config.profiles(), config.gamepad())));
+                () -> new InputMap(new InputConfig(1, "arcade", config.menuSelect(), config.profiles(), config.gamepad())));
         assertThat(e).isNotNull();
         assertThat(e.pointer()).isEqualTo("/active");
     }
@@ -49,7 +49,7 @@ class InputMapTest {
         InputConfig.Profile clash = new InputConfig.Profile(m.up(), m.down(), m.left(), m.right(),
                 List.of("SPACE"), List.of("SPACE"), m.quit(), m.devKill(), m.devMask(), m.devWulf());
         DataException e = catchThrowableOfType(DataException.class,
-                () -> new InputMap(new InputConfig(1, "clash", Map.of("clash", clash), config.gamepad())));
+                () -> new InputMap(new InputConfig(1, "clash", config.menuSelect(), Map.of("clash", clash), config.gamepad())));
         assertThat(e).isNotNull();
         assertThat(e.detail()).contains("FIRE").contains("PAUSE");
     }

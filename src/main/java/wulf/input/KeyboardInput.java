@@ -50,6 +50,9 @@ public final class KeyboardInput implements KeyListener, FocusListener {
             if (code >= KeyEvent.VK_F1 && code <= KeyEvent.VK_F12) {
                 namedSinceDrain.add("F" + (code - KeyEvent.VK_F1 + 1));
             }
+            if (map.selects(code)) {
+                namedSinceDrain.add(MenuInput.SELECT);
+            }
         }
     }
 

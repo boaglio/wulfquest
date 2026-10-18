@@ -178,6 +178,11 @@ public final class Shell {
 
     public void tick(InputState in, MenuInput menu, boolean dev) {
         stateTick++;
+        if (state != State.PLAYING && menu.selected()) {
+            // §19.1: Space and Enter choose on every page, whatever the profile's fire; in the
+            // jungle they are only what the profile makes them.
+            in = in.or(InputState.of(0, 0, false, true));
+        }
         switch (state) {
             case TITLE -> {
                 if (!showing.isEmpty()) {

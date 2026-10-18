@@ -3194,6 +3194,7 @@ else. With two channels, a higher-priority event steals channel 0.
     }
   },
   "active": "modern",
+  "menuSelect": ["SPACE", "ENTER"],
   "gamepad": {
     "enabled": true, "deadzonePercent": 40, "dpadAsDirections": true,
     "buttons": { "fire": ["A", "X"], "pause": ["START"], "quit": ["BACK"],
@@ -3209,6 +3210,10 @@ on the title screen as a nod; do not make it default.
   roaming Wulf (§13.3) — only under `features.roamingWulf`; the original's
   (§13.8) is never summoned. It is not `W`, which is up.
 - A key bound to two actions within a profile is a load-time `DataException`.
+- `menuSelect` (asked for by the user, 2026-10-18) are keys that choose the line
+  on every page outside the jungle, whatever the profile: the shell takes them
+  as a fire press there (`MenuInput.SELECT`). In the jungle they are only what
+  the profile makes them, so Enter never swings and is never in a replay.
 - The keys page lists the actions in `shell.json`'s `keyConfig.actionOrder`;
   `MAP` there is the map's key in each profile (`map.key`, `map.profileKeys`).
 - The deadzone is an integer percent: nothing that reaches the game is a float.

@@ -16,6 +16,7 @@ public final class InputMap {
     private static final String SOURCE = "data/config/input.json";
 
     private final int[][] codes = new int[Action.values().length][];
+    private final int[] select;
 
     public InputMap(InputConfig config) {
         InputConfig.Profile p = config.profiles().get(config.active());
@@ -35,6 +36,20 @@ public final class InputMap {
         bind(Action.DEV_MASK, p.devMask(), at + "/devMask");
         bind(Action.DEV_WULF, p.devWulf(), at + "/devWulf");
         rejectConflicts(at);
+        select = new int[config.menuSelect().size()];
+        for (int i = 0; i < select.length; i++) {
+            select[i] = codeOf(config.menuSelect().get(i), "/menuSelect/" + i);
+        }
+    }
+
+    /** Whether this key chooses a line on the shell's pages (§19.1), whatever it does in the jungle. */
+    public boolean selects(int code) {
+        for (int c : select) {
+            if (c == code) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private void bind(Action action, List<String> names, String at) {

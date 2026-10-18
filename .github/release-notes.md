@@ -17,7 +17,7 @@
 
 **A new title screen.** WULF QUEST, big, over a short menu: `START`,
 `OPTIONS` and `EXIT`, with `CONTINUE` first when you have a game saved. Up and
-down choose, fire picks, and a little wolf marks the line you are on, on every
+down choose, Space or Enter picks (in either key layout), and a little wolf marks the line you are on, on every
 menu. Under `START` the title says whether the next game is Hard or Easy and,
 once you have won, which of Mr Jones's jobs it is; left and right choose the
 job. The difficulty, the keys, loading a game, the hi-scores, your ledger and

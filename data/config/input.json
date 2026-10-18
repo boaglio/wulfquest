@@ -1,6 +1,7 @@
 {
   "schemaVersion": 1,
   "active": "modern",
+  "menuSelect": ["SPACE", "ENTER"],
   "profiles": {
     "modern": {
       "up": ["UP", "W"],

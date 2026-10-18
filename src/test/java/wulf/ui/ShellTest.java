@@ -93,6 +93,26 @@ class ShellTest {
     }
 
     @Test
+    void spaceOrEnterChoosesOnAPageButIsNothingInTheJungle(@TempDir Path dir) {
+        // §19.1: the menuSelect keys pick the line, whatever the profile's fire is.
+        Shell shell = shell(db(dir));
+        press(shell, DOWN, line(shell.titleLines(), "options"));
+        shell.tick(InputState.NONE, MenuInput.named(MenuInput.SELECT), false);
+        assertThat(shell.state()).isEqualTo(Shell.State.OPTIONS);
+
+        Shell playing = shell(db(dir.resolve("b")));
+        playing.tick(FIRE, MenuInput.NONE, false);
+        assertThat(playing.state()).isEqualTo(Shell.State.PLAYING);
+        idle(playing, 30);   // past the room's opening freeze
+        assertThat(playing.session().sim().player().swinging()).isFalse();
+        playing.tick(InputState.NONE, MenuInput.named(MenuInput.SELECT), false);
+        assertThat(playing.state()).isEqualTo(Shell.State.PLAYING);
+        assertThat(playing.session().sim().player().swinging()).isFalse();
+        playing.tick(FIRE, MenuInput.NONE, false);
+        assertThat(playing.session().sim().player().swinging()).isTrue();
+    }
+
+    @Test
     void theTitlesOptionsHoldThePagesItUsedToListAndComeBackToThem(@TempDir Path dir) {
         PlayerDb db = db(dir);
         Shell shell = shell(db);

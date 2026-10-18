@@ -17,6 +17,9 @@ public record MenuInput(List<Character> typed, boolean anyKey, List<String> name
 
     public static final MenuInput NONE = new MenuInput(List.of(), false);
 
+    /** The name a {@code menuSelect} key (§19.1) arrives under: Space or Enter, in any profile. */
+    public static final String SELECT = "SELECT";
+
     public MenuInput {
         typed = List.copyOf(typed);
         named = List.copyOf(named);
@@ -43,6 +46,11 @@ public record MenuInput(List<Character> typed, boolean anyKey, List<String> name
         java.util.Set<Pad> both = new java.util.HashSet<>(pads);
         both.addAll(other.pads);
         return new MenuInput(chars, anyKey || other.anyKey, names, both);
+    }
+
+    /** A key that chooses the line on a menu page was pressed (§19.1). */
+    public boolean selected() {
+        return named.contains(SELECT);
     }
 
     /** A gamepad button standing in for one of the shell's letters. */

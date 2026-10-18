@@ -4,10 +4,15 @@
   "title": "config/input.json — AGENTS.md §19",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schemaVersion", "active", "profiles", "gamepad"],
+  "required": ["schemaVersion", "active", "menuSelect", "profiles", "gamepad"],
   "properties": {
     "schemaVersion": { "type": "integer", "minimum": 1 },
     "active": { "type": "string", "minLength": 1 },
+    "menuSelect": {
+      "description": "Keys that choose a line on every menu page, whichever profile is active, as well as that profile's fire (§19.1).",
+      "type": "array", "minItems": 1, "uniqueItems": true,
+      "items": { "type": "string", "pattern": "^([A-Z]|[0-9]|UP|DOWN|LEFT|RIGHT|SPACE|ESCAPE|ENTER|TAB|BACKSPACE)$" }
+    },
     "profiles": {
       "type": "object",
       "minProperties": 1,

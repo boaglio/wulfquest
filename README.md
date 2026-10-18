@@ -188,11 +188,12 @@ rebuild — the game reads the working tree's `data/` directly.
 |-----|--------|
 | Arrows / WASD | Walk (8 directions) |
 | Space / Z | Swing the sabre; in a menu, pick; at game over, continue |
+| Enter | In a menu, pick (Space does too, in either key layout) |
 | M | The map (the game waits while it is open; `B` in the period layout) |
 | P | Pause, with the menu: save, load, options, quit |
 | Escape | Leave the jungle for the title; quit from the title |
 
-In every menu, up and down choose, fire picks, and Escape goes back a step; on
+In every menu, up and down choose, Space or Enter (or fire) picks, and Escape goes back a step; on
 the options page left and right turn the volume.
 
 **A gamepad** works too: plug it in before the game or while it runs. The left
