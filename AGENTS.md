@@ -2459,6 +2459,21 @@ and once one is in hand the arrow and the trail are gone, time left or not.
   where it ends. It crosses rooms the map has not shown yet: that is the point
   of the glass.
 
+**Four more for the way out** (asked for by the user, 2026-10-18: "after the
+amulet is full the maze should have 4 looking glass to lead to the game
+exit"). `items.glass.wholePlaces` lie only once the amulet is whole — the
+same test the Keeper's stepping aside uses, `quarters() >= exit.requiresPieces`
+— one in each quarter of the map: `3,3`, `11,3`, `3,11` and `11,11`, picked as
+the rooms nearest each quarter's middle that a player can reach, that the
+validator allows, and with no treasure on the spot. Taken, each is a glass
+like the others, and with the amulet whole the way leads to the arch. They are
+glass `places.size() + i` of the quest (`Glass.all()`, `Glass.lies`), at most
+eight in all. Unlike the first two they share their rooms with treasures, so
+that every game's treasures stay where they were;
+`QuestDataValidationTest.noTreasureLiesOnAGlassForTheWayOut` keeps the two
+apart. No recorded replay takes one, so every replay checks as before.
+`QuestTest.theWayOutsGlassesLieOnlyOnceTheAmuletIsWhole`.
+
 **The way** is worked out by `wulf.world.Wayfinder`, a breadth-first flood
 over the stitched world (`WorldGrid`) through the cells the feet fit in, the
 same clearance the audit uses (§22.3), so it goes the way a player can walk,

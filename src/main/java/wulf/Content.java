@@ -262,7 +262,7 @@ public record Content(
         for (LandmarksData.Eye eye : items.eyes()) {
             keepClear.add(LandmarksData.room(eye.room()));
         }
-        for (LandmarksData.Place glass : items.glass().places()) {
+        for (LandmarksData.Place glass : items.glass().places()) {   // not wholePlaces: they share their rooms
             keepClear.add(LandmarksData.room(glass.room()));
         }
         int[][] places = treasures.places(map, solidity(rooms), keepClear);

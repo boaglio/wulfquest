@@ -160,6 +160,18 @@
                             "properties": { "x": { "type": "integer" }, "y": { "type": "integer" } } }
                 }
               }
+            },
+            "wholePlaces": {
+              "description": "AGENTS.md §14.10: more glasses, lying only once the amulet is whole, to lead to the way out; places and wholePlaces together at most 8",
+              "type": "array", "maxItems": 8,
+              "items": {
+                "type": "object", "additionalProperties": false, "required": ["room", "spot"],
+                "properties": {
+                  "room": { "$ref": "#/$defs/room" },
+                  "spot": { "type": "object", "additionalProperties": false, "required": ["x", "y"],
+                            "properties": { "x": { "type": "integer" }, "y": { "type": "integer" } } }
+                }
+              }
             }
           }
         }

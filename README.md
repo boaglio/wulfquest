@@ -188,7 +188,8 @@ it is open. Find the scroll a few rooms from the start and it shows the whole
 jungle; find the two eyes and it shows where the four quarters of the amulet lie.
 Find one of the two looking glasses and for ninety seconds an arrow at the
 edge of each room shows the way to the nearest quarter, and the map dots the
-whole way there.
+whole way there. Once the amulet is whole, four more looking glasses lie in the
+jungle, one in each quarter of the map, to show you the way out.
 
 The title screen is a short menu: `START`, `OPTIONS` and `EXIT`. With a game
 saved, `CONTINUE` comes first and carries on with the one saved last, and

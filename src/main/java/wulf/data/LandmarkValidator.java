@@ -264,6 +264,8 @@ public final class LandmarkValidator {
 
     /** The way arrow's frames, one for each way out of a room (§14.10). */
     public static final List<String> ARROW_FRAMES = List.of("n", "e", "s", "w");
+    /** The glasses the quest keeps a mark for: {@code Quest.MAX_GLASSES}. */
+    static final int MAX_GLASSES = 8;
     /** The glass glints through these, as the eye glances (§14.10). */
     public static final List<String> GLASS_FRAMES = List.of("f0", "f1", "f2");
 
@@ -291,9 +293,14 @@ public final class LandmarkValidator {
         for (LandmarksData.Eye eye : items.eyes()) {
             used.add(LandmarksData.room(eye.room()));
         }
-        for (int i = 0; i < glass.places().size(); i++) {
-            LandmarksData.Place place = glass.places().get(i);
-            String at = "/items/glass/places/" + i;
+        if (glass.all().size() > MAX_GLASSES) {
+            throw new DataException(FILE, "/items/glass", "has " + glass.all().size() + " glasses; the quest keeps "
+                    + MAX_GLASSES);
+        }
+        for (int i = 0; i < glass.all().size(); i++) {
+            LandmarksData.Place place = glass.all().get(i);
+            int n = glass.places().size();
+            String at = i < n ? "/items/glass/places/" + i : "/items/glass/wholePlaces/" + (i - n);
             RoomAddress room = room(place.room(), at + "/room");
             if (!used.add(room)) {
                 throw new DataException(FILE, at + "/room",

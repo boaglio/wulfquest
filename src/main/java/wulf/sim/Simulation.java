@@ -1525,11 +1525,14 @@ public final class Simulation {
                 itemTaken(marks);
             }
         }
-        // §14.10: a looking glass shows the way afresh, however much of the last one was left.
+        // §14.10: a looking glass shows the way afresh, however much of the last one was left; the
+        // amulet whole, more lie in the jungle to lead the way out.
         LandmarksData.Glass glass = items.glass();
-        for (int i = 0; i < glass.places().size() && i < Quest.MAX_GLASSES; i++) {
-            LandmarksData.Place place = glass.places().get(i);
-            if (!q.glassTaken[i] && LandmarksData.room(place.room()).equals(room)
+        List<LandmarksData.Place> glasses = glass.all();
+        boolean whole = q.quarters() >= marks.exit().requiresPieces();
+        for (int i = 0; i < glasses.size() && i < Quest.MAX_GLASSES; i++) {
+            LandmarksData.Place place = glasses.get(i);
+            if (!q.glassTaken[i] && glass.lies(i, whole) && LandmarksData.room(place.room()).equals(room)
                     && overlaps(px, py, pb.w(), pb.h(), roomX + place.spot().x() + ib.x(),
                             roomY + place.spot().y() + ib.y(), ib.w(), ib.h())) {
                 q.glassTaken[i] = true;

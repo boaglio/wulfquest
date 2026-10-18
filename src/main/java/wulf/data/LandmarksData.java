@@ -140,14 +140,33 @@ public record LandmarksData(
      * The looking glasses (§14.10, {@code [NEW]}): each lies at one of {@code places}, once a
      * game, and taken shows the way to the nearest quarter still out — or, the amulet whole, to
      * the arch — for {@code showWayTicks}, as an arrow at the room's way out and a trail on the
-     * map. For its last {@code warnTicks} the arrow blinks faster.
+     * map. For its last {@code warnTicks} the arrow blinks faster. {@code wholePlaces} are more
+     * glasses that lie only once the amulet is whole, to lead the way out.
      */
-    public record Glass(String sprite, int showWayTicks, int warnTicks, Arrow arrow, List<Place> places) {
+    public record Glass(String sprite, int showWayTicks, int warnTicks, Arrow arrow, List<Place> places,
+                        List<Place> wholePlaces) {
         public Glass {
             places = List.copyOf(places);
+            wholePlaces = wholePlaces == null ? List.of() : List.copyOf(wholePlaces);
+        }
+
+        public Glass(String sprite, int showWayTicks, int warnTicks, Arrow arrow, List<Place> places) {
+            this(sprite, showWayTicks, warnTicks, arrow, places, List.of());
         }
 
         public static final Glass NONE = new Glass("", 1, 0, new Arrow("", 1, 1, 0), List.of());
+
+        /** Every glass, those of {@code places} first: glass {@code i} of the quest is the {@code i}th. */
+        public List<Place> all() {
+            List<Place> out = new java.util.ArrayList<>(places);
+            out.addAll(wholePlaces);
+            return out;
+        }
+
+        /** Whether glass {@code i} of {@link #all()} lies in the jungle: always, or once the amulet is whole. */
+        public boolean lies(int i, boolean whole) {
+            return i < places.size() || whole;
+        }
     }
 
     /**

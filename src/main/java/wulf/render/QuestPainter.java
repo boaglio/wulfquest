@@ -113,9 +113,11 @@ public final class QuestPainter {
                 }
             }
             LandmarksData.Glass glass = items.glass();
-            for (int i = 0; i < glass.places().size(); i++) {
-                LandmarksData.Place place = glass.places().get(i);
-                if (!q.glassTaken(i) && LandmarksData.room(place.room()).equals(sim.room())) {
+            List<LandmarksData.Place> glasses = glass.all();
+            boolean whole = q.quarters() >= marks.exit().requiresPieces();   // §14.10: then the way out's glasses lie too
+            for (int i = 0; i < glasses.size(); i++) {
+                LandmarksData.Place place = glasses.get(i);
+                if (!q.glassTaken(i) && glass.lies(i, whole) && LandmarksData.room(place.room()).equals(sim.room())) {
                     // The light moves across the lens on the eye's beat (§14.10).
                     String frame = "f" + GLANCE[(int) (sim.tick() / items.glanceTicks() % GLANCE.length)];
                     sprites.get(glass.sprite()).blit(fb, frame, field.x() + place.spot().x(), field.y() + place.spot().y());

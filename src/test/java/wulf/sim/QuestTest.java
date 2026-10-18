@@ -280,6 +280,30 @@ class QuestTest {
     }
 
     @Test
+    void theWayOutsGlassesLieOnlyOnceTheAmuletIsWhole() {
+        // §14.10, asked for by the user (2026-10-18): four more glasses, to lead to the arch.
+        LandmarksData.Glass glass = marks.items().glass();
+        assertThat(glass.wholePlaces()).hasSize(4);
+        int first = glass.places().size();
+        LandmarksData.Place place = glass.wholePlaces().get(0);
+        Simulation s = sim(OPEN, real, LandmarksData.room(place.room()), place.spot().x(), place.spot().y());
+        s.tick(STILL);
+        assertThat(s.quest().glassTaken(first)).as("not while a piece is still out").isFalse();
+        assertThat(s.quest().wayTicks()).isZero();
+
+        Simulation w = sim(OPEN, real, LandmarksData.room(place.room()), place.spot().x(), place.spot().y());
+        Quest q = w.quest();
+        for (int i = 0; i < marks.lairs().size(); i++) {
+            q.taken[i] = true;
+            q.piecesHeld++;
+            q.slotMask |= marks.lairs().get(i).slotMask();
+        }
+        w.tick(STILL);
+        assertThat(q.glassTaken(first)).as("the amulet whole, it lies there to be taken").isTrue();
+        assertThat(q.wayTicks()).isEqualTo(glass.showWayTicks());
+    }
+
+    @Test
     void takingAPieceEndsTheGlass() {
         // §14.10, asked for by the user: the glass showed the way to a piece; once one is taken, it is gone.
         int i = 3;

@@ -183,4 +183,28 @@ class QuestDataValidationTest {
                     .containsExactlyInAnyOrderElementsOf(m.amuletSets().sets().get(k).stream().map(LandmarksData::room).toList());
         }
     }
+
+    @Test
+    void noTreasureLiesOnAGlassForTheWayOut() {
+        // §14.10, §16.4: the way out's glasses share their rooms with treasures, which keep their
+        // places (so every game's treasures are where they were); the two must not touch.
+        wulf.sim.Treasures t = c.treasurePlaces();
+        CreatureData.Box box = c.landmarks().items().pickupBox();
+        for (LandmarksData.Place place : c.landmarks().items().glass().wholePlaces()) {
+            wulf.world.RoomAddress room = LandmarksData.room(place.room());
+            int r = room.row() * wulf.world.RoomAddress.GRID_W + room.col();
+            for (int p = 0; p < wulf.sim.Treasures.PLACES_PER_ROOM; p++) {
+                int x = t.x()[r * wulf.sim.Treasures.PLACES_PER_ROOM + p];
+                int y = t.y()[r * wulf.sim.Treasures.PLACES_PER_ROOM + p];
+                if (x == Integer.MIN_VALUE) {
+                    continue;
+                }
+                boolean apart = x + t.pickupBox().x() + t.pickupBox().w() <= place.spot().x() + box.x()
+                        || place.spot().x() + box.x() + box.w() <= x + t.pickupBox().x()
+                        || y + t.pickupBox().y() + t.pickupBox().h() <= place.spot().y() + box.y()
+                        || place.spot().y() + box.y() + box.h() <= y + t.pickupBox().y();
+                assertThat(apart).as("treasure %d in %s", p, place.room()).isTrue();
+            }
+        }
+    }
 }
