@@ -60,6 +60,7 @@ Commands (default: play):
   endings [game options]      see every ending in turn: the game's, then each of
                               Mr Jones's jobs' — fire steps through, Esc skips one
   jar [game options]          build the single runnable jar, then play from it
+  pad [SECONDS]               what SDL takes for a gamepad here, and all it reports
   test                        the full verify: tests, data validators, CI gates
   menu                        pick one of the above from a list
   help                        this message
@@ -149,7 +150,7 @@ while [[ $# -gt 0 ]]; do
         --no-build)  RUN_BUILD="never"; shift ;;
         --test)      RUN_TESTS=1; shift ;;
         -h|--help|help) usage; exit 0 ;;
-        play|browse|endings|check|replay|audit|sprites|jar|test|menu)
+        play|browse|endings|check|replay|audit|sprites|jar|pad|test|menu)
                      # A command word only counts before any game option: `--record play`
                      # records to a file called play.
                      if [[ ${#ARGS[@]} -eq 0 && "$COMMAND" == "play" ]]; then COMMAND="$1"; else ARGS+=("$1"); fi
@@ -242,6 +243,7 @@ case "$COMMAND" in
         fi
         exec java -cp "$CP" wulf.tools.ReplayRunner "${ARGS[@]}" ;;
     audit)   exec java -cp "$CP" wulf.tools.MapAudit "${ARGS[@]}" ;;
+    pad)     exec java $NATIVE -cp "$CP" wulf.tools.PadProbe "${ARGS[@]}" ;;
     sprites)
         [[ ${#ARGS[@]} -gt 0 ]] || ARGS=(validate)
         exec java -cp "$CP" wulf.tools.SpriteForgeCli "${ARGS[@]}" ;;

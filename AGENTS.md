@@ -3223,6 +3223,14 @@ report from a player with a pad is the first thing to act on.
   hi-scores, credits, stats, load, options) have no button; the pause menu
   reaches load and the options.
 - **Off** with `"enabled": false`, or for one run with `--no-gamepad`.
+- **`./run.sh pad [SECONDS]`** (`wulf.tools.PadProbe`) lists what SDL takes
+  for a gamepad on the machine and prints every change each one reports, and
+  any read slow enough to stall a tick. Written when the user's keyboard
+  stopped working with the pad code on (2026-10-18): something on that machine
+  was being read as a pad, and the sandbox here cannot see `/dev/input` to find
+  out what. Their machine has a Razer Basilisk V3 mouse and an H510 headset
+  each with an interface of one `ABS_MISC` axis and no buttons, the kind udev
+  is known to mark as a joystick.
 
 ---
 
