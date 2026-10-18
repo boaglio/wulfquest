@@ -436,6 +436,8 @@ class ShellTest {
     void theTitleFallsIntoAttractModeWhenLeftAloneAndAnyKeyEndsIt(@TempDir Path dir) {
         Shell shell = shell(db(dir), ShellTest::demo);
         idle(shell, CONFIG.attract().idleTicks());
+        assertThat(shell.state()).as("the plane lands first").isEqualTo(Shell.State.INTRO);
+        idle(shell, CONFIG.attract().intro().ticks());
         assertThat(shell.state()).isEqualTo(Shell.State.ATTRACT);
         long before = shell.demo().sim().tick();
         idle(shell, 10);
@@ -445,9 +447,24 @@ class ShellTest {
     }
 
     @Test
-    void withoutADemoTheTitleSimplyWaits(@TempDir Path dir) {
+    void anyKeyDuringThePlaneSceneBringsTheTitleBack(@TempDir Path dir) {
+        // §17.2: the idle title's scene, a plane landing in the forest, before the demo.
+        Shell shell = shell(db(dir), ShellTest::demo);
+        idle(shell, CONFIG.attract().idleTicks());
+        assertThat(shell.state()).isEqualTo(Shell.State.INTRO);
+        idle(shell, 10);
+        shell.tick(InputState.NONE, MenuInput.of("Q"), false);
+        assertThat(shell.state()).isEqualTo(Shell.State.TITLE);
+        idle(shell, CONFIG.attract().idleTicks() - 1);
+        assertThat(shell.state()).as("the wait starts again").isEqualTo(Shell.State.TITLE);
+    }
+
+    @Test
+    void withoutADemoThePlaneSceneGoesBackToTheTitle(@TempDir Path dir) {
         Shell shell = shell(db(dir));
-        idle(shell, CONFIG.attract().idleTicks() * 2);
+        idle(shell, CONFIG.attract().idleTicks());
+        assertThat(shell.state()).isEqualTo(Shell.State.INTRO);
+        idle(shell, CONFIG.attract().intro().ticks());
         assertThat(shell.state()).isEqualTo(Shell.State.TITLE);
     }
 

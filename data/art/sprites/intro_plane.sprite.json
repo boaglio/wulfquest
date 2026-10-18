@@ -1,0 +1,88 @@
+{
+  "schemaVersion": 1,
+  "name": "intro_plane",
+  "size": {
+    "w": 40,
+    "h": 17
+  },
+  "origin": {
+    "x": 20,
+    "y": 17
+  },
+  "legend": {
+    ".": -1,
+    "K": 0,
+    "w": 7,
+    "R": 10,
+    "C": 13,
+    "W": 15
+  },
+  "frames": [
+    {
+      "id": "fly0",
+      "rows": [
+        "........................................",
+        "..KK..........KKKKKKKKKKKKKKKKKK........",
+        "..KWK.........KWWWWWWWWWWWWWWWWK........",
+        "..KWWK........KRRRRRRRRRRRRRRRRK........",
+        "..KWWWK.......KKKKKKKKKKKKKKKKKK......w.",
+        "..KWWWWK.......K..K.KWWKCCKCCCK.K.....w.",
+        "..KRRWWWKKKKKKKK...KKWWKCCKCCCCK.K....w.",
+        "..KWWRRWWWWWWWWWK...KWWKKKKKKKKKWKKK..w.",
+        "..KWWWWRRRRRRRRRRRRRRRRRRRRRRRRRRRWWK.w.",
+        "...KKWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWKK..",
+        ".....KKKKWWWWWWWWWWWWWWWWWWWWWWWWWWWKwK.",
+        ".........KKKKKKKKKKKKKKKKKKKKKKKKKKKKK..",
+        "........................K......K......w.",
+        ".........................K....K.......w.",
+        "........................KKK..KKK......w.",
+        "........................KwK..KwK........",
+        ".........................K....K........."
+      ]
+    },
+    {
+      "id": "fly1",
+      "rows": [
+        "........................................",
+        "..KK..........KKKKKKKKKKKKKKKKKK........",
+        "..KWK.........KWWWWWWWWWWWWWWWWK........",
+        "..KWWK........KRRRRRRRRRRRRRRRRK........",
+        "..KWWWK.......KKKKKKKKKKKKKKKKKK........",
+        "..KWWWWK.......K..K.KWWKCCKCCCK.K.......",
+        "..KRRWWWKKKKKKKK...KKWWKCCKCCCCK.K......",
+        "..KWWRRWWWWWWWWWK...KWWKKKKKKKKKWKKK..w.",
+        "..KWWWWRRRRRRRRRRRRRRRRRRRRRRRRRRRWWK.w.",
+        "...KKWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWKK..",
+        ".....KKKKWWWWWWWWWWWWWWWWWWWWWWWWWWWKwK.",
+        ".........KKKKKKKKKKKKKKKKKKKKKKKKKKKKK..",
+        "........................K......K......w.",
+        ".........................K....K.........",
+        "........................KKK..KKK........",
+        "........................KwK..KwK........",
+        ".........................K....K........."
+      ]
+    },
+    {
+      "id": "still",
+      "rows": [
+        "........................................",
+        "..KK..........KKKKKKKKKKKKKKKKKK........",
+        "..KWK.........KWWWWWWWWWWWWWWWWK........",
+        "..KWWK........KRRRRRRRRRRRRRRRRK........",
+        "..KWWWK.......KKKKKKKKKKKKKKKKKK........",
+        "..KWWWWK.......K..K.KWWKCCKCCCK.K.....w.",
+        "..KRRWWWKKKKKKKK...KKWWKCCKCCCCK.K....w.",
+        "..KWWRRWWWWWWWWWK...KWWKKKKKKKKKWKKK..w.",
+        "..KWWWWRRRRRRRRRRRRRRRRRRRRRRRRRRRWWK.w.",
+        "...KKWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWKK..",
+        ".....KKKKWWWWWWWWWWWWWWWWWWWWWWWWWWWKwK.",
+        ".........KKKKKKKKKKKKKKKKKKKKKKKKKKKKK..",
+        "........................K......K......w.",
+        ".........................K....K.......w.",
+        "........................KKK..KKK........",
+        "........................KwK..KwK........",
+        ".........................K....K........."
+      ]
+    }
+  ]
+}

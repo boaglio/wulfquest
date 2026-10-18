@@ -267,6 +267,38 @@ public final class ShellValidator {
     }
 
     /**
+     * The idle title's scene (§17.2): its sprites and frames exist, its path's ticks rise, its
+     * colour exists, and its rows fit the canvas in the display font.
+     */
+    public static void checkIntro(ShellConfig shell, Palette palette, DisplayConfig display, FontData font,
+                                  Map<String, SpriteData> sprites) {
+        ShellConfig.Intro intro = shell.attract().intro();
+        if (intro == null) {
+            return;
+        }
+        for (int i = 0; i < intro.backdrop().size(); i++) {
+            ShellConfig.Placed p = intro.backdrop().get(i);
+            frame(sprites, p.sprite(), p.frame(), "/attract/intro/backdrop/" + i);
+        }
+        ShellConfig.Plane plane = intro.plane();
+        for (String f : plane.frames()) {
+            frame(sprites, plane.sprite(), f, "/attract/intro/plane/frames");
+        }
+        frame(sprites, plane.sprite(), plane.parked(), "/attract/intro/plane/parked");
+        for (int i = 1; i < plane.path().size(); i++) {
+            if (plane.path().get(i).at() <= plane.path().get(i - 1).at()) {
+                throw new DataException(SOURCE, "/attract/intro/plane/path/" + i + "/at",
+                        "is not after the waypoint before it");
+            }
+        }
+        colour(palette, intro.textColour(), "/attract/intro/textColour");
+        int big = font.sets().get("big").advance();
+        for (int i = 0; i < intro.text().size(); i++) {
+            fits(intro.text().get(i), big, display.canvas().w(), "/attract/intro/text/" + i);
+        }
+    }
+
+    /**
      * The end of a won game (§14.7): the closing scene's sprites, frames, colours and tune
      * all exist and every line of it fits the canvas in the display font; the tally's and the
      * roll's colours exist, and the roll's lines fit in the small one.

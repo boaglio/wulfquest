@@ -119,6 +119,7 @@ public record Content(
         ShellValidator.checkMap(shell, display, sprites.all());
         ShellValidator.checkMarker(shell, font, sprites.all());
         ShellValidator.checkEnding(shell, palette, display, font, sprites.all(), music);
+        ShellValidator.checkIntro(shell, palette, display, font, sprites.all());
         SceneryCatalog scenery = new SceneryCatalog(db.load("world/scenery", SceneryData.class), sprites.all());
         RoomBaker rooms = new RoomBaker(map, scenery);
         PlayerData player = db.load("entities/player", PlayerData.class);

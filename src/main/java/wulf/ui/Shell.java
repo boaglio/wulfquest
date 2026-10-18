@@ -24,7 +24,7 @@ import wulf.sim.Simulation;
 public final class Shell {
 
     public enum State {
-        TITLE, ATTRACT, HISCORES, STATS, KEY_CONFIG, SOUND, PLAYING, GAME_OVER, ENDING, TALLY, ROLL,
+        TITLE, INTRO, ATTRACT, HISCORES, STATS, KEY_CONFIG, SOUND, PLAYING, GAME_OVER, ENDING, TALLY, ROLL,
         OFFER, HISCORE_ENTRY, PAUSED, SAVE_GAME, LOAD_GAME, OPTIONS, NEW_GAME
     }
 
@@ -192,6 +192,7 @@ public final class Shell {
                     title(in, menu);
                 }
             }
+            case INTRO -> intro(in, menu);
             case ATTRACT -> attract(in, menu);
             case HISCORES, STATS -> page(in);
             case KEY_CONFIG -> keyConfig(in, menu);
@@ -261,7 +262,26 @@ public final class Shell {
         boolean busy = menu.anyKey() || in.up() || in.down() || in.left() || in.right() || in.fire();
         idleTicks = busy ? 0 : idleTicks + 1;
         if (idleTicks >= config.attract().idleTicks()) {
+            idleTicks = 0;
+            if (config.attract().intro() != null) {
+                go(State.INTRO);
+            } else {
+                startDemo();
+            }
+        }
+    }
+
+    /** §17.2: the plane lands, the line types out, and then the demo; any key brings the title back. */
+    private void intro(InputState in, MenuInput menu) {
+        if (menu.anyKey() || in.firePressed() || in.quitPressed()) {
+            go(State.TITLE);
+            return;
+        }
+        if (stateTick >= config.attract().intro().ticks()) {
             startDemo();
+            if (state == State.INTRO) {
+                go(State.TITLE);   // no demo to show
+            }
         }
     }
 

@@ -30,6 +30,7 @@ public final class ShellPainter {
     private final MenuScreen menus;
     private final TallyScreen tally;
     private final EndingScreen ending;
+    private final IntroScreen intro;
     private final CreditsRoll roll;
     private final AmuletRevealScreen reveal;
     private final MapScreen map;
@@ -60,6 +61,8 @@ public final class ShellPainter {
         wulf.render.Sprite amulet = sprites.get(content.landmarks().amulet().sprite());
         java.util.List<String> framesBySlot = wulf.render.QuestPainter.framesBySlot(content.landmarks());
         this.reveal = new AmuletRevealScreen(chrome, display, amulet, framesBySlot, config.amuletReveal());
+        this.intro = config.attract().intro() == null ? null
+                : new IntroScreen(config.attract().intro(), chrome.big(), content.palette(), sprites);
         this.ending = new EndingScreen(config.ending(), chrome.big(), content.palette(), sprites, amulet, framesBySlot);
         this.roll = new CreditsRoll(config.credits(), chrome.big(), chrome.small(), content.palette());
         this.map = new MapScreen(display, content.rooms(), content.landmarks(), content.palette(), config.map(),
@@ -83,6 +86,7 @@ public final class ShellPainter {
             case TITLE -> title.paint(fb, shell.stateTick(), shell.notice(), shell.titleLines(), shell.cursor(),
                     saved(shell), shell.easy(),
                     shell.unlocked() > 0 ? config.newGamePlus().levels().get(shell.level()) : null);
+            case INTRO -> intro.paint(fb, shell.stateTick());
             case ATTRACT -> attract(fb, shell);
             case HISCORES -> hiScores.paint(fb, db.scores(), shell.highlight());
             case STATS -> stats.paint(fb, db.stats(), tickHz);

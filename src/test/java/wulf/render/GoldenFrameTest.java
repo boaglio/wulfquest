@@ -103,6 +103,9 @@ class GoldenFrameTest {
         // The wordmark's colours walk down the rows, so a later tick is a different picture.
         frames.put("title cycled", paint(painter, fb, shell(db), MenuInput.NONE,
                 content.shell().title().cycle().ticksPerStep()));
+        // §17.2: the idle title's scene, the plane down and the line typed.
+        frames.put("intro", paint(painter, fb, shell(db), MenuInput.NONE,
+                content.shell().attract().idleTicks() + content.shell().attract().intro().ticks() - 10));
         for (ShellConfig.MenuItem item : content.shell().title().menu()) {
             frames.put(item.screen().toLowerCase(java.util.Locale.ROOT),
                     paint(painter, fb, shell(db), MenuInput.of(item.key()), 0));

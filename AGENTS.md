@@ -2770,7 +2770,7 @@ BOOT ──► TITLE ──► (key) ──► PLAYING ──► ...
  │           │        ├─► STATS  [NEW]     ├─► GAME_OVER ──► HISCORE_ENTRY ──► TITLE
  │           │        ├─► SOUND  [NEW]     └─► WON ──► ENDING ──► TALLY ──► ROLL ──► (OFFER) ──► HISCORE_ENTRY ──► TITLE
  │           │        └─► KEY_CONFIG
- │           └─► ATTRACT (after `attract.idleTicks` idle; any key returns)
+ │           └─► INTRO ──► ATTRACT (after `attract.idleTicks` idle; any key returns)
  └─► fatal data error ──► DATA_ERROR (renders the failing file and the reason, exits on key)
 ```
 
@@ -2810,6 +2810,15 @@ data-driven game; build it in M1.
   through the palette per row.
 - An attract-mode demo: `ReplayRunner` playing `replays/attract.json` behind
   a dimmed overlay after 20 s idle. Any key returns to the title.
+- **The plane scene `[NEW]`** (asked for by the user, 2026-10-18: "if the main
+  screen is idle for 20 seconds then show a scene with a airplane … landing on
+  a forest", with "one man, one missing artifact, one mission" at the bottom).
+  `INTRO` comes before the demo: over the forest (`attract.intro.backdrop`,
+  the jungle's own scenery), a small plane (`intro_plane`, our own sprite)
+  flies down along `plane.path`, straight lines between waypoints, and rolls
+  to a stop on the grass; the line types out under it. After `intro.ticks`
+  the demo plays, or with none the title comes back; any key returns to the
+  title. Without `intro`, the title goes straight to the demo as before.
 - Lines: the menu (`title.items`), and the attribution line from §2.5 in
   small type.
 

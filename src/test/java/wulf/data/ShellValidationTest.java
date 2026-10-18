@@ -1,6 +1,7 @@
 package wulf.data;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.catchThrowableOfType;
 
 import java.nio.file.Path;
@@ -310,5 +311,34 @@ class ShellValidationTest {
         assertThat(c.shell().credits().lines()).anyMatch(l -> l.contains("FERNANDO BOAGLIO"));
         assertThat(c.shell().credits().rollRows()).containsSubsequence(c.shell().credits().heading(),
                 c.shell().credits().lines().get(0));
+    }
+
+    @Test
+    void theIntrosPlaneMustFlyForwardInTime() {
+        ShellConfig s = c.shell();
+        ShellConfig.Intro in = s.attract().intro();
+        List<ShellConfig.Waypoint> back = new java.util.ArrayList<>(in.plane().path());
+        java.util.Collections.reverse(back);
+        ShellConfig.Plane plane = new ShellConfig.Plane(in.plane().sprite(), in.plane().frames(),
+                in.plane().ticksPerFrame(), in.plane().parked(), back);
+        ShellConfig.Attract attract = new ShellConfig.Attract(s.attract().idleTicks(), s.attract().replay(),
+                s.attract().banner(), s.attract().dimEveryOtherRow(), new ShellConfig.Intro(in.backdrop(), plane,
+                        in.text(), in.textAt(), in.textY(), in.textColour(), in.ticksPerChar(), in.ticks()));
+        ShellConfig broken = new ShellConfig(s.schemaVersion(), s.screenHoldTicks(), s.title(), attract, s.gameOver(),
+                s.ending(), s.tally(), s.hiScores(), s.keyConfig(), s.sound(), s.stats(), s.amuletReveal(), s.map(),
+                s.saves(), s.credits(), s.newGamePlus(), s.difficulty(), s.pause(), s.options());
+        assertThatThrownBy(() -> ShellValidator.checkIntro(broken, c.palette(), c.display(), c.font(),
+                c.sprites().all()))
+                .isInstanceOf(DataException.class).hasMessageContaining("/attract/intro/plane/path/1/at");
+    }
+
+    @Test
+    void theIntrosPlaneStopsWhereItsPathEnds() {
+        ShellConfig.Plane plane = c.shell().attract().intro().plane();
+        ShellConfig.Waypoint last = plane.path().get(plane.path().size() - 1);
+        assertThat(plane.at(0)).containsExactly(plane.path().get(0).x(), plane.path().get(0).y());
+        assertThat(plane.parked(last.at() - 1)).isFalse();
+        assertThat(plane.at(last.at() + 1000)).containsExactly(last.x(), last.y());
+        assertThat(plane.parked(last.at())).isTrue();
     }
 }

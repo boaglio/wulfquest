@@ -214,6 +214,9 @@ edge of each room shows the way to the nearest quarter, and the map dots the
 whole way there. Once the amulet is whole, four more looking glasses lie in the
 jungle, one in each quarter of the map, to show you the way out.
 
+Left alone for 20 seconds, the title shows a small plane landing in the
+forest, then a demo of the game; any key brings it back.
+
 The title screen is a short menu: `START`, `OPTIONS` and `EXIT`. With a game
 saved, `CONTINUE` comes first and carries on with the one saved last, and
 `START` becomes `NEW GAME`. A new game first asks for one of the three save

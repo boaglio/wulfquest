@@ -65,7 +65,55 @@ public record ShellConfig(
     public record MenuItem(String key, String screen, String label) {
     }
 
-    public record Attract(int idleTicks, String replay, String banner, boolean dimEveryOtherRow) {
+    public record Attract(int idleTicks, String replay, String banner, boolean dimEveryOtherRow, Intro intro) {
+    }
+
+    /**
+     * The scene the title idles into before the demo (§17.2, {@code [NEW]}, asked for by the
+     * user 2026-10-18): over {@code backdrop}, a small plane flies in along {@code path} and
+     * lands in the forest, and {@code text} types out at the bottom. It lasts {@code ticks}.
+     */
+    public record Intro(List<Placed> backdrop, Plane plane, List<String> text, int textAt, int textY,
+                        String textColour, int ticksPerChar, int ticks) {
+        public Intro {
+            backdrop = List.copyOf(backdrop);
+            text = List.copyOf(text);
+        }
+    }
+
+    /**
+     * The intro's plane: {@code frames} in turn, one every {@code ticksPerFrame}, while it moves
+     * along {@code path}, and {@code parked} once it is at the path's end.
+     */
+    public record Plane(String sprite, List<String> frames, int ticksPerFrame, String parked, List<Waypoint> path) {
+        public Plane {
+            frames = List.copyOf(frames);
+            path = List.copyOf(path);
+        }
+
+        /** Where the plane's wheels are at tick {@code t}: straight lines between the waypoints. */
+        public int[] at(long t) {
+            Waypoint last = path.get(0);
+            for (Waypoint w : path) {
+                if (t < w.at()) {
+                    long span = w.at() - last.at();
+                    long k = t - last.at();
+                    return new int[]{last.x() + (int) ((w.x() - last.x()) * k / span),
+                            last.y() + (int) ((w.y() - last.y()) * k / span)};
+                }
+                last = w;
+            }
+            return new int[]{last.x(), last.y()};
+        }
+
+        /** Whether it has stopped: past the last waypoint. */
+        public boolean parked(long t) {
+            return t >= path.get(path.size() - 1).at();
+        }
+    }
+
+    /** A point of the plane's path: where its wheels are at tick {@code at}. */
+    public record Waypoint(int at, int x, int y) {
     }
 
     /**
