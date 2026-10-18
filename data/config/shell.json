@@ -61,7 +61,8 @@
         "label": "O OPTIONS"
       }
     ],
-    "footer": "CLEAN-ROOM HOMAGE - ALL ART AUDIO AND CODE ORIGINAL"
+    "footer": "CLEAN-ROOM HOMAGE - ALL ART AUDIO AND CODE ORIGINAL",
+    "marker": { "sprite": "menu_wolf", "frame": "head" }
   },
   "attract": {
     "idleTicks": 1000,

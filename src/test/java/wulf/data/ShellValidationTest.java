@@ -29,13 +29,14 @@ class ShellValidationTest {
     private static ShellConfig.Title titleWith(List<String> colours, List<ShellConfig.MenuItem> menu) {
         ShellConfig.Title t = c.shell().title();
         return new ShellConfig.Title(t.wordmark(), t.tagline(), t.items(), t.newGameKey(),
-                t.newGameLabel(), t.continueDetail(), new ShellConfig.Cycle(colours, t.cycle().ticksPerStep()), menu, t.footer());
+                t.newGameLabel(), t.continueDetail(), new ShellConfig.Cycle(colours, t.cycle().ticksPerStep()), menu, t.footer(),
+                t.marker());
     }
 
     private static ShellConfig.Title titleWithItems(List<ShellConfig.Entry> items) {
         ShellConfig.Title t = c.shell().title();
         return new ShellConfig.Title(t.wordmark(), t.tagline(), items, t.newGameKey(), t.newGameLabel(),
-                t.continueDetail(), t.cycle(), t.menu(), t.footer());
+                t.continueDetail(), t.cycle(), t.menu(), t.footer(), t.marker());
     }
 
     private static DataException error(ShellConfig shell) {
@@ -60,7 +61,7 @@ class ShellValidationTest {
     void theNewGameKeyCannotBeAMenuKey() {
         ShellConfig.Title t = c.shell().title();
         ShellConfig.Title clashing = new ShellConfig.Title(t.wordmark(), t.tagline(), t.items(),
-                t.menu().get(0).key(), t.newGameLabel(), t.continueDetail(), t.cycle(), t.menu(), t.footer());
+                t.menu().get(0).key(), t.newGameLabel(), t.continueDetail(), t.cycle(), t.menu(), t.footer(), t.marker());
         DataException e = error(withTitle(clashing));
         assertThat(e).isNotNull();
         assertThat(e.detail()).contains("twice");
@@ -80,6 +81,20 @@ class ShellValidationTest {
         e = error(withTitle(titleWithItems(items)));
         assertThat(e).isNotNull();
         assertThat(e.detail()).contains("dance");
+    }
+
+    @Test
+    void theMenuMarkerMustBeASpriteWithItsFrameAndFitALine() {
+        ShellConfig.Title t = c.shell().title();
+        java.util.function.Function<ShellConfig.Marker, DataException> with = m -> catchThrowableOfType(
+                DataException.class, () -> ShellValidator.checkMarker(withTitle(new ShellConfig.Title(t.wordmark(),
+                        t.tagline(), t.items(), t.newGameKey(), t.newGameLabel(), t.continueDetail(), t.cycle(),
+                        t.menu(), t.footer(), m)), c.font(), c.sprites().all()));
+        assertThat(with.apply(t.marker())).isNull();
+        assertThat(with.apply(new ShellConfig.Marker("no_such", "head")).pointer()).isEqualTo("/title/marker/sprite");
+        assertThat(with.apply(new ShellConfig.Marker(t.marker().sprite(), "tail")).pointer())
+                .isEqualTo("/title/marker/frame");
+        assertThat(with.apply(new ShellConfig.Marker("creature_wulf", "walk0")).detail()).contains("tall");
     }
 
     @Test

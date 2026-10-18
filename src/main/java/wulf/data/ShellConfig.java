@@ -37,10 +37,11 @@ public record ShellConfig(
      * up, down and fire. {@code continue} shows only while a game is saved, the newest one under
      * it as {@code continueDetail} gives it, and then {@code start} reads {@code newGameLabel}.
      * {@code menu} and {@code newGameKey} are letters that do the same as the options page's lines,
-     * for those who know them; the title does not list them.
+     * for those who know them; the title does not list them. {@code marker} is the sprite before
+     * the line chosen, on the title and on every menu.
      */
     public record Title(String wordmark, String tagline, List<Entry> items, String newGameKey, String newGameLabel,
-                        String continueDetail, Cycle cycle, List<MenuItem> menu, String footer) {
+                        String continueDetail, Cycle cycle, List<MenuItem> menu, String footer, Marker marker) {
         public Title {
             items = List.copyOf(items);
             menu = List.copyOf(menu);
@@ -48,6 +49,10 @@ public record ShellConfig(
 
         /** The ids the shell acts on. */
         public static final List<String> IDS = List.of("continue", "start", "options", "exit");
+    }
+
+    /** The mark before a menu's chosen line (§17.2): frame {@code frame} of sprite {@code sprite}. */
+    public record Marker(String sprite, String frame) {
     }
 
     /** The wordmark's colours, walked one row at a time (§17.2). */

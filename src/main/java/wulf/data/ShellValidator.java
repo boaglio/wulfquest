@@ -236,6 +236,27 @@ public final class ShellValidator {
         fitsARoom(display, arch, "/map/exitIcon/sprite");
     }
 
+    /**
+     * The mark before a menu's chosen line (§17.2): a sprite that exists, with the frame named, no
+     * taller than a line of the big font and its gap.
+     */
+    public static void checkMarker(ShellConfig shell, FontData font, Map<String, SpriteData> sprites) {
+        ShellConfig.Marker marker = shell.title().marker();
+        SpriteData sprite = sprites.get(marker.sprite());
+        if (sprite == null) {
+            throw new DataException(SOURCE, "/title/marker/sprite", "names '" + marker.sprite() + "', which is not a sprite");
+        }
+        if (sprite.frames().stream().noneMatch(f -> f.id().equals(marker.frame()))) {
+            throw new DataException(SOURCE, "/title/marker/frame", "names frame '" + marker.frame() + "', which '"
+                    + marker.sprite() + "' has not got");
+        }
+        int line = font.sets().get("big").lineHeight() + 2;
+        if (sprite.size().h() > line) {
+            throw new DataException(SOURCE, "/title/marker/sprite",
+                    "is " + sprite.size().h() + " px tall; a menu line is " + line);
+        }
+    }
+
     private static void fitsARoom(DisplayConfig display, SpriteData sprite, String pointer) {
         int cw = display.playfield().w() / wulf.world.RoomAddress.GRID_W;
         int ch = display.playfield().h() / wulf.world.RoomAddress.GRID_H;

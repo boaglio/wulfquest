@@ -4,10 +4,11 @@ import java.util.List;
 import wulf.data.Palette;
 import wulf.data.ShellConfig;
 import wulf.render.Framebuffer;
+import wulf.render.Sprite;
 
 /**
- * The title screen (AGENTS.md §17.2): the wordmark in the 8x8 font with its colour
- * cycling down the rows, its tagline, a short menu, and the attribution line.
+ * The title screen (AGENTS.md §17.2): the wordmark in the 8x8 font, a word to a line and
+ * its colour cycling down the rows, its tagline, a short menu, and the attribution line.
  *
  * <p>The cycle walks one pixel row at a time through the colours named in
  * {@code shell.json}, so the wordmark reads as a single banded object rather
@@ -16,11 +17,11 @@ import wulf.render.Framebuffer;
 public final class TitleScreen {
 
     /** The wordmark is drawn at this many times the 8x8 font, which is all the art it needs. */
-    private static final int WORDMARK_SCALE = 3;
-    /** Layout, not game numbers: where the wordmark and the menu start. */
-    private static final int WORDMARK_Y = 44;
-    private static final int MENU_Y = 106;
-    private static final String MARK = "> ";
+    private static final int WORDMARK_SCALE = 5;
+    /** Layout, not game numbers: where the wordmark and the menu start, and the gap between its words. */
+    private static final int WORDMARK_Y = 18;
+    private static final int WORDMARK_GAP = 6;
+    private static final int MENU_Y = 132;
 
     private final Chrome chrome;
     private final ShellConfig.Title title;
@@ -28,17 +29,11 @@ public final class TitleScreen {
     private final int jobColour;
     private final ShellConfig.Difficulty difficulty;
     private final int easyColour;
-
-    public TitleScreen(Chrome chrome, ShellConfig.Title title, Palette palette) {
-        this(chrome, title, palette, ShellConfig.NewGamePlus.NONE);
-    }
-
-    public TitleScreen(Chrome chrome, ShellConfig.Title title, Palette palette, ShellConfig.NewGamePlus jobs) {
-        this(chrome, title, palette, jobs, ShellConfig.Difficulty.NONE);
-    }
+    private final Sprite marker;
 
     public TitleScreen(Chrome chrome, ShellConfig.Title title, Palette palette, ShellConfig.NewGamePlus jobs,
-                       ShellConfig.Difficulty difficulty) {
+                       ShellConfig.Difficulty difficulty, Sprite marker) {
+        this.marker = marker;
         this.difficulty = difficulty;
         this.easyColour = palette.indexOf(difficulty.easyColour());
         this.chrome = chrome;
@@ -71,8 +66,12 @@ public final class TitleScreen {
                       String saved, boolean easy, ShellConfig.Job job) {
         fb.clear(chrome.ground());
         int w = fb.width();
-        drawWordmark(fb, title.wordmark(), WORDMARK_Y, tick);
-        int y = WORDMARK_Y + chrome.big().glyphH() * WORDMARK_SCALE + 10;
+        int y = WORDMARK_Y;
+        for (String word : title.wordmark().split(" ")) {
+            drawWordmark(fb, word, y, tick);
+            y += chrome.big().glyphH() * WORDMARK_SCALE + WORDMARK_GAP;
+        }
+        y += 4;
         String tagline = job != null && job.tagline() != null ? job.tagline() : title.tagline();
         chrome.small().drawCentred(fb, tagline, 0, w, y, chrome.dim());
 
@@ -81,8 +80,8 @@ public final class TitleScreen {
         for (int i = 0; i < lines.size(); i++) {
             ShellConfig.Entry line = lines.get(i);
             boolean chosen = i == cursor;
-            chrome.big().drawCentred(fb, (chosen ? MARK : "") + line.label(), 0, w, y,
-                    chosen ? chrome.bright() : chrome.body());
+            MenuScreen.drawLine(fb, chrome.big(), chosen ? marker : null, title.marker().frame(), line.label(),
+                    0, w, y, chosen ? chrome.bright() : chrome.body());
             y += chrome.big().lineHeight() + 2;
             if (line.id().equals("continue") && saved != null) {
                 chrome.small().drawCentred(fb, saved, 0, w, y, chrome.dim());

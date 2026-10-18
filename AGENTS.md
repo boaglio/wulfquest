@@ -2794,9 +2794,15 @@ data-driven game; build it in M1.
 
   **A short menu** (asked for by the user, 2026-10-18: "the first screen has
   too much information... wulf quest bigger, and then a menu"). The wordmark
-  is drawn at 3× the 8×8 font, the tagline under it, then `START`, `OPTIONS`
+  is drawn at 5× the 8×8 font, a word to a line (`WULF` over `QUEST`; bigger
+  still, asked for the same day), the tagline under it, then `START`, `OPTIONS`
   and `EXIT` in the big font — up and down to choose, fire to pick, the line
-  chosen bright with a mark, as on every menu (§17.4). Under `START` the
+  chosen bright with a little wolf's head before it, as on every menu (§17.4).
+  The wolf is `title.marker`, frame `head` of the sprite `menu_wolf` (our own
+  art, 14×12, replacing the `> ` it was until then, at the user's asking);
+  `ShellValidator.checkMarker` wants the sprite and frame to exist and the
+  sprite no taller than a big-font line and its gap. The chosen line no longer
+  moves aside for its mark: the wolf sits to the left of the centred line. Under `START` the
   difficulty the next game is (`HARD`, or `EASY` in `easyColour`) and, once a
   later job is open, that job between arrows: left and right on `START` choose
   it (§14.9). Escape still quits. `ShellTest`, `ShellValidator` (the ids are

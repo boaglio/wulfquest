@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 1,
+  "name": "menu_wolf",
+  "size": {
+    "w": 14,
+    "h": 12
+  },
+  "origin": {
+    "x": 0,
+    "y": 12
+  },
+  "legend": {
+    ".": -1,
+    "K": 0,
+    "w": 7,
+    "R": 10,
+    "W": 15
+  },
+  "frames": [
+    {
+      "id": "head",
+      "rows": [
+        "...K..K.......",
+        "..KwK.KWK.....",
+        "..KwKKWWK.....",
+        ".KwwWWWWWK....",
+        ".KwWWWWWWWK...",
+        "KwwWWKRWWWWKK.",
+        "KwwWWWWWWWWWWK",
+        "KwwWWWWWWWWWKK",
+        "KwwwWWWWKKKKK.",
+        ".KwwwWWWWK....",
+        "..KwwwwKK.....",
+        "...KKKK......."
+      ]
+    }
+  ]
+}

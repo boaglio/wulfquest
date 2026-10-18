@@ -45,8 +45,10 @@ public final class ShellPainter {
         this.tickHz = content.game().tickHz();
         this.game = new GamePainter(content, fonts);
         this.chrome = new Chrome(fonts, content.palette());
+        wulf.render.SpriteBank sprites = new wulf.render.SpriteBank(content.sprites());
+        wulf.render.Sprite marker = sprites.get(config.title().marker().sprite());
         this.title = new TitleScreen(chrome, config.title(), content.palette(), config.newGamePlus(),
-                config.difficulty());
+                config.difficulty(), marker);
         this.credits = new CreditsScreen(chrome, config.credits());
         this.hiScores = new HiScoreScreen(chrome, config.hiScores(), config.difficulty().hiScoreMark(),
                 content.palette().indexOf(config.difficulty().easyColour()));
@@ -55,9 +57,8 @@ public final class ShellPainter {
         this.keys = new KeyConfigScreen(chrome, config.keyConfig());
         this.sound = new SoundScreen(chrome, config.sound());
         this.gameOver = new GameOverScreen(chrome, config.gameOver());
-        this.menus = new MenuScreen(chrome, display, config);
+        this.menus = new MenuScreen(chrome, display, config, marker);
         this.tally = new TallyScreen(fonts.small(), content.palette(), config.tally());
-        wulf.render.SpriteBank sprites = new wulf.render.SpriteBank(content.sprites());
         wulf.render.Sprite amulet = sprites.get(content.landmarks().amulet().sprite());
         java.util.List<String> framesBySlot = wulf.render.QuestPainter.framesBySlot(content.landmarks());
         this.reveal = new AmuletRevealScreen(chrome, display, amulet, framesBySlot, config.amuletReveal());

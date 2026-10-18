@@ -7,7 +7,9 @@ import wulf.data.DisplayConfig;
 import wulf.data.QuickSaveData;
 import wulf.data.Settings;
 import wulf.data.ShellConfig;
+import wulf.render.FontSet;
 import wulf.render.Framebuffer;
+import wulf.render.Sprite;
 
 /**
  * The menus (AGENTS.md §17.4, §17.9, §21.4, {@code [NEW]}): the pause menu, the save and load
@@ -17,15 +19,17 @@ import wulf.render.Framebuffer;
  */
 final class MenuScreen {
 
-    private static final String MARK = "> ";
-    /** Layout, not a game number: the box's margin round its lines. */
+    /** Layout, not game numbers: the box's margin round its lines, and the marker's gap before a line. */
     private static final int PAD_PX = 8;
+    private static final int MARKER_GAP_PX = 5;
 
     private final Chrome chrome;
     private final DisplayConfig.Playfield field;
     private final ShellConfig config;
+    private final Sprite marker;
 
-    MenuScreen(Chrome chrome, DisplayConfig display, ShellConfig config) {
+    MenuScreen(Chrome chrome, DisplayConfig display, ShellConfig config, Sprite marker) {
+        this.marker = marker;
         this.chrome = chrome;
         this.field = display.playfield();
         this.config = config;
@@ -136,11 +140,25 @@ final class MenuScreen {
         chrome.footer(fb, footer);
     }
 
+    /**
+     * One line of a menu, centred, and before it the marker (§17.2) when it is the line chosen;
+     * the line stays where it was, so choosing it does not shift it.
+     */
+    static void drawLine(Framebuffer fb, FontSet font, Sprite marker, String frame, String text, int x, int w,
+                         int y, int colour) {
+        font.drawCentred(fb, text, x, w, y, colour);
+        if (marker != null) {
+            int left = x + (w - font.widthOf(text)) / 2 - MARKER_GAP_PX - marker.w();
+            int bottom = y + (font.glyphH() + marker.h()) / 2;   // their middles level
+            marker.blit(fb, frame, left + marker.originX(), bottom - marker.h() + marker.originY());
+        }
+    }
+
     private int paintRows(Framebuffer fb, List<Row> rows, int x, int w, int y) {
         for (Row r : rows) {
             if (r.big()) {
-                String text = (r.chosen() ? MARK : "") + r.text();
-                chrome.big().drawCentred(fb, text, x, w, y, r.chosen() ? chrome.bright() : chrome.body());
+                drawLine(fb, chrome.big(), r.chosen() ? marker : null, config.title().marker().frame(), r.text(),
+                        x, w, y, r.chosen() ? chrome.bright() : chrome.body());
                 y += chrome.big().lineHeight() + 2;
             } else {
                 chrome.small().drawCentred(fb, r.text(), x, w, y, chrome.dim());
