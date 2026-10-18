@@ -119,7 +119,7 @@ public final class ShellPainter {
     private void playing(Framebuffer fb, Shell shell, boolean dev) {
         GameSession session = shell.session();
         game.paint(fb, session.sim(), db.scores().best(),
-                session.mapOpen() ? config.map().message() : session.message(dev), session.showMask());
+                session.mapOpen() ? config.map().messageFor(db.settings().inputProfile()) : session.message(dev), session.showMask());
         if (session.mapOpen()) {
             map.paint(fb, session.sim(), shell.stateTick());   // §17.7
             return;

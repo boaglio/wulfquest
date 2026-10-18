@@ -276,7 +276,7 @@ public final class Shell {
     }
 
     private void playing(InputState in, MenuInput menu, boolean dev) {
-        if (menu.typed(config.map().key())) {
+        if (menu.typed(config.map().keyFor(db.settings().inputProfile()))) {
             session.toggleMap();   // §17.7
             jukebox.sfx(SFX_PICK);
         }

@@ -34,6 +34,17 @@ public final class ShellValidator {
                 throw new DataException(SOURCE, "/map", "names '" + colour + "', which is not a palette entry");
             }
         }
+        // §17.7: the map's key must not also walk, swing or pause in any profile.
+        for (Map.Entry<String, InputConfig.Profile> e : input.profiles().entrySet()) {
+            InputConfig.Profile p = e.getValue();
+            String key = map.keyFor(e.getKey());
+            for (List<String> bound : List.of(p.up(), p.down(), p.left(), p.right(), p.fire(), p.pause(), p.quit())) {
+                if (bound.contains(key)) {
+                    throw new DataException(SOURCE, "/map", "opens the map with '" + key + "', which the '"
+                            + e.getKey() + "' input profile already plays with");
+                }
+            }
+        }
         Set<String> keys = new HashSet<>();
         for (int i = 0; i < shell.title().menu().size(); i++) {
             ShellConfig.MenuItem item = shell.title().menu().get(i);

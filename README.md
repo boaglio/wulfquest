@@ -111,6 +111,7 @@ lives in [AGENTS.md](AGENTS.md) §24.
 ./run.sh --debug-effect haste  # start under an orchid's effect: torpor (red), haste
                                # (cyan), reversal (magenta), knockdown (yellow)
 ./run.sh --no-audio        # silence for this run; your settings are not changed
+./run.sh --scale 3         # a smaller or bigger window: 1 to 6 times (4 by default)
 ./run.sh --lives 9         # practice: nine lives in reserve
 ./run.sh --infinite-lives  # practice: die as often as you like
 ./run.sh --god             # practice: nothing can kill you
@@ -162,9 +163,13 @@ rebuild — the game reads the working tree's `data/` directly.
 | Key | Action |
 |-----|--------|
 | Arrows / WASD | Walk (8 directions) |
-| Space / Z | Swing the sabre |
+| Space / Z | Swing the sabre; on the title, start a game; at game over, continue |
+| M | The map (the game waits while it is open; `B` in the period layout) |
 | P | Pause, with the menu: save, load, options, quit |
 | Escape | Leave the jungle for the title; quit from the title |
+
+In every menu, up and down choose, fire picks, and Escape goes back a step; on
+the options page left and right turn the volume.
 
 In the jungle, `M` opens a map of everywhere you have been; the game waits while
 it is open. Find the scroll a few rooms from the start and it shows the whole
@@ -174,22 +179,23 @@ edge of each room shows the way to the nearest quarter, and the map dots the
 whole way there.
 
 The title screen has the rest: `K` for the keys page, where the period layout
-(`Q`/`A`/`O`/`P` to move, `M` to swing) is one digit away and the choice sticks;
+(`Q`/`A`/`O`/`P` to move, `M` to swing, `H` to pause, `B` for the map) is one digit away and the choice sticks;
 `A` for sound and volume; `H` for the hi-scores, `C` for the credits, `S` for
 your lifetime ledger; `D` switches between Hard and Easy. Once you have won,
 `N` picks which of Mr Jones's jobs to play. Nothing is hidden behind a key you have to know.
 
 **Pause, save and load.** `P` pauses the game with a menu: resume, save the
 game to one of three slots, load one, options, or quit to the title. The title
-has `L` to load a saved game and `O` for the options — scanlines, the colour
-clash, and the original's one-colour creatures.
+has `L` to load a saved game and `O` for the options — sound and volume,
+scanlines, the colour clash, and the original's one-colour creatures.
 
 Hi-scores, settings, stats and saved games are written to your own user directory —
 `~/.local/share/wulfquest` on Linux, `~/Library/Application Support/WulfQuest`
 on macOS, `%APPDATA%\WulfQuest` on Windows — never into the game's own files.
 
-For the nostalgic, the options page (`O` on the title, or from the pause menu)
-has three switches, all off by default: scanlines darken every other line of
+The options page (`O` on the title, or from the pause menu) starts with the
+sound, on or off, and its volume, so you can turn it down without leaving a
+game. For the nostalgic it has three more switches, all off by default: scanlines darken every other line of
 the picture; the colour clash gives each 8×8 cell of the jungle one colour, so
 Vale turns the undergrowth his colour as he pushes through it — faithful, ugly,
 fun; and one-colour creatures draws each creature in a single ink, as the

@@ -2900,6 +2900,13 @@ is recorded and replays never know (§22.6). The panel says
 `MAP: PRESS M TO RETURN`. With `--dev`, the collision view moved from `M` to
 `N` to make room.
 
+**In the period layout the map is `B`** (`map.profileKeys`, 2026-10-17): there
+`M` swings the sabre (§19.1), and every swing opened the map too. `B` sits
+beside `M` and `N` on the Spectrum's bottom row and plays nothing. The panel's
+words name the key the layout uses (`map.message`, `{key}`), and
+`ShellValidator` refuses a map key that any profile walks, swings, pauses or
+quits with.
+
 The whole 16×16 jungle at 16×11 pixels a room — the room's open ground in
 miniature, a pixel for every 2×2 cells, walls left dark, so the ways through
 read as a maze. Rooms Vale has been in are drawn in `visited` (green); once

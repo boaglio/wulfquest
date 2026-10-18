@@ -1,6 +1,7 @@
 package wulf.data;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * Bound view of {@code data/config/shell.json} (AGENTS.md §17.1–§17.5): every
@@ -57,10 +58,21 @@ public record ShellConfig(
      * and the room Vale is in blinks in {@code here} every {@code blinkTicks}. A lair an eye has
      * shown, or whose quarter is taken, carries {@code quarterIcon} (§14.8).
      */
-    public record MapScreen(String key, String message, String visited, String revealed, String here,
-                            int blinkTicks, QuarterIcon quarterIcon, Trail trail) {
+    public record MapScreen(String key, Map<String, String> profileKeys, String message, String visited,
+                            String revealed, String here, int blinkTicks, QuarterIcon quarterIcon, Trail trail) {
         public MapScreen {
+            profileKeys = profileKeys == null ? Map.of() : Map.copyOf(profileKeys);
             trail = trail == null ? Trail.NONE : trail;
+        }
+
+        /** The key that opens the map in input profile {@code profile}: its own, or {@code key}. */
+        public String keyFor(String profile) {
+            return profileKeys.getOrDefault(profile, key);
+        }
+
+        /** What the playfield says while the map is open, naming that key. */
+        public String messageFor(String profile) {
+            return message.replace("{key}", keyFor(profile));
         }
     }
 

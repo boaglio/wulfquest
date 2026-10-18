@@ -262,6 +262,11 @@
       "required": ["key", "message", "visited", "revealed", "here", "blinkTicks", "quarterIcon", "trail"],
       "properties": {
         "key": { "type": "string", "pattern": "^[A-Z0-9]$" },
+        "profileKeys": {
+          "description": "AGENTS.md §17.7: the map's key in an input profile that plays with the usual one",
+          "type": "object",
+          "additionalProperties": { "type": "string", "pattern": "^[A-Z0-9]$" }
+        },
         "message": { "type": "string", "minLength": 1, "maxLength": 48 },
         "visited": { "type": "string", "minLength": 1 },
         "revealed": { "type": "string", "minLength": 1 },

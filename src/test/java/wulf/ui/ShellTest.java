@@ -623,4 +623,27 @@ class ShellTest {
         wulf.input.RecordedInput input = replay.recorded();
         return new Shell.Demo(sim, input.cursor(), input.ticks(), replay.dev());
     }
+
+    @Test
+    void theMapKeyIsNeverAKeyTheLayoutPlaysWith(@TempDir Path dir) {
+        // §17.7: in the period layout M swings the sabre, so the map is B there; M elsewhere.
+        PlayerDb db = db(dir);
+        db.putSettings(db.settings().withInputProfile("period"));
+        Shell shell = shell(db);
+        shell.tick(FIRE, MenuInput.NONE, false);
+        assertThat(shell.state()).isEqualTo(Shell.State.PLAYING);
+        idle(shell, CONFIG.screenHoldTicks());
+        shell.tick(FIRE, MenuInput.of("M"), false);   // the M key: fire in this layout, and typed
+        assertThat(shell.session().mapOpen()).as("swinging does not open the map").isFalse();
+        shell.tick(InputState.NONE, MenuInput.of("B"), false);
+        assertThat(shell.session().mapOpen()).isTrue();
+        assertThat(CONFIG.map().messageFor("period")).isEqualTo("MAP: PRESS B TO RETURN");
+        assertThat(CONFIG.map().messageFor("modern")).isEqualTo("MAP: PRESS M TO RETURN");
+        shell.tick(InputState.NONE, MenuInput.of("B"), false);
+        assertThat(shell.session().mapOpen()).isFalse();
+
+        db.putSettings(db.settings().withInputProfile("modern"));
+        shell.tick(InputState.NONE, MenuInput.of("M"), false);
+        assertThat(shell.session().mapOpen()).isTrue();
+    }
 }

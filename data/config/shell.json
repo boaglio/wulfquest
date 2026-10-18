@@ -164,7 +164,8 @@
   },
   "map": {
     "key": "M",
-    "message": "MAP: PRESS M TO RETURN",
+    "profileKeys": { "period": "B" },
+    "message": "MAP: PRESS {key} TO RETURN",
     "visited": "green",
     "revealed": "blue",
     "here": "brightWhite",
