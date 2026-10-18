@@ -1,4 +1,31 @@
-## What's new in 0.6.3
+## What's new in 0.7.0
+
+**A new title screen.** WULF QUEST, big, over a short menu: `START`,
+`OPTIONS` and `EXIT`, with `CONTINUE` first when you have a game saved. Up and
+down choose, fire picks, and a little wolf marks the line you are on, on every
+menu. Under `START` the title says whether the next game is Hard or Easy and,
+once you have won, which of Mr Jones's jobs it is; left and right choose the
+job. The difficulty, the keys, loading a game, the hi-scores, your ledger and
+the credits are on the title's options page now. The old letters still work
+on the title for those who know them.
+
+**Every game has its save slot.** A new game first asks which of the three
+slots to keep it in (a slot that already holds a game asks for fire again
+before replacing it). From then on the game saves itself there every minute
+and whenever you leave for the title, so `CONTINUE` always takes you back to
+where you were. A game that ends, won or lost, is cleared from its slot.
+
+**Four looking glasses to show the way out.** Once the amulet is whole, four
+more looking glasses lie in the jungle, one in each quarter of the map. Find
+one and it shows you the way to the stone arch.
+
+**Gamepads.** Plug one in before the game or while it runs: the left stick or
+the d-pad walks, `A` or `X` swings and picks, `Start` pauses, `Back` leaves the
+jungle or goes back a step, and `Y` opens the map. They have not yet been tried
+with a real pad in hand, so tell us how yours does; `--no-gamepad` leaves them
+alone. `./run.sh pad` shows what your system takes for a gamepad, if anything.
+
+## In 0.6.3
 
 **Carry on where you left off.** With a game saved, the title offers it first:
 fire takes you back into the game you saved last, and `G` starts a new one.
