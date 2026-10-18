@@ -79,6 +79,7 @@ Game options (play, browse, endings and jar):
   --data-dir PATH             content database root (default: ./data)
   --user-dir PATH             player database: hi-scores, settings, stats
   --no-audio                  silence for this run; your settings are not changed
+  --no-gamepad                leave gamepads alone for this run: the keys only
   --headless, --no-window     load and validate the data, then exit
   --lives N                   start every game with N lives in reserve (1-99)
   --infinite-lives            you still die, but never run out of lives
@@ -225,11 +226,13 @@ fi
 # ---------------------------------------------------------------- run
 
 readonly CP="$CLASSES:$(cat "$CP_FILE")"
+# §19.3: the gamepad library loads native code; Java 24 and later warn without this.
+readonly NATIVE="--enable-native-access=ALL-UNNAMED"
 
 case "$COMMAND" in
-    play)    exec java -cp "$CP" "$MAIN_CLASS" "${ARGS[@]}" ;;
-    browse)  exec java -cp "$CP" "$MAIN_CLASS" --browse "${ARGS[@]}" ;;
-    endings) exec java -cp "$CP" "$MAIN_CLASS" --endings "${ARGS[@]}" ;;
+    play)    exec java $NATIVE -cp "$CP" "$MAIN_CLASS" "${ARGS[@]}" ;;
+    browse)  exec java $NATIVE -cp "$CP" "$MAIN_CLASS" --browse "${ARGS[@]}" ;;
+    endings) exec java $NATIVE -cp "$CP" "$MAIN_CLASS" --endings "${ARGS[@]}" ;;
     check)   exec java -cp "$CP" "$MAIN_CLASS" --headless "${ARGS[@]}" ;;
     replay)
         if [[ ${#ARGS[@]} -eq 0 ]]; then

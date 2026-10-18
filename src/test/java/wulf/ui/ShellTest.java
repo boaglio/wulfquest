@@ -656,4 +656,21 @@ class ShellTest {
         shell.tick(InputState.NONE, MenuInput.of("M"), false);
         assertThat(shell.session().mapOpen()).isTrue();
     }
+
+    @Test
+    void thePadsButtonsStandInForTheShellsLetters(@TempDir Path dir) {
+        // §19.3: the title's D and G, and the map's key in the jungle, have a button each.
+        PlayerDb db = db(dir);
+        Shell shell = shell(db);
+        MenuInput difficulty = new MenuInput(List.of(), true, List.of(), java.util.Set.of(MenuInput.Pad.DIFFICULTY));
+        shell.tick(InputState.NONE, difficulty, false);
+        assertThat(shell.easy()).isTrue();
+        assertThat(shell.state()).isEqualTo(Shell.State.TITLE);
+        shell.tick(InputState.NONE, new MenuInput(List.of(), true, List.of(), java.util.Set.of(MenuInput.Pad.NEW_GAME)),
+                false);
+        assertThat(shell.state()).isEqualTo(Shell.State.PLAYING);
+        idle(shell, CONFIG.screenHoldTicks());
+        shell.tick(InputState.NONE, new MenuInput(List.of(), true, List.of(), java.util.Set.of(MenuInput.Pad.MAP)), false);
+        assertThat(shell.session().mapOpen()).isTrue();
+    }
 }

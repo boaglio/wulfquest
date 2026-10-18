@@ -44,7 +44,33 @@ public record InputConfig(int schemaVersion, String active, Map<String, Profile>
         return profiles.containsKey(profile) ? new InputConfig(schemaVersion, profile, profiles, gamepad) : this;
     }
 
-    /** Integer percent, not a fraction: nothing that reaches the game is a float (§6.2). */
-    public record Gamepad(boolean enabled, int deadzonePercent, boolean dpadAsDirections) {
+    /**
+     * The gamepad (§19.3). The deadzone is an integer percent, not a fraction: nothing that
+     * reaches the game is a float (§6.2).
+     */
+    public record Gamepad(boolean enabled, int deadzonePercent, boolean dpadAsDirections, Buttons buttons) {
+    }
+
+    /**
+     * Button names per action (§19.3): {@code fire}, {@code pause} and {@code quit} as the keys
+     * of the same names; {@code map} opens the map in the jungle (§17.7), and on the title
+     * {@code newGame} and {@code difficulty} do what its {@code G} and {@code D} do (§17.2).
+     */
+    public record Buttons(
+            List<String> fire,
+            List<String> pause,
+            List<String> quit,
+            List<String> map,
+            List<String> newGame,
+            List<String> difficulty) {
+
+        public Buttons {
+            fire = List.copyOf(fire);
+            pause = List.copyOf(pause);
+            quit = List.copyOf(quit);
+            map = List.copyOf(map);
+            newGame = List.copyOf(newGame);
+            difficulty = List.copyOf(difficulty);
+        }
     }
 }

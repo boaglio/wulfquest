@@ -85,7 +85,9 @@ tagged with one:
 - No smooth scrolling between rooms. Rooms **flip**. This is not a bug.
 - No mouse control, no analogue movement, no physics engine.
 - No network, no telemetry, no accounts, no cloud saves.
-- No external game engine (no libGDX, no LWJGL). Java2D only.
+- No external game engine (no libGDX, no LWJGL). Java2D only. (Jamepad,
+  for gamepads, is an input library and not an engine — it draws nothing; the
+  user chose it on 2026-10-18, §19.3.)
 - No modern-comfort features (checkpoints, minimap, difficulty easing)
   unless flagged `[NEW]` and defaulted off.
 
@@ -164,7 +166,8 @@ full text is `LICENSE` at the root, and it travels with every copy: inside the
 jar (a `pom.xml` resource) and beside the launcher in each release archive
 (`tools/package.sh`). The credits page (§17.2) ends with a short notice of it,
 after the §2.5 text, which stays verbatim. A dependency must stay compatible
-with the GPLv3 (Jackson and the schema validator are Apache-2.0, which is).
+with the GPLv3 (Jackson, the schema validator and Jamepad are Apache-2.0, and
+the SDL2 inside Jamepad is zlib, which both are).
 
 ---
 
@@ -178,6 +181,7 @@ with the GPLv3 (Jackson and the schema validator are Apache-2.0, which is).
 | Audio | `javax.sound.sampled.SourceDataLine`, samples generated in-process |
 | JSON | **Jackson 3** (`tools.jackson.core:jackson-databind`) — the `tools.jackson` package, not `com.fasterxml` |
 | Schema validation | `com.networknt:json-schema-validator` **3.x**, which is built on Jackson 3 — so the whole data layer shares one `JsonNode` type. Do not mix in a `com.fasterxml` Jackson; the two are incompatible. |
+| Gamepad | **Jamepad** (`com.badlogicgames.jamepad`, Apache-2.0): SDL2's game controller API, its natives inside its jar (§19.3) |
 | Tests | **JUnit 5** + AssertJ |
 | Static analysis | ErrorProne (or SpotBugs) — warnings are errors in CI |
 
@@ -326,7 +330,7 @@ wulfquest/
     engine/                     tick loop, timing, fixed-point, PRNG, replay
     render/                     Framebuffer, Blitter, Palette, Scaler, HudPainter, AppIcon
     audio/                      BeeperSynth, Mixer
-    input/                      InputMap, InputState, RecordedInput
+    input/                      InputMap, InputState, RecordedInput; the gamepad: PadMap, GamepadInput, SdlPad (§19.3)
     data/                       JsonDb, repositories, records, schema validation
     world/                      Room, RoomGrid, CollisionMask, RoomTransition
     sim/                        Simulation, entity systems, collision, effects
@@ -2783,8 +2787,8 @@ data-driven game; build it in M1.
   the attribution line from §2.5 in small type.
 
   **As shipped (M8):** `K KEYS`, `A SOUND`, `H HI-SCORES`, `C CREDITS`,
-  `S STATS`. There is no `2 JOYSTICK`: `gamepad.enabled` is false (§19.1) and
-  there is no gamepad code, so offering it would be a lie. The two key layouts
+  `S STATS`. There is no `2 JOYSTICK`: a gamepad needs no choosing (§19.3) —
+  plugged in, it plays alongside the keys. The two key layouts
   §19.1 does define are chosen on the `KEY_CONFIG` page, by digit, and the
   choice is written to `settings.json`.
 
@@ -3140,7 +3144,11 @@ else. With two channels, a higher-priority event steals channel 0.
     }
   },
   "active": "modern",
-  "gamepad": { "enabled": false, "deadzonePercent": 40, "dpadAsDirections": true }
+  "gamepad": {
+    "enabled": true, "deadzonePercent": 40, "dpadAsDirections": true,
+    "buttons": { "fire": ["A", "X"], "pause": ["START"], "quit": ["BACK"],
+                 "map": ["Y"], "newGame": ["Y"], "difficulty": ["B"] }
+  }
 }
 ```
 
@@ -3152,6 +3160,7 @@ on the title screen as a nod; do not make it default.
   (§13.8) is never summoned. It is not `W`, which is up.
 - A key bound to two actions within a profile is a load-time `DataException`.
 - The deadzone is an integer percent: nothing that reaches the game is a float.
+  The gamepad and its buttons are §19.3.
 - **X11 auto-repeat** delivers a release and a press with the same timestamp
   while a key is merely held. `KeyboardInput` treats that pair as still held,
   or holding fire would swing on its own (§11.6).
@@ -3167,6 +3176,53 @@ on the title screen as a nod; do not make it default.
   has no concept of analogue input.
 - `RecordedInput` serialises the per-tick snapshots for replays (§22.6) as a
   run-length-encoded array of direction+button bitmasks.
+
+### 19.3 Gamepads (`[NEW]`, asked for by the user, 2026-10-18)
+
+**Built without a gamepad to try it on** — the user has none. Everything that
+can be tested without one is (`GamepadInputTest`, `ShellTest`); what touches
+the hardware is kept to one small class that cannot take the game down. A
+report from a player with a pad is the first thing to act on.
+
+- **The library: Jamepad** (§3), SDL2's game controller API. Java2D reads no
+  gamepad, and the user chose it over reading Linux's `/dev/input` by hand,
+  which would leave Windows out. SDL knows the common pads' layouts — Xbox,
+  PlayStation, Switch — so a button name means a *place*: `A` is the bottom
+  face button on all of them. SDL's built-in mappings are the ones used; our
+  mappings file (`src/main/resources/wulf/input/pad_mappings.txt`, read at
+  start, otherwise Jamepad prints a stack trace) is empty, and a line in SDL's
+  gamecontrollerdb format there teaches it one more pad. The shaded jar leaves
+  out Jamepad's 32-bit natives; it says `Enable-Native-Access: ALL-UNNAMED`,
+  and `run.sh` passes `--enable-native-access`, so Java 24 and later do not warn.
+- **One class touches native code: `SdlPad`.** Opened once on the game thread
+  and read once a tick on it. A library that will not load, an SDL that will
+  not start, or a read that throws turns the pad off for the session with one
+  line on the console (`gamepad : off (…)`); the keys play on. It reads up to
+  four pads, every one steering (per axis the stick pushed furthest wins), and
+  says on the console which pads are connected, as they come and go — plugging
+  one in during a game works.
+- **Pure, and tested: `PadMap` and `GamepadInput`.** A `PadReading` — the
+  buttons held by name, the d-pad as `DPAD_UP`…, the left stick in whole
+  percent, y down as the screen's — becomes an `InputState` (the stick past
+  `deadzonePercent` on an axis, or the d-pad under `dpadAsDirections`, holds
+  that direction; two axes make the diagonals, §19.2) and a `MenuInput`.
+  Edges are this tick's reading against the last. Boot ORs the pad's tick into
+  the keyboard's (`InputState.or`, `MenuInput.and`), so **the simulation and
+  every replay cannot tell a pad from the keys**, and a recording made with a
+  pad replays like any other.
+- **The buttons**, `gamepad.buttons`, each a list of names from `A B X Y BACK
+  START LEFTBUMPER RIGHTBUMPER LEFTSTICK RIGHTSTICK` (the schema's enum; the
+  guide button is the system's): `fire`, `pause` and `quit` are the keys of
+  those names, everywhere; `map` opens the map in the jungle (§17.7); on the
+  title `newGame` and `difficulty` do what `G` and `D` do (§17.2) — stand-ins
+  for the shell's letters as `MenuInput.Pad`, never seen by the simulation. A
+  button may do one thing on each screen: `PadMap` refuses one bound twice in
+  the jungle (fire, pause, quit, map) or on the title (fire, quit, newGame,
+  difficulty), so `Y` is both the map and a new game. Any button at all, as
+  any key, ends the attract demo. The title's other letters (keys page,
+  hi-scores, credits, stats, load, options) have no button; the pause menu
+  reaches load and the options.
+- **Off** with `"enabled": false`, or for one run with `--no-gamepad`.
 
 ---
 

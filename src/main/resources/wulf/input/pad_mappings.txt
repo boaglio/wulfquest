@@ -1,0 +1,3 @@
+# Wulf Quest's gamepad mappings for SDL (AGENTS.md §19.3). None of our own: SDL's
+# built-in mappings know the common pads. A line here, in SDL's
+# gamecontrollerdb format, would teach it one more.

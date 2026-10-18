@@ -10,17 +10,44 @@ import java.util.List;
  * <p>Deliberately separate from {@link InputState}: nothing here is recorded in
  * a replay, and nothing here can reach the simulation.
  */
-public record MenuInput(List<Character> typed, boolean anyKey, List<String> named) {
+public record MenuInput(List<Character> typed, boolean anyKey, List<String> named, java.util.Set<Pad> pads) {
+
+    /** The gamepad's stand-ins for the shell's letters (§19.3): the map's key, and the title's G and D. */
+    public enum Pad { MAP, NEW_GAME, DIFFICULTY }
 
     public static final MenuInput NONE = new MenuInput(List.of(), false);
 
     public MenuInput {
         typed = List.copyOf(typed);
         named = List.copyOf(named);
+        pads = java.util.Set.copyOf(pads);
+    }
+
+    public MenuInput(List<Character> typed, boolean anyKey, List<String> named) {
+        this(typed, anyKey, named, java.util.Set.of());
     }
 
     public MenuInput(List<Character> typed, boolean anyKey) {
         this(typed, anyKey, List.of());
+    }
+
+    /** The keyboard's and the gamepad's together, for one tick. */
+    public MenuInput and(MenuInput other) {
+        if (other == NONE) {
+            return this;
+        }
+        List<Character> chars = new java.util.ArrayList<>(typed);
+        chars.addAll(other.typed);
+        List<String> names = new java.util.ArrayList<>(named);
+        names.addAll(other.named);
+        java.util.Set<Pad> both = new java.util.HashSet<>(pads);
+        both.addAll(other.pads);
+        return new MenuInput(chars, anyKey || other.anyKey, names, both);
+    }
+
+    /** A gamepad button standing in for one of the shell's letters. */
+    public boolean pad(Pad button) {
+        return pads.contains(button);
     }
 
     /** A letter or digit ({@code "M"}), or a named key ({@code "F5"}). */

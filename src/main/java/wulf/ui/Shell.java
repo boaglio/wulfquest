@@ -207,7 +207,7 @@ public final class Shell {
             quit = true;
             return;
         }
-        if (menu.typed(config.difficulty().key())) {
+        if (menu.typed(config.difficulty().key()) || menu.pad(MenuInput.Pad.DIFFICULTY)) {
             easy = !easy;   // §17.8: Hard and Easy in turn, kept in the settings
             db.putSettings(db.settings().withEasy(easy));
             jukebox.sfx(SFX_MOVE);
@@ -226,7 +226,7 @@ public final class Shell {
             openMenu(State.valueOf(screen), State.TITLE);
             return;
         }
-        if (menu.typed(config.title().newGameKey())) {
+        if (menu.typed(config.title().newGameKey()) || menu.pad(MenuInput.Pad.NEW_GAME)) {
             jukebox.sfx(SFX_PICK);
             startGame();
             return;
@@ -306,7 +306,7 @@ public final class Shell {
     }
 
     private void playing(InputState in, MenuInput menu, boolean dev) {
-        if (menu.typed(config.map().keyFor(db.settings().inputProfile()))) {
+        if (menu.typed(config.map().keyFor(db.settings().inputProfile())) || menu.pad(MenuInput.Pad.MAP)) {
             session.toggleMap();   // §17.7
             jukebox.sfx(SFX_PICK);
         }

@@ -111,6 +111,7 @@ lives in [AGENTS.md](AGENTS.md) §24.
 ./run.sh --debug-effect haste  # start under an orchid's effect: torpor (red), haste
                                # (cyan), reversal (magenta), knockdown (yellow)
 ./run.sh --no-audio        # silence for this run; your settings are not changed
+./run.sh --no-gamepad      # the keys only, for this run
 ./run.sh --scale 3         # a smaller or bigger window: 1 to 6 times (4 by default)
 ./run.sh --lives 9         # practice: nine lives in reserve
 ./run.sh --infinite-lives  # practice: die as often as you like
@@ -170,6 +171,16 @@ rebuild — the game reads the working tree's `data/` directly.
 
 In every menu, up and down choose, fire picks, and Escape goes back a step; on
 the options page left and right turn the volume.
+
+**A gamepad** works too: plug it in before the game or while it runs. The left
+stick or the d-pad walks, `A` or `X` swings (and picks, in a menu), `Start`
+pauses, `Back` (Select, View, Share — the small one on the left) leaves the
+jungle or goes back a step, and `Y` opens the map. On the title, `Y` starts a
+new game, as `G` does, and `B` switches between Hard and Easy. The buttons are
+named as on an Xbox pad and found by their place on the others: `A` is the
+bottom face button on a PlayStation or Switch pad too. Gamepads are new in this
+version, and so far tried with no pad in hand — tell us how yours does. If one
+ever gets in the way, `--no-gamepad` leaves them alone.
 
 In the jungle, `M` opens a map of everywhere you have been; the game waits while
 it is open. Find the scroll a few rooms from the start and it shows the whole
@@ -278,4 +289,7 @@ WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
 PARTICULAR PURPOSE. See [LICENSE](LICENSE) for the full text.
 
 That covers everything in this repository: the code, and the art, music and
-data, which are all text and all written for this project.
+data, which are all text and all written for this project. The downloads also
+carry the libraries the game is built on, under their own licences, both
+compatible with the GPL: Jackson and the JSON schema validator (Apache-2.0),
+and for gamepads Jamepad (Apache-2.0) with SDL2 inside it (zlib).

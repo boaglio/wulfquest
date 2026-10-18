@@ -24,6 +24,14 @@ public record InputState(
     public static final InputState NONE = new InputState(false, false, false, false, false, false, false, false,
             false, false, false);
 
+    /** The keyboard's and the gamepad's together (§19.3): held if either holds it, pressed if either pressed it. */
+    public InputState or(InputState o) {
+        return new InputState(up || o.up, down || o.down, left || o.left, right || o.right, fire || o.fire,
+                firePressed || o.firePressed, pausePressed || o.pausePressed, quitPressed || o.quitPressed,
+                devKillPressed || o.devKillPressed, devMaskPressed || o.devMaskPressed,
+                devWulfPressed || o.devWulfPressed);
+    }
+
     /** Horizontal intent: -1, 0 or 1. Opposing keys cancel (§11.3). */
     public int dx() {
         return (right ? 1 : 0) - (left ? 1 : 0);

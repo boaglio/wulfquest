@@ -16,6 +16,7 @@ import wulf.data.FontData;
 import wulf.data.JsonDb;
 import wulf.data.Palette;
 import wulf.engine.GameLoop;
+import wulf.input.GamepadInput;
 import wulf.input.InputMap;
 import wulf.input.InputState;
 import wulf.input.KeyboardInput;
@@ -34,6 +35,8 @@ import wulf.data.PlayerDb;
 import wulf.data.UserDataDir;
 import wulf.engine.Replay;
 import wulf.input.MenuInput;
+import wulf.input.PadMap;
+import wulf.input.SdlPad;
 import wulf.input.RecordedInput;
 import wulf.ui.DataErrorScreen;
 import wulf.ui.GameSession;
@@ -171,6 +174,13 @@ public final class Boot {
         KeyboardInput keys = new KeyboardInput(new InputMap(c.input()));
         screen.window().canvas().addKeyListener(keys);
         screen.window().canvas().addFocusListener(keys);
+        // §19.3: the gamepad, unless input.json or --no-gamepad says no; one that will not start leaves the keys.
+        boolean padWanted = !parsed.noGamepad() && c.input().gamepad().enabled();
+        if (!padWanted) {
+            System.out.println("  gamepad      : off (" + (parsed.noGamepad() ? "--no-gamepad" : "input.json") + ")");
+        }
+        GamepadInput pad = new GamepadInput(new PadMap(c.input().gamepad()),
+                padWanted ? SdlPad.open() : GamepadInput.Source.NONE);
         Ecosystem eco = c.ecosystem();
         // §14.2: every game hides the amulet in a set of its own, unless --amulet-set names one. Demos never do.
         Ecosystem gameEco = parsed.amuletSet() >= 0 ? c.withAmuletSet(parsed.amuletSet()).ecosystem() : eco;
@@ -248,8 +258,9 @@ public final class Boot {
         loop.run(new GameLoop.Stepper() {
             @Override
             public void tick() {
-                InputState in = keys.sample();
-                MenuInput menu = keys.drainMenu();
+                GamepadInput.Tick padTick = pad.sample();
+                InputState in = keys.sample().or(padTick.in());
+                MenuInput menu = keys.drainMenu().and(padTick.menu());
                 GameSession playing = shell.session();
                 long before = playing == null ? 0 : playing.sim().tick();
                 shell.tick(in, menu, parsed.dev());
@@ -274,6 +285,7 @@ public final class Boot {
             }
         });
         screen.window().close();
+        pad.close();
         mixer.close();
         player.close();
         if (recorder != null) {
@@ -465,7 +477,8 @@ public final class Boot {
      * it comes back as {@link #error()}, which {@link #main} reports and exits 64.
      */
     record Args(Path dataDir, Path userDir, int scale, RoomAddress room, long seed, boolean seeded, Path record,
-                String debugEffect, boolean headless, boolean browse, boolean dev, boolean noAudio, boolean help,
+                String debugEffect, boolean headless, boolean browse, boolean dev, boolean noAudio, boolean noGamepad,
+                boolean help,
                 int lives, boolean infiniteLives, boolean god, int amuletSet, int newGamePlus, boolean endings,
                 String error) {
 
@@ -487,6 +500,7 @@ public final class Boot {
             boolean browse = false;
             boolean dev = false;
             boolean noAudio = false;
+            boolean noGamepad = false;
             boolean help = false;
             int lives = 0;
             boolean infiniteLives = false;
@@ -501,6 +515,7 @@ public final class Boot {
                         case "--headless", "--no-window" -> headless = true;
                         case "--browse" -> browse = true;
                         case "--no-audio" -> noAudio = true;
+                        case "--no-gamepad" -> noGamepad = true;
                         case "--help", "-h" -> help = true;
                         case "--lives" -> {
                             lives = number(argv, ++i, "--lives");
@@ -538,17 +553,17 @@ public final class Boot {
                 }
             } catch (IllegalArgumentException e) {
                 return new Args(dataDir, userDir, scale, room, seed, seeded, record, debugEffect, headless, browse,
-                        dev, noAudio, help, lives, infiniteLives, god, amuletSet, newGamePlus, endings, e.getMessage());
+                        dev, noAudio, noGamepad, help, lives, infiniteLives, god, amuletSet, newGamePlus, endings, e.getMessage());
             }
             if (record != null && (lives > 0 || infiniteLives || god || amuletSet >= 0 || newGamePlus > 0 || endings)) {
                 // A replay file has no room for them, so it would replay a different game.
                 return new Args(dataDir, userDir, scale, room, seed, seeded, record, debugEffect, headless, browse,
-                        dev, noAudio, help, lives, infiniteLives, god, amuletSet, newGamePlus, endings,
+                        dev, noAudio, noGamepad, help, lives, infiniteLives, god, amuletSet, newGamePlus, endings,
                         "--record cannot be combined with --lives, --infinite-lives, --god, --amulet-set, --new-game-plus"
                                 + " or --endings");
             }
             return new Args(dataDir, userDir, scale, room, seed, seeded, record, debugEffect, headless, browse, dev,
-                    noAudio, help, lives, infiniteLives, god, amuletSet, newGamePlus, endings, null);
+                    noAudio, noGamepad, help, lives, infiniteLives, god, amuletSet, newGamePlus, endings, null);
         }
 
         private static String value(String[] argv, int i, String option) {
@@ -607,6 +622,7 @@ public final class Boot {
                       --data-dir PATH  content database root (default: ./data, else the jar)
                       --user-dir PATH  player database: hi-scores, settings, stats (§21.1)
                       --no-audio       silence for this run; settings.json is not changed
+                      --no-gamepad     leave gamepads alone for this run: the keys only
                       --lives N        start every game with N lives in reserve (1-99)
                       --infinite-lives you still die, but never run out of lives
                       --god            nothing can kill you

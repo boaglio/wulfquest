@@ -27,5 +27,17 @@
       "devWulf": ["J"]
     }
   },
-  "gamepad": { "enabled": false, "deadzonePercent": 40, "dpadAsDirections": true }
+  "gamepad": {
+    "enabled": true,
+    "deadzonePercent": 40,
+    "dpadAsDirections": true,
+    "buttons": {
+      "fire": ["A", "X"],
+      "pause": ["START"],
+      "quit": ["BACK"],
+      "map": ["Y"],
+      "newGame": ["Y"],
+      "difficulty": ["B"]
+    }
+  }
 }
