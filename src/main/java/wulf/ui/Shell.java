@@ -178,6 +178,11 @@ public final class Shell {
 
     public void tick(InputState in, MenuInput menu, boolean dev) {
         stateTick++;
+        String fullKey = config.options().fullscreenKey();
+        if (fullKey != null && menu.typed(fullKey)) {
+            // §17.9: anywhere, in a game or out, so a screen that goes wrong can always be left.
+            db.putSettings(db.settings().withFullscreen(!db.settings().fullscreen()));
+        }
         if (state != State.PLAYING && menu.selected()) {
             // §19.1: Space and Enter choose on every page, whatever the profile's fire; in the
             // jungle they are only what the profile makes them.

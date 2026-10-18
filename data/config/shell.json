@@ -397,6 +397,7 @@
     "scales": [1, 2, 3, 4, 5, 6],
     "scaleLabel": "{n}X",
     "scaleFooter": "LEFT RIGHT FOR SMALLER OR BIGGER",
+    "fullscreenKey": "F11",
     "eightBit": ["scanlines", "attributeClash", "inkedCreatures", "spriteFlicker"]
   }
 }

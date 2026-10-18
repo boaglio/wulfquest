@@ -209,7 +209,7 @@ public record ShellConfig(
     /** The options page (§17.9, {@code [NEW]}): each item a switch, shown {@code on} or {@code off}, and back. */
     public record Options(String heading, List<Entry> items, String on, String off, String footer,
                           String volumeFooter, List<String> eightBit, List<Integer> scales, String scaleLabel,
-                          String scaleFooter) {
+                          String scaleFooter, String fullscreenKey) {
         public Options {
             items = List.copyOf(items);
             eightBit = eightBit == null ? List.of() : List.copyOf(eightBit);

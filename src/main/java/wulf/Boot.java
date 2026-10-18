@@ -135,15 +135,17 @@ public final class Boot {
     private static final class WindowMode {
         private final Screen screen;
         private final DisplayConfig display;
+        private final PlayerDb player;
         private int scale;
         private boolean full;
 
-        WindowMode(Screen screen, DisplayConfig display, Settings start) {
+        WindowMode(Screen screen, DisplayConfig display, PlayerDb player) {
             this.screen = screen;
             this.display = display;
-            this.scale = start.scale();
+            this.player = player;
+            this.scale = player.settings().scale();
             this.full = false;
-            follow(start);
+            follow(player.settings());
         }
 
         void follow(Settings s) {
@@ -160,7 +162,19 @@ public final class Boot {
                 fit = Math.max(1, Math.min(size.width / w, size.height / h));
             }
             screen.scaler().setScale(fit);
-            screen.window().setMode(full, w * fit, h * fit);
+            try {
+                screen.window().setMode(full, w * fit, h * fit);
+            } catch (RuntimeException e) {
+                // A screen that will not go full leaves the game in its window, and says so once.
+                System.out.println("  window       : full screen failed (" + e.getMessage() + "), windowed instead");
+                if (full) {
+                    player.putSettings(s.withFullscreen(false));
+                    full = false;
+                    fit = display.scale().clamp(scale);
+                    screen.scaler().setScale(fit);
+                    screen.window().setMode(false, w * fit, h * fit);
+                }
+            }
         }
     }
 
@@ -209,7 +223,7 @@ public final class Boot {
 
         Screen screen = openScreen(c, parsed, "Wulf Quest", player.settings().scale());
         // §17.9: the window as the options page leaves it; --scale holds until the player picks one.
-        WindowMode windowMode = new WindowMode(screen, c.display(), player.settings());
+        WindowMode windowMode = new WindowMode(screen, c.display(), player);
         Fonts fonts = new Fonts("art/font/font.json", c.font());
         ShellPainter painter = new ShellPainter(c, c.shell(), player, fonts);
 

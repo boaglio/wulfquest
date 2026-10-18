@@ -460,6 +460,10 @@
         },
         "scaleLabel": { "type": "string", "pattern": "\\{n\\}", "maxLength": 8 },
         "scaleFooter": { "type": "string", "maxLength": 60 },
+        "fullscreenKey": {
+          "description": "AGENTS.md §17.9: the key that switches full screen on and off anywhere, so a screen that goes wrong can be left",
+          "type": "string", "pattern": "^F([1-9]|1[0-2])$"
+        },
         "eightBit": {
           "description": "AGENTS.md §17.9: the switches 8-BIT MODE turns on and off together, for the look of the original",
           "type": "array", "minItems": 1, "uniqueItems": true, "items": { "type": "string", "minLength": 1 }

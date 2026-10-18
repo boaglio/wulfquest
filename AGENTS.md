@@ -2964,6 +2964,14 @@ the border colour (§5.3). `--scale` sets the window for the run until the
 player picks a scale. The game opens at the saved scale, and full screen if
 it was left so. Neither is in the pause menu's leave-outs: both work over a game.
 
+Full screen is a window without borders the size of the screen, **not** Java's
+exclusive full-screen mode: the first version used that, and on the user's
+Wayland desktop (XWayland) the game came back to a screen full and black. The
+buffer is made by `Window.present` once the window is on the screen, and made
+again when lost, never in `setMode`. A switch that throws leaves the game
+windowed and writes `fullscreen` off. `options.fullscreenKey` (`F11`) switches
+full screen anywhere, in a game or out, so a screen gone wrong can be left.
+
 ### 17.5 Game over
 
 `GAME OVER` in the 8×8 font over the frozen playfield, 150 ticks, then

@@ -48,33 +48,28 @@ public final class Window {
     /**
      * §17.9: over the whole screen, or a window around a canvas of {@code width} x {@code height}.
      * Done on the event thread while no frame is drawn; the keys go on reaching the canvas.
+     *
+     * <p>Full screen is a window without borders the size of the screen, not Java's exclusive
+     * full-screen mode, which leaves the screen black under XWayland. The buffer is not made
+     * here: the window may not be on the screen yet, so {@link #present} makes it when it can.
      */
     public void setMode(boolean full, int width, int height) {
         Runnable change = () -> {
             synchronized (this) {
-                java.awt.GraphicsDevice screen = frame.getGraphicsConfiguration().getDevice();
                 if (full != fullscreen) {
-                    if (fullscreen && screen.getFullScreenWindow() == frame) {
-                        screen.setFullScreenWindow(null);
-                    }
                     frame.dispose();
                     frame.setUndecorated(full);
                     fullscreen = full;
                 }
                 if (full) {
-                    if (screen.isFullScreenSupported()) {
-                        screen.setFullScreenWindow(frame);
-                    } else {
-                        frame.setBounds(frame.getGraphicsConfiguration().getBounds());
-                    }
+                    frame.setBounds(frame.getGraphicsConfiguration().getBounds());
                 } else {
                     canvas.setPreferredSize(new Dimension(width, height));
                     frame.pack();
                     frame.setLocationRelativeTo(null);
                 }
                 frame.setVisible(true);
-                canvas.createBufferStrategy(2);
-                strategy = canvas.getBufferStrategy();
+                strategy = null;
                 canvas.requestFocusInWindow();
             }
         };
@@ -117,14 +112,34 @@ public final class Window {
         return frame.isDisplayable();
     }
 
-    /** Blits the image centred, letterboxed in the border colour. */
+    /**
+     * Blits the image centred, letterboxed in the border colour. A buffer that is missing or
+     * lost is made again on a later frame, so a window that changed shows again by itself.
+     */
     public synchronized void present(BufferedImage image) {
         if (strategy == null) {
-            strategy = canvas.getBufferStrategy();
+            if (!canvas.isDisplayable() || canvas.getWidth() <= 0 || canvas.getHeight() <= 0) {
+                return;
+            }
+            try {
+                canvas.createBufferStrategy(2);
+                strategy = canvas.getBufferStrategy();
+            } catch (IllegalStateException notYet) {
+                return;   // not on the screen yet: the next frame tries again
+            }
             if (strategy == null) {
                 return;
             }
         }
+        try {
+            draw(image);
+        } catch (IllegalStateException lost) {
+            strategy = null;   // the next frame makes a new one
+        }
+    }
+
+    private void draw(BufferedImage image) {
+        int tries = 0;
         do {
             Graphics g = strategy.getDrawGraphics();
             try {
@@ -143,7 +158,10 @@ public final class Window {
                 g.dispose();
             }
             strategy.show();
-        } while (strategy.contentsLost());
+        } while (strategy.contentsLost() && ++tries < 3);
+        if (strategy.contentsLost()) {
+            strategy = null;
+        }
     }
 
     public void close() {

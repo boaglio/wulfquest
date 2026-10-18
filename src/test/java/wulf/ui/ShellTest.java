@@ -470,6 +470,16 @@ class ShellTest {
         assertThat(db.settings().fullscreen()).isTrue();
         press(shell, FIRE, 1);
         assertThat(db.settings().fullscreen()).isFalse();
+
+        // F11 switches it anywhere: here, and in the jungle.
+        shell.tick(InputState.NONE, MenuInput.named(CONFIG.options().fullscreenKey()), false);
+        assertThat(db.settings().fullscreen()).isTrue();
+        shell.tick(QUIT, MenuInput.NONE, false);
+        shell.tick(InputState.NONE, MenuInput.NONE, false);
+        assertThat(shell.state()).isEqualTo(Shell.State.TITLE);
+        shell.tick(FIRE, MenuInput.NONE, false);
+        shell.tick(InputState.NONE, MenuInput.named(CONFIG.options().fullscreenKey()), false);
+        assertThat(db.settings().fullscreen()).isFalse();
     }
 
     @Test
