@@ -480,13 +480,25 @@ are unchanged. `RetroTogglesTest` covers each.
 - `crt.scanlines` — every odd output row multiplied by
   `crt.scanlineLuminancePercent` (82) per channel, after upscale, so the lines
   are one output pixel tall at any scale. `Scaler.setScanlines`.
-- `crt.attributeClash` — quantise the playfield to one ink + one paper per
-  8×8 cell, resolving conflicts by the last sprite drawn. Faithful, ugly,
-  fun. Never on by default. Paper is black (either brightness); the
-  framebuffer remembers the last non-paper colour written into each cell
-  (`Framebuffer.trackInk`) and `AttributeClash` repaints every non-paper
-  pixel of the cell in it. Playfield only; the panel and border never clash,
-  and the `--dev` collision mask switches it off.
+- `crt.attributeClash` — two colours an 8×8 cell, **the way the original used
+  them** (rebuilt 2026-10-18, when the user found the first version all
+  sprite collision, with weird trees; source: the SkoolKit disassembly, §25
+  Q14's link). The original's room data gives each cell of foliage a *paper*
+  colour and black ink (`Room_*` attribute tables: `$60` bright green paper,
+  `$70` yellow, `$58` magenta…), so its jungle is blocks of colour with black
+  detail; sprites are XORed into the bitmap (`$BA14`) with no colour of their
+  own, and a sprite's colour is written only into cells whose paper is black
+  (`$BB45`: `AND %00111000`, `JR NZ`). `AttributeClash.scenery` takes the
+  room once it and the flowers are drawn: each cell's paper is the hue most of
+  its pixels are (plain and bright together, one attribute holds either), and
+  every other pixel of the cell is black detail. `apply`, once everything is
+  drawn: in the open a cell takes the colour most of its sprite pixels are;
+  over foliage a sprite is a black shape cut out of the foliage, which keeps
+  its colour, and over black detail it lets the paper through (XOR). A
+  sprite's black outline is not drawn — the original's sprites have none.
+  Playfield only; the panel and border never clash, and the `--dev` collision
+  mask switches it off. (The first version gave each cell the last colour
+  drawn into it, so Vale painted the undergrowth his colour.)
 - `crt.glow` — **reserved, unimplemented.** The flag exists in both schemas
   but nothing here says what it should look like; spec it before building it.
 - `spriteFlicker` — when 3+ sprites overlap one cell, alternate which draws
@@ -2836,13 +2848,15 @@ The difficulty has its own key (`D`, §17.8).
 
 **8-BIT MODE** (asked for by the user, 2026-10-18: "to be close to the original
 game"): one line that turns every switch of the original's look on together —
-`options.eightBit`: `SCANLINES`, `COLOUR CLASH`, `ONE-COLOUR CREATURES` and
+`options.eightBit`: `SCANLINES`, `COLOUR CLASH`, `ONE-COLOUR SPRITES` and
 `SPRITE FLICKER` (§5.4, its own line too since then) — and, when they are all
 on, off together. It shows `ON` only while all of them are; turning one off by
 itself shows it `OFF`, and fire then turns them all on again. It is the look
 only: nothing in it touches the simulation, so saves, replays and scores are
 the same in it. `ShellValidator` refuses an `eightBit` entry that is not a
-switch.
+switch. `ONE-COLOUR SPRITES` (`features.inkedCreatures`) inks Vale too, in
+bright white as the original's Sabreman (`$47`), his black outline kept; a
+flower's colour still takes him over.
 
 **Sound** is on it too (asked for by the user, 2026-10-17), first, so it can be
 turned down without leaving a game: `SOUND` `ON`/`OFF`, fire flipping it, and

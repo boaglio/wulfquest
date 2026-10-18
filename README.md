@@ -187,7 +187,7 @@ your lifetime ledger; `D` switches between Hard and Easy. Once you have won,
 **Pause, save and load.** `P` pauses the game with a menu: resume, save the
 game to one of three slots, load one, options, or quit to the title. The title
 has `L` to load a saved game and `O` for the options — sound and volume,
-8-bit mode, scanlines, the colour clash, the original's one-colour creatures
+8-bit mode, scanlines, the colour clash, the original's one-colour sprites
 and sprite flicker.
 
 Hi-scores, settings, stats and saved games are written to your own user directory —
@@ -199,10 +199,10 @@ sound, on or off, and its volume, so you can turn it down without leaving a
 game. For the nostalgic, **8-BIT MODE** turns on everything that makes it look
 like the Spectrum original at once; each of its four switches is there on its
 own too, all off by default: scanlines darken every other line of
-the picture; the colour clash gives each 8×8 cell of the jungle one colour, so
-Vale turns the undergrowth his colour as he pushes through it — faithful, ugly,
-fun; one-colour creatures draws each creature in a single ink, as the
-original did; and sprite flicker makes creatures crowded into one spot take
+the picture; the colour clash gives each 8×8 cell two colours the way the
+original did, the jungle in solid blocks with black detail and anything moving
+through the foliage a black shape cut out of it; one-colour sprites draws Vale
+and each creature in a single ink, as the original did; and sprite flicker makes creatures crowded into one spot take
 turns to be drawn, the way a Spectrum ran out of time to draw them all.
 
 ## How it is built

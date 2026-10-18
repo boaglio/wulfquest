@@ -88,7 +88,7 @@ public final class GamePainter {
         this.paper = palette.indexOf("black");
         this.easyLabel = c.shell().difficulty().panelLabel();
         this.easyColour = palette.indexOf(c.shell().difficulty().easyColour());
-        this.clash = new AttributeClash(display.playfield());
+        this.clash = new AttributeClash(display.playfield(), paper);
         this.clashing = display.crt().attributeClash();
     }
 
@@ -99,6 +99,7 @@ public final class GamePainter {
     public void retro(wulf.data.Settings s) {
         this.clashing = s.crt().attributeClash();
         beasts.inked(Shell.optionOn(s, "inkedCreatures"));
+        vale.inked(Shell.optionOn(s, "inkedCreatures"));   // one ink for every sprite, Vale too
         beasts.flicker(display.spriteFlicker() || Shell.optionOn(s, "spriteFlicker"));
     }
 
@@ -118,9 +119,6 @@ public final class GamePainter {
 
     /** The playfield alone — no panel — which is what the attract demo shows. */
     public void paintWorld(Framebuffer fb, Simulation sim, boolean showMask) {
-        if (clashing && !fb.tracksInk()) {
-            fb.trackInk(paper);   // first frame: start remembering what each cell was last drawn in
-        }
         fb.clear(!display.border().flashOnEvent() ? border : switch (sim.borderFlash()) {
             case ALARM -> alarm;
             case PARRY, PICKUP -> parry;   // bright white for a parry (§13.5) and a quarter taken (§14.6)
@@ -131,6 +129,9 @@ public final class GamePainter {
             roomPainter.paintMask(fb, rooms.room(sim.room()), maskColour);
         }
         flowers.paint(fb, sim);
+        if (clashing && !showMask) {
+            clash.scenery(fb);   // §5.4: the room's own colours, before anything that moves
+        }
         quest.paintLoot(fb, sim);
         beasts.paint(fb, sim);
         vale.paint(fb, sim);

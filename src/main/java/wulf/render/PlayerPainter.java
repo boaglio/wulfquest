@@ -30,6 +30,9 @@ public final class PlayerPainter {
     private final int immuneFlash;
     private final int hilt;
     private final int outline;
+    private final int brightWhite;
+    /** §17.9: in one colour, as the original's Sabreman ({@code $47}, bright white). */
+    private boolean inked;
     /** §15.2: each orchid's bright colour, by orchid index: what an untouchable Vale is drawn in. */
     private int[] tints = new int[0];
     /** §15.2: the yellow flower's pose, drawn by {@code character_forge.py}. */
@@ -43,6 +46,12 @@ public final class PlayerPainter {
         this.immuneFlash = palette.indexOf("brightWhite");
         this.hilt = palette.indexOf("brightYellow");
         this.outline = palette.indexOf("black");
+        this.brightWhite = palette.indexOf("brightWhite");
+    }
+
+    /** §17.9: whether he is drawn in one colour, as the options page left it. */
+    public void inked(boolean on) {
+        this.inked = on;
     }
 
     /** The orchids' colours, by orchid index, as palette indices (§15.2). */
@@ -71,6 +80,8 @@ public final class PlayerPainter {
                 sprite.blitInked(fb, frame, feetX, feetY, tints[tint] - 8, tints[tint], outline);
             } else if (sim.effectFlash()) {
                 sprite.blitTinted(fb, frame, feetX, feetY, immuneFlash);   // §15.2: nothing can touch him
+            } else if (inked) {
+                sprite.blitInked(fb, frame, feetX, feetY, brightWhite, brightWhite, outline);
             } else {
                 sprite.blit(fb, frame, feetX, feetY);
             }

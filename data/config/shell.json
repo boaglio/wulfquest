@@ -329,7 +329,7 @@
       { "id": "eightBit", "label": "8-BIT MODE" },
       { "id": "scanlines", "label": "SCANLINES" },
       { "id": "attributeClash", "label": "COLOUR CLASH" },
-      { "id": "inkedCreatures", "label": "ONE-COLOUR CREATURES" },
+      { "id": "inkedCreatures", "label": "ONE-COLOUR SPRITES" },
       { "id": "spriteFlicker", "label": "SPRITE FLICKER" },
       { "id": "back", "label": "BACK" }
     ],

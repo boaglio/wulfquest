@@ -110,57 +110,58 @@ class RetroTogglesTest {
     private static final int GREEN = 4;
     private static final int YELLOW = 14;
 
-    private static Framebuffer clashing() {
+    private static Framebuffer blank() {
         Framebuffer fb = new Framebuffer(DISPLAY.canvas().w(), DISPLAY.canvas().h());
-        fb.trackInk(BLACK);
         fb.clear(BLACK);
         return fb;
     }
 
     @Test
-    void theLastInkDrawnIntoACellTakesTheWholeCell() {
+    void aCellOfFoliageIsOnePaperWithBlackDetail() {
+        // The room data's attributes: paper the foliage's colour, ink black ($60 = bright green paper).
         DisplayConfig.Playfield f = DISPLAY.playfield();
-        Framebuffer fb = clashing();
-        fb.fillRect(f.x(), f.y(), 8, 4, GREEN);      // foliage over the top half of the first cell
-        fb.set(f.x() + 3, f.y() + 6, YELLOW);        // then one pixel of Vale, lower down
-        new AttributeClash(f).apply(fb);
+        Framebuffer fb = blank();
+        fb.fillRect(f.x(), f.y(), 8, 5, GREEN);      // mostly green
+        fb.set(f.x() + 2, f.y() + 1, YELLOW);        // a yellow fleck in it
+        AttributeClash clash = new AttributeClash(f, BLACK);
+        clash.scenery(fb);
+        clash.apply(fb);
 
-        assertThat(fb.get(f.x(), f.y())).as("the foliage took Vale's colour").isEqualTo(YELLOW);
-        assertThat(fb.get(f.x() + 7, f.y() + 3)).isEqualTo(YELLOW);
-        assertThat(fb.get(f.x() + 3, f.y() + 6)).isEqualTo(YELLOW);
-        assertThat(fb.get(f.x(), f.y() + 7)).as("paper stays paper").isEqualTo(BLACK);
+        assertThat(fb.get(f.x(), f.y())).as("the paper is the cell's most colour").isEqualTo(GREEN);
+        assertThat(fb.get(f.x() + 2, f.y() + 1)).as("another colour is black detail").isEqualTo(BLACK);
+        assertThat(fb.get(f.x(), f.y() + 7)).isEqualTo(BLACK);
     }
 
     @Test
-    void aCellWithOneInkIsUntouchedAndItsNeighbourIsNotDraggedIn() {
+    void inTheOpenACellTakesTheSpritesColourButFoliageKeepsItsOwn() {
+        // $BB45: a sprite's colour goes only into cells of black paper; over foliage it is a black shape.
         DisplayConfig.Playfield f = DISPLAY.playfield();
-        Framebuffer fb = clashing();
-        fb.fillRect(f.x(), f.y(), 16, 8, GREEN);
-        fb.set(f.x() + 9, f.y() + 1, YELLOW);        // second cell only
-        new AttributeClash(f).apply(fb);
+        Framebuffer fb = blank();
+        fb.fillRect(f.x(), f.y(), 8, 8, GREEN);      // a cell of foliage, and the open cell beside it
+        AttributeClash clash = new AttributeClash(f, BLACK);
+        clash.scenery(fb);
+        fb.fillRect(f.x() + 6, f.y() + 2, 4, 2, YELLOW);   // Vale, across both cells
+        fb.set(f.x() + 11, f.y() + 2, BLACK);               // and his outline, which the original has not got
+        clash.apply(fb);
 
-        assertThat(fb.get(f.x() + 7, f.y() + 7)).isEqualTo(GREEN);
-        assertThat(fb.get(f.x() + 8, f.y())).isEqualTo(YELLOW);
+        assertThat(fb.get(f.x() + 6, f.y() + 2)).as("over foliage, a black shape").isEqualTo(BLACK);
+        assertThat(fb.get(f.x() + 5, f.y() + 2)).as("the foliage keeps its colour").isEqualTo(GREEN);
+        assertThat(fb.get(f.x() + 8, f.y() + 2)).as("in the open, his colour").isEqualTo(YELLOW);
+        assertThat(fb.get(f.x() + 12, f.y() + 5)).isEqualTo(BLACK);
     }
 
     @Test
-    void brightBlackIsPaperTooAndClearingForgetsTheInk() {
+    void aSpriteOverBlackDetailShowsThePaper() {
+        // $BA14 XORs: a sprite pixel on the foliage's black ink lets its paper through.
         DisplayConfig.Playfield f = DISPLAY.playfield();
-        Framebuffer fb = clashing();
-        fb.set(f.x(), f.y(), 8);
-        assertThat(fb.ink(f.x() >> 3, f.y() >> 3)).isEqualTo(-1);
-        fb.set(f.x(), f.y(), GREEN);
-        assertThat(fb.ink(f.x() >> 3, f.y() >> 3)).isEqualTo(GREEN);
-        fb.clear(BLACK);
-        assertThat(fb.ink(f.x() >> 3, f.y() >> 3)).isEqualTo(-1);
-    }
-
-    @Test
-    void anUntrackedFramebufferRemembersNothing() {
-        Framebuffer fb = new Framebuffer(16, 16);
-        fb.set(1, 1, GREEN);
-        assertThat(fb.tracksInk()).isFalse();
-        assertThat(fb.ink(0, 0)).isEqualTo(-1);
+        Framebuffer fb = blank();
+        fb.fillRect(f.x(), f.y(), 8, 6, GREEN);      // the bottom two rows of the cell stay black detail
+        AttributeClash clash = new AttributeClash(f, BLACK);
+        clash.scenery(fb);
+        fb.set(f.x() + 1, f.y() + 7, YELLOW);
+        clash.apply(fb);
+        assertThat(fb.get(f.x() + 1, f.y() + 7)).isEqualTo(GREEN);
+        assertThat(fb.get(f.x() + 2, f.y() + 7)).isEqualTo(BLACK);
     }
 
     @Test
@@ -187,9 +188,20 @@ class RetroTogglesTest {
                 boolean inField = x >= f.x() && x < f.x() + f.w() && y >= f.y() && y < f.y() + f.h();
                 if (!inField) {
                     assertThat(clashed.get(x, y)).as("(%d,%d) outside the playfield", x, y).isEqualTo(plain.get(x, y));
-                } else if (plain.get(x, y) == BLACK) {
-                    assertThat(clashed.get(x, y)).as("(%d,%d) paper", x, y).isEqualTo(BLACK);
                 }
+            }
+        }
+        // Two colours a cell, one of them black: the Spectrum's attribute.
+        for (int cy = 0; cy < f.rows(); cy++) {
+            for (int cx = 0; cx < f.cols(); cx++) {
+                java.util.Set<Integer> colours = new java.util.HashSet<>();
+                for (int y = 0; y < f.cell(); y++) {
+                    for (int x = 0; x < f.cell(); x++) {
+                        colours.add(clashed.get(f.x() + cx * f.cell() + x, f.y() + cy * f.cell() + y));
+                    }
+                }
+                colours.remove(BLACK);
+                assertThat(colours).as("cell (%d,%d)", cx, cy).hasSizeLessThanOrEqualTo(1);
             }
         }
     }
