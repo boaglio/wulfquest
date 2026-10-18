@@ -2799,7 +2799,9 @@ data-driven game; build it in M1.
   and `EXIT` in the big font — up and down to choose, fire to pick, the line
   chosen bright with a little wolf's head before it, as on every menu (§17.4).
   The wolf is `title.marker`, frame `head` of the sprite `menu_wolf` (our own
-  art, 14×12, replacing the `> ` it was until then, at the user's asking);
+  art, 16×12 — a grey head in profile, two pointed ears, an amber eye, a long
+  snout and a pale jaw, redrawn the same day because the first looked like a
+  white bear — replacing the `> ` it was until then, at the user's asking);
   `ShellValidator.checkMarker` wants the sprite and frame to exist and the
   sprite no taller than a big-font line and its gap. The chosen line no longer
   moves aside for its mark: the wolf sits to the left of the centred line. Under `START` the
