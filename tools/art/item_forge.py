@@ -13,13 +13,16 @@ origin bottom-centre, so a placement's spot is where the item rests on the groun
   map_diamond the map's mark for a quarter an eye has shown (§17.7): a cut gem, 13x11 to
              fit a room on the map. shiny0-3 twinkle, a glint at one corner and then the
              other; dull is the same gem gone grey, once its quarter is taken.
+  map_arch   the map's mark for the stone arch, the way out (§17.7): 13x11. stone is the arch
+             with a dark doorway; glow0-1 the doorway lit gold, once the amulet is whole and
+             it is where to take it.
   treasure   the odds and ends lying about the jungle (§16.4, [CANON] in kind, ours in
              drawing): crate, ring, fruit, cap, shield, life, money_bag, sword. One ink
              each, as on the Spectrum: the game tints them, so they are drawn in white.
 
 Outputs data/art/sprites/item_map.sprite.json, item_eye.sprite.json, item_glass.sprite.json,
 way_arrow.sprite.json,
-map_diamond.sprite.json and treasure.sprite.json and merges the names into data/art/sprites/index.json.  Run:  python3 tools/art/item_forge.py
+map_diamond.sprite.json, map_arch.sprite.json and treasure.sprite.json and merges the names into data/art/sprites/index.json.  Run:  python3 tools/art/item_forge.py
 """
 import math
 import sys
@@ -160,6 +163,37 @@ def diamond(glint, dull=False):
         gx, gy = glint
         for dx, dy in ((0, 0), (-1, 0), (1, 0), (0, -1), (0, 1)):
             cv.set(gx + dx, gy + dy, "W")
+    return cv.rows()
+
+
+# The arch: 'o' is the doorway, dark or lit.
+ARCH = [
+    "....KKKKK....",
+    "..KKwWWWwKK..",
+    ".KwWKKKKKwwK.",
+    ".KwKoooooKwK.",
+    "KwKoooooooKwK",
+    "KwKoooooooKwK",
+    "KwKoooooooKwK",
+    "KwKoooooooKwK",
+    "KwKoooooooKwK",
+    "KwwKoooooKwwK",
+    "KKKKoooooKKKK",
+]
+
+
+def arch(doorway, edge=None):
+    """The stone arch, its doorway filled with {@code doorway}; {@code edge} rims it inside."""
+    cv = Canvas(13, 11)
+    for y, row in enumerate(ARCH):
+        assert len(row) == 13, row
+        for x, ch in enumerate(row):
+            if ch == "o":
+                rim = edge is not None and (ARCH[y][x - 1] != "o" or ARCH[y][x + 1] != "o"
+                                            or y > 0 and ARCH[y - 1][x] != "o")
+                cv.set(x, y, edge if rim else doorway)
+            elif ch != ".":
+                cv.set(x, y, ch)
     return cv.rows()
 
 
@@ -331,11 +365,12 @@ def main():
     write_sprite("map_diamond", 13, 11, [("shiny0", diamond((11, 1))), ("shiny1", diamond(None)),
                                          ("shiny2", diamond((1, 1))), ("shiny3", diamond(None)),
                                          ("dull", diamond(None, dull=True))])
+    write_sprite("map_arch", 13, 11, [("stone", arch("K")), ("glow0", arch("Y", "y")), ("glow1", arch("y", "Y"))])
     write_sprite("treasure", 16, 16, [(name, treasure(name)) for name in TREASURES])
-    update_index(["item_map", "item_eye", "item_glass", "way_arrow", "map_diamond", "treasure"],
-                 lambda n: n.startswith("item_") or n in ("way_arrow", "map_diamond", "treasure"))
+    update_index(["item_map", "item_eye", "item_glass", "way_arrow", "map_diamond", "map_arch", "treasure"],
+                 lambda n: n.startswith("item_") or n in ("way_arrow", "map_diamond", "map_arch", "treasure"))
     print("item forge: item_map (1 frame), item_eye (3 frames), item_glass (3 frames), way_arrow (4 frames), "
-          "map_diamond (5 frames), treasure (%d frames)"
+          "map_diamond (5 frames), map_arch (3 frames), treasure (%d frames)"
           % len(TREASURES))
 
 

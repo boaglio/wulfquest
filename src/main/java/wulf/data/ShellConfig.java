@@ -59,7 +59,8 @@ public record ShellConfig(
      * shown, or whose quarter is taken, carries {@code quarterIcon} (§14.8).
      */
     public record MapScreen(String key, Map<String, String> profileKeys, String message, String visited,
-                            String revealed, String here, int blinkTicks, QuarterIcon quarterIcon, Trail trail) {
+                            String revealed, String here, int blinkTicks, QuarterIcon quarterIcon, ExitIcon exitIcon,
+                            Trail trail) {
         public MapScreen {
             profileKeys = profileKeys == null ? Map.of() : Map.copyOf(profileKeys);
             trail = trail == null ? Trail.NONE : trail;
@@ -82,6 +83,17 @@ public record ShellConfig(
      */
     public record Trail(String colour, int dotEveryPx, int marchTicks) {
         public static final Trail NONE = new Trail("white", 1, 1);
+    }
+
+    /**
+     * The map's mark on the arch's room, the way out (§17.7): {@code frame} always, so the
+     * player knows where the amulet goes; the {@code open} frames in turn, {@code frameTicks}
+     * each, once it is whole.
+     */
+    public record ExitIcon(String sprite, String frame, List<String> open, int frameTicks) {
+        public ExitIcon {
+            open = List.copyOf(open);
+        }
     }
 
     /**
@@ -441,7 +453,7 @@ public record ShellConfig(
      * @param theEnd the roll's first row, unless the job won says otherwise ({@code newGamePlus.levels[n].theEnd})
      */
     public record Roll(String theEnd, List<String> before, List<String> after, int fromY, int lineHeightPx,
-                       int ticksPerPx, String headingColour, String bodyColour) {
+                       int ticksPerPx, String headingColour, String bodyColour, String hint, String paused) {
         public Roll {
             before = List.copyOf(before);
             after = List.copyOf(after);

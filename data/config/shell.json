@@ -171,6 +171,7 @@
     "here": "brightWhite",
     "blinkTicks": 10,
     "quarterIcon": { "sprite": "map_diamond", "shiny": ["shiny0", "shiny1", "shiny2", "shiny3"], "frameTicks": 8, "taken": "dull" },
+    "exitIcon": { "sprite": "map_arch", "frame": "stone", "open": ["glow0", "glow1"], "frameTicks": 12 },
     "trail": { "colour": "brightYellow", "dotEveryPx": 3, "marchTicks": 4 }
   },
   "saves": {
@@ -219,9 +220,11 @@
       "after": ["", "", "", "THANK YOU FOR PLAYING"],
       "fromY": 256,
       "lineHeightPx": 12,
-      "ticksPerPx": 2,
+      "ticksPerPx": 3,
       "headingColour": "brightYellow",
-      "bodyColour": "white"
+      "bodyColour": "white",
+      "hint": "FIRE TO PAUSE - ESC TO SKIP",
+      "paused": "PAUSED - FIRE TO GO ON"
     }
   },
   "difficulty": {

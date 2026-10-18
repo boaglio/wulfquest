@@ -61,6 +61,8 @@ public final class Shell {
 
     private State state = State.TITLE;
     private long stateTick;
+    private long rollTick;
+    private boolean rollPaused;
     private long idleTicks;
     private boolean quit;
     private String notice;
@@ -516,18 +518,36 @@ public final class Shell {
         }
     }
 
-    /** §14.7: the credits roll up and away; fire, after a beat, cuts them short. */
+    /**
+     * §14.7: the roll rises on its own; fire stops it to read and starts it again, and Escape
+     * skips to what comes after it — Mr Jones's offer if he has one, else the run banked.
+     */
     private void roll(InputState in) {
-        boolean skipped = stateTick >= config.screenHoldTicks() && in.firePressed();
-        if (in.quitPressed()) {
-            endRun();
-        } else if (skipped || stateTick >= config.credits().rollTicks()) {
+        if (stateTick >= config.screenHoldTicks() && in.firePressed()) {
+            rollPaused = !rollPaused;
+            jukebox.sfx(SFX_MOVE);
+        }
+        if (!rollPaused) {
+            rollTick++;
+        }
+        if (in.quitPressed() || rollTick >= config.credits().rollTicks()) {
+            rollPaused = false;
             if (offered > 0) {
                 go(State.OFFER);
             } else {
                 endRun();
             }
         }
+    }
+
+    /** How far the credits have rolled (§14.7): ticks, not counting those stood still. */
+    public long rollTick() {
+        return rollTick;
+    }
+
+    /** Whether the credits are stopped to read (§14.7). */
+    public boolean rollPaused() {
+        return rollPaused;
     }
 
     /** §14.9: Mr Jones has a new job; fire, once his words are out, banks the run. */
@@ -668,6 +688,8 @@ public final class Shell {
     private void go(State next) {
         state = next;
         stateTick = 0;
+        rollTick = 0;
+        rollPaused = false;
         // The menus over a game are as silent as the jungle under them (§18.3).
         boolean inGame = next == State.PAUSED || next == State.SAVE_GAME
                 || back == State.PAUSED && (next == State.LOAD_GAME || next == State.OPTIONS);

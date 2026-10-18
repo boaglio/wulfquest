@@ -183,8 +183,8 @@ public final class ShellValidator {
     }
 
     /**
-     * The map's quarter mark (§17.7): a sprite that exists, with every frame named, small
-     * enough to sit inside one room of the map.
+     * The map's quarter mark and arch mark (§17.7): sprites that exist, with every frame named,
+     * small enough to sit inside one room of the map.
      */
     public static void checkMap(ShellConfig shell, DisplayConfig display, Map<String, SpriteData> sprites) {
         ShellConfig.QuarterIcon icon = shell.map().quarterIcon();
@@ -202,10 +202,30 @@ public final class ShellValidator {
                         + icon.sprite() + "' has not got");
             }
         }
+        fitsARoom(display, sprite, "/map/quarterIcon/sprite");
+        ShellConfig.ExitIcon exit = shell.map().exitIcon();
+        SpriteData arch = sprites.get(exit.sprite());
+        if (arch == null) {
+            throw new DataException(SOURCE, "/map/exitIcon/sprite", "names '" + exit.sprite() + "', which is not a sprite");
+        }
+        Set<String> archFrames = new HashSet<>();
+        arch.frames().forEach(f -> archFrames.add(f.id()));
+        List<String> archNamed = new java.util.ArrayList<>(exit.open());
+        archNamed.add(exit.frame());
+        for (String frame : archNamed) {
+            if (!archFrames.contains(frame)) {
+                throw new DataException(SOURCE, "/map/exitIcon", "names frame '" + frame + "', which '"
+                        + exit.sprite() + "' has not got");
+            }
+        }
+        fitsARoom(display, arch, "/map/exitIcon/sprite");
+    }
+
+    private static void fitsARoom(DisplayConfig display, SpriteData sprite, String pointer) {
         int cw = display.playfield().w() / wulf.world.RoomAddress.GRID_W;
         int ch = display.playfield().h() / wulf.world.RoomAddress.GRID_H;
         if (sprite.size().w() > cw || sprite.size().h() > ch) {
-            throw new DataException(SOURCE, "/map/quarterIcon/sprite", "is " + sprite.size().w() + "x" + sprite.size().h()
+            throw new DataException(SOURCE, pointer, "is " + sprite.size().w() + "x" + sprite.size().h()
                     + ", larger than a room on the map (" + cw + "x" + ch + ")");
         }
     }

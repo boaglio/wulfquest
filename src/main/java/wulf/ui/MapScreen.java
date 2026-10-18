@@ -33,12 +33,14 @@ final class MapScreen {
     private final int blinkTicks;
     private final Sprite icon;
     private final ShellConfig.QuarterIcon iconFrames;
+    private final Sprite arch;
+    private final ShellConfig.ExitIcon archFrames;
     private final WayPainter way;
     private final ShellConfig.Trail trail;
     private final int trailColour;
 
     MapScreen(DisplayConfig display, RoomBaker rooms, LandmarksData marks, Palette palette,
-              ShellConfig.MapScreen config, Sprite icon, WayPainter way) {
+              ShellConfig.MapScreen config, Sprite icon, Sprite arch, WayPainter way) {
         this.field = display.playfield();
         this.rooms = rooms;
         this.marks = marks;
@@ -49,6 +51,8 @@ final class MapScreen {
         this.blinkTicks = config.blinkTicks();
         this.icon = icon;
         this.iconFrames = config.quarterIcon();
+        this.arch = arch;
+        this.archFrames = config.exitIcon();
         this.way = way;
         this.trail = config.trail();
         this.trailColour = palette.indexOf(trail.colour());
@@ -81,6 +85,7 @@ final class MapScreen {
             }
         }
         paintQuarters(fb, sim, cw, ch, tick);
+        paintArch(fb, sim, cw, ch, tick);
         paintTrail(fb, sim, cw, ch, tick);
         if ((tick / blinkTicks) % 2 == 0) {
             fb.drawRect(field.x() + sim.room().col() * cw, field.y() + sim.room().row() * ch, cw, ch, here);
@@ -121,6 +126,18 @@ final class MapScreen {
                 fb.set(u, v + d, trailColour);
             }
         }
+    }
+
+    /**
+     * The arch (§17.7): always marked, known or not, since it is where the amulet goes; once
+     * the amulet is whole its doorway glows, and that is where to go.
+     */
+    private void paintArch(Framebuffer fb, Simulation sim, int cw, int ch, long tick) {
+        RoomAddress room = marks.exitRoom();
+        boolean whole = sim.quest().quarters() >= marks.exit().requiresPieces();
+        List<String> open = archFrames.open();
+        String frame = whole ? open.get((int) (tick / archFrames.frameTicks() % open.size())) : archFrames.frame();
+        arch.blit(fb, frame, field.x() + room.col() * cw + cw / 2, field.y() + room.row() * ch + ch);
     }
 
     /**

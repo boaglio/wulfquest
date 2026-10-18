@@ -407,7 +407,7 @@ class ShellTest {
     }
 
     @Test
-    void fireCutsTheRollShortAndEscapeLeavesTheEndingAtAnyPoint(@TempDir Path dir) {
+    void fireStopsTheRollToReadAndEscapeLeavesTheEndingAtAnyPoint(@TempDir Path dir) {
         Shell shell = won(db(dir), new java.util.ArrayList<>());
         idle(shell, CONFIG.ending().promptAt());
         shell.tick(FIRE, MenuInput.NONE, false);
@@ -416,7 +416,17 @@ class ShellTest {
         assertThat(shell.state()).isEqualTo(Shell.State.ROLL);
         idle(shell, CONFIG.screenHoldTicks());
         shell.tick(FIRE, MenuInput.NONE, false);
-        assertThat(shell.state()).isEqualTo(Shell.State.OFFER);
+        assertThat(shell.rollPaused()).as("fire stops it").isTrue();
+        long at = shell.rollTick();
+        idle(shell, 2 * CONFIG.credits().rollTicks());
+        assertThat(shell.state()).as("and it waits as long as it is read").isEqualTo(Shell.State.ROLL);
+        assertThat(shell.rollTick()).isEqualTo(at);
+        shell.tick(FIRE, MenuInput.NONE, false);
+        assertThat(shell.rollPaused()).isFalse();
+        idle(shell, 3);
+        assertThat(shell.rollTick()).as("fire starts it again").isGreaterThan(at);
+        shell.tick(QUIT, MenuInput.NONE, false);
+        assertThat(shell.state()).as("escape skips to Mr Jones's offer").isEqualTo(Shell.State.OFFER);
         idle(shell, 5);
         shell.tick(QUIT, MenuInput.NONE, false);
         assertThat(shell.state()).as("escape leaves the offer too").isIn(Shell.State.TITLE, Shell.State.HISCORE_ENTRY);

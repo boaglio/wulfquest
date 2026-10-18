@@ -1,0 +1,84 @@
+{
+  "schemaVersion": 1,
+  "name": "map_arch",
+  "size": {
+    "w": 13,
+    "h": 11
+  },
+  "origin": {
+    "x": 6,
+    "y": 11
+  },
+  "legend": {
+    ".": -1,
+    "K": 0,
+    "y": 6,
+    "w": 7,
+    "Y": 14,
+    "W": 15
+  },
+  "frames": [
+    {
+      "id": "stone",
+      "rows": [
+        "....KKKKK....",
+        "..KKwWWWwKK..",
+        ".KwWKKKKKwwK.",
+        ".KwKKKKKKKwK.",
+        "KwKKKKKKKKKwK",
+        "KwKKKKKKKKKwK",
+        "KwKKKKKKKKKwK",
+        "KwKKKKKKKKKwK",
+        "KwKKKKKKKKKwK",
+        "KwwKKKKKKKwwK",
+        "KKKKKKKKKKKKK"
+      ]
+    },
+    {
+      "id": "glow0",
+      "rows": [
+        "....KKKKK....",
+        "..KKwWWWwKK..",
+        ".KwWKKKKKwwK.",
+        ".KwKyyyyyKwK.",
+        "KwKyYYYYYyKwK",
+        "KwKyYYYYYyKwK",
+        "KwKyYYYYYyKwK",
+        "KwKyYYYYYyKwK",
+        "KwKyYYYYYyKwK",
+        "KwwKyYYYyKwwK",
+        "KKKKyYYYyKKKK"
+      ]
+    },
+    {
+      "id": "glow1",
+      "rows": [
+        "....KKKKK....",
+        "..KKwWWWwKK..",
+        ".KwWKKKKKwwK.",
+        ".KwKYYYYYKwK.",
+        "KwKYyyyyyYKwK",
+        "KwKYyyyyyYKwK",
+        "KwKYyyyyyYKwK",
+        "KwKYyyyyyYKwK",
+        "KwKYyyyyyYKwK",
+        "KwwKYyyyYKwwK",
+        "KKKKYyyyYKKKK"
+      ]
+    }
+  ],
+  "mirror": {
+    "stone_l": {
+      "from": "stone",
+      "flipX": true
+    },
+    "glow0_l": {
+      "from": "glow0",
+      "flipX": true
+    },
+    "glow1_l": {
+      "from": "glow1",
+      "flipX": true
+    }
+  }
+}

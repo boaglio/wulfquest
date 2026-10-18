@@ -9,9 +9,13 @@ import wulf.render.Framebuffer;
 /**
  * The credits rolled up the screen after a win (AGENTS.md §14.7, {@code [NEW]}): the same
  * heading and lines as the credits page, between {@code roll.before} and {@code roll.after},
- * a pixel every {@code ticksPerPx}, until the last row is gone off the top.
+ * a pixel every {@code ticksPerPx}, until the last row is gone off the top. Under it, on a
+ * band of its own, {@code roll.hint}, or {@code roll.paused} while it stands still.
  */
 final class CreditsRoll {
+
+    /** Layout, not a game number: the space round the line under the roll. */
+    private static final int BAND_PAD_PX = 3;
 
     private final ShellConfig.Credits credits;
     private final FontSet big;
@@ -30,11 +34,14 @@ final class CreditsRoll {
     }
 
     void paint(Framebuffer fb, long t) {
-        paint(fb, t, credits.roll().theEnd());
+        paint(fb, t, credits.roll().theEnd(), false);
     }
 
-    /** @param theEnd the first row: the job won's own (§14.7) */
-    void paint(Framebuffer fb, long t, String theEnd) {
+    /**
+     * @param theEnd the first row: the job won's own (§14.7)
+     * @param paused whether the player has stopped it to read
+     */
+    void paint(Framebuffer fb, long t, String theEnd, boolean paused) {
         List<String> rows = credits.rollRows(theEnd);
         fb.clear(ground);
         ShellConfig.Roll roll = credits.roll();
@@ -50,5 +57,10 @@ final class CreditsRoll {
             FontSet font = isBody ? small : big;
             font.drawCentred(fb, rows.get(i), 0, fb.width(), y, isBody ? body : heading);
         }
+        int band = small.lineHeight() + 2 * BAND_PAD_PX;
+        int top = fb.height() - band;
+        fb.fillRect(0, top, fb.width(), band, ground);
+        small.drawCentred(fb, paused ? roll.paused() : roll.hint(), 0, fb.width(), top + BAND_PAD_PX,
+                paused ? heading : body);
     }
 }

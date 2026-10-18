@@ -18,10 +18,11 @@ class MapScreenTest {
 
     /** Set 3 (§14.2): the rooms these tests look at. */
     private static final Content C = Content.load(Path.of("data")).withAmuletSet(3);
+    private static final Sprite ARCH = new SpriteBank(C.sprites()).get(C.shell().map().exitIcon().sprite());
     private static final Sprite ICON = new SpriteBank(C.sprites()).get(C.shell().map().quarterIcon().sprite());
 
     private static MapScreen map() {
-        return new MapScreen(C.display(), C.rooms(), C.landmarks(), C.palette(), C.shell().map(), ICON, null);
+        return new MapScreen(C.display(), C.rooms(), C.landmarks(), C.palette(), C.shell().map(), ICON, ARCH, null);
     }
 
     /** Whether {@code room} on the map carries the icon's {@code frame}: every pixel of it, where it sits. */

@@ -1105,7 +1105,10 @@ Schema messages on the `DATA_ERROR` screen quote pointers and regexes, and a
 missing glyph renders as `?`, which turns `^#[0-9A-Fa-f]{6}$` into noise. `©`
 is omitted deliberately — it is unreadable at 3×5 and belongs to the 8×8 set.
 Lowercase is optional; the painter upper-cases on draw (the period look is
-all-caps).
+all-caps). **No two glyphs of a set may be the same picture** (`FontTest`): the
+4×6 `S` was the `5` and its `O` the `0`, so the credits' `EARLY 1980S` read
+`19805` (found by the user, 2026-10-18). The `S` is round now, and the letter
+`O` too; the digits, which the panel shows most, kept their shapes.
 
 ### 10.5 Scenery Forge — where the scenery art comes from
 
@@ -2304,8 +2307,12 @@ gone before the prompt. `--endings` (§17.6) plays all three.
 
 **The credits roll [NEW]** (`shell.json → credits.roll`, `CreditsRoll`): the
 credits page's heading and lines, between `theEnd` and `before` and `after`
-(`THANK YOU FOR PLAYING`), rising a pixel every `ticksPerPx` from `fromY`
-until the last row is gone; then the run is banked. The credits name the
+(`THANK YOU FOR PLAYING`), rising a pixel every `ticksPerPx` (3; 2 until the
+user found it too fast to read, 2026-10-18 — about 37 s now) from `fromY`
+until the last row is gone; then the run is banked. Fire stops it to read and
+starts it again, the bottom line saying so (`roll.hint`, `roll.paused`, on a
+band of its own); Escape skips to what follows it — Mr Jones's offer when
+there is one (before, fire skipped and Escape went past the offer too). The credits name the
 game's author (2026-10-12). After the first win of a job, the roll is followed
 by Mr Jones's offer of the next (§14.9). Its first row is the job's own
 `newGamePlus.levels[n].theEnd`, as the user asked: `THE END?` after the game,
@@ -2918,7 +2925,11 @@ over the room's own map, which still shows around it. While the quarter waits
 the diamond is shiny and twinkles — `shiny` frames in turn, `frameTicks` each,
 every lair a frame ahead of the last so they do not twinkle together; once the
 quarter is taken it is the `taken` frame, the same gem gone grey, eye or no
-eye (§14.8). `ShellValidator.checkMap` refuses a sprite or frame that does not
+eye (§14.8). **The arch** (asked for by the user, 2026-10-18; `map.exitIcon`,
+sprite `map_arch`, 13×11, `item_forge.py`) is marked on its room from the
+start, known or not, since it is where the amulet goes: grey stone round a dark
+doorway, and once the amulet is whole the doorway glows gold (`open` frames,
+`frameTicks` each). `ShellValidator.checkMap` refuses a sprite or frame that does not
 exist, or a sprite larger than a room on the map. While a looking glass shows
 the way (§14.10), the map dots it (`map.trail`), with a blinking cross at its
 end. `MapScreen`, `MapScreenTest`.
