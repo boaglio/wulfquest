@@ -99,6 +99,7 @@ public final class GamePainter {
     public void retro(wulf.data.Settings s) {
         this.clashing = s.crt().attributeClash();
         beasts.inked(Shell.optionOn(s, "inkedCreatures"));
+        beasts.flicker(display.spriteFlicker() || Shell.optionOn(s, "spriteFlicker"));
     }
 
     /** Each job's amulet, slot by slot (§14.9). */

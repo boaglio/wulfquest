@@ -471,7 +471,9 @@ Hard rules:
 
 The player turns the `crt` ones on in `settings.json` (§21.3), which
 overrides `display.json`'s shipped `false`; the scanline depth is always the
-shipped one. `spriteFlicker` lives only in `display.json`. None of them
+shipped one. `spriteFlicker` ships in `display.json` and the player turns it
+on from the options page (`settings.json → features.spriteFlicker`, §17.9;
+either one on is on). None of them
 touches the simulation, and with all of them off the golden frames (§22.5)
 are unchanged. `RetroTogglesTest` covers each.
 
@@ -2831,6 +2833,16 @@ only in `settings.json` until now — `SCANLINES` and `COLOUR CLASH` (§5.4) and
 `OFF`, fire flipping it, written to `settings.json` at once and shown at once:
 the painter reads them every frame (`GamePainter.retro`, `Scaler.setScanlines`).
 The difficulty has its own key (`D`, §17.8).
+
+**8-BIT MODE** (asked for by the user, 2026-10-18: "to be close to the original
+game"): one line that turns every switch of the original's look on together —
+`options.eightBit`: `SCANLINES`, `COLOUR CLASH`, `ONE-COLOUR CREATURES` and
+`SPRITE FLICKER` (§5.4, its own line too since then) — and, when they are all
+on, off together. It shows `ON` only while all of them are; turning one off by
+itself shows it `OFF`, and fire then turns them all on again. It is the look
+only: nothing in it touches the simulation, so saves, replays and scores are
+the same in it. `ShellValidator` refuses an `eightBit` entry that is not a
+switch.
 
 **Sound** is on it too (asked for by the user, 2026-10-17), first, so it can be
 turned down without leaving a game: `SOUND` `ON`/`OFF`, fire flipping it, and

@@ -436,8 +436,28 @@ public final class Shell {
             sounded(s.withAudio(!s.audio().enabled(), s.audio().volumePercent()));
             return;
         }
-        db.putSettings(toggled(db.settings(), id));
+        db.putSettings(id.equals("eightBit") ? eightBit(db.settings(), config.options().eightBit())
+                : toggled(db.settings(), id));
         jukebox.sfx(SFX_PICK);
+    }
+
+    /**
+     * §17.9: 8-BIT MODE — every switch of the original's look ({@code options.eightBit}) on
+     * together, or, when they all are, off together.
+     */
+    static Settings eightBit(Settings s, java.util.List<String> switches) {
+        boolean on = !eightBitOn(s, switches);
+        for (String id : switches) {
+            if (optionOn(s, id) != on) {
+                s = toggled(s, id);
+            }
+        }
+        return s;
+    }
+
+    /** Whether 8-BIT MODE shows on: every one of its switches is. */
+    public static boolean eightBitOn(Settings s, java.util.List<String> switches) {
+        return switches.stream().allMatch(id -> optionOn(s, id));
     }
 
     /** §21.3: the sound changed from the options — written, and heard at once. */

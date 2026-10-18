@@ -313,4 +313,35 @@ class SaveSlotsTest {
         press(shell, InputState.of(1, 0, false, false), 20);
         assertThat(db.settings().audio().volumePercent()).as("no louder than all").isEqualTo(100);
     }
+
+    @Test
+    void eightBitModeTurnsTheOriginalsLookOnAndOffTogether(@TempDir Path dir) {
+        // §17.9: one line for every switch of the original's look.
+        PlayerDb db = db(dir);
+        Shell shell = shell(db, 1L);
+        shell.tick(InputState.NONE, MenuInput.of("O"), false);
+        idleIn(shell, CONTENT.shell().screenHoldTicks());
+        List<wulf.data.ShellConfig.Entry> items = CONTENT.shell().options().items();
+        List<String> look = CONTENT.shell().options().eightBit();
+        assertThat(look).containsExactlyInAnyOrder("scanlines", "attributeClash", "inkedCreatures", "spriteFlicker");
+        assertThat(Shell.eightBitOn(db.settings(), look)).as("the shipped look is ours").isFalse();
+
+        // One switch already on: 8-BIT MODE still turns them all on, not that one off.
+        press(shell, DOWN, line(items, "inkedCreatures"));
+        press(shell, FIRE, 1);
+        assertThat(Shell.optionOn(db.settings(), "inkedCreatures")).isTrue();
+        press(shell, InputState.of(0, -1, false, false), line(items, "inkedCreatures") - line(items, "eightBit"));
+        assertThat(items.get(shell.cursor()).id()).isEqualTo("eightBit");
+        press(shell, FIRE, 1);
+        for (String id : look) {
+            assertThat(Shell.optionOn(db.settings(), id)).as(id).isTrue();
+        }
+        assertThat(Shell.eightBitOn(db.settings(), look)).isTrue();
+        assertThat(db.settings().audio()).as("the sound is not part of it").isEqualTo(CONTENT.defaultSettings().audio());
+
+        press(shell, FIRE, 1);
+        for (String id : look) {
+            assertThat(Shell.optionOn(db.settings(), id)).as(id).isFalse();
+        }
+    }
 }

@@ -64,6 +64,12 @@ public final class ShellValidator {
         // §17.4, §17.9: every menu line does something the shell knows, and none twice.
         checkEntries(shell.pause().items(), ShellConfig.Pause.IDS, "/pause/items");
         checkEntries(shell.options().items(), ShellConfig.Options.IDS, "/options/items");
+        for (String id : shell.options().eightBit()) {
+            if (!ShellConfig.Options.SWITCHES.contains(id)) {
+                throw new DataException(SOURCE, "/options/eightBit", "names '" + id + "', which is not a switch "
+                        + ShellConfig.Options.SWITCHES);
+            }
+        }
         if (shell.pause().items().stream().noneMatch(e -> e.id().equals("resume"))) {
             throw new DataException(SOURCE, "/pause/items", "has no way back to the game ('resume')");
         }

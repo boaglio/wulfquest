@@ -187,7 +187,8 @@ your lifetime ledger; `D` switches between Hard and Easy. Once you have won,
 **Pause, save and load.** `P` pauses the game with a menu: resume, save the
 game to one of three slots, load one, options, or quit to the title. The title
 has `L` to load a saved game and `O` for the options — sound and volume,
-scanlines, the colour clash, and the original's one-colour creatures.
+8-bit mode, scanlines, the colour clash, the original's one-colour creatures
+and sprite flicker.
 
 Hi-scores, settings, stats and saved games are written to your own user directory —
 `~/.local/share/wulfquest` on Linux, `~/Library/Application Support/WulfQuest`
@@ -195,11 +196,14 @@ on macOS, `%APPDATA%\WulfQuest` on Windows — never into the game's own files.
 
 The options page (`O` on the title, or from the pause menu) starts with the
 sound, on or off, and its volume, so you can turn it down without leaving a
-game. For the nostalgic it has three more switches, all off by default: scanlines darken every other line of
+game. For the nostalgic, **8-BIT MODE** turns on everything that makes it look
+like the Spectrum original at once; each of its four switches is there on its
+own too, all off by default: scanlines darken every other line of
 the picture; the colour clash gives each 8×8 cell of the jungle one colour, so
 Vale turns the undergrowth his colour as he pushes through it — faithful, ugly,
-fun; and one-colour creatures draws each creature in a single ink, as the
-original did.
+fun; one-colour creatures draws each creature in a single ink, as the
+original did; and sprite flicker makes creatures crowded into one spot take
+turns to be drawn, the way a Spectrum ran out of time to draw them all.
 
 ## How it is built
 

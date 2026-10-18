@@ -140,14 +140,19 @@ public record ShellConfig(
 
     /** The options page (§17.9, {@code [NEW]}): each item a switch, shown {@code on} or {@code off}, and back. */
     public record Options(String heading, List<Entry> items, String on, String off, String footer,
-                          String volumeFooter) {
+                          String volumeFooter, List<String> eightBit) {
         public Options {
             items = List.copyOf(items);
+            eightBit = eightBit == null ? List.of() : List.copyOf(eightBit);
         }
 
+        /** The switches one line turns on or off by itself: what 8-BIT MODE may gather. */
+        public static final List<String> SWITCHES = List.of("scanlines", "attributeClash", "inkedCreatures",
+                "spriteFlicker");
+
         /** The ids the shell acts on: the switches it knows, and back. */
-        public static final List<String> IDS = List.of("sound", "volume", "scanlines", "attributeClash", "inkedCreatures",
-                "back");
+        public static final List<String> IDS = List.of("sound", "volume", "eightBit", "scanlines", "attributeClash",
+                "inkedCreatures", "spriteFlicker", "back");
     }
 
     /**

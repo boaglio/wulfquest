@@ -57,6 +57,7 @@ final class MenuScreen {
                     String text = switch (e.id()) {
                         case "back" -> e.label();
                         case "volume" -> e.label() + "  " + settings.audio().volumePercent() + "%";
+                        case "eightBit" -> e.label() + "  " + (Shell.eightBitOn(settings, o.eightBit()) ? o.on() : o.off());
                         default -> e.label() + "  " + (Shell.optionOn(settings, e.id()) ? o.on() : o.off());
                     };
                     rows.add(new Row(text, true, i == shell.cursor()));

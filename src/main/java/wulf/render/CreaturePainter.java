@@ -45,7 +45,7 @@ public final class CreaturePainter {
     private final int shaft;
     private final int point;
     private final List<Creature> order = new ArrayList<>();
-    private final boolean flicker;
+    private boolean flicker;
     private final int[] crowd;
     /** §12.8: the original's one ink a creature, rather than each in its own colours. */
     private boolean inked;
@@ -76,6 +76,11 @@ public final class CreaturePainter {
     /** §17.9: the options page switches the original's one ink a creature on and off as it runs. */
     public void inked(boolean on) {
         this.inked = on;
+    }
+
+    /** §5.4, §17.9: whether crowded creatures take turns to draw, as the options page left it. */
+    public void flicker(boolean on) {
+        this.flicker = on;
     }
 
     public void paint(Framebuffer fb, Simulation sim) {

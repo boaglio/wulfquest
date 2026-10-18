@@ -326,14 +326,17 @@
     "items": [
       { "id": "sound", "label": "SOUND" },
       { "id": "volume", "label": "VOLUME" },
+      { "id": "eightBit", "label": "8-BIT MODE" },
       { "id": "scanlines", "label": "SCANLINES" },
       { "id": "attributeClash", "label": "COLOUR CLASH" },
       { "id": "inkedCreatures", "label": "ONE-COLOUR CREATURES" },
+      { "id": "spriteFlicker", "label": "SPRITE FLICKER" },
       { "id": "back", "label": "BACK" }
     ],
     "on": "ON",
     "off": "OFF",
     "footer": "UP DOWN TO CHOOSE - FIRE TO CHANGE",
-    "volumeFooter": "LEFT RIGHT FOR LOUDER OR QUIETER"
+    "volumeFooter": "LEFT RIGHT FOR LOUDER OR QUIETER",
+    "eightBit": ["scanlines", "attributeClash", "inkedCreatures", "spriteFlicker"]
   }
 }
