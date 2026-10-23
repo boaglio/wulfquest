@@ -30,12 +30,7 @@ engine.
 
 The title, a few rooms of the jungle, the options page, a room with
 **8-BIT MODE** on, and the map: one quarter of the amulet shown by an eye and
-waiting, one already taken. Each one is drawn by the game's own painters
-from a fixed seed (the map from the recorded full run, `replays/full_run.json`).
-The pictures are attached to the
-[releases](https://github.com/boaglio/wulfquest/releases) from v0.7.0 on,
-not kept in the repository, because §2.4 of `AGENTS.md` keeps every image
-file out of it.
+waiting, one already taken. Each one is drawn by the game itself.
 
 ## Download
 
@@ -48,12 +43,36 @@ Java 21 or later, the plain jar works: `java -jar wulfquest-….jar`.
 The builds are not signed yet, so Windows warns on the first launch: click
 **More info**, then **Run anyway**.
 
-## Status
+## The game
 
-**Continues.** Game over is not quite the end: three times a game, in either
-mode, fire on the game-over screen sends you back where you fell with fresh
-lives and everything you found — but your score starts again from zero. The
-hi-score table keeps the run's best.
+**The amulet.** Four quarters of it lie in four rooms of the jungle, each
+watched by a guardian. Like the original, each game picks one of eight sets
+of four rooms for them, so the map you learned last game is only half the
+answer. Picking one up shows the amulet so far and a verse. Get out through
+the stone arch with all four and you walk the amulet to old Mr Jones, who
+knows where it belongs. Then the sums, then the credits roll.
+
+**The jungle is the original's.** The same 256 rooms, laid out as they were
+in 1984. Small creatures (spiders, scorpions, bats, parrots and ten more)
+appear as puffs, three to a room, and the later kinds only come as the amulet
+fills. Meet them with the sabre out and facing them and they burst; walk into
+one and it takes you with it. Rhinos pace their corridors, tribesmen follow
+you about the map, and light up and call when they stand level with a
+quarter of the amulet, and somewhere a hippo or a warthog sleeps. None of
+those can be killed, only pushed back. And don't stand about: stay in one
+room too long and a flame comes for you, one no sabre can touch.
+
+**The Wulf.** There is one, and it prowls the bottom row of the jungle all
+game. It cannot be killed. A sabre held towards it as it comes makes it sit,
+for a while.
+
+**The orchids.** Red, cyan, magenta and yellow each make you untouchable
+while they last, at a price: slow, fast, reversed or knocked flat. White
+cures you.
+
+**Treasure.** About two hundred and fifty pieces a game (a crate, a ring, a
+sword, now and then a spare life), worth 150 each. Five lives in reserve, and
+none for score, as it was then.
 
 **Easy and Hard.** The game as the original plays it is Hard. Choose Easy on
 the title's options: nine lives instead of five, two small creatures in a room
@@ -62,9 +81,11 @@ outrun, no flames at all, a looking glass that shows the way for three
 minutes, and shrines that answer every time. Easy runs share the hi-score
 table, marked `E`, and winning one opens New Game+ just the same.
 
-**An ending.** Get out through the arch with all four quarters and you walk
-the amulet to old Mr Jones, who knows where it belongs. Then the sums, then
-the credits roll.
+**Continues.** Game over is not quite the end: three times a game, in either
+mode, fire on the game-over screen sends you back where you fell with fresh
+lives and everything you found, but your score starts again from zero. The
+hi-score table keeps the run's best. Game over says how much of the adventure
+you got through.
 
 **New Game+.** Win once and Mr Jones has a new job for you: another amulet,
 broken in two. Win that and there is one last job, an amulet in one piece.
@@ -72,120 +93,10 @@ Fewer pieces, but the jungle starts out angrier and the Wulf runs faster.
 Once a job is open the title starts it, and left and right on `START` switch
 back.
 
-**The amulet hides somewhere new every game.** Like the original, each game
-picks one of its eight sets of four rooms for the quarters, so the map you
-learned last game is only half the answer. Each quarter's guardian goes with it.
-
-**The original's creatures.** The jungle is now the original's, read from its
-disassembly: small creatures — spiders, scorpions, bats, parrots and ten more —
-appear as puffs, three to a room, each kind in its own colours, and the later kinds
-only come as the amulet fills. Meet them with the sabre out and facing them and
-they burst; walk into one and it takes you with it. Rhinos pace their corridors,
-tribesmen follow you about the map — and light up and call when they stand level
-with a quarter of the amulet — and somewhere a hippo or a warthog sleeps. None of
-those can be killed, only pushed back. Our own invented creatures stay as an
-option (`features.inventedCreatures`).
-
-**The original's Wulf.** Read from the original's disassembly: there is one
-Wulf, and it prowls the bottom row of the jungle all game. A
-sabre held towards it as it comes makes it sit — for a while. The Wulf that
-appears anywhere and follows you is still there as an option
-(`features.roamingWulf` in `data/config/game.json`). Lives work as they did
-then too: five in reserve, and none for score. And so do the orchids: red, cyan,
-magenta and yellow each make you untouchable while they last — slow, fast,
-reversed or knocked flat — and white cures you. And don't stand about: stay in
-one room too long and a flame comes for you, one no sabre can touch. Our own six flowers stay as an
-option too (`features.inventedOrchids`).
-
-**M10 — the true map.** The jungle is now the original's own layout, checked
-against publicly documented data: the room grid had been mis-numbered, and
-every room had two rows at the top it never had. Picking up a quarter of the
-amulet now shows the amulet so far and a verse; the sabre fences instead of
-swinging; and game over says how much of the adventure you got through.
-`./run.sh help` lists every way to run it. Since then the jungle has filled up
-with the original's own treasures — a crate, a ring, a sword, now and then a
-spare life, about two hundred and fifty of them a game, worth 150 each.
-
-A complete winning run — all four quarters and out through the arch, about 25
-minutes of play — is recorded and replayed on every build.
-
-**Milestone M9 complete.** M9 was the hardening pass:
-golden-frame tests that hash what the renderer draws, every recorded replay
-run on every build, the lair replay that had been missing since M6, and a
-build that is green on a machine with no display.
-
-M8 is what made it a game you can sit down to. It opens
-on a title screen with its own wordmark, waits twenty seconds and then plays
-itself behind a dimmed jungle until you touch a key. Escape always goes one step
-back: out of the jungle to the title, off the title to the desktop. A run that
-earns a place asks for three letters and keeps them, along with your settings and
-a lifetime ledger of everything you have ever killed and everything that has
-ever killed you. And it makes a noise now: hard-edged square waves and noise,
-synthesised as it goes, two channels, no sample files — footsteps, the blade, a
-howl when the Wulf arrives and a growl that stays until it is gone. There are
-three tunes, none of which plays in the jungle, where there is only the jungle.
-
-Everything before it is still in: the whole quest, the Wulf, thirteen kinds of
-creature, and the orchids. `mvn -q package` gives you one jar you can
-double-click, with the game, its data and its demo inside it. The full plan
-lives in [AGENTS.md](AGENTS.md) §24.
-
-```bash
-./run.sh                   # play, starting in 8,10
-./run.sh --seed 42         # replay the same creatures in every room
-./run.sh --room 3,4        # start somewhere else
-./run.sh --dev             # K kills Vale, N shows collision, H calls the roaming Wulf
-./run.sh --record run.json # save the first game as a replay
-./run.sh --debug-effect haste  # start under an orchid's effect: torpor (red), haste
-                               # (cyan), reversal (magenta), knockdown (yellow)
-./run.sh --no-audio        # silence for this run; your settings are not changed
-./run.sh --no-gamepad      # the keys only, for this run
-./run.sh --scale 3         # a smaller or bigger window: 1 to 6 times (4 by default)
-./run.sh --lives 9         # practice: nine lives in reserve
-./run.sh --infinite-lives  # practice: die as often as you like
-./run.sh --god             # practice: nothing can kill you
-./run.sh --amulet-set 3    # practice: hide the amulet in the original's set 3 (0-7),
-                           # not in a set picked at random each game
-./run.sh --new-game-plus 1 # practice: start at Mr Jones's job 1 (2 halves) or 2 (whole)
-./run.sh endings           # see every ending in turn: the game's, then each job's
-                           # (practice runs never reach the hi-score table)
-./run.sh --user-dir ./save # keep hi-scores, settings and stats somewhere else
-./run.sh browse            # the room browser: arrows, [ ] or PgUp/PgDn, M
-./run.sh replay            # re-run every recorded replay and check it still matches
-./run.sh check             # validate every data file and exit
-./run.sh audit             # can every room still be reached?
-./run.sh sprites sheet     # every scenery object, drawn in the terminal
-./run.sh jar               # build the single runnable jar and play from it
-./run.sh menu              # all of the above as a list to pick from
-./run.sh help              # every command and option
-```
-
-## Build and run
-
-Needs a JDK 21+ and Maven.
-
-```bash
-./run.sh               # build if needed, then play
-./run.sh --scale 3     # options are passed through to the game
-./run.sh --headless    # load and validate the data, then exit
-./run.sh --test        # full verify (tests + CI gates) first
-./run.sh --help
-```
-
-`run.sh` is a convenience wrapper; Maven is the build:
-
-```bash
-mvn -q verify            # compile, test, validate all data, run the CI gates
-mvn -q -Pheadless verify # the same on a machine with no display
-mvn -q exec:java         # run
-mvn -q package && java -jar target/wulfquest-0.1.0-SNAPSHOT.jar
-```
-
-That jar is self-contained: copy it anywhere and run it, with no `data/`
-directory and no classpath.
-
-Editing anything under `data/` takes effect on the next `./run.sh` with no
-rebuild — the game reads the working tree's `data/` directly.
+**Sound.** Hard-edged square waves and noise, synthesised as it goes, on two
+channels: footsteps, the blade, a howl when the Wulf arrives and a growl that
+stays until it is gone. There are three tunes, none of which plays in the
+jungle, where there is only the jungle.
 
 ## Controls
 
@@ -268,59 +179,11 @@ through the foliage a black shape cut out of it; one-colour sprites draws Vale
 and each creature in a single ink, as the original did; and sprite flicker makes creatures crowded into one spot take
 turns to be drawn, the way a Spectrum ran out of time to draw them all.
 
-## How it is built
+## Building it yourself
 
-- **Java 21, Java2D, no engine.** A 320×256 indexed-colour framebuffer
-  scaled by an integer factor. A fixed 50 Hz simulation with fixed-point
-  integer maths, so a run is bit-for-bit reproducible from its seed.
-- **JSON files are the database.** Every creature, speed, timing, score,
-  palette entry, sound, and string lives in `data/`, schema-validated at
-  boot. No game constant exists in the Java source.
-- **The artwork is text.** Every sprite is a JSON grid of palette-index
-  characters, so all the art in this game is authored, reviewable in a diff,
-  and ours. The build fails if any binary image or audio file appears in the
-  repository.
-- **The audio is synthesised.** Square waves with hard edges and an LFSR for
-  noise, generated at runtime, in the spirit of a one-bit speaker. Two channels,
-  mixed by addition and clipped. The tunes share those channels: a sound effect
-  steals the one the music is on, and the music keeps going underneath.
-
-## How it is checked
-
-`mvn -q verify` runs 578 tests and every gate the project has:
-
-- **The data validates itself.** Every JSON file is schema-checked at load,
-  and the semantic validators go further — a palette colour that does not
-  exist, a sprite frame an animation needs and has not got, a lair on a solid
-  cell, a hotkey bound twice. A typo is a readable in-game DATA ERROR screen
-  naming the file and the JSON pointer, never a stack trace.
-- **Golden frames.** The framebuffer is hashed at four ticks of a fixed run
-  and once per menu screen, so a sprite that moves by a pixel or a panel that
-  loses a digit fails the build. Regenerate them deliberately with
-  `mvn -q verify -Dgolden.update=true`, and say in the commit why they moved.
-- **Replays.** `replays/*.json` are recorded runs with the simulation's state
-  hash every 50 ticks; every one of them is re-executed on every build. A
-  divergence means determinism broke, and is never fixed by updating the hash.
-  Three of them also assert what they were recorded to show: a Wulf chase
-  survived across four rooms, the north-west quarter fetched and carried out,
-  and the whole game won without a death.
-- **Architecture.** The simulation is scanned for any reference to AWT, Swing,
-  sound, `java.util.Random`, the wall clock, or a `float` in a signature. It
-  has none, which is why a run is reproducible from its seed and why the sound
-  added in M8 cannot change what happens.
-- **No binaries.** The build fails if any image or audio file appears in the
-  repository. All the art is JSON; all the audio is synthesised at runtime.
-
-## Repository layout
-
-```
-AGENTS.md     the full specification and working agreement — start here
-data/         the content database (world, entities, art, audio, config)
-src/main/     engine, simulation, renderer, data layer
-src/test/     unit tests, data validators, replay and golden-frame checks
-tools/        CI gates, the art forges that draw the scenery, the creatures,
-              Ranger Vale and the font, and the forge that writes the music
-```
+Wulf Quest is free software, and its source is all here. How to build it,
+run it from the source, change the jungle and check your change is in
+[DEVELOPER.md](DEVELOPER.md).
 
 ## Credits and attribution
 

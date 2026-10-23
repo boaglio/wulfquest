@@ -278,7 +278,7 @@ Three behaviours worth knowing:
 wulfquest/
   AGENTS.md                     this file — the contract
   DEVELOPER.md                  everything technical, for people: modules, commands, checks, releasing
-  README.md                     player-facing; carries the §2.5 attribution
+  README.md                     for players only; carries the §2.5 attribution
   pom.xml                       Maven parent — the source of truth; the modules are core and desktop
   run.sh                        convenience wrapper around it, §3.2
   .gitattributes                LF endings for all text, §20.9
@@ -380,6 +380,9 @@ Rules:
   plumbing constants (buffer sizes, thread counts) are fine.
 - Nothing in either module writes to `data/**`. Saves go to the OS user data
   dir (§21.1).
+- **`README.md` is for players**: what the game is, how to get it, how to play
+  it, the §2.5 text and the licence. Anything about building, testing, the
+  code or releasing goes in `DEVELOPER.md` (the user's decision, 2026-10-23).
 
 ---
 
