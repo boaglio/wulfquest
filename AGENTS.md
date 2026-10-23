@@ -164,7 +164,7 @@ In `README.md` and in the credits that roll after a win (§14.7; until
 The whole repository — code, art, music and data — is free software under the
 **GNU General Public License, version 3 or later** (`GPL-3.0-or-later`). The
 full text is `LICENSE` at the root, and it travels with every copy: inside the
-jar (a `pom.xml` resource) and beside the launcher in each release archive
+jar (a `desktop/pom.xml` resource) and beside the launcher in each release archive
 (`tools/package.sh`). The credits (`shell.json → credits.lines`, §14.7) end with a short notice of it,
 after the §2.5 text, which stays verbatim. A dependency must stay compatible
 with the GPLv3 (Jackson, the schema validator and Jamepad are Apache-2.0, and
@@ -177,7 +177,7 @@ the SDL2 inside Jamepad is zlib, which both are).
 | Item | Choice |
 |------|--------|
 | Language | **Java 21** (`--release 21`); the dev box has JDK 25, do not use preview features |
-| Build | **Maven** (`pom.xml` at root); `./run.sh` is a thin wrapper over it (§3.2) |
+| Build | **Maven**: a parent `pom.xml` at the root with two modules, `core` and `desktop` (§4); `./run.sh` is a thin wrapper over it (§3.2) |
 | Rendering | **Java2D** on an AWT `Canvas` with `BufferStrategy`, hosted in a `JFrame` |
 | Audio | `javax.sound.sampled.SourceDataLine`, samples generated in-process |
 | JSON | **Jackson 3** (`tools.jackson.core:jackson-databind`) — the `tools.jackson` package, not `com.fasterxml` |
@@ -196,15 +196,21 @@ mvn -q -Pheadless verify       # the same on a machine with no display
 mvn -q -Pfast verify           # skip anything tagged slow
 mvn -q verify -Dgolden.update=true   # rewrite the golden frames (§22.5), deliberately
 mvn -q test                    # unit tests only
-mvn -q exec:java                                      # run the game
-mvn -q exec:java -Dexec.args="--dev"                  # run with hot-reload + debug overlay
-mvn -q exec:java -Dexec.args="--room 8,10"            # boot straight into a room
-mvn -q exec:java -Dexec.args="--seed 12345"           # fixed PRNG seed
-mvn -q exec:java -Dexec.args="--scale 3 --no-audio"
-mvn -q exec:java -Dexec.mainClass=wulf.tools.MapAudit        # §22.3
-mvn -q exec:java -Dexec.mainClass=wulf.tools.SpriteForgeCli  # §10.3
-mvn -q exec:java -Dexec.mainClass=wulf.tools.ReplayRunner -Dexec.args="replays/foo.json"
+mvn -q compile exec:java                                      # run the game
+mvn -q compile exec:java -Dexec.args="--dev"                  # run with hot-reload + debug overlay
+mvn -q compile exec:java -Dexec.args="--room 8,10"            # boot straight into a room
+mvn -q compile exec:java -Dexec.args="--seed 12345"           # fixed PRNG seed
+mvn -q compile exec:java -Dexec.args="--scale 3 --no-audio"
+mvn -q compile exec:java -Dexec.mainClass=wulf.tools.MapAudit        # §22.3
+mvn -q compile exec:java -Dexec.mainClass=wulf.tools.SpriteForgeCli  # §10.3
+mvn -q compile exec:java -Dexec.mainClass=wulf.tools.ReplayRunner -Dexec.args="replays/foo.json"
 ```
+
+`exec:java` needs `compile` in the same command since the split into modules
+(2026-10-23): that is how Maven finds core's classes in `core/target/classes`
+without installing a jar of it. It runs in `desktop` only; the parent and
+`core` skip it. Every module's tests run with the repository root as their
+working directory, so `data/` and `replays/` are where they always were.
 
 On a display-less machine, `--headless` validates the content and
 `HeadlessSimTest` plays 100 000 ticks with no window; neither may touch AWT
@@ -248,8 +254,8 @@ that is not a script option; the default is `play`):
 Three behaviours worth knowing:
 
 - **Editing `data/` does not trigger a rebuild.** Staleness is judged from
-  `pom.xml` and `src/main` only, because the game reads `./data` from the
-  working tree first (§20.1). Content edits are picked up on the next run with
+  the three `pom.xml` files and the modules' `src/main` only, because the game
+  reads `./data` from the working tree first (§20.1). Content edits are picked up on the next run with
   no compile at all — a cold run is ~4.5 s, a warm one ~0.4 s.
 - It reads the Java version from the line that carries it, not the first
   line: with `JAVA_TOOL_OPTIONS` set the JVM prints `Picked up ...` first, and
@@ -271,8 +277,9 @@ Three behaviours worth knowing:
 ```
 wulfquest/
   AGENTS.md                     this file — the contract
+  DEVELOPER.md                  everything technical, for people: modules, commands, checks, releasing
   README.md                     player-facing; carries the §2.5 attribution
-  pom.xml                       Maven build — the source of truth
+  pom.xml                       Maven parent — the source of truth; the modules are core and desktop
   run.sh                        convenience wrapper around it, §3.2
   .gitattributes                LF endings for all text, §20.9
   .gitignore                    target/, attic/, *.log, save/
@@ -325,34 +332,54 @@ wulfquest/
     i18n/
       en.json                   every user-visible string
   save/                         WRITTEN AT RUNTIME to the user data dir, not here
-  src/main/java/wulf/
-    Boot.java                   main(), CLI args, window setup
-    Content.java                loads and cross-checks the whole content DB, for game and tools
-    engine/                     tick loop, timing, fixed-point, PRNG, replay
-    render/                     Framebuffer, Blitter, Palette, Scaler, HudPainter, AppIcon
-    audio/                      BeeperSynth, Mixer
-    input/                      InputMap, InputState, RecordedInput; the gamepad: PadMap, GamepadInput, SdlPad (§19.3)
-    data/                       JsonDb, repositories, records, schema validation
-    world/                      Room, RoomGrid, CollisionMask, RoomTransition
-    sim/                        Simulation, entity systems, collision, effects
-    sim/ai/                     one class per behaviour in §12.5
-    ui/                         Shell (the state machine), ShellPainter, GamePainter,
+  core/                         THE GAME, for every platform (no AWT, Swing, sound, ImageIO, Jamepad)
+    pom.xml                     packs data/ and replays/attract.json into its jar
+    src/main/java/wulf/
+      Content.java              loads and cross-checks the whole content DB, for game and tools
+      engine/                   tick loop, timing, fixed-point, PRNG, replay
+      render/                   Framebuffer, the painters, Fonts, AttributeClash
+      audio/                    BeeperSynth
+      input/                    InputState, MenuInput, RecordedInput; the gamepad's mapping: PadMap, GamepadInput (§19.3)
+      data/                     JsonDb, repositories, records, schema validation
+      world/                    Room, RoomGrid, CollisionMask, RoomTransition
+      sim/                      Simulation, entity systems, collision, effects
+      sim/ai/                   one class per behaviour in §12.5
+      ui/                       Shell (the state machine), ShellPainter, GamePainter,
                                 GameSession, and one class per screen
-    tools/                      MapAudit, SpriteForgeCli, HeadlessSim, ReplayRunner, IconForge
-  src/test/java/wulf/           mirrors the above
-  src/test/resources/golden/    play.hash and shell.hash — framebuffer hashes, §22.5
+      tools/                    MapAudit, SpriteForgeCli, ReplayRunner
+    src/test/java/wulf/         mirrors the above
+    src/test/resources/golden/  play.hash and shell.hash — framebuffer hashes, §22.5
+  desktop/                      WINDOWS, LINUX AND THE JAR, around core
+    pom.xml                     the shaded jar, wulfquest-VERSION.jar (§24 M8/M9, §28)
+    src/main/java/wulf/
+      Boot.java                 main(), CLI args, the loop, the window's mode
+      render/                   Window, Scaler (scanlines, glow), AppIcon
+      audio/                    Mixer (javax.sound)
+      input/                    KeyboardInput, InputMap; SdlPad (Jamepad, §19.3)
+      tools/                    IconForge, PadProbe
+    src/main/resources/         the gamepad mappings file (§19.3)
+    src/test/java/wulf/         ScalerTest, the keyboard, the mixer, the icon, the command line
   replays/                      recorded input streams for regression, §22.6
 ```
 
+Planned, not started (DEVELOPER.md, "Where it is going"): `steam/` and
+`android/` as further modules beside `desktop`, sharing `core`; the MSX
+version in its own repository, `wulfquest-msx`, taking only `data/` from this
+one as a git submodule.
+
 Rules:
 
-- `src/main/java/wulf/sim/**` must not import `java.awt.*`, `javax.swing.*`,
-  or `javax.sound.*`. Enforced by a test (§22.4).
+- **Nothing in `core/` may reference `java.awt`, `javax.swing`, `javax.sound`,
+  `javax.imageio` or Jamepad.** `CorePurityTest` scans every compiled core
+  class (§22.4). Code that needs one of them goes in a platform module, behind
+  an interface core already has (`SoundSink`, `GamepadInput.Source`, the
+  framebuffer) or a new one. A package may have classes in both modules.
+- `core/src/main/java/wulf/sim/**` is stricter still (§22.4, `SimPurityTest`).
 - `data/**` is the only source of game values. A numeric literal describing
-  game behaviour inside `src/**` is a defect. Engine plumbing constants
-  (buffer sizes, thread counts) are fine.
-- Nothing in `src/**` writes to `data/**`. Saves go to the OS user data dir
-  (§21.1).
+  game behaviour inside `core/src/**` or `desktop/src/**` is a defect. Engine
+  plumbing constants (buffer sizes, thread counts) are fine.
+- Nothing in either module writes to `data/**`. Saves go to the OS user data
+  dir (§21.1).
 
 ---
 
@@ -3294,7 +3321,7 @@ report from a player with a pad is the first thing to act on.
   which would leave Windows out. SDL knows the common pads' layouts — Xbox,
   PlayStation, Switch — so a button name means a *place*: `A` is the bottom
   face button on all of them. SDL's built-in mappings are the ones used; our
-  mappings file (`src/main/resources/wulf/input/pad_mappings.txt`, read at
+  mappings file (`desktop/src/main/resources/wulf/input/pad_mappings.txt`, read at
   start, otherwise Jamepad prints a stack trace) is empty, and a line in SDL's
   gamecontrollerdb format there teaches it one more pad. The shaded jar leaves
   out Jamepad's 32-bit natives; it says `Enable-Native-Access: ALL-UNNAMED`,
@@ -3692,6 +3719,9 @@ Runs over the whole baked world and reports/asserts:
 
 ### 22.4 Architecture tests
 
+- `CorePurityTest` — scans every class compiled in `core/` for references to
+  `java.awt`, `javax.swing`, `javax.sound`, `javax.imageio` and Jamepad. Any
+  hit fails: core is shared by every platform (§4).
 - `SimPurityTest` — reflectively scans `wulf.sim`, `wulf.world`,
   `wulf.engine` for references to `java.awt`, `javax.swing`, `javax.sound`,
   `java.io.File`, `java.net`, `java.util.Random`, `Math.random`, `float`,
@@ -3704,7 +3734,7 @@ Runs over the whole baked world and reports/asserts:
 
 For a fixed seed and a fixed input script, hash the framebuffer
 (`byte[320*256]`) at ticks 1, 50, 200, 1000 and compare to
-`src/test/resources/golden/*.hash`. Regenerate deliberately with
+`core/src/test/resources/golden/*.hash`. Regenerate deliberately with
 `-Dgolden.update=true`, and **explain every intentional change in the commit
 message**. This catches accidental rendering and layout drift better than
 any screenshot review.
@@ -4709,7 +4739,7 @@ never let a version start with 1 anywhere, until the user says it is ready.
 
 
 1. **jar** (Ubuntu): `mvn -Pheadless verify` — every test, validator and gate
-   — then the shaded jar, renamed `wulfquest-VERSION.jar`.
+   — then the shaded jar from `desktop/target/`, renamed `wulfquest-VERSION.jar`.
 2. **app**, once per platform, from that one jar: Linux x64 and Windows x64.
    Each runs `tools/package.sh`. **No macOS app for now** (§28.4): Mac
    players use the jar.

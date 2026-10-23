@@ -4,7 +4,7 @@
 # The release workflow runs it on Linux and Windows (Git Bash); it runs the
 # same way here on a dev box with JDK 21 or later. No macOS app for now (§28.4).
 #
-#   tools/package.sh JAR VERSION      e.g. target/wulfquest-0.2.0.jar 0.2.0
+#   tools/package.sh JAR VERSION      e.g. desktop/target/wulfquest-0.2.0.jar 0.2.0
 #
 # Everything it writes stays under target/package/ (the binaries gate, §2.4,
 # does not look there). The archive's path is the last line it prints.

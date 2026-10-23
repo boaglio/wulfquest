@@ -20,7 +20,7 @@ import org.junit.jupiter.api.Test;
  */
 class SimPurityTest {
 
-    private static final Path CLASSES = Path.of("target", "classes");
+    private static final Path CLASSES = Path.of("core", "target", "classes");
 
     private static List<Path> classesIn(String pkg) throws IOException {
         Path dir = CLASSES.resolve(pkg);

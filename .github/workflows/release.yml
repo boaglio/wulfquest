@@ -47,7 +47,7 @@ jobs:
         run: |
           shopt -s nullglob
           jars=()
-          for j in target/wulfquest-*.jar; do
+          for j in desktop/target/wulfquest-*.jar; do
             [[ "$(basename "$j")" == original-* ]] || jars+=("$j")
           done
           [[ ${#jars[@]} -eq 1 ]] || { echo "::error::expected one runnable jar, found ${#jars[@]}"; exit 1; }

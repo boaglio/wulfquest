@@ -14,7 +14,7 @@ cd "$(dirname "$0")/.."
 readonly FORBIDDEN_EXT='png|jpg|jpeg|gif|bmp|ico|webp|tiff?|svg|wav|mp3|ogg|flac|aiff?|mid|midi|ttf|otf|woff2?|z80|sna|szx|tap|tzx|rom|bin|dsk|trd|scr'
 
 # Directories that are not part of the repository proper.
-readonly PRUNE='-path ./.git -o -path ./target -o -path ./attic -o -path ./out'
+readonly PRUNE='-path ./.git -o -path ./target -o -path ./*/target -o -path ./attic -o -path ./out'
 
 fail=0
 

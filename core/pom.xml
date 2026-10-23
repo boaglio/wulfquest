@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  The game itself, for every platform: simulation, world, data, menus and the
+  framebuffer they draw into. Nothing here may touch AWT, Swing or sound
+  (CorePurityTest); a platform brings its own window, input and speaker.
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>wulf</groupId>
+    <artifactId>wulfquest-parent</artifactId>
+    <version>0.1.0-SNAPSHOT</version>
+  </parent>
+
+  <artifactId>wulfquest-core</artifactId>
+  <name>Wulf Quest core</name>
+
+  <dependencies>
+    <dependency>
+      <groupId>tools.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.networknt</groupId>
+      <artifactId>json-schema-validator</artifactId>
+    </dependency>
+    <!-- json-schema-validator pulls slf4j-api; without a provider it prints a
+         three-line banner on every run. The game has no logging framework. -->
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-nop</artifactId>
+      <scope>runtime</scope>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <resources>
+      <!-- The content DB (AGENTS.md §20.1) ships inside the jar. -->
+      <resource>
+        <directory>${project.basedir}/../data</directory>
+        <targetPath>data</targetPath>
+      </resource>
+      <!-- The attract-mode demo travels with the game (§17.2), so a shipped jar
+           still plays itself on the title screen. -->
+      <resource>
+        <directory>${project.basedir}/../replays</directory>
+        <targetPath>replays</targetPath>
+        <includes><include>attract.json</include></includes>
+      </resource>
+    </resources>
+
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+      </plugin>
+      <!-- `mvn compile exec:java` runs the game, which is desktop's to run; the tools
+           in core run through it too, being on its classpath. -->
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
+        <configuration>
+          <skip>true</skip>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+</project>

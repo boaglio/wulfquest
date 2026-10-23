@@ -5,7 +5,7 @@ import java.util.Set;
 
 /**
  * The gamepad side of input (AGENTS.md §19.3). Read once a tick on the game thread, like the
- * keyboard's {@link KeyboardInput#sample()}, into the same {@link InputState} — so the
+ * keyboard's {@code KeyboardInput.sample()} (desktop), into the same {@link InputState} — so the
  * simulation, and every replay, cannot tell a pad from the keys — and into a
  * {@link MenuInput} for the shell's own buttons.
  *
@@ -14,7 +14,7 @@ import java.util.Set;
  */
 public final class GamepadInput {
 
-    /** Where the readings come from: {@link SdlPad} in the game, a script in the tests. */
+    /** Where the readings come from: {@code SdlPad} on the desktop, a script in the tests. */
     public interface Source {
 
         Source NONE = () -> PadReading.NONE;

@@ -1,7 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  Wulf Quest — build definition.  See AGENTS.md §3 for the canonical
+  Wulf Quest — the parent build. See DEVELOPER.md for the modules and the
   command list; do not invoke javac directly.
+
+  core     the game: simulation, world, data, menus, the framebuffer. No AWT,
+           Swing or sound (CorePurityTest), so every platform can share it.
+  desktop  Windows, Linux and the jar: the window, keys, gamepads, sound, Boot.
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -9,9 +13,9 @@
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>wulf</groupId>
-  <artifactId>wulfquest</artifactId>
+  <artifactId>wulfquest-parent</artifactId>
   <version>0.1.0-SNAPSHOT</version>
-  <packaging>jar</packaging>
+  <packaging>pom</packaging>
 
   <name>Wulf Quest</name>
   <description>A clean-room homage to the 1984 flip-screen jungle maze. All art, audio and code original.</description>
@@ -22,6 +26,11 @@
       <url>https://www.gnu.org/licenses/gpl-3.0.html</url>
     </license>
   </licenses>
+
+  <modules>
+    <module>core</module>
+    <module>desktop</module>
+  </modules>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -44,40 +53,47 @@
     -->
     <excludedGroups></excludedGroups>
 
-    <mainClass>wulf.Boot</mainClass>
-    <!-- -Dexec.mainClass=wulf.tools.X runs a tool; the exec plugin reads this, defaulting to the game. -->
-    <exec.mainClass>${mainClass}</exec.mainClass>
     <!-- §22.5: -Dgolden.update=true rewrites the golden frames instead of checking them. -->
     <golden.update>false</golden.update>
+
+    <!-- The game's entry point, in desktop. -Dexec.mainClass=wulf.tools.X runs a tool
+         instead; exec:java runs in desktop only (it is skipped here and in core). -->
+    <mainClass>wulf.Boot</mainClass>
+    <exec.mainClass>${mainClass}</exec.mainClass>
   </properties>
 
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>wulf</groupId>
+        <artifactId>wulfquest-core</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>tools.jackson.core</groupId>
+        <artifactId>jackson-databind</artifactId>
+        <version>${jackson.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.networknt</groupId>
+        <artifactId>json-schema-validator</artifactId>
+        <version>${jsonschema.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.badlogicgames.jamepad</groupId>
+        <artifactId>jamepad</artifactId>
+        <version>${jamepad.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.slf4j</groupId>
+        <artifactId>slf4j-nop</artifactId>
+        <version>2.0.17</version>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+
+  <!-- Every module is tested the same way. -->
   <dependencies>
-    <dependency>
-      <groupId>tools.jackson.core</groupId>
-      <artifactId>jackson-databind</artifactId>
-      <version>${jackson.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>com.networknt</groupId>
-      <artifactId>json-schema-validator</artifactId>
-      <version>${jsonschema.version}</version>
-    </dependency>
-
-    <dependency>
-      <groupId>com.badlogicgames.jamepad</groupId>
-      <artifactId>jamepad</artifactId>
-      <version>${jamepad.version}</version>
-    </dependency>
-
-    <!-- json-schema-validator pulls slf4j-api; without a provider it prints a
-         three-line banner on every run. The game has no logging framework. -->
-    <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-nop</artifactId>
-      <version>2.0.17</version>
-      <scope>runtime</scope>
-    </dependency>
-
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter</artifactId>
@@ -93,136 +109,73 @@
   </dependencies>
 
   <build>
-    <resources>
-      <!-- §19.3: the gamepad's own mappings file, which SDL reads at start. -->
-      <resource>
-        <directory>src/main/resources</directory>
-      </resource>
-      <!-- The content DB (AGENTS.md §20.1) ships inside the jar. -->
-      <resource>
-        <directory>data</directory>
-        <targetPath>data</targetPath>
-      </resource>
-      <!-- The attract-mode demo travels with the game (§17.2), so a shipped jar
-           still plays itself on the title screen. -->
-      <!-- The GPL travels with every copy of the game (README: Licence). -->
-      <resource>
-        <directory>${project.basedir}</directory>
-        <includes><include>LICENSE</include></includes>
-      </resource>
-      <resource>
-        <directory>replays</directory>
-        <targetPath>replays</targetPath>
-        <includes><include>attract.json</include></includes>
-      </resource>
-    </resources>
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-compiler-plugin</artifactId>
+          <version>3.14.1</version>
+          <configuration>
+            <compilerArgs>
+              <arg>-Xlint:all</arg>
+              <arg>-Werror</arg>
+            </compilerArgs>
+          </configuration>
+        </plugin>
+
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-surefire-plugin</artifactId>
+          <version>3.5.6</version>
+          <configuration>
+            <!-- Tests read data/ and replays/ where they are: at the top of the repository. -->
+            <workingDirectory>${project.basedir}/..</workingDirectory>
+            <excludedGroups>${excludedGroups}</excludedGroups>
+            <failIfNoSpecifiedTests>false</failIfNoSpecifiedTests>
+            <systemPropertyVariables>
+              <!-- §22.5: the golden frames are rewritten only when you ask for it. -->
+              <golden.update>${golden.update}</golden.update>
+            </systemPropertyVariables>
+          </configuration>
+        </plugin>
+
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-jar-plugin</artifactId>
+          <version>3.5.1</version>
+        </plugin>
+
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-shade-plugin</artifactId>
+          <version>3.6.0</version>
+        </plugin>
+
+        <plugin>
+          <groupId>org.codehaus.mojo</groupId>
+          <artifactId>exec-maven-plugin</artifactId>
+          <version>3.6.4</version>
+        </plugin>
+      </plugins>
+    </pluginManagement>
 
     <plugins>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.14.1</version>
-        <configuration>
-          <compilerArgs>
-            <arg>-Xlint:all</arg>
-            <arg>-Werror</arg>
-          </compilerArgs>
-        </configuration>
-      </plugin>
-
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-surefire-plugin</artifactId>
-        <version>3.5.6</version>
-        <configuration>
-          <excludedGroups>${excludedGroups}</excludedGroups>
-          <failIfNoSpecifiedTests>false</failIfNoSpecifiedTests>
-          <systemPropertyVariables>
-            <!-- §22.5: the golden frames are rewritten only when you ask for it. -->
-            <golden.update>${golden.update}</golden.update>
-          </systemPropertyVariables>
-        </configuration>
-      </plugin>
-
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-jar-plugin</artifactId>
-        <version>3.5.1</version>
-        <configuration>
-          <archive>
-            <manifest>
-              <mainClass>${mainClass}</mainClass>
-            </manifest>
-          </archive>
-        </configuration>
-      </plugin>
-
-      <!--
-        AGENTS.md §24 M8/M9: one double-clickable jar. Shade folds the
-        dependencies and the content database into the artifact itself, so the
-        game runs from wherever it is dropped with no classpath and no data/
-        directory beside it (JsonDb falls back to the classpath, §20.1).
-      -->
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-shade-plugin</artifactId>
-        <version>3.6.0</version>
-        <executions>
-          <execution>
-            <phase>package</phase>
-            <goals><goal>shade</goal></goals>
-            <configuration>
-              <createDependencyReducedPom>false</createDependencyReducedPom>
-              <filters>
-                <filter>
-                  <artifact>*:*</artifact>
-                  <excludes>
-                    <!-- Other people's signatures do not survive being repacked. -->
-                    <exclude>META-INF/*.SF</exclude>
-                    <exclude>META-INF/*.DSA</exclude>
-                    <exclude>META-INF/*.RSA</exclude>
-                    <exclude>module-info.class</exclude>
-                  </excludes>
-                </filter>
-                <!-- §19.3: Jamepad's 32-bit natives; no Java 21 runtime we ship or name runs there. -->
-                <filter>
-                  <artifact>com.badlogicgames.jamepad:jamepad</artifact>
-                  <excludes>
-                    <exclude>jamepad.dll</exclude>
-                    <exclude>libjamepad.so</exclude>
-                    <exclude>libjamepadarm.so</exclude>
-                  </excludes>
-                </filter>
-              </filters>
-              <transformers>
-                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                  <mainClass>${mainClass}</mainClass>
-                  <manifestEntries>
-                    <!-- §19.3: Jamepad loads its natives; Java 24 and later warn unless the jar says so. -->
-                    <Enable-Native-Access>ALL-UNNAMED</Enable-Native-Access>
-                  </manifestEntries>
-                </transformer>
-                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
-              </transformers>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-
+      <!-- AGENTS.md §2.4: the no-binaries gate blocks the build. Once, over the whole repository. -->
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>exec-maven-plugin</artifactId>
-        <version>3.6.4</version>
+        <inherited>false</inherited>
+        <!-- exec:java runs the game in desktop only; here there is nothing to run. -->
         <configuration>
-          <mainClass>${exec.mainClass}</mainClass>
+          <skip>true</skip>
         </configuration>
         <executions>
-          <!-- AGENTS.md §2.4: the no-binaries gate blocks the build. -->
           <execution>
             <id>check-no-binaries</id>
             <phase>verify</phase>
             <goals><goal>exec</goal></goals>
             <configuration>
+              <skip>false</skip>
               <executable>${project.basedir}/tools/check-no-binaries.sh</executable>
             </configuration>
           </execution>

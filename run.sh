@@ -22,8 +22,9 @@ set -euo pipefail
 cd "$(dirname "${BASH_SOURCE[0]}")"
 
 readonly MAIN_CLASS="wulf.Boot"
-readonly CLASSES="target/classes"
-readonly CP_FILE="target/cp.txt"
+# DEVELOPER.md, Modules: the game is core, the window and keys around it desktop.
+readonly CLASSES="core/target/classes:desktop/target/classes"
+readonly CP_FILE="desktop/target/cp.txt"
 readonly STAMP="target/.build-stamp"
 readonly MIN_JAVA=21
 
@@ -192,9 +193,10 @@ needs_maven() {
 # ---------------------------------------------------------------- build
 
 is_stale() {
-    [[ -d "$CLASSES" && -f "$STAMP" && -s "$CP_FILE" ]] || return 0
+    [[ -d core/target/classes && -d desktop/target/classes && -f "$STAMP" && -s "$CP_FILE" ]] || return 0
     # Only code and build config invalidate the compile; data/ does not.
-    [[ -n "$(find pom.xml src/main -newer "$STAMP" -print -quit 2>/dev/null)" ]]
+    [[ -n "$(find pom.xml core/pom.xml desktop/pom.xml core/src/main desktop/src/main \
+               -newer "$STAMP" -print -quit 2>/dev/null)" ]]
 }
 
 if [[ "$DO_CLEAN" -eq 1 ]]; then
@@ -207,20 +209,24 @@ if [[ "$RUN_TESTS" -eq 1 ]]; then
     needs_maven
     echo "run.sh: verifying (tests + CI gates)"
     mvn -q verify || die "verify failed"
-    touch "$STAMP"
+    mkdir -p target && touch "$STAMP"
 elif [[ "$RUN_BUILD" == "force" ]] || { [[ "$RUN_BUILD" == "auto" ]] && is_stale; }; then
     needs_maven
     echo "run.sh: building"
     mvn -q compile || die "build failed"
-    touch "$STAMP"
+    mkdir -p target && touch "$STAMP"
 fi
 
-[[ -d "$CLASSES" ]] || die "nothing compiled in $CLASSES (drop --no-build to build it)"
+[[ -d core/target/classes && -d desktop/target/classes ]] \
+    || die "nothing compiled in core/ and desktop/ (drop --no-build to build it)"
 
-if [[ ! -s "$CP_FILE" || "pom.xml" -nt "$CP_FILE" ]]; then
+if [[ ! -s "$CP_FILE" || "pom.xml" -nt "$CP_FILE" || "core/pom.xml" -nt "$CP_FILE" || "desktop/pom.xml" -nt "$CP_FILE" ]]; then
     needs_maven
     echo "run.sh: resolving dependencies"
-    mvn -q dependency:build-classpath -Dmdep.outputFile="$CP_FILE" \
+    # With compile in the same run, Maven finds core in core/target/classes rather than
+    # looking for a jar of it that was never installed. Each module writes its own
+    # target/cp.txt; desktop's is the one the game needs.
+    mvn -q compile dependency:build-classpath -Dmdep.outputFile=target/cp.txt \
         || die "could not resolve the dependency classpath"
 fi
 
@@ -253,10 +259,10 @@ case "$COMMAND" in
         mvn -q package -DskipTests || die "packaging failed"
         shopt -s nullglob
         jars=()
-        for j in target/wulfquest-*.jar; do
+        for j in desktop/target/wulfquest-*.jar; do
             [[ "$(basename "$j")" == original-* ]] || jars+=("$j")
         done
-        [[ ${#jars[@]} -eq 1 ]] || die "expected one runnable jar in target/, found ${#jars[@]}"
+        [[ ${#jars[@]} -eq 1 ]] || die "expected one runnable jar in desktop/target/, found ${#jars[@]}"
         exec java -jar "${jars[0]}" "${ARGS[@]}" ;;
     test)    echo "run.sh: verify passed"; exit 0 ;;
 esac

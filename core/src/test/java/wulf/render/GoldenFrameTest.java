@@ -44,7 +44,7 @@ class GoldenFrameTest {
     private static final int[] TICKS = {1, 50, 200, 1000};
     private static final long SEED = 20260920L;
 
-    private static final Path GOLDEN = Path.of("src", "test", "resources", "golden");
+    private static final Path GOLDEN = Path.of("core", "src", "test", "resources", "golden");
     private static final boolean UPDATE = Boolean.getBoolean("golden.update");
 
     private static final JsonDb DB = new JsonDb(Path.of("data"));
